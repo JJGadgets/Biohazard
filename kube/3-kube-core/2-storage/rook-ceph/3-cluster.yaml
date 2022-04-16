@@ -10,7 +10,7 @@ spec:
   # use rook-ceph-charts from ./kube/1-bootstrap/flux/flux-system/chart to reference package from Helm repo
   chart:
     spec:
-      chart: rook-ceph
+      chart: rook-ceph-cluster
       version: v1.9.0
       sourceRef:
         kind: HelmRepository
