@@ -2,12 +2,12 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: rook-ceph
+  name: rook-ceph-operator
   namespace: rook-ceph
 spec:
   interval: 5m
 
-  # install manifest
+  # use rook-ceph-charts from ./kube/1-bootstrap/flux/flux-system/chart to reference package from Helm repo
   chart:
     spec:
       chart: rook-ceph
@@ -25,7 +25,7 @@ spec:
     # enable monitoring
     monitoring:
       enabled: true
-    # limit resources used
+    # limit resources used by operator
     resources:
       requests:
         cpu: 100m
@@ -46,3 +46,6 @@ spec:
     crds: CreateReplace
     remediation:
       retries: 5
+
+# notes:
+# Rook operator manages the Ceph "cluster" storage deployment
