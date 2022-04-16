@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: 3-kube-core
+  namespace: flux-system
+spec:
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./kube/3-kube-core
+  interval: 1m0s
+
+  dependsOn:
+    - name: 2-kube-crds
+
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+
+  prune: false
+  # wait: true
