@@ -11,8 +11,8 @@ spec:
   path: ./kube/3-kube-core
   interval: 1m0s
 
-  dependsOn:
-    - name: 2-kube-crds
+  # dependsOn:
+  #   - name: 2-kube-crds
 
   decryption:
     provider: sops
