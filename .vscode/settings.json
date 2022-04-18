@@ -3,5 +3,7 @@
         "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/kustomization-kustomize-v1beta2.json": ["kustomization.yaml", "kustomization.yml", "*-fKt.yaml", "*-fKt.yml"],
         "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/helmrelease-helm-v2beta1.json": ["helm-release.yaml", "helm-release.yml", "*-fHr.yaml", "*-fHr.yml"],
         "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/helmrepository-helm-v1beta2.json": ["charts/*", "charts/*/*", "*-charts.yaml", "*-charts.yml"],
-    }
+    },
+    "git.autofetch": "all",
+    "git.autoStash": true
 }
