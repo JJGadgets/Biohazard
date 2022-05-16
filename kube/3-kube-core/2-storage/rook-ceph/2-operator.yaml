@@ -37,13 +37,13 @@ spec:
   install:
     # create namespace and CRDs in case the namespace manifests aren't applied
     createNamespace: true
-    crds: CreateReplace
+    #crds: CreateReplace
     remediation:
       retries: 5
 
   # customize upgrade process
   upgrade:
-    crds: CreateReplace
+    #crds: CreateReplace
     remediation:
       retries: 5
 
