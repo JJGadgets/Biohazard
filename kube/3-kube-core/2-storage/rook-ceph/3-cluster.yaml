@@ -49,13 +49,13 @@ spec:
         # storage topology itself, define which drive/partition device to be used from which nodes
         # for Proxmox VMs, the OS virtual disk will be attached to sda via VirtIO SCSI and the Ceph virtual disk will be attached to vda via VirtIO Block
         nodes:
-          - name: kube-worker1
+          - name: kube-pve-master1
             devices:
               - name: /dev/vda
-          - name: kube-worker2
+          - name: kube-pve-master2
             devices:
               - name: /dev/vda
-          - name: kube-worker3
+          - name: kube-pve-worker3
             devices:
               - name: /dev/vda
 
