@@ -51,13 +51,13 @@ spec:
         nodes:
           - name: kube-pve-master1
             devices:
-              - name: /dev/vda
+              - name: "/dev/vda"
           - name: kube-pve-master2
             devices:
-              - name: /dev/vda
+              - name: "/dev/vda"
           - name: kube-pve-worker3
             devices:
-              - name: /dev/vda
+              - name: "/dev/vda"
 
     # define Ceph block storage
     cephBlockPools:
