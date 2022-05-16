@@ -21,7 +21,7 @@ spec:
   values:
     # use CRDs
     crds:
-      enabled: true
+      enabled: false
     # enable monitoring
     monitoring:
       enabled: true
@@ -37,13 +37,13 @@ spec:
   install:
     # create namespace and CRDs in case the namespace manifests aren't applied
     createNamespace: true
-    #crds: CreateReplace
+    crds: Create
     remediation:
       retries: 5
 
   # customize upgrade process
   upgrade:
-    #crds: CreateReplace
+    crds: Create
     remediation:
       retries: 5
 
