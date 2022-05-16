@@ -51,13 +51,13 @@ spec:
         nodes:
           - name: kube-pve-master1
             devices:
-              - name: "/dev/vda"
+              - name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
           - name: kube-pve-master2
             devices:
-              - name: "/dev/vda"
+              - name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
           - name: kube-pve-worker3
             devices:
-              - name: "/dev/vda"
+              - name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
 
     # define Ceph block storage
     cephBlockPools:
