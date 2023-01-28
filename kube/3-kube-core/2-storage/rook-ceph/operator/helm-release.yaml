@@ -5,9 +5,6 @@ metadata:
   name: rook-ceph
   namespace: rook-ceph
 spec:
-  ipFamilyPolicy: SingleStack
-  ipFamilies:
-    - IPv6
   interval: 5m
   install:
     disableWait: true
