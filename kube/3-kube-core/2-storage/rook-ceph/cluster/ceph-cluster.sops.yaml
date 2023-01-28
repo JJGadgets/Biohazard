@@ -9,10 +9,6 @@ spec:
     dataDirHostPath: /var/lib/rook
     cephVersion:
         image: quay.io/ceph/ceph:v17.2.5
-    network:
-        provider: host
-        ipFamily: IPv6
-        dualStack: false
     crashCollector:
         disable: true
     healthCheck:
@@ -23,9 +19,9 @@ spec:
     monitoring:
         enabled: true
         externalMgrEndpoints:
-            - ip: ENC[AES256_GCM,data:fuTZRw3TpnQTDQjGWg==,iv:CYPAOaNCwdUVwNJZfi7MIU1eeKU1TUujcl3mbREM8NQ=,tag:5Lt7Jt6T1e+hCisWzbuLww==,type:str]
-            - ip: ENC[AES256_GCM,data:OZ6dCmYxM7Hy4nBMzeZm,iv:sp7ClXlbaBEPXprGQr+ul6/Cbo5yT2Z05cozb9oqw88=,tag:DI7NL1ZzlJeohalWzWO3Ag==,type:str]
-            - ip: ENC[AES256_GCM,data:kV6LTymLtCGLr+BPuw==,iv:Z0gygkqnMHrHZFRRN9vNt55IQIO/XBw+Owmap0dPqIA=,tag:wIb2xcXMaiPbsMXPRwz8SA==,type:str]
+            - ip: ENC[AES256_GCM,data:+4a1K43ABwLGDx4=,iv:UrNaUIeJd6CWEyxV7sLfPiQkwVeAo6J74KB1JFMjv7Y=,tag:pOwx1j9ASyqi+CNVgwWRUw==,type:str]
+            - ip: ENC[AES256_GCM,data:8ATpc5nRoMKweWM=,iv:afUixjRPAJuBdShseJmsWrH/cPamMgxCQtS78PFyyhA=,tag:uMm3YKnMpWFLo5bwtD/1EQ==,type:str]
+            - ip: ENC[AES256_GCM,data:MGsVuqssO44gsuQ=,iv:Y+dtOI4nMWdZLh/O7gQiq6exGOnxmzLyAtIB3YHZXcs=,tag:0MFFGeeqVQlNyrqAZ9klFg==,type:str]
         externalMgrPrometheusPort: 9283
 sops:
     kms: []
@@ -42,8 +38,8 @@ sops:
             MlZaRFVyandyVUROWjBPVzdoYjBCL1UKAExzR8IhQ5bLddpQIHxhRWeMy78aJX1/
             DFCS0XmXhG5/hoZHhMvP8CxO7hkJ1km4NNV/JXP7sYuDVoH6+sy92Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-28T12:33:42Z"
-    mac: ENC[AES256_GCM,data:22XVMNCx6L5JH/bHNo3VBqIs6PVJapnhUcwLDs053L/E7BoWilNFXh7EHFYtbC6nBps3S7FndV7I2zfY7MwzZlzaqMMzcz2z4u5672uRZJE+98YtpNd3k+fLlUWjJR4lToy7QjXSNSQ3Jp0T/OOq43NVeevrcMvQ30hfrQ08owc=,iv:H57MrC66vTFMQ5SdpFpd/BnxEike5s+zZ9vu8yWdvFM=,tag:aLmOkmpQd9SYQIUsYihBkA==,type:str]
+    lastmodified: "2023-01-28T19:13:05Z"
+    mac: ENC[AES256_GCM,data:ObSeq/tQVFIq0E1+EbrM+p8KNNOYfTjyHK6TfGQQyE13E4QWXhctBTfwprzBsuILyhIkQxQ0XpTawGaVPE9Sn+IpElI7qVYEccVbXHpx6sF5FoLj9VpbR+V5cq0HR4Te718s62D/AP/UWkZ0G4B6la57CHcSdAVYM5Ve+7k2HGw=,iv:CZ7BhDARJodmP7N7xE+iw8jJ9M5N2LCJUt48S9ND0f4=,tag:+fSzkaEAXCxfVZ3jF47bAQ==,type:str]
     pgp:
         - created_at: "2023-01-28T12:32:00Z"
           enc: |
