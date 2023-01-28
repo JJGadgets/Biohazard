@@ -9,6 +9,10 @@ spec:
     dataDirHostPath: /var/lib/rook
     cephVersion:
         image: quay.io/ceph/ceph:v17.2.5
+    network:
+        provider: host
+        ipFamily: "IPv6"
+        dualStack: true
     crashCollector:
         disable: true
     healthCheck:

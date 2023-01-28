@@ -23,6 +23,8 @@ spec:
         name: rook-ceph-charts
         namespace: flux-system
   values:
+    enableCSIHostNetwork: true
+    useOperatorHostNetwork: true
     pspEnable: false
     crds:
       enabled: false
