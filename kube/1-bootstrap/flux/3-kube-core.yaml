@@ -14,10 +14,10 @@ spec:
   # dependsOn:
   #   - name: 2-kube-crds
 
-  # decryption:
-  #   provider: sops
-  #   secretRef:
-  #     name: sops-age
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
 
   prune: false
   # wait: true

@@ -1,0 +1,56 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+    name: ceph-pve-external
+    namespace: rook-ceph
+spec:
+    external:
+        enable: true
+    dataDirHostPath: /var/lib/rook
+    cephVersion:
+        image: ceph/ceph:v17.2.5
+    crashCollector:
+        disable: true
+    healthCheck:
+        daemonHealth:
+            mon:
+                disabled: false
+                interval: 45s
+    monitoring:
+        enabled: true
+        externalMgrEndpoints:
+            - ip: ENC[AES256_GCM,data:wIiKtG3fEOPCh1o=,iv:EmqmQEf/cc6PAV1OrqNLQU4ecT4Su3qNiz84vUZvvWU=,tag:ih8H8/ExB6AKh7irC9Xtvw==,type:str]
+            - ip: ENC[AES256_GCM,data:9S2BWXutnEJo5E77Ig==,iv:d/aYpIcJfxd/FpGZXEo2PX4LOAU7KPZz68yYxqLNF4s=,tag:wyGIqb4SJ8mvKh3sb5VwzQ==,type:str]
+            - ip: ENC[AES256_GCM,data:YDF1QAxB9xGZSuI=,iv:Gq0vTFy1nJkn3n3kU2K6gaa4VAacptny4JbUXnhxTLg=,tag:LInnNizOi9bA05gn0W6Snw==,type:str]
+        externalMgrPrometheusPort: 9283
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBck5MZjBKNmRZSlJiWDlm
+            SkJnUVJ4MHVTMGF1YVJ1b1haQkVUYnJNempFCnB0d2RsbGZTMUxzVmxFYXRIKzdB
+            bkxZbGIrZ1RNNzVJblhUVTVwNVB6bk0KLS0tIGNnbWgwRXlJSVpNWlhScS9JelFQ
+            dkJMQnpFcXpoRzJHcWpzQ1FTaDVJbm8Km8S+hDzTCNfr/VAfijE8dUb+m4dOvwh3
+            cJzsjPrqns3hdJgJ6nZDwWjLBGqwZDPg5g87mThBuOGKZGYye4MFeg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-28T01:41:45Z"
+    mac: ENC[AES256_GCM,data:LHn9Dfz03EZjlL+zVtgncv/Co8jUD0bJmuml0PKqg4IbmO94XlRGUd13LgOUJ5Xl/CSiHLuZvAiUZOyOu//bXoiF42kaGchCQ8gKK/sc/iqmN0SAJoxFDcOg2ZynupZNZvzVpeMNwjIjFzufdSndsPNbxR3BFB88wXdgR5D/5xc=,iv:+EaRNUpvuaOkTpmwUgV1HBoN8hUgsXbhlnvr4Qf5Fe0=,tag:ui/EtpSbpgWYhj1jpVda9w==,type:str]
+    pgp:
+        - created_at: "2023-01-28T01:41:44Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAHyxadXq2PaVJVk2WkwksD82xnUZYAE/37sPfGhshciEw
+            UpsRy/OaCrthsvQwnSjZOOmh4k+Q/PaPQsWueOGwQOr/7x/GYO5NNq49XuSIykDb
+            0lwBjABxfAbNwSeZdJfVx8h17LUqedmPxHwsLEH/NoAWrqWdNfM2J83EphbfdsFS
+            Lbyrsr29O64iawbvywEmOwHW/voyIWCaM8fDiKYdVgURulXoyZbegmTgSofPHQ==
+            =mGYa
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(data|stringData|ip)$
+    version: 3.7.3

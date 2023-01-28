@@ -2,8 +2,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - cluster
-  - operator
-  - add-ons
-  - snapshot-controller
-  - monitoring
+  - rbac.yaml
+  - statefulset.yaml
