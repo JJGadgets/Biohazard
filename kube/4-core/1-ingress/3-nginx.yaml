@@ -33,7 +33,7 @@ spec:
                   value: Asia/Singapore
             service:
                 externalIPs:
-                    - ENC[AES256_GCM,data:D0xMPtfAVkuv,iv:7cF1Lc24Wsdqhpxc+PoL22JdIA503VJK/+lseERwfTo=,tag:W13yClE6viOIfIgKy3CA4w==,type:str]
+                    - ENC[AES256_GCM,data:Jao/sge5tVBc,iv:t6rHoNakuJJp5RqKso52x6rGpCRSNWXC0HsXHt9mH0k=,tag:x8UROT/d2eWymq3I+ou1ug==,type:str]
                 externalTrafficPolicy: Local
             publishService:
                 enabled: true
@@ -75,19 +75,28 @@ sops:
     gcp_kms: []
     azure_kv: []
     hc_vault: []
-    age: []
-    lastmodified: "2023-01-29T07:49:35Z"
-    mac: ENC[AES256_GCM,data:9pYDjAI1EQO0UhOpV1qzv9AVa04ZyqdRn1Gb/dvfUXHm0uhOC+zDNiTnCySlcL/nhNS4jOwLhBUfK8yHRX8uBkWIFbOgoOWpJ05iPuCJM9XESivBy+CoYcAKmhy2u9CwvplDCvfP9zR6xjcZVIedX9guZjxOopYaS4l2GSTZRNc=,iv:7KkBLUQVrJthLQpFPzf5lPPiaLhKh4RI4wuxuh758/s=,tag:tiAAjsmnauR/i9sxi8Kxrg==,type:str]
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTQnhid1E1M0lCZkVvSTlE
+            RnVSZE5UZjFEQnFXb25xckptSU1lK2JRWm1jClZBOXVmZk8rOERUa2JuNGNMSGVm
+            aXhBSnpNRjMrL2tlZVNnZDdKT3ZWc2sKLS0tIDIvWTlTN2lCcCtxaDFtR2dzK2RX
+            aWxFR1pEdklwUTdJY1hmTGJmd2paMGsKjEMN6QYNQK3PoMF6VrlvYgtgDEv+63yy
+            bpaEiToGg3HTX6KV8UCxwl07QGzs2XgIKoilgmisL61hkVuVO+BFSA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-29T08:04:23Z"
+    mac: ENC[AES256_GCM,data:qCx2rOT2qMQoKf5Km1/jJCh6GjspmR9aBCzMPXqY6KVql+y18WKrRlGGSjMWxTizcAG+lk9HRhQowStY1a7/XKnkjkVm0FK570JxHIO/k5zKRJIwwP+ZmuTcYrVcRFKufn56BpWJPnKzjISZ+FRUB7YbM/BlTACYOMq+QETTs0M=,iv:mGqM17QNIp0QeM0I4AULqN3+Pavv3icMupTZvLeasAY=,tag:i0wOAZfcGfMIwNefKtRTgw==,type:str]
     pgp:
-        - created_at: "2023-01-29T07:49:34Z"
+        - created_at: "2023-01-29T08:04:23Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdAk5nWX4DM6JoPx3FOn8S/PhI8mCHBuUl+0JBpnsE3Qisw
-            +RRLnQsBqyHXJuV51kQh2UDGqblHJt77fds8qWuZH1imG4seCz8K5XkqlcjWsFKr
-            0l4Bznc6Ihhm5BNh1RpWa2ztoWnZYeg7nkcvxsSJtkpwAOM5ebBEeQklkt+0Iwwb
-            2ME5XczvWCrDJ7G1mr3uYkud181k7Tv7/9RPy7Yl5x1DMGSl8HLEfZUnpjfa+1FY
-            =jkKQ
+            hF4DAAAAAAAAAAASAQdA7bzu+R0a8NlB469skw/+MaERvUmNqZnpDF0DAanuREQw
+            R+AjPtCDl83i58F8XX+IHNtd0dDnMtUBd66eZ/GWM9NReWuaKD66trhQh8lwxJM2
+            0l4BfKmF7Umg0USdQ3ZFG3u3oprzkuBCMhf6H6EUdPTnoRkGcveABFTkHU/gXwsH
+            eWajUqUwMNhFSFMg0eXS6YoEnV6AKh5kVLhmueMcaA7Nbyjejqs2XMm1bIhndOp9
+            =kigG
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
     encrypted_regex: ^(data|stringData|commonName|dnsNames|externalIPs)$
