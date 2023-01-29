@@ -20,8 +20,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-29T19:20:41Z"
-    mac: ENC[AES256_GCM,data:/YvIQkYtnvZABgyUpuEKdoOqbri5ht9V+MxO2lAtt0gohWSFRSIaFnuNaSchC19MEBebLipVtmMv7YQfx8FmM+B3HeOOIgCa5dnBVkbFie5LraGq38wJ6KeG+rG86b+im2B6OJLgFLJtbv7znyftTrrtZnanF9uV5YjIX+bKbhw=,iv:QlFmQZ9MgN639GP0kavi64IWlpbZxh93lQ4vsgNRDMw=,tag:dKiIDwbjXUlRkkr5/sTWCA==,type:str]
+    lastmodified: "2023-01-29T20:22:18Z"
+    mac: ENC[AES256_GCM,data:gv1QNnXI3OFAcGdgCVq2c3ZL9l0IQHps5NstU8myUUSDlyjLqKdEUiwF+Htf4OfAqpJVDpD4aZHgapwCJjG5XQlVtTuiZw99IzCcAsuBQGY5BiDL0nZDZSPcPpHilZYp2ggJhrGdgVtCJUVa4WOBJLK6kTkU1HaI+VZkBqnaqeQ=,iv:Ae+jEdSJ2uQOG3mDelfgkSg0uIARwa/ON+vytLNfG1s=,tag:ENO8K/U+ryuElf1bnYy/FA==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
@@ -93,7 +93,7 @@ spec:
         install-no-conntrack-iptables-rules: "true"
         operator:
             rollOutPods: true
-        autoDirectNodeRoutes: true
+        autoDirectNodeRoutes: false
         rollOutCiliumPods: true
         localRedirectPolicy: true
         containerRuntime:
@@ -113,8 +113,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-29T19:20:41Z"
-    mac: ENC[AES256_GCM,data:/YvIQkYtnvZABgyUpuEKdoOqbri5ht9V+MxO2lAtt0gohWSFRSIaFnuNaSchC19MEBebLipVtmMv7YQfx8FmM+B3HeOOIgCa5dnBVkbFie5LraGq38wJ6KeG+rG86b+im2B6OJLgFLJtbv7znyftTrrtZnanF9uV5YjIX+bKbhw=,iv:QlFmQZ9MgN639GP0kavi64IWlpbZxh93lQ4vsgNRDMw=,tag:dKiIDwbjXUlRkkr5/sTWCA==,type:str]
+    lastmodified: "2023-01-29T20:22:18Z"
+    mac: ENC[AES256_GCM,data:gv1QNnXI3OFAcGdgCVq2c3ZL9l0IQHps5NstU8myUUSDlyjLqKdEUiwF+Htf4OfAqpJVDpD4aZHgapwCJjG5XQlVtTuiZw99IzCcAsuBQGY5BiDL0nZDZSPcPpHilZYp2ggJhrGdgVtCJUVa4WOBJLK6kTkU1HaI+VZkBqnaqeQ=,iv:Ae+jEdSJ2uQOG3mDelfgkSg0uIARwa/ON+vytLNfG1s=,tag:ENO8K/U+ryuElf1bnYy/FA==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
