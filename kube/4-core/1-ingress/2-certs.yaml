@@ -1,0 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: short-domain
+    namespace: ingress
+spec:
+    secretName: short-domain-tls
+    issuerRef:
+        name: letsencrypt-production
+        kind: ClusterIssuer
+    commonName: ENC[AES256_GCM,data:kasrwqZp,iv:pmDjK8oJDUFqVpydg2fIKHeecfxaS0hojmYqHp6EwII=,tag:Jy8lcRvkJkGocZC8vO1tUQ==,type:str]
+    dnsNames:
+        - ENC[AES256_GCM,data:DWNY/vyI,iv:UoQgnWraB4dz5qBbZ1d2GQFfi/se+7riPezNBYMzGno=,tag:XO0Bw+XLAWY6jjUXgZaT0w==,type:str]
+        - ENC[AES256_GCM,data:IM9kViiwpXI=,iv:U1eAVCTszFuYM7m2R+IvJTX7LgDOWsEpf3TeY0qVN1E=,tag:4zg/qukVFtU95UZW6nzpbw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-01-29T07:50:30Z"
+    mac: ENC[AES256_GCM,data:bs73MMXTtVEV3dtesjw5tRlRC1eEWRGtwHgpViigifarKQ82MwftecDGf0vB9NJSPcUuDpiwD7X2Vkw/MQHKzMgDGBihHoNAMsWI5Jh/5ZxSX2+2OKmUEKLxTjDN6gPW9eEHsOIjRYlLr3f+B9BBNFATUuNvy82NmwsNw8H18kQ=,iv:AeQ6XStXZjj3Mpc+txyh6MBiiMk2dpWEAf6YNnYYXg4=,tag:Hbjg1k0KL0l/77k094HInA==,type:str]
+    pgp:
+        - created_at: "2023-01-29T07:50:29Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAv/DmuXRIGyPV4/lmECYaHQygexChFy/r54wBQWV8sRcw
+            D/gKQqJeORYTEK1SO2PbksOSZhCc85HHgghPodMkl/lO7MNKlTzQaAhmj7cnm6Te
+            0l4B/gxXQ1eMLokrCY1z1E7BSprTZH+zCA5XSIYLRngRCKs3l1uzBtwgf/6d0K46
+            DG0Bq0W05zO72G4ACpMIuI/cxeR14/7dOtZTua4hHbugmUvWVD5DI/0ASqqbICtJ
+            =utDz
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(data|stringData|commonName|dnsNames|externalIPs)$
+    version: 3.7.3
