@@ -62,8 +62,8 @@ spec:
             #     namespace: networking
             #     namespaceSelector:
             #       any: true
-            extraArgs:
-                default-ssl-certificate: ingress/short-domain
+            # extraArgs:
+            #     default-ssl-certificate: ingress/short-domain
             resources:
                 requests:
                     cpu: 10m
@@ -85,8 +85,8 @@ sops:
             aWxFR1pEdklwUTdJY1hmTGJmd2paMGsKjEMN6QYNQK3PoMF6VrlvYgtgDEv+63yy
             bpaEiToGg3HTX6KV8UCxwl07QGzs2XgIKoilgmisL61hkVuVO+BFSA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-29T08:04:23Z"
-    mac: ENC[AES256_GCM,data:qCx2rOT2qMQoKf5Km1/jJCh6GjspmR9aBCzMPXqY6KVql+y18WKrRlGGSjMWxTizcAG+lk9HRhQowStY1a7/XKnkjkVm0FK570JxHIO/k5zKRJIwwP+ZmuTcYrVcRFKufn56BpWJPnKzjISZ+FRUB7YbM/BlTACYOMq+QETTs0M=,iv:mGqM17QNIp0QeM0I4AULqN3+Pavv3icMupTZvLeasAY=,tag:i0wOAZfcGfMIwNefKtRTgw==,type:str]
+    lastmodified: "2023-01-29T08:33:29Z"
+    mac: ENC[AES256_GCM,data:bk2BwbuaKUGcRKs2aQ7tXDD1r7Z46lar2zxcjpq7gM7lf3uxe4US/AIDuLyn/PvWIhERi/4q+8Z581X0ELlpGmSpem9/uobTqlAn52RogYV+ibfAhH5ehCbp5wXbwqUedV/349kSu91McYIUOdBVuaSbkZpHWh1JP/AYifh4Fzw=,iv:rTqNQjCa5dJd8eo+8HhdhE4P6S09IZCneKGJeE6ZTrg=,tag:fMvPzPO3wrdGszlZd5mD8Q==,type:str]
     pgp:
         - created_at: "2023-01-29T08:04:23Z"
           enc: |
