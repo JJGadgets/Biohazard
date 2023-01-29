@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: bgp-config
+    namespace: kube-system
+data:
+    config.yaml: ENC[AES256_GCM,data:hFt0wUxyRgm0FeNL8M7MI4Mwyd1UyI/ODFhmsw3eFb5rguNCX6jEF4h9B1XAcfkYXHEg/GQRHZR9H/hHCJ5RF7dTP81i68R3iQKjRbemrewOmMWktcK4dLYOMYmFSuPI2P9RQ3/28zJ23k9EpLdw0icXL5NzwlMpoSLzDglxow3gnstSJig0VC+PlqZVHYVwUlNMYMGb9eOJPqHH0bLwJFwafy/sgpVdAEviAHCWAJc62nErbuQSoBJ5O1V+Yu9fmb5EvS+RlptIBq1iIxA=,iv:8/rAX5YLZUSAKDLRFFpN8NAL4hpClToTW9oh2Ly01IA=,tag:13mnhFLQZoI9OFqh6S/2QA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-01-29T19:14:40Z"
+    mac: ENC[AES256_GCM,data:e1YI5ZJEE7wm3na9PdWbC9znZVGMFL7RZTd6QyzcZYEZlJ1Mc+6UctyCv6EngYChf1tg4GdUnfM+qWOM6o5XOhDci9mk87yL3Q3Kee+O178bFjgXgLNXoQfccc67vH/Mg33WXSiNk+Em3K2R0SbAR2MJYiIFw9f7+/Aelb0yOIg=,iv:NUUjT1fVQ42cNfCyHFXuSktbn4+4cX0zK7vTIIvXXkI=,tag:O3wmWfS40NnNeegSYNQLVQ==,type:str]
+    pgp:
+        - created_at: "2023-01-29T19:14:39Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAU0NRk43/cbnQAS3gNlA23l8vorVQMvs3IyXF4kGWrG8w
+            LKEzvOe+te/drCZCRVrAsX6QCvkNNW8cPrM+F5TCRwRD+EYAIbkJTpknQM7WjmkA
+            0l4BExe7ZWcW9hNqy7UuUbwXdkwB5nOYxveheL/HGF2+j+Yv63aPy0OBRjC9n9Vd
+            QpDsocg8qI3XyaB5+9WYzApnaaE3QSQHhD4d/nQFc5Y9j3+rlWmmR9haYp44SFNh
+            =H8kI
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|)$
+    version: 3.7.3
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: cilium
+    namespace: kube-system
+    annotations:
+        meta.helm.sh/release-name: cilium
+        meta.helm.sh/release-namespace: kube-system
+    labels:
+        app.kubernetes.io/managed-by: Helm
+spec:
+    interval: 5m
+    chart:
+        spec:
+            chart: cilium
+            version: 1.12.5
+            sourceRef:
+                kind: HelmRepository
+                name: cilium-charts
+                namespace: flux-system
+            interval: 5m
+    install:
+        # perform remediation when helm install fails
+        remediation:
+            retries: 100
+    upgrade:
+        # perform remediation when helm upgrade fails
+        remediation:
+            retries: 100
+            # remediate the last failure, when no retries remain
+            remediateLastFailure: true
+        cleanupOnFail: true
+    values:
+        securityContext:
+            privileged: true
+        cluster:
+            name: Biohazaard
+            id: "1"
+        tunnel: vxlan
+        ipam:
+            mode: kubernetes
+        bgp:
+            enabled: true
+            announce:
+                loadbalancerIP: true
+        loadBalancer:
+            algorithm: maglev
+            mode: dsr
+        ipv4NativeRoutingCIDR: ENC[AES256_GCM,data:Z3ZzaRQjF2HME4PIIA==,iv:yKNLyZH8ez9HbN2eTz21+J4kB+uLs2p/YLx4cpq43vc=,tag:A0a3C8ASNOghaQN/WQ0I+g==,type:str]
+        kubeProxyReplacement: strict
+        k8sServiceHost: ENC[AES256_GCM,data:drDrRW+AzrmU,iv:jAbjW0DrrutU4G0ayvZUVOBTu1/6nni2nfvUdHrcQMY=,tag:QoiQa7abUks0EEIlg2ZU+A==,type:str]
+        k8sServicePort: 6443
+        kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+        install-no-conntrack-iptables-rules: "true"
+        operator:
+            rollOutPods: true
+        autoDirectNodeRoutes: true
+        rollOutCiliumPods: true
+        localRedirectPolicy: true
+        containerRuntime:
+            integration: containerd
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-01-29T19:14:40Z"
+    mac: ENC[AES256_GCM,data:e1YI5ZJEE7wm3na9PdWbC9znZVGMFL7RZTd6QyzcZYEZlJ1Mc+6UctyCv6EngYChf1tg4GdUnfM+qWOM6o5XOhDci9mk87yL3Q3Kee+O178bFjgXgLNXoQfccc67vH/Mg33WXSiNk+Em3K2R0SbAR2MJYiIFw9f7+/Aelb0yOIg=,iv:NUUjT1fVQ42cNfCyHFXuSktbn4+4cX0zK7vTIIvXXkI=,tag:O3wmWfS40NnNeegSYNQLVQ==,type:str]
+    pgp:
+        - created_at: "2023-01-29T19:14:39Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAU0NRk43/cbnQAS3gNlA23l8vorVQMvs3IyXF4kGWrG8w
+            LKEzvOe+te/drCZCRVrAsX6QCvkNNW8cPrM+F5TCRwRD+EYAIbkJTpknQM7WjmkA
+            0l4BExe7ZWcW9hNqy7UuUbwXdkwB5nOYxveheL/HGF2+j+Yv63aPy0OBRjC9n9Vd
+            QpDsocg8qI3XyaB5+9WYzApnaaE3QSQHhD4d/nQFc5Y9j3+rlWmmR9haYp44SFNh
+            =H8kI
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|)$
+    version: 3.7.3
