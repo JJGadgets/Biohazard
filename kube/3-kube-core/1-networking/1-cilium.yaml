@@ -4,25 +4,34 @@ metadata:
     name: bgp-config
     namespace: kube-system
 data:
-    config.yaml: ENC[AES256_GCM,data:hFt0wUxyRgm0FeNL8M7MI4Mwyd1UyI/ODFhmsw3eFb5rguNCX6jEF4h9B1XAcfkYXHEg/GQRHZR9H/hHCJ5RF7dTP81i68R3iQKjRbemrewOmMWktcK4dLYOMYmFSuPI2P9RQ3/28zJ23k9EpLdw0icXL5NzwlMpoSLzDglxow3gnstSJig0VC+PlqZVHYVwUlNMYMGb9eOJPqHH0bLwJFwafy/sgpVdAEviAHCWAJc62nErbuQSoBJ5O1V+Yu9fmb5EvS+RlptIBq1iIxA=,iv:8/rAX5YLZUSAKDLRFFpN8NAL4hpClToTW9oh2Ly01IA=,tag:13mnhFLQZoI9OFqh6S/2QA==,type:str]
+    config.yaml: ENC[AES256_GCM,data:Teg0LS0t4CFoHLIXimFyYsyhavh2Gp2UH+hn9PrU1Schex5Xzr8EWu/h3SzhnmnX6R1d++W+BCY9wFtwSROfmaKLGHoNZ7rHi07zFoaXgHJFyA8oEKkvoKzNT42UgxqyS0rOWAqkfNd7vfSrsYvz/mMfmUK+eK5UwfReKp4ngwPXEycZJxiwbMAsw0ltlrl8ZlxvqUh/Zw8dAUL5LIkseLiLJmZ7jyNPxtVNNcw9RG4jiGQSLzZE9xy3QVxnVNw07kvq+dLrYfoMImv6VQw=,iv:UBkTHpWYOjhio1xwy/WqhkgokfSGqTDPEWalxsHn0Uc=,tag:6GJ4lf0tlW/+/dy2QvRnaA==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
-    age: []
-    lastmodified: "2023-01-29T19:14:40Z"
-    mac: ENC[AES256_GCM,data:e1YI5ZJEE7wm3na9PdWbC9znZVGMFL7RZTd6QyzcZYEZlJ1Mc+6UctyCv6EngYChf1tg4GdUnfM+qWOM6o5XOhDci9mk87yL3Q3Kee+O178bFjgXgLNXoQfccc67vH/Mg33WXSiNk+Em3K2R0SbAR2MJYiIFw9f7+/Aelb0yOIg=,iv:NUUjT1fVQ42cNfCyHFXuSktbn4+4cX0zK7vTIIvXXkI=,tag:O3wmWfS40NnNeegSYNQLVQ==,type:str]
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6YVZWdUtFekJScFJLb0lu
+            UnMyMlZtTzVoKzFaOEx3ekg1TlNVRWhlUUhFCjFZL2ZiWkJnalZtZ1orVXFqV3U5
+            eXk2cTJPMlRmSDI1NWQxSmZOTVhUM2sKLS0tIENRZjkrUWVSbWxhWm5SR1dxYUxV
+            ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
+            IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-29T19:20:41Z"
+    mac: ENC[AES256_GCM,data:/YvIQkYtnvZABgyUpuEKdoOqbri5ht9V+MxO2lAtt0gohWSFRSIaFnuNaSchC19MEBebLipVtmMv7YQfx8FmM+B3HeOOIgCa5dnBVkbFie5LraGq38wJ6KeG+rG86b+im2B6OJLgFLJtbv7znyftTrrtZnanF9uV5YjIX+bKbhw=,iv:QlFmQZ9MgN639GP0kavi64IWlpbZxh93lQ4vsgNRDMw=,tag:dKiIDwbjXUlRkkr5/sTWCA==,type:str]
     pgp:
-        - created_at: "2023-01-29T19:14:39Z"
+        - created_at: "2023-01-29T19:20:40Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdAU0NRk43/cbnQAS3gNlA23l8vorVQMvs3IyXF4kGWrG8w
-            LKEzvOe+te/drCZCRVrAsX6QCvkNNW8cPrM+F5TCRwRD+EYAIbkJTpknQM7WjmkA
-            0l4BExe7ZWcW9hNqy7UuUbwXdkwB5nOYxveheL/HGF2+j+Yv63aPy0OBRjC9n9Vd
-            QpDsocg8qI3XyaB5+9WYzApnaaE3QSQHhD4d/nQFc5Y9j3+rlWmmR9haYp44SFNh
-            =H8kI
+            hF4DAAAAAAAAAAASAQdAhlZ3dQUsA4jV9FfkTCFga4hwAnzu/IPz0Rno0TB0ejow
+            Hl52IhaOYOy3kK9BRSzcsBaPp+QpJgztFLb2210Bwmgphtpzr6qS45vm4sLzH0iL
+            0lwBVsqTIC3tKVcFDDo9jyXG43J0FdHEg+c9DOUiidLX99isNMpotTctCxo5nAPL
+            jHb7CEOt/E4YdVrz6ifSYYwRANbyHlhkGlw8Eu4qQrKjC7j3xnHzo6w5/IIeug==
+            =HdhJ
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
     encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|)$
@@ -76,9 +85,9 @@ spec:
         loadBalancer:
             algorithm: maglev
             mode: dsr
-        ipv4NativeRoutingCIDR: ENC[AES256_GCM,data:Z3ZzaRQjF2HME4PIIA==,iv:yKNLyZH8ez9HbN2eTz21+J4kB+uLs2p/YLx4cpq43vc=,tag:A0a3C8ASNOghaQN/WQ0I+g==,type:str]
+        ipv4NativeRoutingCIDR: ENC[AES256_GCM,data:qpfe8rg4PR+oAMB5gQ==,iv:rXQMTV4R9+EBTiTfzdEGzbEbYcpEPQwyfp6QKyNP524=,tag:1N8429AMaOsWmDwvu9FIdQ==,type:str]
         kubeProxyReplacement: strict
-        k8sServiceHost: ENC[AES256_GCM,data:drDrRW+AzrmU,iv:jAbjW0DrrutU4G0ayvZUVOBTu1/6nni2nfvUdHrcQMY=,tag:QoiQa7abUks0EEIlg2ZU+A==,type:str]
+        k8sServiceHost: ENC[AES256_GCM,data:u2mry59EfR7a,iv:IkE4URwvtPTdAG1PwxfLZrxhHfkltzcX46ID7WVsPRM=,tag:nJD5YbaJwce24WuzY8HipA==,type:str]
         k8sServicePort: 6443
         kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
         install-no-conntrack-iptables-rules: "true"
@@ -94,19 +103,28 @@ sops:
     gcp_kms: []
     azure_kv: []
     hc_vault: []
-    age: []
-    lastmodified: "2023-01-29T19:14:40Z"
-    mac: ENC[AES256_GCM,data:e1YI5ZJEE7wm3na9PdWbC9znZVGMFL7RZTd6QyzcZYEZlJ1Mc+6UctyCv6EngYChf1tg4GdUnfM+qWOM6o5XOhDci9mk87yL3Q3Kee+O178bFjgXgLNXoQfccc67vH/Mg33WXSiNk+Em3K2R0SbAR2MJYiIFw9f7+/Aelb0yOIg=,iv:NUUjT1fVQ42cNfCyHFXuSktbn4+4cX0zK7vTIIvXXkI=,tag:O3wmWfS40NnNeegSYNQLVQ==,type:str]
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6YVZWdUtFekJScFJLb0lu
+            UnMyMlZtTzVoKzFaOEx3ekg1TlNVRWhlUUhFCjFZL2ZiWkJnalZtZ1orVXFqV3U5
+            eXk2cTJPMlRmSDI1NWQxSmZOTVhUM2sKLS0tIENRZjkrUWVSbWxhWm5SR1dxYUxV
+            ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
+            IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-29T19:20:41Z"
+    mac: ENC[AES256_GCM,data:/YvIQkYtnvZABgyUpuEKdoOqbri5ht9V+MxO2lAtt0gohWSFRSIaFnuNaSchC19MEBebLipVtmMv7YQfx8FmM+B3HeOOIgCa5dnBVkbFie5LraGq38wJ6KeG+rG86b+im2B6OJLgFLJtbv7znyftTrrtZnanF9uV5YjIX+bKbhw=,iv:QlFmQZ9MgN639GP0kavi64IWlpbZxh93lQ4vsgNRDMw=,tag:dKiIDwbjXUlRkkr5/sTWCA==,type:str]
     pgp:
-        - created_at: "2023-01-29T19:14:39Z"
+        - created_at: "2023-01-29T19:20:40Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdAU0NRk43/cbnQAS3gNlA23l8vorVQMvs3IyXF4kGWrG8w
-            LKEzvOe+te/drCZCRVrAsX6QCvkNNW8cPrM+F5TCRwRD+EYAIbkJTpknQM7WjmkA
-            0l4BExe7ZWcW9hNqy7UuUbwXdkwB5nOYxveheL/HGF2+j+Yv63aPy0OBRjC9n9Vd
-            QpDsocg8qI3XyaB5+9WYzApnaaE3QSQHhD4d/nQFc5Y9j3+rlWmmR9haYp44SFNh
-            =H8kI
+            hF4DAAAAAAAAAAASAQdAhlZ3dQUsA4jV9FfkTCFga4hwAnzu/IPz0Rno0TB0ejow
+            Hl52IhaOYOy3kK9BRSzcsBaPp+QpJgztFLb2210Bwmgphtpzr6qS45vm4sLzH0iL
+            0lwBVsqTIC3tKVcFDDo9jyXG43J0FdHEg+c9DOUiidLX99isNMpotTctCxo5nAPL
+            jHb7CEOt/E4YdVrz6ifSYYwRANbyHlhkGlw8Eu4qQrKjC7j3xnHzo6w5/IIeug==
+            =HdhJ
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
     encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|)$
