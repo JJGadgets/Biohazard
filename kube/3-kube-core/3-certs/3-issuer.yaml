@@ -1,0 +1,92 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    name: letsencrypt-production
+spec:
+    acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: ENC[AES256_GCM,data:uuLsQXAAIWcALTJ6orWD7MBg5w==,iv:kvyi6mf0zgPw5WCjabDtTevl9vpgc9R59HgBUvE5KsA=,tag:BO8EE0020vIqYTZdmGbIIw==,type:str]
+        privateKeySecretRef:
+            name: letsencrypt-production
+        solvers:
+            - dns01:
+                cloudflare:
+                    email: ENC[AES256_GCM,data:MY+x8id2bh7h325/66hgOeeoX+zO5A==,iv:PZ6mgOoC4ITjznlq0UWs8CVpaOsmH3yDx7RL9sPRJKA=,tag:N23nR51/OtHOxO20unxKwA==,type:str]
+                    apiKeySecretRef:
+                        name: dns01-api
+                        key: cloudflare
+              selector:
+                dnsZones:
+                    - ENC[AES256_GCM,data:PPCkOrLe,iv:kbKa7Z7OGgthzi37pdNRm/ZnXkWtKLd/KFeW5VRThEk=,tag:Q6b7GEwPorxNRWeOQOr/MA==,type:str]
+                    - ENC[AES256_GCM,data:JMSQS5ks1mkIakPBiqI=,iv:nRB4+tCh8XzJM9um1DNbfaks1kahTmdZB1Gmg+vIbMI=,tag:QAuo9QHZRJEQ5YrbM1MDxg==,type:str]
+                    - ENC[AES256_GCM,data:fTgjL2NqXzTLPFpzBA==,iv:3hc8weLymnamZ2+ZNzobD79yGX3vElmF2M6vbNo7310=,tag:32XkUOr9JL6Wt6wHAhvw1g==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHa3RKV1d5N3BhL2ZXWGRo
+            VjZPRFZQMDdUVm9VaWNDQ3RvQUQ2MkRDNUZvCmF0TEpjdmhDcjNpdDY3eGRicmtM
+            U3VGT3AyNGpyTy83OTIvWURWUFcwVnMKLS0tIGxwMklXUWUzT21GRUxPcWpXL2xl
+            bkhuMktzNGxSSytXYmJDOG1vOEpEemMKMwcArlt/YauK8yfxiIEpnhMFEBgpNFY7
+            HeiLqiDg/BZDjYeCk1Nov8zHDADUpZ2/Im37MJwHxO1pwcH7lPARWg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-31T01:23:48Z"
+    mac: ENC[AES256_GCM,data:BUeE7d+lEuKXYg/Spn3OteJDhG6OFXRSkqABVHVC104ru1ZwVY+riOhzH/cp6lamxnOdW6Q7sAD6xFbO9RmeitKED91S9FtHJNagxw4Nnk4PuMqDloFFDYGjf6jkI8CfQ4xylFAsM5jVVSKdxI5AHSsgsvqP4J6xXS2qmCY1tS0=,iv:cR5qJU1lNa1kFqQud5XJVCLrymGhcwibuJU8IXwgJrs=,tag:ec1JFb6wdvUHtwXYsyXErw==,type:str]
+    pgp:
+        - created_at: "2023-01-31T01:22:56Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAi25jYS+jTgkmZHsUPzrOaFxUnGuap75b0lBTILIWc08w
+            exBxZIt0/1Ni/jLyGxg529if+yT5hkkSO4ijn/JQAD5Y1VrdbcFAx/pIOhuNey76
+            0lwBWTpvI4sSAHs1qNdouWeqtL/Ufno0nN4KszjCvIGtdr3EUFzpO5PBQ/cQrrE8
+            kerNMDXc6veD6x9YuCPuHSS9t7C9B+eYJ9+CL4HVa7oNVMtjgqfN75geaC7w/w==
+            =A7V1
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(email|dnsZones|stringData)$
+    version: 3.7.3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: dns01-api
+    namespace: cert-manager
+stringData:
+    cloudflare: ENC[AES256_GCM,data:3Clxd4p/dbBwztU1OtdD5i8HJZiJY34Ja10KPgbjgBiAm/Z6oR5HjA==,iv:FALCaWOBWCPo+y+sTJzosFECACU3UFbqcqYVgzpQKqQ=,tag:GJpro8jGwnQU8LiPjSzjLg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHa3RKV1d5N3BhL2ZXWGRo
+            VjZPRFZQMDdUVm9VaWNDQ3RvQUQ2MkRDNUZvCmF0TEpjdmhDcjNpdDY3eGRicmtM
+            U3VGT3AyNGpyTy83OTIvWURWUFcwVnMKLS0tIGxwMklXUWUzT21GRUxPcWpXL2xl
+            bkhuMktzNGxSSytXYmJDOG1vOEpEemMKMwcArlt/YauK8yfxiIEpnhMFEBgpNFY7
+            HeiLqiDg/BZDjYeCk1Nov8zHDADUpZ2/Im37MJwHxO1pwcH7lPARWg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-31T01:23:48Z"
+    mac: ENC[AES256_GCM,data:BUeE7d+lEuKXYg/Spn3OteJDhG6OFXRSkqABVHVC104ru1ZwVY+riOhzH/cp6lamxnOdW6Q7sAD6xFbO9RmeitKED91S9FtHJNagxw4Nnk4PuMqDloFFDYGjf6jkI8CfQ4xylFAsM5jVVSKdxI5AHSsgsvqP4J6xXS2qmCY1tS0=,iv:cR5qJU1lNa1kFqQud5XJVCLrymGhcwibuJU8IXwgJrs=,tag:ec1JFb6wdvUHtwXYsyXErw==,type:str]
+    pgp:
+        - created_at: "2023-01-31T01:22:56Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAi25jYS+jTgkmZHsUPzrOaFxUnGuap75b0lBTILIWc08w
+            exBxZIt0/1Ni/jLyGxg529if+yT5hkkSO4ijn/JQAD5Y1VrdbcFAx/pIOhuNey76
+            0lwBWTpvI4sSAHs1qNdouWeqtL/Ufno0nN4KszjCvIGtdr3EUFzpO5PBQ/cQrrE8
+            kerNMDXc6veD6x9YuCPuHSS9t7C9B+eYJ9+CL4HVa7oNVMtjgqfN75geaC7w/w==
+            =A7V1
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(email|dnsZones|stringData)$
+    version: 3.7.3
