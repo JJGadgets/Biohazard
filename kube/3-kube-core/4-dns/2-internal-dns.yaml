@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: k8s-gateway
+    namespace: dns
+spec:
+    interval: 15m
+    chart:
+        spec:
+            chart: k8s-gateway
+            version: 2.0.1
+            sourceRef:
+                kind: HelmRepository
+                name: k8s-gateway
+                namespace: flux-system
+    maxHistory: 3
+    install:
+        createNamespace: true
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        fullnameOverride: k8s-gateway
+        domain: ENC[AES256_GCM,data:u9X7DFqL,iv:PdPpzOBmzW+hQlyE/TsXkHUsJgafSgfg262tLOEVlMw=,tag:JLi78n3l3usbl+eoinUeTg==,type:str]
+        ttl: 1
+        service:
+            type: LoadBalancer
+            port: 53
+            loadBalancerIP: ENC[AES256_GCM,data:btrvx26+76RPMPc=,iv:sVgPzNTVr+51T0SraqomzTxh/wIf58MJy2la6OkupH8=,tag:vmXVml1kPE9liMZ+gGiVsg==,type:str]
+            externalIPs:
+                - ENC[AES256_GCM,data:7bqjnjHTt7lg/jQ=,iv:OBUDbBJ+dDcq0A4NmW84d26TbvFVP1OFU13NVL8YcpA=,tag:meFMZdE2ZoJdhdPnptqQ4g==,type:str]
+            externalTrafficPolicy: Local
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzRUpxMXRPeDFpQzUrZElQ
+            bWMxaFVTM3I1MklBZGk2YzcxaXZXL21melVrCnpKVHJtVTcwVERXN2o4ODNQVDA1
+            RUFuS2R2SEhvMnZCdFhVdDBzVFJpa1UKLS0tIHV4ZmVZN1A4azY1bGxMRG1Ld1Fj
+            V0hDWlQ2OFpUa3RzN0piZEx1YUxZTkkKi2wO12IsWgvPzDcSUfUJaPS4RBWG0j5w
+            PjxMjgGHcjAwO8cDDCb13Shu01F/jrJ2Sz56YjPnRyr7NN5j/FQzsQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-01-31T03:19:35Z"
+    mac: ENC[AES256_GCM,data:xm9W86gavm/e2K0uK8anC3MGaq4GI/hYOu68oN1fVZtefY82tSl472KWg3s8Az5IUJ6Jj8XYMBNiq8mxnD4pfD/G4127MH9fx1/nzO01yyMhEWQM7wkoZNm6+3GRjARQWN7/IUpZk0sHAIewO2DquKQknNvEQ44TAFrlfmgQzT4=,iv:rq5qtH2QAjY0raaVOyGn7siEhBR2uPLaMeMyNhGkQnc=,tag:aH3K7NqMG8iDSuNZRsEJBw==,type:str]
+    pgp:
+        - created_at: "2023-01-31T03:19:34Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdA0755aXaU1lB5hlOyfLl4nIhdKqd3Nexw2rUuIqeAEBQw
+            PUCUQqYYp+wncqkKqKUzGrt1aenR0wmTUfge/+idhp2zhsL4gk7OvlrwTRIdvCpN
+            0l4BR5JHRxAKsqMq87Yv8ZTTmR1j+XCsAygvLY47FmhzHH+Y3xfdDqGWqpVdshHS
+            B1eFB//xoCnqAZDElpHEqEf5XXB2JPj0PextzynB5tbn4uE4BsH4yeapDqS/3LGB
+            =GHqR
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(data|stringData|domain|loadBalancerIP|externalIPs)$
+    version: 3.7.3
