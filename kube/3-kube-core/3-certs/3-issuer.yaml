@@ -12,7 +12,7 @@ spec:
             - dns01:
                 cloudflare:
                     email: ENC[AES256_GCM,data:MY+x8id2bh7h325/66hgOeeoX+zO5A==,iv:PZ6mgOoC4ITjznlq0UWs8CVpaOsmH3yDx7RL9sPRJKA=,tag:N23nR51/OtHOxO20unxKwA==,type:str]
-                    apiKeySecretRef:
+                    apiTokenSecretRef:
                         name: dns01-api
                         key: cloudflare
               selector:
@@ -35,8 +35,8 @@ sops:
             bkhuMktzNGxSSytXYmJDOG1vOEpEemMKMwcArlt/YauK8yfxiIEpnhMFEBgpNFY7
             HeiLqiDg/BZDjYeCk1Nov8zHDADUpZ2/Im37MJwHxO1pwcH7lPARWg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-31T01:23:48Z"
-    mac: ENC[AES256_GCM,data:BUeE7d+lEuKXYg/Spn3OteJDhG6OFXRSkqABVHVC104ru1ZwVY+riOhzH/cp6lamxnOdW6Q7sAD6xFbO9RmeitKED91S9FtHJNagxw4Nnk4PuMqDloFFDYGjf6jkI8CfQ4xylFAsM5jVVSKdxI5AHSsgsvqP4J6xXS2qmCY1tS0=,iv:cR5qJU1lNa1kFqQud5XJVCLrymGhcwibuJU8IXwgJrs=,tag:ec1JFb6wdvUHtwXYsyXErw==,type:str]
+    lastmodified: "2023-01-31T02:37:42Z"
+    mac: ENC[AES256_GCM,data:OVbNAkjHviKqOjIzMHRkGVBdvj8o92dL0ZMBplJLw7aXAvcnKwgz9SI0DrvF51/bkU2W2hcFrrb2GhdlX4WoSHwujJ2QxXS/Uv7MKaJS4m23qoxmRR+ScrYR5txk0/VEEkkN3ZzR4lE8RKR2geiOx7dT3mX284A1pReP13xD100=,iv:GSKx3neM6/vh+QdQFm/VN3G5lzquD0emo2sW8X0zdh8=,tag:xd7Wp8tNq6P5ZIdnc3xUZQ==,type:str]
     pgp:
         - created_at: "2023-01-31T01:22:56Z"
           enc: |
@@ -74,8 +74,8 @@ sops:
             bkhuMktzNGxSSytXYmJDOG1vOEpEemMKMwcArlt/YauK8yfxiIEpnhMFEBgpNFY7
             HeiLqiDg/BZDjYeCk1Nov8zHDADUpZ2/Im37MJwHxO1pwcH7lPARWg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-31T01:23:48Z"
-    mac: ENC[AES256_GCM,data:BUeE7d+lEuKXYg/Spn3OteJDhG6OFXRSkqABVHVC104ru1ZwVY+riOhzH/cp6lamxnOdW6Q7sAD6xFbO9RmeitKED91S9FtHJNagxw4Nnk4PuMqDloFFDYGjf6jkI8CfQ4xylFAsM5jVVSKdxI5AHSsgsvqP4J6xXS2qmCY1tS0=,iv:cR5qJU1lNa1kFqQud5XJVCLrymGhcwibuJU8IXwgJrs=,tag:ec1JFb6wdvUHtwXYsyXErw==,type:str]
+    lastmodified: "2023-01-31T02:37:42Z"
+    mac: ENC[AES256_GCM,data:OVbNAkjHviKqOjIzMHRkGVBdvj8o92dL0ZMBplJLw7aXAvcnKwgz9SI0DrvF51/bkU2W2hcFrrb2GhdlX4WoSHwujJ2QxXS/Uv7MKaJS4m23qoxmRR+ScrYR5txk0/VEEkkN3ZzR4lE8RKR2geiOx7dT3mX284A1pReP13xD100=,iv:GSKx3neM6/vh+QdQFm/VN3G5lzquD0emo2sW8X0zdh8=,tag:xd7Wp8tNq6P5ZIdnc3xUZQ==,type:str]
     pgp:
         - created_at: "2023-01-31T01:22:56Z"
           enc: |
