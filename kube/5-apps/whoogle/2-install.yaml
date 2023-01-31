@@ -1,8 +1,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-    name: echo-server
-    namespace: default
+    name: whoogle
+    namespace: whoogle
 spec:
     interval: 15m
     chart:
@@ -41,11 +41,11 @@ spec:
             WHOOGLE_CONFIG_COUNTRY: SG
             WHOOGLE_CONFIG_VIEW_IMAGE: 1
             WHOOGLE_CONFIG_DISABLE: 1
-        # service:
-        #   main:
-        #     ports:
-        #       http:
-        #         port: 5000
+        service:
+            main:
+                ports:
+                    http:
+                        port: 5000
         ingress:
             main:
                 enabled: true
@@ -79,8 +79,8 @@ sops:
             R1lZSmVtNnBMQUluUjlHdFdzekpPcm8KYjTlTyaIbkkMkASpmAdcn5GTb67wPJC6
             Gijco/AxH2iSK0wsDF7LKTgsf5/3hL4UV0+QTZGa+PQcaLamIkheew==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-31T11:55:47Z"
-    mac: ENC[AES256_GCM,data:1bdJgL1YpTBpQjLJHt10k0YTBX2NwtjfPclwW6+CF4WBRfc48X5x4YcqSkoEFxXr+ypey2HfWNVkQiIRkeCnAhQeSg4oErKRpxrralaw0pJtdKHOYyFsJ3cFSHtHGV4qhfoNt22i38XVU8vhdZHDVI7iqZ646zucEOz9Ibr8gVI=,iv:CpwBjBXj47BYhGg1aNWCp2gjr9KQd71b8eX8rIWZAfI=,tag:v964R7NsD0VHdUySQoLBtQ==,type:str]
+    lastmodified: "2023-01-31T12:09:32Z"
+    mac: ENC[AES256_GCM,data:RUjrzLkHAJMi9poFSZcszTIGfDrUNLue5aRdFJ3WzQRi5xaf7ToUbtcwByvkkOjcXQY6S0f/cqB+yRrv6T4UXPMFfC28uDss5SXeGd3HWUZwo5736tksv7YtGlOMJe7wg1iLIfLtdOHDIeMmZYxezdKbuFj78jZxuQBLActbPfs=,iv:94jN2Be/uwOnLoEq0VZXwDAAL3M7rHqOG8VjEnCcZAw=,tag:gd5Qn2jmyv2tFSbFDjrAAA==,type:str]
     pgp:
         - created_at: "2023-01-31T11:55:47Z"
           enc: |
