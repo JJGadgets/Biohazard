@@ -20,8 +20,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-29T20:22:18Z"
-    mac: ENC[AES256_GCM,data:gv1QNnXI3OFAcGdgCVq2c3ZL9l0IQHps5NstU8myUUSDlyjLqKdEUiwF+Htf4OfAqpJVDpD4aZHgapwCJjG5XQlVtTuiZw99IzCcAsuBQGY5BiDL0nZDZSPcPpHilZYp2ggJhrGdgVtCJUVa4WOBJLK6kTkU1HaI+VZkBqnaqeQ=,iv:Ae+jEdSJ2uQOG3mDelfgkSg0uIARwa/ON+vytLNfG1s=,tag:ENO8K/U+ryuElf1bnYy/FA==,type:str]
+    lastmodified: "2023-02-01T17:28:30Z"
+    mac: ENC[AES256_GCM,data:OnjgYOj5Ijpxty0Yn/XFLWQyCHDU17Nk6kEqzR/8xWG/grQUQ9NkNN8/CTwVkIZbV8kFEV2i3+tZK6ZNG55EMdMuNRk3Htz43an/VHWXZKPfbCZQt+8uOfNAN//6YXePxRPSKB8TjU9Jv3Kidj7rDWrM0fK6agunl1jAEgHCuto=,iv:2w2q/zivORVzYu/hIBDc69Qca7nYPfDSb8Of8RsXBT4=,tag:V2tre24pEGAMY36/QfB/Cg==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
@@ -75,7 +75,7 @@ spec:
         cluster:
             name: Biohazaard
             id: "1"
-        tunnel: vxlan
+        tunnel: none
         ipam:
             mode: kubernetes
         bgp:
@@ -90,10 +90,10 @@ spec:
         k8sServiceHost: ENC[AES256_GCM,data:u2mry59EfR7a,iv:IkE4URwvtPTdAG1PwxfLZrxhHfkltzcX46ID7WVsPRM=,tag:nJD5YbaJwce24WuzY8HipA==,type:str]
         k8sServicePort: 6443
         kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
-        install-no-conntrack-iptables-rules: "true"
+        install-no-conntrack-iptables-rules: "false"
         operator:
             rollOutPods: true
-        autoDirectNodeRoutes: false
+        autoDirectNodeRoutes: true
         rollOutCiliumPods: true
         localRedirectPolicy: true
         containerRuntime:
@@ -113,8 +113,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-29T20:22:18Z"
-    mac: ENC[AES256_GCM,data:gv1QNnXI3OFAcGdgCVq2c3ZL9l0IQHps5NstU8myUUSDlyjLqKdEUiwF+Htf4OfAqpJVDpD4aZHgapwCJjG5XQlVtTuiZw99IzCcAsuBQGY5BiDL0nZDZSPcPpHilZYp2ggJhrGdgVtCJUVa4WOBJLK6kTkU1HaI+VZkBqnaqeQ=,iv:Ae+jEdSJ2uQOG3mDelfgkSg0uIARwa/ON+vytLNfG1s=,tag:ENO8K/U+ryuElf1bnYy/FA==,type:str]
+    lastmodified: "2023-02-01T17:28:30Z"
+    mac: ENC[AES256_GCM,data:OnjgYOj5Ijpxty0Yn/XFLWQyCHDU17Nk6kEqzR/8xWG/grQUQ9NkNN8/CTwVkIZbV8kFEV2i3+tZK6ZNG55EMdMuNRk3Htz43an/VHWXZKPfbCZQt+8uOfNAN//6YXePxRPSKB8TjU9Jv3Kidj7rDWrM0fK6agunl1jAEgHCuto=,iv:2w2q/zivORVzYu/hIBDc69Qca7nYPfDSb8Of8RsXBT4=,tag:V2tre24pEGAMY36/QfB/Cg==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
