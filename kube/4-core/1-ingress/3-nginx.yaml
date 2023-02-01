@@ -33,28 +33,29 @@ spec:
                   value: Asia/Singapore
             service:
                 externalIPs:
-                    - ENC[AES256_GCM,data:Jao/sge5tVBc,iv:t6rHoNakuJJp5RqKso52x6rGpCRSNWXC0HsXHt9mH0k=,tag:x8UROT/d2eWymq3I+ou1ug==,type:str]
+                    - ENC[AES256_GCM,data:+m0lvqJhFIRNWek=,iv:4KiVoYXjQEWPC+QFtAJjgduAnFi40wgcHaNiUlo6jp8=,tag:9SEwybjGoumVob73IKZdUg==,type:str]
                 externalTrafficPolicy: Local
             publishService:
                 enabled: true
             ingressClassResource:
                 default: true
             config:
-                client-body-buffer-size: 100M
-                client-body-timeout: 120
-                client-header-timeout: 120
+                client-body-timeout: 10
+                client-header-timeout: 10
                 enable-brotli: "true"
                 enable-real-ip: "true"
+                disable-access-log: "true"
                 use-forwarded-headers: "true"
                 hsts-max-age: "31449600"
-                keep-alive-requests: 10000
-                keep-alive: 120
+                hsts-preload: "true"
+                keep-alive: 10
                 log-format-escape-json: "true"
-                log-format-upstream: |
-                    {"time": "$time_iso8601", "remote_addr": "$proxy_protocol_addr", "x_forwarded_for": "$proxy_add_x_forwarded_for", "request_id": "$req_id", "remote_user": "$remote_user", "bytes_sent": $bytes_sent, "request_time": $request_time, "status": $status, "vhost": "$host", "request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": $request_length, "duration": $request_time,"method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}
-                proxy-body-size: 0
-                proxy-buffer-size: 16k
+                proxy-body-size: 100K
                 ssl-protocols: TLSv1.3 TLSv1.2
+                ssl-ciphers: ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305
+                hide-headers: Server,X-Powered-By
+                enable-ocsp: "true"
+                large-client-header-buffers: 2 1k
             # metrics:
             #   enabled: true
             #   serviceMonitor:
@@ -85,8 +86,8 @@ sops:
             aWxFR1pEdklwUTdJY1hmTGJmd2paMGsKjEMN6QYNQK3PoMF6VrlvYgtgDEv+63yy
             bpaEiToGg3HTX6KV8UCxwl07QGzs2XgIKoilgmisL61hkVuVO+BFSA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-31T02:17:08Z"
-    mac: ENC[AES256_GCM,data:kmei0rz1Kf2UxRx95mhq3szpfonXmPOYUiYqXikbWs+3giE+AWFPWJ20x+xS2eHwawpFf1TuKke0ZsUZTAb/6FNHtsLLfZe00yeDfeaZ7zYFUOpPYAOANrk1SmS8tfkG3pQ/N7XL2/62xgU7W8b+e53Dza9FnfUBtBGbYL7cuIg=,iv:16JOqRBBb5h4An2LTNNT3G36AKRYnfOAugCRjHS9x2E=,tag:ryH6elDEuXPsKe6SJfg2mQ==,type:str]
+    lastmodified: "2023-02-01T02:49:10Z"
+    mac: ENC[AES256_GCM,data:CBxgH9TewAQfGMvBBdL4qG4d9haOA+00UXD5Odax2ksv4ioFQE8S2yuT7BH9JiMMhSR97nUthV/yT/yqyoMpAZATZe5VLVjLjV50zxdMNZWy/tEDEc7lVz3l/Z0BOgj2vGx4s7w5cYr198N5y0B8GjR8kjbsTWLVA1pJiay9it8=,iv:XnAw0Gyy3gGrWb/qRfA1nrJnSK/JaamDVXiybvJ5RZY=,tag:luaYvq2rWEor/pP9gCiaAw==,type:str]
     pgp:
         - created_at: "2023-01-29T08:04:23Z"
           enc: |
