@@ -43,14 +43,14 @@ spec:
                 enabled: true
                 ingressClassName: nginx
                 hosts:
-                    - host: ENC[AES256_GCM,data:5uVsgEOC8JTNXoAE339KJar4L0A3,iv:PS11fg6lLzTasZMi0zLqIBT/3LmuZOwlwZCLMfnP6cM=,tag:C1poZPYa9Yty1oZU/R1h6g==,type:str]
+                    - host: ENC[AES256_GCM,data:b88yyG5HfDDN,iv:oVlfibcNvXI7+AVLcqQxFAgrCXDwxmK5uxN2SHpbhY8=,tag:LUFsZqDvXvn4TvqRS98i4w==,type:str]
                       paths:
                         - path: ENC[AES256_GCM,data:aA==,iv:cx/Kn5TEsqlZOBE+RZ4l1aqAM4/QECFh1QfHHGZgwro=,tag:L/+vXkpu+QAyJWPM+v/zyA==,type:str]
                           pathType: ENC[AES256_GCM,data:dFU2j7Ld,iv:CI3f9hGvuxUoMBrYaclRABQsvNxWg/aw9+y8Sah6z9k=,tag:2cyHcUOz9vuycOELL6MnEA==,type:str]
                 tls:
                     - hosts:
-                        - ENC[AES256_GCM,data:tW9UvnwiDKvsLxrH7PghCRI1rN/u,iv:n/XGYrqH3kbnXr5g7So1HNiOpX2ZU6QDIUcf+fa1ti8=,tag:ZFqUuRoMMNFBdQeWgK3abw==,type:str]
-                      secretName: long-domain-tls
+                        - ENC[AES256_GCM,data:iUt2smDhEFyM,iv:UAL/Lzab4zhjuHEsWhrQ0H5GkUXS291oxUmwdU2zljs=,tag:4oq88TbrMVT7SM3nV1QqEQ==,type:str]
+                      secretName: short-domain-tls
 sops:
     kms: []
     gcp_kms: []
@@ -66,8 +66,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T07:40:32Z"
-    mac: ENC[AES256_GCM,data:mm1L1p0B/CNx4NYVWcixq/4cub0fNtLHOTIuCtG0/EbnyJQlxM6viv24O9TDZ392nSkGgHFxpyQnmRNTXQF/IijG2WX+q5cB+epZTqvk/Jdhgn8SaeG3tLp3pL5X8y9UYlm8+YOC1GMLdnkNOHyzITWlkmfCgzFo9y0uBl+D/HA=,iv:BmvfWFVfVHwZ7lhItzWGZo0O+or2+oCYemr0rX5Am5Y=,tag:hBXmeH5ptsdMpSj8Gfq76g==,type:str]
+    lastmodified: "2023-02-02T08:29:08Z"
+    mac: ENC[AES256_GCM,data:F511jVgU5HybI90GWcFKuOc7lTwjmVjhquliFGPzkwyMuvEf/RXi8nRT9ada7VKFDMvRSm75INADqcrNbq+ENQd2nzRWmWRvzjBJFtU958IyuhYeS5xtlmuHtPuLJBbpXKqhx+d4uXbXUcXrGDvrgvfqEEg2INmiT3daUusuNKQ=,iv:IXK4/1O16Te7HCR/RVl3A7h7aGODPEaxSIvd5sSpfB8=,tag:XemmvRMEu6zHMwOVAj2lAA==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
