@@ -1,0 +1,83 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: gokapi
+    namespace: gokapi
+spec:
+    interval: 15m
+    chart:
+        spec:
+            chart: app-template
+            version: 1.2.1
+            sourceRef:
+                kind: HelmRepository
+                name: bjw-s
+                namespace: flux-system
+    maxHistory: 3
+    install:
+        createNamespace: true
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        controller:
+            strategy: RollingUpdate
+        image:
+            repository: docker.io/f0rc3/gokapi
+            tag: v1.6.1
+            service:
+                main:
+                    ports:
+                        http:
+                            port: 53842
+            env:
+                - GOKAPI_MAX_MEMORY_UPLOAD: "128"
+            ingress:
+                main:
+                    enabled: true
+                    ingressClassName: nginx
+                    hosts:
+                        - host: ENC[AES256_GCM,data:A1EEWkvWqEhPSibnf9Si5tqXltRH,iv:BLC80WaQt8T0OOS40U+aMWj7BM9hDkxVBcbYtia20+w=,tag:QV7DhX5yil5e3jcaihW17Q==,type:str]
+                          paths:
+                            - path: ENC[AES256_GCM,data:OA==,iv:DzaevatgHGzPPaNCRddwXF/eMNaHaePZaPrg6Iso5+o=,tag:HfCzhc/+09IXakmsRC9Hsg==,type:str]
+                              pathType: ENC[AES256_GCM,data:NP1NO28l,iv:OVwq2zxNraSI8oYjxgfHOd4VjVRKRp6uY8T0yqWbevw=,tag:9x5Hne4Cx5vRhWcKsEUDyw==,type:str]
+                    tls:
+                        - hosts:
+                            - ENC[AES256_GCM,data:/mIGpahpVyk/SXj8aZPfOGvkscJ0,iv:bqMM1zoLlTFHe1e7yy9Oz7eL6qyYM08nVAq+nBkOEvc=,tag:R0CUlUlzynXiAJ7sEUDllw==,type:str]
+                          secretName: long-domain-tls
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBadWtJNHVjR1ZQL0lPcFhl
+            UHVJMDdybzZJVDFwaTdKNytvelRhdE9UbVRJCmtiNmpsMERDQ3JlYllPbmtPK0th
+            STRuWEQwQ1ROU3lJZmxJQklnUklUMGcKLS0tIGFSVGRVZHRodEsxTHJTcVpSUFpq
+            eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
+            qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-02-02T07:12:55Z"
+    mac: ENC[AES256_GCM,data:eXwKtdlCYnK3HvMlVic3NI8QvwgTcqN93JgQg9b0IHOq1fJVY/BOsDux7TeFF7HHZx43xkfIhGjaJWDz3m/Yq31a1qgmgauIX9hfQY7ydhvcn+wlwatKLqYLdNKjyUU84qaGY0nEIlCR+YH43B1HIGnAoiNwcUnZziYmW07zUQk=,iv:1hc/8mRZ5ILVyAsa8CVDvisKTk7X4IufEAcpTVbDOMk=,tag:sBw/RCH+bNtGTyrRRHDT4Q==,type:str]
+    pgp:
+        - created_at: "2023-02-02T07:12:54Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAQjggg2Je53Vah+/Uy9jWY4NgMEKIrXzggHIWK7ILv30w
+            4KVyAuCRO0tIhd6A0dKXUg2CSBJ1CF9vBATHckwITrCn4kVa/jI6e/ffqVxha63v
+            0l4BaAXHuiMVdm9dfA7yOMxyOAfO8qSlfr5z8YTFkltIFyyqbzh3kkltG/5TwYLy
+            4GWtsvK+vxjAw7bZW1PmznOYrwWaM9BUAW8CVhTHn0ul+2IZHLOOvaLEb3Vc4CHg
+            =8imY
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(hosts|host)$
+    version: 3.7.3
