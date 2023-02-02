@@ -42,9 +42,7 @@ spec:
             config:
                 client-body-timeout: 10
                 client-header-timeout: 10
-                enable-brotli: "true"
                 enable-real-ip: "true"
-                disable-access-log: "true"
                 use-forwarded-headers: "true"
                 hsts-max-age: "31449600"
                 hsts-preload: "true"
@@ -52,7 +50,6 @@ spec:
                 log-format-escape-json: "true"
                 proxy-body-size: 100K
                 ssl-protocols: TLSv1.3 TLSv1.2
-                ssl-ciphers: ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305
                 hide-headers: Server,X-Powered-By
                 enable-ocsp: "true"
                 large-client-header-buffers: 2 1k
@@ -86,8 +83,8 @@ sops:
             aWxFR1pEdklwUTdJY1hmTGJmd2paMGsKjEMN6QYNQK3PoMF6VrlvYgtgDEv+63yy
             bpaEiToGg3HTX6KV8UCxwl07QGzs2XgIKoilgmisL61hkVuVO+BFSA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-01T02:49:10Z"
-    mac: ENC[AES256_GCM,data:CBxgH9TewAQfGMvBBdL4qG4d9haOA+00UXD5Odax2ksv4ioFQE8S2yuT7BH9JiMMhSR97nUthV/yT/yqyoMpAZATZe5VLVjLjV50zxdMNZWy/tEDEc7lVz3l/Z0BOgj2vGx4s7w5cYr198N5y0B8GjR8kjbsTWLVA1pJiay9it8=,iv:XnAw0Gyy3gGrWb/qRfA1nrJnSK/JaamDVXiybvJ5RZY=,tag:luaYvq2rWEor/pP9gCiaAw==,type:str]
+    lastmodified: "2023-02-02T18:11:19Z"
+    mac: ENC[AES256_GCM,data:m8+LDYhsCQlQ/CcduyUqSRmngyBSJLXqrD161hckeQnJaFN8tSyI/wi+mb8jTsGfmz7NZFskER7J/moMyJT3uynGgnlmHmyPj/5outkMb0VTng+4gb65lrgAmsBTGG1isUVPvAUSBUOCo0IXPIVUpkQBGjOH+PuW/8tOmJBONcc=,iv:No9U4RBZuzrNIIQYbhO/+wFm4V+PUMwDQpXmBhqBxFE=,tag:piMnfgzbAg85E6rqdi+8qA==,type:str]
     pgp:
         - created_at: "2023-01-29T08:04:23Z"
           enc: |
