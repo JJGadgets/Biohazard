@@ -35,6 +35,20 @@ spec:
             externalIPs:
                 - ENC[AES256_GCM,data:7bqjnjHTt7lg/jQ=,iv:OBUDbBJ+dDcq0A4NmW84d26TbvFVP1OFU13NVL8YcpA=,tag:meFMZdE2ZoJdhdPnptqQ4g==,type:str]
             externalTrafficPolicy: Local
+        extraZonePlugins:
+            - name: log
+            - name: errors
+            # Serves a /health endpoint on :8080, required for livenessProbe
+            - name: health
+              configBlock: lameduck 5s
+            # Serves a /ready endpoint on :8181, required for readinessProbe
+            - name: ready
+            # Serves a /metrics endpoint on :9153, required for serviceMonitor
+            - name: prometheus
+              parameters: 0.0.0.0:9153
+            - name: loop
+            - name: reload
+            - name: loadbalance
 sops:
     kms: []
     gcp_kms: []
@@ -50,8 +64,8 @@ sops:
             V0hDWlQ2OFpUa3RzN0piZEx1YUxZTkkKi2wO12IsWgvPzDcSUfUJaPS4RBWG0j5w
             PjxMjgGHcjAwO8cDDCb13Shu01F/jrJ2Sz56YjPnRyr7NN5j/FQzsQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T10:58:57Z"
-    mac: ENC[AES256_GCM,data:0UoCXt2nX+F8NkiHoNWIefwjOkydLYQKBFA+TX0L81mp2iHEHYvYq1COZ3/J5CgS6j0xkQVHtebnD5qjd5v12rqTW9j+oonrnqxqMC+GEttYIMWtrIUTwckj2aNFp10l97joNkqJHL8DWwSwH2QDYyEGSflIbK4x52Fs+wlM/+g=,iv:GpaCACQPiZyt+8cKEfb3AUgrkDbOvBpZHMxPHWGdQIw=,tag:a2qdF4QqlJPhE7fyWWq11A==,type:str]
+    lastmodified: "2023-02-02T11:55:17Z"
+    mac: ENC[AES256_GCM,data:KvuofD8vdvJuLUJObDvlPV5M9TI4FyWEyMSatBVq9dkfm09wmL5FhwzFXpHvm3pf4GLwqtSwgi/pMYC6LJwvAZUHS8aWGUl0Dp0bz8RfoxwXfZdlz+GPlaFWcmDXVTIU4MgdRU+318yyEgO5ORFmBP66HbpVwFr1obPCgHZ7UOo=,iv:MoxmsoVpymvYqvN1isdHNFI34lNXy9tAF8OVstB5euc=,tag:pkG5eOMaNwW51Xf0B26txg==,type:str]
     pgp:
         - created_at: "2023-01-31T03:19:34Z"
           enc: |
