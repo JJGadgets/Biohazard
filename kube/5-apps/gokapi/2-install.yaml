@@ -30,11 +30,11 @@ spec:
         image:
             repository: docker.io/f0rc3/gokapi
             tag: v1.6.1
-            service:
-                main:
-                    ports:
-                        http:
-                            port: 53842
+        service:
+            main:
+                ports:
+                    http:
+                        port: 53842
             env:
                 - GOKAPI_MAX_MEMORY_UPLOAD: "128"
             ingress:
@@ -42,13 +42,13 @@ spec:
                     enabled: true
                     ingressClassName: nginx
                     hosts:
-                        - host: ENC[AES256_GCM,data:A1EEWkvWqEhPSibnf9Si5tqXltRH,iv:BLC80WaQt8T0OOS40U+aMWj7BM9hDkxVBcbYtia20+w=,tag:QV7DhX5yil5e3jcaihW17Q==,type:str]
+                        - host: ENC[AES256_GCM,data:xM2m1JgIX5Nje0Az6Xr9o7iSpggl,iv:34wy7iv8Sq60sOcT+t61hC1RowWpKBoBWlUjmuMGrvg=,tag:jaoTQsFtrzvh0JR8jj+8PA==,type:str]
                           paths:
-                            - path: ENC[AES256_GCM,data:OA==,iv:DzaevatgHGzPPaNCRddwXF/eMNaHaePZaPrg6Iso5+o=,tag:HfCzhc/+09IXakmsRC9Hsg==,type:str]
-                              pathType: ENC[AES256_GCM,data:NP1NO28l,iv:OVwq2zxNraSI8oYjxgfHOd4VjVRKRp6uY8T0yqWbevw=,tag:9x5Hne4Cx5vRhWcKsEUDyw==,type:str]
+                            - path: ENC[AES256_GCM,data:UQ==,iv:6Ab7LRSullQyLVFmXQjk4KKs1Lvwrh1HZxfs2ptqDlE=,tag:vIgKH0ub6QgyO6EIcpAfrA==,type:str]
+                              pathType: ENC[AES256_GCM,data:lEQliQRl,iv:3r+JuVS/5sSf9HgWgnHxCxvGdcinXINbHuSwNFkN8Gg=,tag:K/ypiPWBlGktadxthDkyAg==,type:str]
                     tls:
                         - hosts:
-                            - ENC[AES256_GCM,data:/mIGpahpVyk/SXj8aZPfOGvkscJ0,iv:bqMM1zoLlTFHe1e7yy9Oz7eL6qyYM08nVAq+nBkOEvc=,tag:R0CUlUlzynXiAJ7sEUDllw==,type:str]
+                            - ENC[AES256_GCM,data:jeBk9bBVZl9CisdDXAxH+GMR/TNs,iv:DYC89j7eyVydvRmhBqnn65h0H+jZyI1qF6U1rHn2arQ=,tag:f1zR2CWSig0f/+IaHwszig==,type:str]
                           secretName: long-domain-tls
 sops:
     kms: []
@@ -65,8 +65,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T07:12:55Z"
-    mac: ENC[AES256_GCM,data:eXwKtdlCYnK3HvMlVic3NI8QvwgTcqN93JgQg9b0IHOq1fJVY/BOsDux7TeFF7HHZx43xkfIhGjaJWDz3m/Yq31a1qgmgauIX9hfQY7ydhvcn+wlwatKLqYLdNKjyUU84qaGY0nEIlCR+YH43B1HIGnAoiNwcUnZziYmW07zUQk=,iv:1hc/8mRZ5ILVyAsa8CVDvisKTk7X4IufEAcpTVbDOMk=,tag:sBw/RCH+bNtGTyrRRHDT4Q==,type:str]
+    lastmodified: "2023-02-02T07:28:04Z"
+    mac: ENC[AES256_GCM,data:nzh7AHfB/9to2TkJO/ewnHCRY68sD6lfRxhFl84ZyOZNvnsv/2uQ7hfdVZC+pfvoYm6RtJ89fqaBh33np/BBLDl+pMDNGl0D9ekKn7cI7S49mYNsFaVz2tixQfO+fRfakw/47bXPk2tZvuhaqtHSQYn+d2E1jBzKo1izhqj3obE=,iv:cE5k6ACxAh0PY71NLnR2Cmdp12rupGYgEIWJjfI+0EM=,tag:e/GRpo7tB/tBYXxhAx9t2A==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
