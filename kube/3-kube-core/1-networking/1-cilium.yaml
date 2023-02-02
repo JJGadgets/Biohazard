@@ -20,8 +20,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T08:09:13Z"
-    mac: ENC[AES256_GCM,data:Qx8yZ47luXAKGAeW0TRy2rwHkPfocBhiJk784/GxEkS7p8OD2jnyz5OdahAcSeMHRJfwrycq7EVQB601LeM2QikcXDA4VeNDKGbWMcMzb7EfRAA3HmbBPwfi/dN1N3XanjQtXHKFQ0B+swdUxWrwxxkN2EaotyVOfc041DEeaOI=,iv:ujTJjvhQKyKVqZMTveCOPM/1GAMzhZNmhJ9ruL1j1Ns=,tag:c0p7NjqoaFO50yrL2MKAzQ==,type:str]
+    lastmodified: "2023-02-02T15:40:11Z"
+    mac: ENC[AES256_GCM,data:VWI2QAd4ituy8Till0zy6K1xwIuJzn12tyMMQbPY0zOGlTCOA7MiYduj4YFbyl2XPnmsI0fW74/wRxwzxSuhKMDocGnAMmFeVfTPLLETqJe+wlCCoTaWsLy0DHTo1RII3SRops7BdT3SJZkqyeugkZHQ9cv2hpgGPRPg47bn784=,iv:IsK2AjNsVffxUOL9E+PIwgmDDX3L8lR/isjwLtc9Yvk=,tag:4hqJWCBbNIcomUYGli4tWQ==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
@@ -98,6 +98,12 @@ spec:
         localRedirectPolicy: true
         containerRuntime:
             integration: containerd
+        hubble:
+            enabled: true
+            relay:
+                enabled: true
+            ui:
+                enabled: true
 sops:
     kms: []
     gcp_kms: []
@@ -113,8 +119,8 @@ sops:
             ZDF5aFJBREplN28wQUtrYWJWVk1nSXcK7rHfu4MX3ZlOuMvgu543+HCWD7JqMkr+
             IIiK/sOBHxZVSGr0oOOLMaKYl7JYYXBppRVPICGbwPHDwjW9ml5H4w==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T08:09:13Z"
-    mac: ENC[AES256_GCM,data:Qx8yZ47luXAKGAeW0TRy2rwHkPfocBhiJk784/GxEkS7p8OD2jnyz5OdahAcSeMHRJfwrycq7EVQB601LeM2QikcXDA4VeNDKGbWMcMzb7EfRAA3HmbBPwfi/dN1N3XanjQtXHKFQ0B+swdUxWrwxxkN2EaotyVOfc041DEeaOI=,iv:ujTJjvhQKyKVqZMTveCOPM/1GAMzhZNmhJ9ruL1j1Ns=,tag:c0p7NjqoaFO50yrL2MKAzQ==,type:str]
+    lastmodified: "2023-02-02T15:40:11Z"
+    mac: ENC[AES256_GCM,data:VWI2QAd4ituy8Till0zy6K1xwIuJzn12tyMMQbPY0zOGlTCOA7MiYduj4YFbyl2XPnmsI0fW74/wRxwzxSuhKMDocGnAMmFeVfTPLLETqJe+wlCCoTaWsLy0DHTo1RII3SRops7BdT3SJZkqyeugkZHQ9cv2hpgGPRPg47bn784=,iv:IsK2AjNsVffxUOL9E+PIwgmDDX3L8lR/isjwLtc9Yvk=,tag:4hqJWCBbNIcomUYGli4tWQ==,type:str]
     pgp:
         - created_at: "2023-01-29T19:20:40Z"
           enc: |
