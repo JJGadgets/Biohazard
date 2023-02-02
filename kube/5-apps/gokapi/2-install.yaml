@@ -35,21 +35,21 @@ spec:
                 ports:
                     http:
                         port: 53842
-            env:
-                - GOKAPI_MAX_MEMORY_UPLOAD: "128"
-            ingress:
-                main:
-                    enabled: true
-                    ingressClassName: nginx
-                    hosts:
-                        - host: ENC[AES256_GCM,data:xM2m1JgIX5Nje0Az6Xr9o7iSpggl,iv:34wy7iv8Sq60sOcT+t61hC1RowWpKBoBWlUjmuMGrvg=,tag:jaoTQsFtrzvh0JR8jj+8PA==,type:str]
-                          paths:
-                            - path: ENC[AES256_GCM,data:UQ==,iv:6Ab7LRSullQyLVFmXQjk4KKs1Lvwrh1HZxfs2ptqDlE=,tag:vIgKH0ub6QgyO6EIcpAfrA==,type:str]
-                              pathType: ENC[AES256_GCM,data:lEQliQRl,iv:3r+JuVS/5sSf9HgWgnHxCxvGdcinXINbHuSwNFkN8Gg=,tag:K/ypiPWBlGktadxthDkyAg==,type:str]
-                    tls:
-                        - hosts:
-                            - ENC[AES256_GCM,data:jeBk9bBVZl9CisdDXAxH+GMR/TNs,iv:DYC89j7eyVydvRmhBqnn65h0H+jZyI1qF6U1rHn2arQ=,tag:f1zR2CWSig0f/+IaHwszig==,type:str]
-                          secretName: long-domain-tls
+        env:
+            - GOKAPI_MAX_MEMORY_UPLOAD: "128"
+        ingress:
+            main:
+                enabled: true
+                ingressClassName: nginx
+                hosts:
+                    - host: ENC[AES256_GCM,data:5uVsgEOC8JTNXoAE339KJar4L0A3,iv:PS11fg6lLzTasZMi0zLqIBT/3LmuZOwlwZCLMfnP6cM=,tag:C1poZPYa9Yty1oZU/R1h6g==,type:str]
+                      paths:
+                        - path: ENC[AES256_GCM,data:aA==,iv:cx/Kn5TEsqlZOBE+RZ4l1aqAM4/QECFh1QfHHGZgwro=,tag:L/+vXkpu+QAyJWPM+v/zyA==,type:str]
+                          pathType: ENC[AES256_GCM,data:dFU2j7Ld,iv:CI3f9hGvuxUoMBrYaclRABQsvNxWg/aw9+y8Sah6z9k=,tag:2cyHcUOz9vuycOELL6MnEA==,type:str]
+                tls:
+                    - hosts:
+                        - ENC[AES256_GCM,data:tW9UvnwiDKvsLxrH7PghCRI1rN/u,iv:n/XGYrqH3kbnXr5g7So1HNiOpX2ZU6QDIUcf+fa1ti8=,tag:ZFqUuRoMMNFBdQeWgK3abw==,type:str]
+                      secretName: long-domain-tls
 sops:
     kms: []
     gcp_kms: []
@@ -65,8 +65,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T07:28:04Z"
-    mac: ENC[AES256_GCM,data:nzh7AHfB/9to2TkJO/ewnHCRY68sD6lfRxhFl84ZyOZNvnsv/2uQ7hfdVZC+pfvoYm6RtJ89fqaBh33np/BBLDl+pMDNGl0D9ekKn7cI7S49mYNsFaVz2tixQfO+fRfakw/47bXPk2tZvuhaqtHSQYn+d2E1jBzKo1izhqj3obE=,iv:cE5k6ACxAh0PY71NLnR2Cmdp12rupGYgEIWJjfI+0EM=,tag:e/GRpo7tB/tBYXxhAx9t2A==,type:str]
+    lastmodified: "2023-02-02T07:30:20Z"
+    mac: ENC[AES256_GCM,data:f9X1j9plcVdrACiENytHqnE0E0B12E3qWvlrdRXN13pBKxy5K1M3yPSg7JQnqCAwZL+uQS3tjqv9vuFL+0ZyxcXJGMDPHaixfylggkrtSMNIzvHtTGfPmn3OgBjX+Tuis/nTOUe6uDxZ4JmbA80bhjWqPmwlC0i4oVuvoAhfDFI=,iv:g1WIolohQapcCkrectGbIAHFx357zTAWGEYZ+g2RAG4=,tag:M1foaLJ/8bDW4S3VQNlt6Q==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
