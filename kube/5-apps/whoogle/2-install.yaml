@@ -42,10 +42,9 @@ spec:
             WHOOGLE_CONFIG_DISABLE: 1
             WHOOGLE_CONFIG_TOR: 0
             WHOOGLE_TOR_SERVICE: 0
-        dnsPolicy: None
-        dnsConfig:
-            nameservers:
-                - ENC[AES256_GCM,data:bgcHzgBfeSM=,iv:JY+1KhoYbbBlvaPp8JzyXYTENLQ5s+O7EaWGo3hvKns=,tag:AfRts56/j9BTDaTC7fbSOA==,type:str]
+        # dnsPolicy: None
+        # dnsConfig:
+        #     nameservers:
         service:
             main:
                 ports:
@@ -84,8 +83,8 @@ sops:
             U0RucGlTdjJ5eThQQ3M5N0NlVXo3ZFEKWAyldwRjR/Ep5eLngZnRFLbRfo6hBxz/
             tDQUcbgG+x/hmciKhxEHxtFLrHsOZZSKn5/9EmtRixxnl+KnknJP3g==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-02T17:42:51Z"
-    mac: ENC[AES256_GCM,data:HAiVEfOOdT77fGjV87tg4dfMJpiQFBh+uCKkeALcMqfka8ooYjrASO/d8hnWoN89QRykY687xoMpzN7NloUBzVa5QRArJ/A78MvmXx8tgUzAnmMxskC7hh74W4RrwyNR0UXMxcAjLCSyfAVAYaG3MqYkOHpIKGh11pBfkmLyuSc=,iv:Ba8o9ZwbUAIPEn0jeY03FqAQKRrmS2ZZkj49iu7+6oY=,tag:1lc6TdabAE6gG/G2CFjAIw==,type:str]
+    lastmodified: "2023-02-02T18:20:43Z"
+    mac: ENC[AES256_GCM,data:TSTvVq3Q7EzcdXqW8KY4QI73dKaBkIfCVLAfEfFTZVTzwlCogz3MTTaCpwajtf8Wfx7vh7c91uVgQVG6Hmra2c7tHHiYWTrwFOEbwpPrLbu9Ge0cbZ2PSwqUVjY5P3tccjl5tmA9nnJvb8QWWeAFYSav09Bg5PRxPlEf7cGYNM8=,iv:o6Ywddywv+TyX/Vk2rfFIZ6mITjzy/misI88OOHbkwY=,tag:YCUnY3f2f3OzbIR4r0aYgw==,type:str]
     pgp:
         - created_at: "2023-02-01T10:34:08Z"
           enc: |
