@@ -58,7 +58,7 @@ spec:
                 readOnly: true
                 accessMode: ReadWriteOnce
                 size: 1Gi
-                storageClass: file
+                storageClass: block
                 retain: true
 sops:
     kms: []
@@ -75,8 +75,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-03T08:53:04Z"
-    mac: ENC[AES256_GCM,data:oJvpRl6vbnFal7TkUhV/08fJ2P+uCTRdLo5H4wDXITPDOBj6igAxiAHRV28bx2iuQ60LOOqgtQbLazQCuvQhsXU+/OAzKcduEEUC3pkLCQ1MqlqvmziQN36tCix4KQ/JCdRLe8FS18teSnELNE0RVe2+vk3oMkYfUIZfkmmlv1k=,iv:RD5KG2HfKPCnmMBoN4f6z5QqGgC4rYZSA4Xc4BR9QHs=,tag:vq0kUWt7EZNcQNKrUzFnkQ==,type:str]
+    lastmodified: "2023-02-03T09:02:07Z"
+    mac: ENC[AES256_GCM,data:A5gs8KfGmjx46srk7mEaDhhtP6x98LvY0ua6LgQaO8rAmHORNMFVwZnlulQjta0xVNl3lHRA+W88V2d7vSUTQH/AIu25Gf2bSIwwkBRy0RpUdSokROHGdSMx1aUDCQSE9HSmaYXilNmuBsb+g0Vq1psvdXMcdkEpEv0TpcEKbFo=,iv:YaPzBwOP7ZHb7IRLaba8kq+uw8ny4gPhhFlqy3DufAM=,tag:tuQ0NdwkQh9wdcvf4VGeLg==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
