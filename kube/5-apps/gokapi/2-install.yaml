@@ -55,7 +55,7 @@ spec:
                 enabled: true
                 type: pvc
                 mountPath: /app/config
-                readOnly: true
+                readOnly: false
                 accessMode: ReadWriteOnce
                 size: 1Gi
                 storageClass: block
@@ -75,8 +75,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-03T09:02:07Z"
-    mac: ENC[AES256_GCM,data:A5gs8KfGmjx46srk7mEaDhhtP6x98LvY0ua6LgQaO8rAmHORNMFVwZnlulQjta0xVNl3lHRA+W88V2d7vSUTQH/AIu25Gf2bSIwwkBRy0RpUdSokROHGdSMx1aUDCQSE9HSmaYXilNmuBsb+g0Vq1psvdXMcdkEpEv0TpcEKbFo=,iv:YaPzBwOP7ZHb7IRLaba8kq+uw8ny4gPhhFlqy3DufAM=,tag:tuQ0NdwkQh9wdcvf4VGeLg==,type:str]
+    lastmodified: "2023-02-03T09:13:47Z"
+    mac: ENC[AES256_GCM,data:sn/O+Q7utHmR4wcOWxnpz38w/8Rgnjbrt8Hy5Y5+f8j4ZA9wBOpYNjOzz2QEEo6x/CXxB1t5SyCaQivIsgeE7l8SodnIJjuR0TOYO0xAHEay0/3SUITchok7ZIeVgiVqD3bbP5+wXjxHYGiOQlqe2OmNdnIH2Nl+f4+xQ69RcuI=,iv:IzckEB/YGEbutvj5Q5C+ZyGR2gImCPJnudVluR/Tv0Y=,tag:Rb3f+Kwssct9o5+lI1O1SQ==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
