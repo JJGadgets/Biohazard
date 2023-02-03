@@ -50,15 +50,16 @@ spec:
                 tls:
                     - hosts:
                         - ENC[AES256_GCM,data:iUt2smDhEFyM,iv:UAL/Lzab4zhjuHEsWhrQ0H5GkUXS291oxUmwdU2zljs=,tag:4oq88TbrMVT7SM3nV1QqEQ==,type:str]
-        config:
-            enabled: true
-            type: pvc
-            mountPath: /app/config
-            readOnly: true
-            accessMode: ReadOnlyMany
-            size: 1Gi
-            storageClass: block
-            retain: true
+        persistence:
+            config:
+                enabled: true
+                type: pvc
+                mountPath: /app/config
+                readOnly: true
+                accessMode: ReadOnlyMany
+                size: 1Gi
+                storageClass: block
+                retain: true
 sops:
     kms: []
     gcp_kms: []
@@ -74,8 +75,8 @@ sops:
             eU1iQ24yT09uTENVTXR2UDdYY0YvOWcKVIGu5XXvtujn41eJSuJwTdP0Klc7yknF
             qcZ8WiHzD5IIzR7Q71YB3nt/h/KZIVRkc/ydyusNvrwuuWesChPKmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-03T07:11:29Z"
-    mac: ENC[AES256_GCM,data:c3GXEU0T0GPeJEvIQsV0a4wEyQn3WTV23lJ64V6aHuJAIzbA4wA1TBgXxhWyUFSpGKvgTZO5LWfggh676dabaToAT8Y7U/V7qhXEgTAYy3HNpmgXjoEuHnKR3d7LBKnee7h8VRNuTAMg4xoBlDimuWFKoWGTVLvXlDmeQsXJNX0=,iv:mHpqGFk6AzoKwLU9TOPanbr6ubx6b4fLJABEm+WWCgI=,tag:duqvQHMjG2iatJHVlrKyLw==,type:str]
+    lastmodified: "2023-02-03T07:20:34Z"
+    mac: ENC[AES256_GCM,data:tQUu+WXtTKb8RoQeNRmng8Zmox3G7+BATdRykrrZnEkEFrkLU2oGfVQe2GVfiacRRpytG4gbraNgwn6/jd+WwpHNJdGrxPHmoVAf1hXRMNzufR0taqIfnHcaVK3lJSrNW3GK+Fia+IbWnDrO46bZZQWP01D2zJBZNJv9YzPdlHs=,iv:DsAadu1nRqj7saiYnBhEFxS/xXjyyURVG1Q/6X608T4=,tag:YTe3bssl0Vb3sHS0AmW4Vw==,type:str]
     pgp:
         - created_at: "2023-02-02T07:12:54Z"
           enc: |
