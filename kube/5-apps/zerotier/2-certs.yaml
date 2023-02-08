@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-    name: VPNcert
+    name: vpncert
     namespace: zerotier
 spec:
     secretName: vpn
@@ -26,8 +26,8 @@ sops:
             RWlFUkJWQmJ4REQ0dEJ1encydFlGamsKSi0qRECk9btBSszv3fVW6/vXhbmq3sqR
             chGfT4Ot5JnRWarC9EfeXWStc6zTfGd2hXksTltJS4IADLlUrkpmMA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-08T19:26:38Z"
-    mac: ENC[AES256_GCM,data:yfQVZGm4Prera0dP0l4oayh5tON/z1/n8KcfqPcSmclibotzldNYfcqgqzIDpeaWb4zfNXfqCfFTBlOyImJne7DdSob/Z2QfFNGIKlLUNuVomJIQhV3VZj+j8LvAmjZdNexzrX659182nNmyJ6B5uQLoApsjFXspGJVt4R4jvEo=,iv:ZuTm/JuMIk+QldYMNg9q17sZ22dY68XL117wuAmO56Q=,tag:BKLMEK31a6grKcUWnnuazA==,type:str]
+    lastmodified: "2023-02-08T19:31:13Z"
+    mac: ENC[AES256_GCM,data:n1roZ91POUrPlPpfDwwK/6bET04lPDcnVZaSov5r1DZS03iGz+GjA2K2BQav5bfVux+7EeAjySGWss0lktq15TBbrZBJQ9dL10db6BK4xpNKir0/NpfopaySkzrWSWD7AQOsdTyvtlAv3eF8bLG5L8d8uT5KtOy8B0zpsde4vU8=,iv:CU8knkuBKi0uskPXUrleOGoQ/v/oNRcQOPNrNzhTEWQ=,tag:lWfBZZQD8gTSe3ye3nyiNg==,type:str]
     pgp:
         - created_at: "2023-01-29T08:02:26Z"
           enc: |
