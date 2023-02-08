@@ -1,0 +1,220 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: zerotier-ui
+    namespace: zerotier
+spec:
+    interval: 15m
+    chart:
+        spec:
+            chart: app-template
+            version: 1.2.1
+            sourceRef:
+                kind: HelmRepository
+                name: bjw-s
+                namespace: flux-system
+    maxHistory: 3
+    install:
+        createNamespace: true
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        controller:
+            type: statefulset
+            strategy: RollingUpdate
+        fullNameOverride: zerotier-ui
+        image:
+            repository: docker.io/dec0dos/zero-ui
+            tag: 1.5.1
+        env:
+            ZU_CONTROLLER_ENDPOINT: ENC[AES256_GCM,data:j0NVGXKnFkBorbUgY5kKxkEjL9RZPw==,iv:7Zh8wAwFS1NLW9lqh0PPpwkLFvdiVHX7a34S9mqb4NI=,tag:0BcwNEmqzlOR2Fok+Y/ZUw==,type:str]
+            ZU_SECURE_HEADERS: "true"
+            ZU_DEFAULT_USERNAME: ENC[AES256_GCM,data:9bSzd2KLzw==,iv:e47uZg9rCjkgs4216ZMN0+TuDjeDOo0/B7Sw19cIdt4=,tag:2foh8j4h5y7mRJ9N0UY9ZA==,type:str]
+            ZU_DEFAULT_PASSWORD: ENC[AES256_GCM,data:u9qF0eVeyqM0muEEcsH2tiULAOmBLI8H,iv:KkrS2Vj95a+s0gW8qSVztlyEy03FmztgOJNL+lMA/lk=,tag:XKH3h6To2y/XtAYymwDxDg==,type:str]
+        # dnsPolicy: None
+        dnsConfig:
+            options:
+                - name: ndots
+                  value: "1"
+        #     nameservers:
+        #         - fake.ip
+        service:
+            main:
+                ports:
+                    http:
+                        port: 4000
+        ingress:
+            main:
+                enabled: true
+                ingressClassName: nginx
+                hosts:
+                    - host: ENC[AES256_GCM,data:T1zkZ4qRSQCqeFfR,iv:9qE3EspO4omI9sWuX1u2J5O9GuOtQaVLfBAf/jeT2u0=,tag:YqUvoT5dwx63UM/htbrRJw==,type:str]
+                      paths:
+                        - path: ENC[AES256_GCM,data:ag==,iv:sWpz7xwLy7njFZXW4rVFgHp0QesZ8XcEGxm7UW5vccs=,tag:970D7QvBxzQ67aboS3N1Qg==,type:str]
+                          pathType: ENC[AES256_GCM,data:XbEbgilh,iv:WNXxaiA5P2/uHOsFviGZT/raLO+hc5NbIpCT+YA5n/c=,tag:P0q3wauFUKXUPQFgmPbn/Q==,type:str]
+                tls:
+                    - hosts:
+                        - ENC[AES256_GCM,data:eUL5pUezplowjyci,iv:eVvP9njgYh2uVnrSiQ9xtFJQ2XkPRlyiwuhO2K+0Fw0=,tag:XtxJAUsmmIsDvPy+8W/j7w==,type:str]
+                      secretName: ENC[AES256_GCM,data:i8GW,iv:B+b4MPSwGBZRAsABbly1t8XgL0AVRuDbi8cfw1OjX1M=,tag:vA0m8jFfQux4MKcJ12TIiw==,type:str]
+        persistence:
+            zerotier-one:
+                enabled: true
+                type: pvc
+                mountPath: /var/lib/zerotier-one
+                readOnly: false
+                accessMode: ReadWriteMany
+                storageClass: file
+                retain: true
+            zerotier-ui-data:
+                enabled: true
+                type: pvc
+                mountPath: /app/backend/data
+                readOnly: false
+                accessMode: ReadWriteOnce
+                storageClass: file
+                retain: true
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAxdTJzZjRZSExQWm5rSGxQ
+            YS9IYk1zMEFmUGtzckN2N0t5SnE5a1hSOG1FCnNPUkgyVlNXdlZBQlNqVkF3Qm56
+            L0xoSVVtUjdpenp4RlF5ZERpWkRybzQKLS0tIDRQU2Q3SUQwTXltMTNTTDFPVGdX
+            eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
+            uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-02-08T19:26:49Z"
+    mac: ENC[AES256_GCM,data:HfQOMyjp3graCfWAs4v/ryeqByhNVYGB7eTzl4GfnPAcSMQ7qRrDKbwBqV9JgVyxKU2qEaaKzC71dODoKg0PUagRAkzcd04w1wUIuL8qHs/aTzMDQhql+ddCMIDhSfgeTjyEQsV/aYl7x+bwiB2sPP86oKbLEIiskHlCm9D/Mns=,iv:0jVExJi2TagmXCZgPXax3oJ+pSynfCUmpEjpWngXjCc=,tag:5Xed5w/Oasv3SC3YzNGhTw==,type:str]
+    pgp:
+        - created_at: "2023-02-08T19:24:20Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdACIaRZaDeWUhEc3JZV3/IDGRn8EVhCdZwZdQnONhmUzAw
+            glSkslUmetrcdwAbucn5s+SXC2PBt3gIz7OV7EahbBPNf56NBi5b0O+HCKNc8LRj
+            0l4B75cK4zS8g82hx7gazdnG33S7L1d4m7G7FE5MOZ+UhOeeM2CF7prmXNUQ87iL
+            0CWCTpOlu1bLU8EktGQh1hfoIzTxnIJHcC4JZM8EfMH5b1dJDSC3HGbo2Qw9p6R8
+            =2zwW
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(hosts|host|ZU_DEFAULT_USERNAME|ZU_DEFAULT_PASSWORD|ZU_CONTROLLER_ENDPOINT|nameservers|secretName|commonName|dnsNames|externalIPs|ZT_ALLOW_MANAGEMENT_FROM)$
+    version: 3.7.3
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: zerotier
+    namespace: zerotier
+spec:
+    interval: 15m
+    chart:
+        spec:
+            chart: app-template
+            version: 1.2.1
+            sourceRef:
+                kind: HelmRepository
+                name: bjw-s
+                namespace: flux-system
+    maxHistory: 3
+    install:
+        createNamespace: true
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        controller:
+            type: statefulset
+            strategy: RollingUpdate
+        fullNameOverride: zerotier
+        image:
+            repository: docker.io/zyclonite/zerotier
+            tag: 1.10.2
+        env:
+            ZT_OVERRIDE_LOCAL_CONF: "true"
+            ZT_ALLOW_MANAGEMENT_FROM: ENC[AES256_GCM,data:kdJW6dX4bbRp,iv:zujk9X2ot/B38dXpb4gQQUnZpljBLlxmSHMhxoJj3ok=,tag:BfqXl4uWJtW9xAdnFWMcVA==,type:str]
+        # dnsPolicy: None
+        dnsConfig:
+            options:
+                - name: ndots
+                  value: "1"
+        #     nameservers:
+        #         - fake.ip
+        service:
+            zerotier:
+                enabled: true
+                primary: true
+                type: LoadBalancer
+                externalTrafficPolicy: local
+                externalIPs:
+                    - ENC[AES256_GCM,data:Wtkx1uccXcfbV84=,iv:YRbTppcWNI8TA4KmCDDMjEFOFOOQrFPgAHlZg/dnSvI=,tag:2IzDX+227DvS3fmVY3pivg==,type:str]
+                ports:
+                    http:
+                        enabled: false
+                    zerotier-udp:
+                        enabled: true
+                        primary: true
+                        protocol: UDP
+                        port: 9993
+                        targetPort: 9993
+                    zerotier-tcp:
+                        enabled: true
+                        primary: true
+                        protocol: TCP
+                        port: 9993
+                        targetPort: 9993
+        persistence:
+            zerotier-one:
+                enabled: true
+                type: pvc
+                mountPath: /var/lib/zerotier-one
+                readOnly: false
+                accessMode: ReadWriteMany
+                storageClass: file
+                retain: true
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAxdTJzZjRZSExQWm5rSGxQ
+            YS9IYk1zMEFmUGtzckN2N0t5SnE5a1hSOG1FCnNPUkgyVlNXdlZBQlNqVkF3Qm56
+            L0xoSVVtUjdpenp4RlF5ZERpWkRybzQKLS0tIDRQU2Q3SUQwTXltMTNTTDFPVGdX
+            eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
+            uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-02-08T19:26:49Z"
+    mac: ENC[AES256_GCM,data:HfQOMyjp3graCfWAs4v/ryeqByhNVYGB7eTzl4GfnPAcSMQ7qRrDKbwBqV9JgVyxKU2qEaaKzC71dODoKg0PUagRAkzcd04w1wUIuL8qHs/aTzMDQhql+ddCMIDhSfgeTjyEQsV/aYl7x+bwiB2sPP86oKbLEIiskHlCm9D/Mns=,iv:0jVExJi2TagmXCZgPXax3oJ+pSynfCUmpEjpWngXjCc=,tag:5Xed5w/Oasv3SC3YzNGhTw==,type:str]
+    pgp:
+        - created_at: "2023-02-08T19:24:20Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdACIaRZaDeWUhEc3JZV3/IDGRn8EVhCdZwZdQnONhmUzAw
+            glSkslUmetrcdwAbucn5s+SXC2PBt3gIz7OV7EahbBPNf56NBi5b0O+HCKNc8LRj
+            0l4B75cK4zS8g82hx7gazdnG33S7L1d4m7G7FE5MOZ+UhOeeM2CF7prmXNUQ87iL
+            0CWCTpOlu1bLU8EktGQh1hfoIzTxnIJHcC4JZM8EfMH5b1dJDSC3HGbo2Qw9p6R8
+            =2zwW
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(hosts|host|ZU_DEFAULT_USERNAME|ZU_DEFAULT_PASSWORD|ZU_CONTROLLER_ENDPOINT|nameservers|secretName|commonName|dnsNames|externalIPs|ZT_ALLOW_MANAGEMENT_FROM)$
+    version: 3.7.3
