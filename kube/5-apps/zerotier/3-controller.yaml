@@ -43,13 +43,13 @@ spec:
         #     nameservers:
         #         - fake.ip
         service:
-            zerotier:
+            main:
                 enabled: true
                 primary: true
                 type: LoadBalancer
                 externalTrafficPolicy: local
                 externalIPs:
-                    - ENC[AES256_GCM,data:B1K9Iv9c2VyUcO4=,iv:I2pDoqYppHXUgmlXarESgu6T3uf1Fxbadq90XjcgbtQ=,tag:loQNMFw2KyvxME/17LSgJA==,type:str]
+                    - ENC[AES256_GCM,data:I5YluqNB+7Rjxd0=,iv:BUQx8lJLdmHNeXjot9L30Xczlrjm850NLRX7wplB8Xc=,tag:CF6PITU9sVzVhhuVwQszdA==,type:str]
                 ports:
                     http:
                         enabled: false
@@ -90,8 +90,8 @@ sops:
             b0srZm85a3A5dnl2MVNtU0x2elQrMTAKUnaLiLE0CFSUxY0H3svHc/QBbhNfO5Kr
             Pv15Igi9cfRh7Nl5vfaz98OntlLJHd+2N3MkGg7MazK5Z5vfia87Zw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-08T19:45:02Z"
-    mac: ENC[AES256_GCM,data:T1BerEvUx7zgREnKc/QAeiugINyIU6Ph3z3j3v3tvsFck+OQe7JPJGsOzr10RL2Ul8aCceRUL/gIz0e69W+S6eCWJfqNUA+zFfNsew6V4IKJmw6d5ObkvbgqaXftQTMcwV3sVUkuDpmyF4XHkguq9MgUOWWHCATh7HIxSjY1veA=,iv:XOj4tGHf68aSsEudgQLYlWpTWBi5/PBjr2J2ptbYoYE=,tag:9i/hkfMLcnk2cEFTFHIf3g==,type:str]
+    lastmodified: "2023-02-08T19:48:42Z"
+    mac: ENC[AES256_GCM,data:DH6n3lAkRr4CpJ9fSnF1mrkQoO2keVoFcoctfBXLVmCWTGmnV9LAug7IShI+sA0MLyzxQoV1do9XFdE8bbHBwQqK0t8aC+wL0glAedgXRicCjvyLTN3Li+JXK9KjKgguPNJ8FVV0TGgN717p6iXRfE+EfW2RaYzvdxeAe0gcW8I=,iv:AlBwKiUeU3ep95H3wOzjXL3ja05oMqwkVfWWOSNAvfk=,tag:NXnKPIEeIhNbnnMXvU3iew==,type:str]
     pgp:
         - created_at: "2023-02-08T19:41:37Z"
           enc: |
