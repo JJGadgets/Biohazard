@@ -68,8 +68,8 @@ spec:
                 type: pvc
                 mountPath: /var/lib/zerotier-one
                 readOnly: false
-                accessMode: ReadWriteMany
-                storageClass: file
+                accessMode: ReadWriteOnce
+                storageClass: block
                 size: 1Gi
                 retain: true
             zerotier-ui-data:
@@ -78,7 +78,7 @@ spec:
                 mountPath: /app/backend/data
                 readOnly: false
                 accessMode: ReadWriteOnce
-                storageClass: file
+                storageClass: block
                 size: 1Gi
                 retain: true
 sops:
@@ -96,8 +96,8 @@ sops:
             eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
             uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-08T19:45:38Z"
-    mac: ENC[AES256_GCM,data:zRYwgHq6K6KdUPU2jBomf1QJGiAMSD/knatJWFIaqnVnX7B9flkolQb/9yfWYRME0nxp8DC6RpsgX73qzFl7IN8la+SPxd8goKOk/qf6uR5gWwgQ+kWc/P6gtObuCkIzl5mc8YUpgLL7JAukqM0X6qqDTaPG2D3NB8a/1c87NX0=,iv:JP1dIQpzr+A2sjHS+k3rOwIEEu8vDuUz8fr7Y6mGsHw=,tag:bbiQbHxBJj0atMDHh2+5IA==,type:str]
+    lastmodified: "2023-02-08T20:44:42Z"
+    mac: ENC[AES256_GCM,data:iCKnijouBVUd6EtXkUR307+6LrlxVEVw+AExXzQ+0jfQcockQmM7i5tjh1Oqk26ZLRi4VIPk3BGMAKiZjtZ6fM1IgWf06q0V1soSKu0xtPEGTDZn4bPsGmPZlKo6bZVC1vnRy0uUi660/rjf5PsJnansPXU3eub8/bXBCLIIefk=,iv:G/FPn9h0fKCZvWNbypGmyCFmfNNuBcKnTNk8Sm5nLzM=,tag:OzCobCF3HhZ3Z3qIQ4LzZQ==,type:str]
     pgp:
         - created_at: "2023-02-08T19:24:20Z"
           enc: |
