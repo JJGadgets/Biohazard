@@ -34,7 +34,7 @@ spec:
             tag: 1.10.2
         env:
             ZT_OVERRIDE_LOCAL_CONF: "true"
-            ZT_ALLOW_MANAGEMENT_FROM: ENC[AES256_GCM,data:Y3WY3mJt+WBx,iv:WuI7PsNU8WfSfAPfExYNt0VC/sQy00QOC9QCdQZRABs=,tag:dmA4vyDFGnDqxF8nGOtKig==,type:str]
+            ZT_ALLOW_MANAGEMENT_FROM: ENC[AES256_GCM,data:VH9ehVW2Gsx0,iv:cGaRGaaiCfiu1eab2nOZlTF+nMrzDZfmDQlKaQpr40Q=,tag:M9bdtwAXDmq2X04q9lH5Uw==,type:str]
         # dnsPolicy: None
         dnsConfig:
             options:
@@ -48,8 +48,9 @@ spec:
                 primary: true
                 type: LoadBalancer
                 externalTrafficPolicy: Local
+                loadBalancerIP: ENC[AES256_GCM,data:Z1tW0ujMusLsS7k=,iv:EQvUkndvvH6FcaTJMr5e32qUa5OVko6X0Z1y0baJ9VA=,tag:9OX0hhYPdVNvJK8KaBwICQ==,type:str]
                 externalIPs:
-                    - ENC[AES256_GCM,data:I5YluqNB+7Rjxd0=,iv:BUQx8lJLdmHNeXjot9L30Xczlrjm850NLRX7wplB8Xc=,tag:CF6PITU9sVzVhhuVwQszdA==,type:str]
+                    - ENC[AES256_GCM,data:eU1dAUtutMwVO60=,iv:9qqGErlwU1GreH+Q6XaBCGfxEw7g7SEOX79heDb1o+8=,tag:Aw/G00EMzanem3BIDvxsuQ==,type:str]
                 ports:
                     http:
                         enabled: false
@@ -81,25 +82,25 @@ sops:
         - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSArQWRpeGtDMHMwTFZmMUtE
-            Wit2MmZybTljZVduWlZCL2I1b0xVTlM0dnlrClN1cGdhdnh0eHY1VjU1Z1E5T3hS
-            Q01rUk8rWEV1eVhZMXAyaWd1VElFVGMKLS0tIDhKV3kveDlhZUUyWlVyazdJRUJy
-            b0srZm85a3A5dnl2MVNtU0x2elQrMTAKUnaLiLE0CFSUxY0H3svHc/QBbhNfO5Kr
-            Pv15Igi9cfRh7Nl5vfaz98OntlLJHd+2N3MkGg7MazK5Z5vfia87Zw==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB4WnhlQXBxdnFDeTdBTytu
+            cy9PemM4Q3R4R1Z0NkZGa1l6RFNpdG84dkVNCktocVMrcEtkRUtteHlRbmFYcDhE
+            d29KMklMQmRXN05NWVZvQ3MzcUtQd28KLS0tIDd2NWNPay9OdUY2M3crQjR0L0dj
+            UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
+            4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T02:08:21Z"
-    mac: ENC[AES256_GCM,data:bQNC+4G6HuvUgaQ3X05hrGN+xoSRZuXdIMaBNGY/TRNUShZuqnKpr/70bkHsZJLGPEvJs3wjdbEb9TY4y7iaoZJXmyCqyrLllocoZTnVbxi6KGIFFWQRR5NfPUq0GjpTnXa5V65xCjWi9BYknbq6JupjQq8WLjBBXcY3ljtCuRE=,iv:Dki2gI7tdmmLzmoswGIdon962aNqM9u4JqxiZdW1S4c=,tag:3WzZgcE781gSCXHuPls7tQ==,type:str]
+    lastmodified: "2023-02-09T03:25:07Z"
+    mac: ENC[AES256_GCM,data:sgTZiBwSm6a4IN0ppNjta171nZYMT093CVILNRJ9WbqEbjo9JoJvy5wXCPP7wVADcrukP9Wn8t7Y9uMVtvlpNeZqn6LrBGNzy30JHncXvGgBitZsHXcNoP7LOWwYHX38A8Xvw72oHXECqooW1JpxP+xFdFpjVHaleX98Auk57s4=,iv:9JpqLCIh1tu9vGLCx2Dhxk9h2+o+szIxiKhPmXfeW9Y=,tag:0in5t/uXBJ8M8aCNTTpB8g==,type:str]
     pgp:
-        - created_at: "2023-02-08T19:41:37Z"
+        - created_at: "2023-02-09T03:25:06Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdAzi4jPGLekTbdMxNBKWkZradk+AxkKVTCy1m7bka6XjAw
-            CLdImQuEN/+TyNbyuVp4rXFibyMilk0JL0RD1BMPEaN+3Nah6lLnbJd6UDTI8ADj
-            0l4BdNRh49/Fuvl26gPkFV1LfLudJgkyqdIokG0T+Pk7xut3d3EYU6/050j82R0x
-            B55QgViRG+l/XBAmYGKQKPhs0DL6JyKG/LkaLBIdxkKFYUWSYkL2tTomaU5zbWEW
-            =enm6
+            hF4DAAAAAAAAAAASAQdAHyfug5pftJG3pIFJjTtawQpD3r9oszgqgQj+nlMlr0Yw
+            bch6ktVJjrJ0w9or7wwgz0ssPYXy076/HF9C2qu3LAyoVBLSAF3QscZXvgFG8pua
+            0l4B7kXiw8Mnf6KdtjRaEJ9bbJA3dXxwpdlRA0Mi+9EpOfidsrjRvfsdzNmAV4lq
+            OvRpr+6Q/KV0fOrhT+snxymFaoOtaclq1ZZLpEGCaH+b5R+oeJ2SiqOB437k+zLE
+            =5/3C
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(hosts|host|ZU_DEFAULT_USERNAME|ZU_DEFAULT_PASSWORD|ZU_CONTROLLER_ENDPOINT|nameservers|secretName|commonName|dnsNames|externalIPs|ZT_ALLOW_MANAGEMENT_FROM)$
+    encrypted_regex: ^(hosts|host|ZU_DEFAULT_USERNAME|ZU_DEFAULT_PASSWORD|ZU_CONTROLLER_ENDPOINT|nameservers|secretName|commonName|dnsNames|loadBalancerIP|externalIPs|ZT_ALLOW_MANAGEMENT_FROM)$
     version: 3.7.3
