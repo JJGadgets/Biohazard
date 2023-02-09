@@ -40,11 +40,7 @@ spec:
                 - name: ndots
                   value: "1"
         securityContext:
-            capabilities:
-                add:
-                    - NET_ADMIN
-                    - NET_RAW
-                    - SYS_ADMIN
+            privileged: true
         hostNetwork: true
         service:
             main:
@@ -58,13 +54,13 @@ spec:
                         protocol: UDP
                         port: 9993
                         targetPort: 9993
-                        nodePort: 30001
+                        nodePort: 9993
                     zerotier-tcp:
                         enabled: true
                         protocol: TCP
                         port: 9993
                         targetPort: 9993
-                        nodePort: 30001
+                        nodePort: 9993
         persistence:
             zerotier-one:
                 enabled: true
@@ -87,8 +83,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T09:39:08Z"
-    mac: ENC[AES256_GCM,data:pl5hN/ju7y2hjgEStkOlm08PJl64usUC2VJMy2hdSixW6i/1qI8InGGag2+kQAePzcKVq0dfgJ4VcxS9f/Zpo+rDEgl/VqdRHKNcUOtY+u7HBtSV40jWoN8Tlq6+wyPlNrqHq6mssuwDEIYh8jvmuR1wJTSZ0RJB512/Ffc/8uE=,iv:4yqXJQXfxdlIyfCy0Pt1H34XinvctcJugl1LaFG9Vw4=,tag:Mw+D0APQPhxCMzl19MTZ1g==,type:str]
+    lastmodified: "2023-02-09T09:55:04Z"
+    mac: ENC[AES256_GCM,data:sYaUOK8NkKBc9xLT0XQ4ncBXcvoLyvHxFsE5uJNKtZP14+RC2sfxkON8IF+2PxoiZnUi39e1Bat1AnRImDVIJoroROZuasU+FK+xvOBHT4dXlTEhY6H8vWM6/a5M7ShtUISDkjsg2gTVgTfl4dG7dzPTvpBcvWpH2HB+LHqYh7I=,iv:Zf/5VHpE/lMXKDi9pYzwe+9VvZhL66LUGrKAFcotFJY=,tag:VK0ZrTOhYt+DI3zBY3Xciw==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
