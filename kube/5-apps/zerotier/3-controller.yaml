@@ -68,6 +68,7 @@ spec:
         persistence:
             zerotier-one:
                 enabled: true
+                nameOverride: zerotier-one
                 type: pvc
                 mountPath: /var/lib/zerotier-one
                 readOnly: false
@@ -90,8 +91,8 @@ sops:
             b0srZm85a3A5dnl2MVNtU0x2elQrMTAKUnaLiLE0CFSUxY0H3svHc/QBbhNfO5Kr
             Pv15Igi9cfRh7Nl5vfaz98OntlLJHd+2N3MkGg7MazK5Z5vfia87Zw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-08T20:44:49Z"
-    mac: ENC[AES256_GCM,data:/A2QHQEQx/JtpAQMiZNe6fs2uwCHhUkLxJE3ZXx0X3rhXYpqQZGRdVvwR9l/ItAnl7HOo50ioueML95zv3tw9zQMP1uXPlytClqtTgN8O7jcVz681NeLIVJFrwhV3u4pCzcQJRhex9Yuw4H10xSDFmMIHRxtxGrTLRkPTZ+FBiU=,iv:IeX+A1uIxk7e9o687Ms0lZHebWjMCnZNyz6P8ztRM50=,tag:RMy1gRdTtcfmXN7lCfDSvg==,type:str]
+    lastmodified: "2023-02-09T01:46:11Z"
+    mac: ENC[AES256_GCM,data:bHaay76xiNow+GD7f7MFaj31wAozdoOnMWLsNb+ZXAQbhireon1BfuMlvgcLWhyBtFFmeAPifqcPg7wBeni0llAtdhzmxEM/qWEPErSVCJbCKp76zc+ziCuS86CQUomiQsUfrTOlQBpUbR18w7A1GPs6siwGUYhR/epDV/OYZQY=,iv:ozHwekE48yNVseOGY9sIqqQfPiDlZwDuAfnIEl20UU4=,tag:5gtQWellEhe8mtrU3A119Q==,type:str]
     pgp:
         - created_at: "2023-02-08T19:41:37Z"
           enc: |

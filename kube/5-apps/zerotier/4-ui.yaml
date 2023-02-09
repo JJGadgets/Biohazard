@@ -72,6 +72,7 @@ spec:
                 storageClass: block
                 size: 1Gi
                 retain: true
+                existingClaim: zerotier-one
             zerotier-ui-data:
                 enabled: true
                 type: pvc
@@ -96,8 +97,8 @@ sops:
             eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
             uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-08T20:44:42Z"
-    mac: ENC[AES256_GCM,data:iCKnijouBVUd6EtXkUR307+6LrlxVEVw+AExXzQ+0jfQcockQmM7i5tjh1Oqk26ZLRi4VIPk3BGMAKiZjtZ6fM1IgWf06q0V1soSKu0xtPEGTDZn4bPsGmPZlKo6bZVC1vnRy0uUi660/rjf5PsJnansPXU3eub8/bXBCLIIefk=,iv:G/FPn9h0fKCZvWNbypGmyCFmfNNuBcKnTNk8Sm5nLzM=,tag:OzCobCF3HhZ3Z3qIQ4LzZQ==,type:str]
+    lastmodified: "2023-02-09T01:46:38Z"
+    mac: ENC[AES256_GCM,data:Uqzg/CHeM/fudCwUoyKqifCmxrJBcrG8mb2p0/ZVZrtO0GQOV2cyFUmOq2AH3pXcSQFNU8zNCwSGbdSnrI5ChCBLrfvF927DUTPlylJfjjU7Z+2eqoi/GmgDA5vN3cL6slRsXMp2Vo6PKVnZdFZIc46DDHaPqmEYSj6/eKMvsjM=,iv:RMK7cP0hOjHCJm/JEM7RoalQPMRJYaktiJHo6nxK3oc=,tag:uDzt7ofh0TYcJRT+5ocugw==,type:str]
     pgp:
         - created_at: "2023-02-08T19:24:20Z"
           enc: |
