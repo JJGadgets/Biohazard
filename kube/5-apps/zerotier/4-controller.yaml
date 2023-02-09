@@ -42,15 +42,11 @@ spec:
                   value: "1"
         #     nameservers:
         #         - fake.ip
+        hostNetwork: true
         service:
             main:
                 enabled: true
-                primary: true
-                type: LoadBalancer
-                externalTrafficPolicy: Local
-                loadBalancerIP: ENC[AES256_GCM,data:Z1tW0ujMusLsS7k=,iv:EQvUkndvvH6FcaTJMr5e32qUa5OVko6X0Z1y0baJ9VA=,tag:9OX0hhYPdVNvJK8KaBwICQ==,type:str]
-                externalIPs:
-                    - ENC[AES256_GCM,data:eU1dAUtutMwVO60=,iv:9qqGErlwU1GreH+Q6XaBCGfxEw7g7SEOX79heDb1o+8=,tag:Aw/G00EMzanem3BIDvxsuQ==,type:str]
+                type: NodePort
                 ports:
                     http:
                         enabled: false
@@ -59,11 +55,13 @@ spec:
                         protocol: UDP
                         port: 9993
                         targetPort: 9993
+                        nodePort: 9993
                     zerotier-tcp:
                         enabled: true
                         protocol: TCP
                         port: 9993
                         targetPort: 9993
+                        nodePort: 9993
         persistence:
             zerotier-one:
                 enabled: true
@@ -86,8 +84,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T07:19:40Z"
-    mac: ENC[AES256_GCM,data:YmY2v03gXrbdrZbBp5pCAg5ekGB44DstzT93VM2P0GHaFFdq87xRv0yGiL02gdTCLStK5sGcoqw4eU9WCBER4cMR+kAXDMftXYq6/+MGlV7GvnFyKOm92lMaKAhD3oobI59oMdEh95n1G//grIs4kpXb1WrgFQfnAJtbK+o6d+4=,iv:ZZaLe8IsnaTj8ngRZnRjdj7wPk8hJn0+eKEIdYLHDb0=,tag:1B+WdMQ7aIPYdV1W9IDoNw==,type:str]
+    lastmodified: "2023-02-09T09:13:22Z"
+    mac: ENC[AES256_GCM,data:Hv5bDNpqtdnp4j76aYLhSP7dV1ts8MlTsrAZvH4Q3TtcjsFC5J3AtyJ5ji1PFQvh1Cj0kbuYdm3ycrQ7Nhp8lA+fMC5lUz/LDMa/rIkJsrVhJgqwi2BJzszR0VgVUDmZbStayPjMUJpYO6Zy57UQagY5g+iXq0DgL+jmoB4P2yY=,iv:8kYbDp/e6t4uwUr0eTc9k2c8jVvT2YobmSeFP1WBmHE=,tag:lUW2GGg9JZ87JhzuYiG9kw==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
