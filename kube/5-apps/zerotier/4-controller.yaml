@@ -35,13 +35,16 @@ spec:
         env:
             ZT_OVERRIDE_LOCAL_CONF: "true"
             ZT_ALLOW_MANAGEMENT_FROM: ENC[AES256_GCM,data:VH9ehVW2Gsx0,iv:cGaRGaaiCfiu1eab2nOZlTF+nMrzDZfmDQlKaQpr40Q=,tag:M9bdtwAXDmq2X04q9lH5Uw==,type:str]
-        # dnsPolicy: None
         dnsConfig:
             options:
                 - name: ndots
                   value: "1"
-        #     nameservers:
-        #         - fake.ip
+        securityContext:
+            capabilities:
+                add:
+                    - NET_ADMIN
+                    - NET_RAW
+                    - SYS_ADMIN
         hostNetwork: true
         service:
             main:
@@ -84,8 +87,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T09:31:05Z"
-    mac: ENC[AES256_GCM,data:bsAX7FUlIvZ7FoqrrrR163DqbCdSC++qHbJCRGb0bQUe/1HGrR8iOVNnllsVMCj3Goh4xT0IrtQpwUmlPVNkWuWfnhHqDB9abVkNhlVAcwSl6fnbDdtEkglWauQLaGj+SKK4w7RABDBiAWbttFDUl9YdQz8bmup7o4Rh/xjpiu4=,iv:Ek1Q1tufED/iiWtBSbbdGahrthDGxCGavruVkB9kdNM=,tag:Sz5CZkm8yKRxdLRKUGXLsA==,type:str]
+    lastmodified: "2023-02-09T09:39:08Z"
+    mac: ENC[AES256_GCM,data:pl5hN/ju7y2hjgEStkOlm08PJl64usUC2VJMy2hdSixW6i/1qI8InGGag2+kQAePzcKVq0dfgJ4VcxS9f/Zpo+rDEgl/VqdRHKNcUOtY+u7HBtSV40jWoN8Tlq6+wyPlNrqHq6mssuwDEIYh8jvmuR1wJTSZ0RJB512/Ffc/8uE=,iv:4yqXJQXfxdlIyfCy0Pt1H34XinvctcJugl1LaFG9Vw4=,tag:Mw+D0APQPhxCMzl19MTZ1g==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
