@@ -35,17 +35,22 @@ spec:
         env:
             ZT_OVERRIDE_LOCAL_CONF: "true"
             ZT_ALLOW_MANAGEMENT_FROM: ENC[AES256_GCM,data:VH9ehVW2Gsx0,iv:cGaRGaaiCfiu1eab2nOZlTF+nMrzDZfmDQlKaQpr40Q=,tag:M9bdtwAXDmq2X04q9lH5Uw==,type:str]
+        # dnsPolicy: None
         dnsConfig:
             options:
                 - name: ndots
                   value: "1"
-        # securityContext:
-        #     privileged: true
-        hostNetwork: true
+        #     nameservers:
+        #         - fake.ip
         service:
             main:
                 enabled: true
-                type: NodePort
+                primary: true
+                type: LoadBalancer
+                externalTrafficPolicy: Local
+                loadBalancerIP: ENC[AES256_GCM,data:jCBcilAyQp6zh0w=,iv:TEcZcmRUjmceJWnK6trGPobjzJX2b10JQs66LzcEqo4=,tag:J+vHaQz+c8zsB+AG6MAMDA==,type:str]
+                externalIPs:
+                    - ENC[AES256_GCM,data:IljGes300xWBgCU=,iv:gmrYURklq16DO3RIUZWiPdYs5iBU0znUhbj+CvwO4WA=,tag:OshcQs1DnlGVtyVNPZLJMA==,type:str]
                 ports:
                     http:
                         enabled: false
@@ -54,13 +59,11 @@ spec:
                         protocol: UDP
                         port: 9993
                         targetPort: 9993
-                        nodePort: 9993
                     zerotier-tcp:
                         enabled: true
                         protocol: TCP
                         port: 9993
                         targetPort: 9993
-                        nodePort: 9993
         persistence:
             zerotier-one:
                 enabled: true
@@ -83,8 +86,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T12:04:15Z"
-    mac: ENC[AES256_GCM,data:lT6dalGZUi3xCZh2t5L8smE+5m+oeCPIeG0XinTpITJkiHWJxHWMSynxHRC6ugzuKJxxPhZ4HmBdti2mdBY3OhLia/72NKjhqcvc1nRsSVRtiUKiUW/WygLRZgRwM9NiO42EqFi8R7AtF2HhYHF7aUm2tjDNHLy3XF2A3frtGFc=,iv:pQ5yLIf2guepkWrbXSb/y7xsBljD9Tmycnw5jabHMQc=,tag:5RtVB2j7ORNgpmDKd2p+DA==,type:str]
+    lastmodified: "2023-02-09T17:41:19Z"
+    mac: ENC[AES256_GCM,data:0w1LmAtdIn99NWVu7WOZ+kPQCYDUwPvUw7jaji7/znnwp54uECBJ7oN1JqPlwwyBqfrNYdL5gGblT5ZzbuulRQFvT22ZLBiqz0ILtkL0RH/ZlLFagQLo+T24hcuGto3fmE+jW+yuLQZ3BaFjCBeSdcDqFt5Fniylu6eq6Mx2SSo=,iv:8KUd4qVCgpku/1wkPNZQ96BZK4LiIvxPnaLQXTqnOZQ=,tag:KqLRTNZ/hgUZ64wzgTiNdw==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
