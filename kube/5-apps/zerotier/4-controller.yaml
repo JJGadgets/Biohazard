@@ -42,6 +42,12 @@ spec:
                   value: "1"
         #     nameservers:
         #         - fake.ip
+        securityContext:
+            capabilities:
+                add:
+                    - NET_ADMIN
+                    - NET_RAW
+                    - SYS_ADMIN
         service:
             main:
                 enabled: true
@@ -90,6 +96,11 @@ spec:
                 mountPath: /var/lib/zerotier-one
                 retain: true
                 existingClaim: zerotier-one
+            tun:
+                enabled: true
+                type: hostPath
+                hostPath: /dev/net/tun
+                readOnly: true
 sops:
     kms: []
     gcp_kms: []
@@ -105,8 +116,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-10T16:03:05Z"
-    mac: ENC[AES256_GCM,data:Brt6V5SOcZ6mMFV/LCHTlL7HbNBTRGeE83Z3pYKN305Qgy1/c+Z13bvMTYq1h9hcbU8TqVuU9oJRiusuPbQV8d88u2aViWGdCdD86MsanPd2vZIOmugVCthGNPA+hnFZADKeml4SxNHnY7I+wnerjX7kBGVqN2WxlIbIENWiDKk=,iv:QnUn8XChR7mtgb3nGOifoVgyeH0Eskxy8Ti8ZOFolhw=,tag:pktd2HjK5tU7NDagL8gv/w==,type:str]
+    lastmodified: "2023-02-10T17:02:05Z"
+    mac: ENC[AES256_GCM,data:VF9ILcj3iBEaV0vtLN3WhbrvyRmQMtz1yS7n1woAlnTR0aWpXtAD8oBAlfU8JxccsZCVl5LTe/FNvUZFkPqeWMlT9TYmZlufoLyVETYCITgJfeYb/stdZ+RMoXWzHwCjxNjyzHIB3km7xe0P1VizUHwyaEifW4xC4bh+qHDA3nI=,iv:gYl2cp0J20c4f7nF3zbD5oibsVOWo6l2c56iV8uVySA=,tag:IDnXIhVeJUPUDAL1JdHH5A==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
