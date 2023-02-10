@@ -68,6 +68,7 @@ spec:
             peers:
                 enabled: true
                 type: NodePort
+                externalTrafficPolicy: Local
                 ports:
                     http:
                         enabled: false
@@ -83,6 +84,22 @@ spec:
                         port: 9993
                         targetPort: 9993
                         nodePort: 9993
+            ui:
+                enabled: true
+                type: ClusterIP
+                ports:
+                    http:
+                        enabled: false
+                    zerotier-udp:
+                        enabled: true
+                        protocol: UDP
+                        port: 9993
+                        targetPort: 9993
+                    zerotier-tcp:
+                        enabled: true
+                        protocol: TCP
+                        port: 9993
+                        targetPort: 9993
         persistence:
             zerotier-one:
                 enabled: true
@@ -105,8 +122,8 @@ sops:
             UkM0WGxFNVlsQ2J6ZEkwaE0zK3FybTQKgfMnTou0TApYFiECmXVg7PVOQst2m6B1
             4tvRYJL7lOztp+Cs4hWqMxrBnWtYTxRkuiGTAW5MK3Zmu4I2A2wDmQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-10T15:23:45Z"
-    mac: ENC[AES256_GCM,data:VjVGl80dviglyFlqODgA6uG6kp3tn5q2MccxV6+OCVXh/+GThklwnT78lKTzGcaRP9chaJTt4lnj8vE7K8FcvNI0EjBmp3cefpyCrsLEjSU23JjIC7XIbt0D7BpsbDQdqtcxYxVhd4WIotWZXIN5xzBBMk+Jz46R+Hcgl6nCnoE=,iv:Pkonu0NQKEuYggohajMS+ThDIR0oNvOsk6KrdRHhRwM=,tag:QEaEx8ZEEi8SZEY2VX5nGg==,type:str]
+    lastmodified: "2023-02-10T15:31:38Z"
+    mac: ENC[AES256_GCM,data:+oU9SbtHXmOxN1WSsl9XLb0D2zvDvxMEOhXKaAfkMHzryMMAaCeq5oPD/nf9M/nc7NBGRTp9n1FK2VOEDuE+tWGN9wJjNyzCQRkiAYGQdGXScJZLEApk8nNYqyOwUgWNEdPP6WfGnBEnZoumQy+bX3cDeKty3TTI/jnNr4lf61M=,iv:r097uCiGf/AXeqWBoDEue8gQk2GkAMcfRPYxiFKNGyg=,tag:uwIdKJxH06inIFJgKCE6GQ==,type:str]
     pgp:
         - created_at: "2023-02-09T03:25:06Z"
           enc: |
