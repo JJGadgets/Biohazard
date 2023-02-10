@@ -33,7 +33,7 @@ spec:
             repository: docker.io/dec0dos/zero-ui
             tag: 1.5.1
         env:
-            ZU_CONTROLLER_ENDPOINT: ENC[AES256_GCM,data:UYVKp+F6vVCBBJ6lu7nELAkvEHdd5A==,iv:5OfDYUjKJa6CZgHVm6xrHw+K1vFJob7E+4IRlXXj4ug=,tag:/lZzpta21B6ETY7GJq4B7Q==,type:str]
+            ZU_CONTROLLER_ENDPOINT: ENC[AES256_GCM,data:zAhu03Pf5dtJVcOovxDULhRQg3IrsoGD5ggbA+1f9M98UkTGWiVY2CjZVaPg9FXjjJQLW+wH7eNGH6Q=,iv:XRfEtIvdoGYbOR2iR+Y+LsxdSyWP7m0Lb5xKGus5SxQ=,tag:VyQ9jP+K1hTYu3uuoTLYcA==,type:str]
             ZU_SECURE_HEADERS: "true"
             ZU_DEFAULT_USERNAME: ENC[AES256_GCM,data:9bSzd2KLzw==,iv:e47uZg9rCjkgs4216ZMN0+TuDjeDOo0/B7Sw19cIdt4=,tag:2foh8j4h5y7mRJ9N0UY9ZA==,type:str]
             ZU_DEFAULT_PASSWORD: ENC[AES256_GCM,data:u9qF0eVeyqM0muEEcsH2tiULAOmBLI8H,iv:KkrS2Vj95a+s0gW8qSVztlyEy03FmztgOJNL+lMA/lk=,tag:XKH3h6To2y/XtAYymwDxDg==,type:str]
@@ -44,7 +44,6 @@ spec:
                   value: "1"
         #     nameservers:
         #         - fake.ip
-        hostNetwork: true
         service:
             main:
                 ports:
@@ -94,8 +93,8 @@ sops:
             eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
             uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-10T15:50:05Z"
-    mac: ENC[AES256_GCM,data:2++b5wIzhXqWaDPBfILrhCW/c/Ye4Co5ZGiwWXY2uBNTlAqt3gUx0tbd5VkSnX7aS7LgVOTdtlm8uDNsSPg+ZIlI2hZbNPtCYGl6JPs990ZMVQZrVd8UzT7Atp6kkKf87zGiCg/grlvxISRvmjCtiUw3S4OBl12arw2MuVRdBp8=,iv:NrpIrqBFl8QTkdLfcbl60Bd3ydR7Zefj1tgiq77bmGo=,tag:Ayp/wonGLBlColBsYLooew==,type:str]
+    lastmodified: "2023-02-10T16:02:23Z"
+    mac: ENC[AES256_GCM,data:D1E7pktkIqCvTyY4uIEvI/W+TUMGeKKOAhXDkXoBUBCIorWsOl05l4iZE03bUBL+YERwD2KwOgP3gEdC4lDrXqD6uF22u4DvywXlkPiMoIMWFq6UN6M4XNqUKKTq+JlojTdwItZC4O+lIBEbz5iteoj3IN+qsLbVen0qCy3vWXE=,iv:cbAZQufjBsn7LIrMjHSMDfdwB2UXG5lzx9ZmnncRb1o=,tag:zRcKKv2lLfcPxia+Nfr3FA==,type:str]
     pgp:
         - created_at: "2023-02-08T19:24:20Z"
           enc: |
