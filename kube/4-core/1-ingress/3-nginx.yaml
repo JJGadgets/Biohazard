@@ -39,8 +39,12 @@ spec:
                 externalTrafficPolicy: Local
             publishService:
                 enabled: true
+            ingressClassByName: true
             ingressClassResource:
+                name: internal
+                enabled: true
                 default: true
+                controllerValue: k8s.io/ingress-nginx-internal
             config:
                 client-body-timeout: 10
                 client-header-timeout: 10
@@ -87,8 +91,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-15T23:32:37Z"
-    mac: ENC[AES256_GCM,data:rcmi7NfCMpxjtKZDOmbCHI3yFgXA9tsrzzJyj8DbqToh7jbex0WLBn17xgrdoT8E4GofDi3yQrLGABQVFxcu0lo3wBlGWBnSQEZ139RKsKjd6dGDyri2Tr8cXwyCoW4CALUWvyJe/eQz6VX3JLdW3VxawhV9wrmponLqxZBZWNk=,iv:NPU3cPM9lCEX7WdVpE0V7ji93SjH1A/0GrrmAPDi+8w=,tag:qI0u+lwR0iL8P+fEmv4zig==,type:str]
+    lastmodified: "2023-02-15T23:48:34Z"
+    mac: ENC[AES256_GCM,data:Hj6+LTLgaJkkdXBDvfKtaABFW0u3aUDwgMy3FwFigQATYzY2VdkEBolVWjLGmry6pbCyKB7x40l4keA6LejlEbN8VXEra3UT8PlYk09YPg8B1rHgnf0K5kFwaNhLmB+DZwo1qvXW4GbZjAN6TxI37YZ70ImE5zCSgYRtmQ6LWCc=,iv:dJXw5jknJFjBlOuGPPFT5BLcdf7DOTXG8eAiRDIBCKM=,tag:tuCpMjvRam2avS3NvjMQmg==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
