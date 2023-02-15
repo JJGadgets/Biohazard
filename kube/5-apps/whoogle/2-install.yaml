@@ -66,6 +66,17 @@ spec:
                 tls:
                     - hosts:
                         - ENC[AES256_GCM,data:0lngFtyYrp0=,iv:7ohv94qGZwkWx/rMxW2EYSAO+tP4mE33dsiyB+WZfgI=,tag:ORz6fhoh2tVUv0ZpCH/cPw==,type:str]
+            external:
+                enabled: true
+                ingressClassName: nginx-ext
+                hosts:
+                    - host: ENC[AES256_GCM,data:QRPPDblDSJ8=,iv:HrlZUVG9SpAoW5Ft98Aaek1fIDxepAr04R0Qvcke+Dk=,tag:YbEQYOorUvMaW3Xv1dnueA==,type:str]
+                      paths:
+                        - path: ENC[AES256_GCM,data:7w==,iv:SxB5jFv78Rr2rN6ZSlB3rHcpZpt+onam3de3rK9yYYE=,tag:jG0ZsQJTAYILMD7KMe7CDw==,type:str]
+                          pathType: ENC[AES256_GCM,data:Ddl8tfRx,iv:ogyiNFjhFS+C9Kkz48O/3U7zNginI2F57h+UBvLrorI=,tag:A82AMYDg8AqAxUnrmHV9Gw==,type:str]
+                tls:
+                    - hosts:
+                        - ENC[AES256_GCM,data:t5RyUHCU0DE=,iv:5WAhJr75yOM4SuiRrKVGNngx3rTKcM4eqD9gJ3AmWRw=,tag:vHAQewNYYqu5R/N1TqbYmA==,type:str]
         resources:
             requests:
                 cpu: 5m
@@ -87,8 +98,8 @@ sops:
             U0RucGlTdjJ5eThQQ3M5N0NlVXo3ZFEKWAyldwRjR/Ep5eLngZnRFLbRfo6hBxz/
             tDQUcbgG+x/hmciKhxEHxtFLrHsOZZSKn5/9EmtRixxnl+KnknJP3g==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-03T21:23:18Z"
-    mac: ENC[AES256_GCM,data:vW6Sp5cfO6L8I1DJ0PfzWs8U5KvMMK5GwamHystt0s+v5wSj/kYAOO+m3Vnpt3bkbI+VLebiViy7MB0HrkXNl4AO0eX/buWvaK5cPWi/q9CA/uMcY52FGsS9JxiH2A8i9ty9ySpQ+4Mut6nsGeRhZPxL8sO+KgLGRzTRrummiwM=,iv:1JENJrunBK4iNx5c/TEeVTAZJ2JrXS0DkJlcvQ69VLg=,tag:lDj0v5D13a9UzveOueB38g==,type:str]
+    lastmodified: "2023-02-15T23:40:32Z"
+    mac: ENC[AES256_GCM,data:dhzuMj4wqb/jqyUzOOeA6GdSfhVDJqy+JTS/v/J+1qeHjxG9GEeKwhtEss+IInnnx0BKNG7pYfOdkzY5r4UwSmFUynNNVj3Z5PJ+V0zbqFlB5aeO6RvguHbNOIMvtrY2IK4EuYzDAnwqZUGR9v9nvd0FrKqzX8Ho5jSc+a9ajE0=,iv:SHfEuy46o1QaVJb2rbGNWdL9/auB0WCk4sWS8IJqnSI=,tag:jrvlAruVEIlR05BSKBS5nw==,type:str]
     pgp:
         - created_at: "2023-02-01T10:34:08Z"
           enc: |
