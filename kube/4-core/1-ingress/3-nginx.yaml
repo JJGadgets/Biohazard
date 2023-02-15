@@ -35,6 +35,16 @@ spec:
                 externalIPs:
                     - ENC[AES256_GCM,data:IOvMBrwdaTP2Wg==,iv:w4evrvYdVgciNkSYP5NXtodKcpWHDGm+tQxlIRR7cpA=,tag:wRA0oNs9DMzgf7dPy1dR7Q==,type:str]
                 externalTrafficPolicy: Local
+                ports:
+                    http: 80
+                    https: 443
+                    httpext: 6980
+                    httpsext: 6943
+            containerPort:
+                http: 80
+                https: 443
+                httpext: 6980
+                httpsext: 6943
             publishService:
                 enabled: true
             ingressClassResource:
@@ -84,8 +94,8 @@ sops:
             aWxFR1pEdklwUTdJY1hmTGJmd2paMGsKjEMN6QYNQK3PoMF6VrlvYgtgDEv+63yy
             bpaEiToGg3HTX6KV8UCxwl07QGzs2XgIKoilgmisL61hkVuVO+BFSA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-15T22:41:03Z"
-    mac: ENC[AES256_GCM,data:oGvEe75+sBG/zOC5u7fm302CXHS5mqhS0Q95IziKWdjK5+NzvENrYeiSB7zP/hruY5fAm2g+yJYUefmvI0WZt287bMuVjoTZDXoZQmwWSGI5lVna9+/ReRK2WvaUNwpK2Rm/or/Cm3Hkmm+ccQV1d1YC+x9tuSVeSG5KiIBUq+M=,iv:NX+pzYueTxnaCzx/T8gxE3NU7ioEERktbPHmd8917UU=,tag:yOD1Cm15Yqxu0LIR2WTqhg==,type:str]
+    lastmodified: "2023-02-15T23:09:21Z"
+    mac: ENC[AES256_GCM,data:atTNtknJJfQ1WQ6dZW1SwnxhhUv9LxFNWqN4b5Ez74NFc7ZOT23Ctqgr9K6ZO9IjQ/umvgq8vfSr4u7Gh1qGG9/M3uycgIQJg3u5e0g1KOazS8EUKXYO2o2MBseals9HyOaLtkCSwyLqF2drt2+T+LfZ4Tc4k0JkGSvdCCGy4ZA=,iv:JkcgBcbU3C1NHfq05pTcYFKaXTkEaS6pyDMbVESGKTs=,tag:B6Zg8sW8ndtKnKJsy3XKPQ==,type:str]
     pgp:
         - created_at: "2023-01-29T08:04:23Z"
           enc: |
