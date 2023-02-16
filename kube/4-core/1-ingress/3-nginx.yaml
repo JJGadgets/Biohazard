@@ -47,7 +47,7 @@ spec:
                 controllerValue: k8s.io/ingress-nginx-internal
             tolerations:
                 - key: nodeType.jj
-                  operator: Equals
+                  operator: Equal
                   value: worker
             config:
                 client-body-timeout: 10
@@ -96,8 +96,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-16T20:48:35Z"
-    mac: ENC[AES256_GCM,data:s6c3MbHA8iQYqqlxkOsJtWdhdvrp+1Jk8F8hPP3oouRfGuFUToGVYNYZJK0ZmU1qNoQYdeJSzmR41nT+9u9Itgz46TF8Fdd5X6aB8yhtrMMBvcQJEKaMVOC4NOrnH8mzWC/Wyh4o/PhQZ8NiTxDwQh/hBx8LO4zcOLd050j7ahg=,iv:kuRTRipnyet1n84S1n6WB3kXw06JTIJJTxKx8xMgehk=,tag:jrEWZu8d/7BwvSJnjoFt3Q==,type:str]
+    lastmodified: "2023-02-16T20:50:07Z"
+    mac: ENC[AES256_GCM,data:GSQt+DEPgJQ2gAifBU/+aUkL7PkRrPg3ruPWBSYwhAHGICagHGJNxq0uBnSszogOl8drA0/n4VMOof/+9rAsGRrQmzZhrnVTwLqboWsgIlWlAmxpgQM1CKVLiYoI2W3H8RBDsQpFr2YH2EOygzqkuYfJKw0JXsdkouPBB2pnfuM=,iv:T1qetrkQtkkmK3aQnaa4yPpq66s6AdQ5OupQpbsoV/4=,tag:aRSTEAUqlyStHs9j0JqNsQ==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
