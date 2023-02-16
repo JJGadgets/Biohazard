@@ -45,6 +45,10 @@ spec:
                 enabled: true
                 default: true
                 controllerValue: k8s.io/ingress-nginx-internal
+            tolerations:
+                - key: node.jj/cloudingress
+                  operator: Exists
+                  effect: NoSchedule
             config:
                 client-body-timeout: 10
                 client-header-timeout: 10
@@ -92,8 +96,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-15T23:58:33Z"
-    mac: ENC[AES256_GCM,data:v77oL0SbB1fQMKZVCgnlSyic+jo5lAWL4jhlYdzGuUAlsj1FDCDpG9WWdlLp0XnIyP5WISZxszeaV6+6Cqd2mq8T0IRN1R3CMye2V/KcdEKcHYjhmJ937chNUsTwY6HDVwkAE+ioLO1x+jejiWPIVeeNJph0BJN7lmzJZgM7Vf0=,iv:6Xa8ORxzlSn3ZZvAVQ0tc2rF6LHYfMMgVbUILyiF8Fo=,tag:RnObHTO1wyV3qajR14X2+Q==,type:str]
+    lastmodified: "2023-02-16T20:12:32Z"
+    mac: ENC[AES256_GCM,data:o8OOTbdtIPKbK7No4rXPqn97JAOUSMkwFNUUhVZ+dlbzOeywbXCLxuVKrj0o8y1d91R6Lp/n+E9xo295XRqDrYHd5irB5/s+ZZptnbEP3j/q2DZ01aktALp8wuqAOGrclLF9A+19DY6y/hVZwjf5NwO1ZF9aCcIgrW//+VjcIeo=,iv:VST5ixlFTCjzrxrBFSo1+XN3siMkQWMClaQNJc/oS9o=,tag:rHuoGLsUbO9nHopILjHaGA==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
