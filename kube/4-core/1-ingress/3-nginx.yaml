@@ -46,20 +46,20 @@ spec:
                 default: true
                 controllerValue: k8s.io/ingress-nginx-internal
             tolerations:
-                - key: node.jj/cloudingress
-                  operator: Exists
-                  effect: NoSchedule
+                - key: nodeType.jj
+                  operator: Equals
+                  value: worker
             config:
                 client-body-timeout: 10
                 client-header-timeout: 10
                 enable-real-ip: "true"
                 use-proxy-protocol: "false"
                 use-forwarded-headers: "true"
-                whitelist-source-range: ENC[AES256_GCM,data:fzecHRFiwSd0a9PHeZbNWOntlVD3mwRm1Q==,iv:e39ei9SyPtzv5vBg7zenlfeYYuOSicE623V+8hctbdw=,tag:kqxdDqwxTAHF1/R+YkMNpQ==,type:str]
+                # whitelist-source-range: 10.0.0.0/8, 100.64.0.0/10
                 hsts-max-age: "31449600"
                 hsts-preload: "true"
                 keep-alive: 10
-                disable-access-log: "true"
+                disable-access-log: "false"
                 log-format-escape-json: "true"
                 proxy-body-size: 100K
                 ssl-protocols: TLSv1.3 TLSv1.2
@@ -96,8 +96,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-16T20:18:20Z"
-    mac: ENC[AES256_GCM,data:BNW0aKhUYV7IrSJE2OpbV1cgx8VU+HZEXPLuSx+Sw0CNLZDPt30iEK18Ntug+V/Dt77vkYM6+Idde9e0hL4FAd4X3941pEzdrUCzqw8k21G7OXCJjtsFQDv92m8EOSosARYbR9ZZAwc/kVs0yAnUsAmyfS3tPFWbGZWddnbqi/k=,iv:amGHt++Tva5tRY12XpEDMQzic+aguQWkX+xFa44kalA=,tag:yCN+MYsk4BE6alw4X+DUpQ==,type:str]
+    lastmodified: "2023-02-16T20:48:35Z"
+    mac: ENC[AES256_GCM,data:s6c3MbHA8iQYqqlxkOsJtWdhdvrp+1Jk8F8hPP3oouRfGuFUToGVYNYZJK0ZmU1qNoQYdeJSzmR41nT+9u9Itgz46TF8Fdd5X6aB8yhtrMMBvcQJEKaMVOC4NOrnH8mzWC/Wyh4o/PhQZ8NiTxDwQh/hBx8LO4zcOLd050j7ahg=,iv:kuRTRipnyet1n84S1n6WB3kXw06JTIJJTxKx8xMgehk=,tag:jrEWZu8d/7BwvSJnjoFt3Q==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
