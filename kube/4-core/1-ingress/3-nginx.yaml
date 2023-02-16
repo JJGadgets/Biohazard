@@ -27,8 +27,8 @@ spec:
         keepHistory: false
     values:
         controller:
-            #replicaCount: 3
-            kind: DaemonSet
+            replicaCount: 3
+            # kind: DaemonSet
             extraEnvs:
                 - name: TZ
                   value: Asia/Singapore
@@ -96,8 +96,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-16T20:12:32Z"
-    mac: ENC[AES256_GCM,data:o8OOTbdtIPKbK7No4rXPqn97JAOUSMkwFNUUhVZ+dlbzOeywbXCLxuVKrj0o8y1d91R6Lp/n+E9xo295XRqDrYHd5irB5/s+ZZptnbEP3j/q2DZ01aktALp8wuqAOGrclLF9A+19DY6y/hVZwjf5NwO1ZF9aCcIgrW//+VjcIeo=,iv:VST5ixlFTCjzrxrBFSo1+XN3siMkQWMClaQNJc/oS9o=,tag:rHuoGLsUbO9nHopILjHaGA==,type:str]
+    lastmodified: "2023-02-16T20:18:20Z"
+    mac: ENC[AES256_GCM,data:BNW0aKhUYV7IrSJE2OpbV1cgx8VU+HZEXPLuSx+Sw0CNLZDPt30iEK18Ntug+V/Dt77vkYM6+Idde9e0hL4FAd4X3941pEzdrUCzqw8k21G7OXCJjtsFQDv92m8EOSosARYbR9ZZAwc/kVs0yAnUsAmyfS3tPFWbGZWddnbqi/k=,iv:amGHt++Tva5tRY12XpEDMQzic+aguQWkX+xFa44kalA=,tag:yCN+MYsk4BE6alw4X+DUpQ==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
