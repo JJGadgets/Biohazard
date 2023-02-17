@@ -33,10 +33,20 @@ spec:
                 - name: TZ
                   value: Asia/Singapore
             service:
+                type: LoadBalancer
                 externalIPs:
                     - ENC[AES256_GCM,data:nRZvDKddmB+2gA==,iv:LWxu/b7bAe/7EdGuPINDm3jr7kTvMOPXc2EOZpolIPU=,tag:1HwiIxLc5Ko7Y18L6GvxNQ==,type:str]
                 loadBalancerIP: ENC[AES256_GCM,data:Wk4UKE/pjyE/4Q==,iv:Xn9RJQFV+AzFyzNupcF6RRXFayttwQHjV9hb01c0N4k=,tag:7Xj/64aYUAEZcUTwbKai2A==,type:str]
                 externalTrafficPolicy: Local
+                ports:
+                    http: 80
+                    https: 443
+                targetPorts:
+                    http: http
+                    https: https
+                nodePorts:
+                    http: 80
+                    https: 443
             publishService:
                 enabled: true
             ingressClassByName: true
@@ -96,8 +106,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-16T20:50:07Z"
-    mac: ENC[AES256_GCM,data:GSQt+DEPgJQ2gAifBU/+aUkL7PkRrPg3ruPWBSYwhAHGICagHGJNxq0uBnSszogOl8drA0/n4VMOof/+9rAsGRrQmzZhrnVTwLqboWsgIlWlAmxpgQM1CKVLiYoI2W3H8RBDsQpFr2YH2EOygzqkuYfJKw0JXsdkouPBB2pnfuM=,iv:T1qetrkQtkkmK3aQnaa4yPpq66s6AdQ5OupQpbsoV/4=,tag:aRSTEAUqlyStHs9j0JqNsQ==,type:str]
+    lastmodified: "2023-02-17T21:21:23Z"
+    mac: ENC[AES256_GCM,data:gNKWsQUR3tYLJaKy69CGeUot5Srp9m1vgS6ST89xQN7w5g5t1DGJUfH4sVLhHprOwJVCxz5chGGJz0mtLFBe3b1ULKopqM5fkov/Rwng+f9vaz3oTd5fX4NhsGUmmq8LR5suwzu8/317Cm7rIiH1hVTV2JqXOU7qONHUpfejhiI=,iv:wlkxbuHZMkxdJw4fxoIAIyS952TsT/FqJjiNY5yvycg=,tag:95X+Dz2TMfeilrbDe9OpNA==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
