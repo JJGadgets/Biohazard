@@ -8,8 +8,6 @@ metadata:
     name: ingress-nginx-external-controller
     namespace: ingress
 spec:
-    allocateLoadBalancerNodePorts: true
-    loadBalancerIP: ENC[AES256_GCM,data:iXvJI6YFPhyVYSb7,iv:qSqYmCerZ7xJ7Q3zBJc7UFh1O9n/v3xoTTnAJSRg/FI=,tag:uL8ZnuztA+BLDOkLwQNv4Q==,type:str]
     externalIPs:
         - ENC[AES256_GCM,data:9a2V8hq6BKbvAmb+,iv:jUFPT5JGbYVkPN3D8JKh4Ct2V7xRsiOxncNXVnhhMak=,tag:r8T8xKZ5UG/kOmTO29BsRw==,type:str]
     externalTrafficPolicy: Local
@@ -19,16 +17,17 @@ spec:
           port: 80
           protocol: TCP
           targetPort: http
+          nodePort: 80
         - appProtocol: https
           name: https
           port: 443
           protocol: TCP
           targetPort: https
+          nodePort: 443
     selector:
         app.kubernetes.io/component: controller
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/name: ingress-nginx
-    type: LoadBalancer
 sops:
     kms: []
     gcp_kms: []
@@ -44,8 +43,8 @@ sops:
             alRiMGVTQXlOcHp1Zy9rQ2dLOC8rSU0KY2Qww/zZF1zyzJuwcPwGNHnDQ4IuWtHa
             NQWECjoM7nYXN9pALQ9x6k8pbH2fvrntEKi2OWpgAYxC2xE60/U4Jg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-17T06:57:35Z"
-    mac: ENC[AES256_GCM,data:/T/DvsZrYgmd2xHXf3E6sCAWnpDVPSAhUdtoIvJ+yjHWYDeXrlU+VJQsbX9rMO+XCDLPQB7n3ziiNk8ERbh3X4Q/xyxRiV49gdGdzWysRTL+F8tv0WQdc/Vi7M3S4rDkoDnDMF3G4DHpre4YaRFaufPO3uAbvI2qojF+DORiF1M=,iv:6pTHvF1ycSjUOXQy/OMtopcaH5rUAfnf6/27kjjdgyY=,tag:6aIqWlScaQETI3NGUuSMWA==,type:str]
+    lastmodified: "2023-02-17T07:01:22Z"
+    mac: ENC[AES256_GCM,data:DbWJ9trsKNIbWGXMnWc/SIoAuPr3e4O1jEdsbI3vTlj8F8l6PV41xZRhMbyCPBMcd7dRpPnwqoLoY4hv5jbKe3mH9qGFbT70ZZb/j+UWahe1WW5w+ribG9Q+zMWs1T18hM70/yfhofpJ/PeogNi+V3qOzYjThrFUzC/aRyujToA=,iv:jJYQduV6LPFfA5uKRZUqT3HmtOfvewrQe0TgTdJXscU=,tag:oXNuIpt7lyipfimSiBZOOg==,type:str]
     pgp:
         - created_at: "2023-02-17T06:39:01Z"
           enc: |
