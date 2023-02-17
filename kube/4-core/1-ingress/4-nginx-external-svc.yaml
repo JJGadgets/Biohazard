@@ -10,7 +10,9 @@ metadata:
 spec:
     externalIPs:
         - ENC[AES256_GCM,data:9a2V8hq6BKbvAmb+,iv:jUFPT5JGbYVkPN3D8JKh4Ct2V7xRsiOxncNXVnhhMak=,tag:r8T8xKZ5UG/kOmTO29BsRw==,type:str]
+        - ENC[AES256_GCM,data:Kdj2/Y9eoCGOSQ==,iv:ppiNMuYHLs/7GTrEwl2yj2MHa0Yi7a+Wcf/EYx41fPc=,tag:7JjgmiFgQs214HTYypMdNQ==,type:str]
     externalTrafficPolicy: Local
+    type: NodePort
     ports:
         - appProtocol: http
           name: http
@@ -43,8 +45,8 @@ sops:
             alRiMGVTQXlOcHp1Zy9rQ2dLOC8rSU0KY2Qww/zZF1zyzJuwcPwGNHnDQ4IuWtHa
             NQWECjoM7nYXN9pALQ9x6k8pbH2fvrntEKi2OWpgAYxC2xE60/U4Jg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-17T07:01:22Z"
-    mac: ENC[AES256_GCM,data:DbWJ9trsKNIbWGXMnWc/SIoAuPr3e4O1jEdsbI3vTlj8F8l6PV41xZRhMbyCPBMcd7dRpPnwqoLoY4hv5jbKe3mH9qGFbT70ZZb/j+UWahe1WW5w+ribG9Q+zMWs1T18hM70/yfhofpJ/PeogNi+V3qOzYjThrFUzC/aRyujToA=,iv:jJYQduV6LPFfA5uKRZUqT3HmtOfvewrQe0TgTdJXscU=,tag:oXNuIpt7lyipfimSiBZOOg==,type:str]
+    lastmodified: "2023-02-17T07:07:43Z"
+    mac: ENC[AES256_GCM,data:gTcZwsfqMwzDRpQpPbcqg6gX2fvmpeN6kGKD8V/o9KY+5NFSk59iV3qL/vB96nJ1YQINfOCT/BXAEX+gBCm106d5/o2t3voD2EL+qB6ZgdXT0/QNKoZQhKhPILVhumX70ycCGbCN8+toSNdGM5oaaNSmEKYtB+F0yagJbXg90z8=,iv:+sP5gsh6m0qMULE3HLYfJgpBJ8vTIftwHStWwPJg+yc=,tag:J54xNT9/Px83S2tp6VAjIA==,type:str]
     pgp:
         - created_at: "2023-02-17T06:39:01Z"
           enc: |
