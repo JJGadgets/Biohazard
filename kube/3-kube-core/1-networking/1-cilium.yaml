@@ -20,8 +20,8 @@ sops:
             MFJGWXh1UXU3REpNNGt4aExiMEQ4SmcKl2YxWWp9ABxTnLDDstwFaj9pDTZQJzDY
             kj16Q+smYAmO20yKRHLQvseqSXOV7RO2AB86Pef2vYW2r04txS2/uw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-18T08:50:02Z"
-    mac: ENC[AES256_GCM,data:cX5FSf2lGLq3mw87d7+r5cUCVnijgLia0sTj6EJkWuxUgQ2b7qCF9fvNxJWSke3kpyj9vrUduh2jjnACrAS/CpjQDUnnscq7sD9wjvJu162Qq6hxwQXuGKnyya1oMLXFqsk8H5p//CBLBjcuNR+b7aWRe8iGSEr3JcTarXCIKG4=,iv:ON4dSinBK19vDp9d+aoxU4qhICIEb6zKdZtjP7uWUwQ=,tag:9ChPle5x0jrquHQplMYPtw==,type:str]
+    lastmodified: "2023-02-18T08:58:04Z"
+    mac: ENC[AES256_GCM,data:vZ4hfoVJh1Q6GcZk3us6YVA2YrEQdEaqOXTgrxK8IXJIbR1UfzgIQwgUW7kYf71HDvL7XMWAVB4MKEtqKJn5sDzohyRpP9DYA6fI4QYdTJ9N9eLqrfcaIqEZ8G6HDOi4aOYMPEyerYh0VRRiincksu/pkTho0k1digtjBgAir2Y=,iv:jIRsllCyr4Axqf20OkvJKDXkmi31BJSVS2hAxCeNJ4g=,tag:MbCElmPp+zRS3p2/9PP03A==,type:str]
     pgp:
         - created_at: "2023-02-03T05:00:34Z"
           enc: |
@@ -78,6 +78,8 @@ spec:
         tunnel: vxlan
         ipam:
             mode: kubernetes
+        eni:
+            enabled: true
         bgp:
             enabled: true
             announce:
@@ -127,8 +129,8 @@ sops:
             MFJGWXh1UXU3REpNNGt4aExiMEQ4SmcKl2YxWWp9ABxTnLDDstwFaj9pDTZQJzDY
             kj16Q+smYAmO20yKRHLQvseqSXOV7RO2AB86Pef2vYW2r04txS2/uw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-18T08:50:02Z"
-    mac: ENC[AES256_GCM,data:cX5FSf2lGLq3mw87d7+r5cUCVnijgLia0sTj6EJkWuxUgQ2b7qCF9fvNxJWSke3kpyj9vrUduh2jjnACrAS/CpjQDUnnscq7sD9wjvJu162Qq6hxwQXuGKnyya1oMLXFqsk8H5p//CBLBjcuNR+b7aWRe8iGSEr3JcTarXCIKG4=,iv:ON4dSinBK19vDp9d+aoxU4qhICIEb6zKdZtjP7uWUwQ=,tag:9ChPle5x0jrquHQplMYPtw==,type:str]
+    lastmodified: "2023-02-18T08:58:04Z"
+    mac: ENC[AES256_GCM,data:vZ4hfoVJh1Q6GcZk3us6YVA2YrEQdEaqOXTgrxK8IXJIbR1UfzgIQwgUW7kYf71HDvL7XMWAVB4MKEtqKJn5sDzohyRpP9DYA6fI4QYdTJ9N9eLqrfcaIqEZ8G6HDOi4aOYMPEyerYh0VRRiincksu/pkTho0k1digtjBgAir2Y=,iv:jIRsllCyr4Axqf20OkvJKDXkmi31BJSVS2hAxCeNJ4g=,tag:MbCElmPp+zRS3p2/9PP03A==,type:str]
     pgp:
         - created_at: "2023-02-03T05:00:34Z"
           enc: |
