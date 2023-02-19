@@ -25,6 +25,9 @@ spec:
     uninstall:
         keepHistory: false
     values:
+        tcp:
+            "42080": ingress/ingress-nginx-controller:80::PROXY
+            "42443": ingress/ingress-nginx-controller:443::PROXY
         controller:
             replicaCount: 3
             # kind: DaemonSet
@@ -51,9 +54,6 @@ spec:
                 https: 443
                 internalhttp: 42080
                 internalhttps: 42443
-            tcp:
-                "42080": ingress/ingress-nginx-controller:80::PROXY
-                "42443": ingress/ingress-nginx-controller:443::PROXY
             # hostNetwork: true
             # dnsPolicy: ClusterFirstWithHostNet
             publishService:
@@ -113,8 +113,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-19T17:13:11Z"
-    mac: ENC[AES256_GCM,data:WzBRLvHhr5JxkvCYsCnKssaDm3rAIAdg4E6j9UGdq+ect0sl5Q25A277D1gPEftGtALXCkX8EDR5VZ8wIwkgltFzOR6CcOpLhj91FBWHcYpUmHRuIbu8HLu0yfN/KMuxX0D6UQ5Y2lBs740MIByqo6wKyKFd9JuoqYINfPjknrk=,iv:eGzrK/d7cBxsHeOQeMNZytX8giQ6fm6D+JUvL3LPu9s=,tag:z4qA3o97pUNQZEspJYWxxA==,type:str]
+    lastmodified: "2023-02-19T17:55:37Z"
+    mac: ENC[AES256_GCM,data:TC+9smecoMpmBpXTxGvz06sqeyYtUjVnCvfLySsThx8a/dqhpp3ous549FI+FLu88aDLw425crTdn6bY1Q7Z/67RzsRCP5cUbvFQkKp6oCbYgHn8vx74lE8hR0CpXd839MfJBUDuRweWtJ20s8T49BvIWLRVXTR6ivBtGYHzucw=,iv:aNwMr10IQgQN+eITJawTefhNBOjHLLwOC26EXUKYiJk=,tag:J/9LWLeqakC3EtcjSUuwPQ==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
