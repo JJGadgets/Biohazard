@@ -36,6 +36,7 @@ spec:
                 type: LoadBalancer
                 externalIPs:
                     - ENC[AES256_GCM,data:nRZvDKddmB+2gA==,iv:LWxu/b7bAe/7EdGuPINDm3jr7kTvMOPXc2EOZpolIPU=,tag:1HwiIxLc5Ko7Y18L6GvxNQ==,type:str]
+                    - ENC[AES256_GCM,data:cTEf8xBS30HEVU33,iv:yqDZe2uftulPZF530slpET94APEWbQIP0knLhUO+fkI=,tag:TlVTLHZOd+TdtQlDn1qhHA==,type:str]
                 loadBalancerIP: ENC[AES256_GCM,data:Wk4UKE/pjyE/4Q==,iv:Xn9RJQFV+AzFyzNupcF6RRXFayttwQHjV9hb01c0N4k=,tag:7Xj/64aYUAEZcUTwbKai2A==,type:str]
                 externalTrafficPolicy: Local
                 ports:
@@ -44,11 +45,14 @@ spec:
                 targetPorts:
                     http: http
                     https: https
-            # containerPort:
-            #     http: 2080
-            #     https: 2443
-            # hostNetwork: true
-            # dnsPolicy: ClusterFirstWithHostNet
+                nodePorts:
+                    http: 80
+                    https: 443
+            containerPort:
+                http: 80
+                https: 443
+            hostNetwork: true
+            dnsPolicy: ClusterFirstWithHostNet
             publishService:
                 enabled: true
             ingressClassByName: true
@@ -108,8 +112,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-19T10:20:25Z"
-    mac: ENC[AES256_GCM,data:Zm1/tLFHu88tLcD3Wbh4Hw3NWt0FxRD+Z6ugWgeB4ogm+0hhrdLiHXmVACNPEPjNx0DJd3jmO+7Gmh/AbU7xraUnkm/8/YHOltlGy8yIlhZB1k78XWdpMci6xyTBFjvfNnl5el/BeTovcAMilSqM6EUwnKUaKZ//qxzb4D5Wk54=,iv:inkbe5OuTCHS4+lP6h2jXtMZWkicig/k/zpf+RZ0Meg=,tag:wCdjPX7Qma4q3G1eZRzNeQ==,type:str]
+    lastmodified: "2023-02-19T10:32:21Z"
+    mac: ENC[AES256_GCM,data:p5rzSm9ClVOEP/tjVS7wBYAmTAocqe9K3dif270bDSt0W6pgK8Oo4DcBTVZLT2pQjSBLsEErFsvNWlcFHycuS5X0W+3s6ROFInNNOk9101+3P8KW9jkJax0ljmSx7R7tO3z/brezD4w5QGYyt2nCs92OtY0js/0RjmCdLy8Lb7o=,iv:t/wb+ZtxNj3BMRj7hVK97qA0gvVp3MPB1bpOdCq6lVM=,tag:VdTCEgl5au8jgJWqWGM2Dg==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |

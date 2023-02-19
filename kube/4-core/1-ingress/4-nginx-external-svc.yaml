@@ -15,16 +15,16 @@ spec:
     ports:
         - appProtocol: http
           name: http
-          port: 80
+          port: 30080
           protocol: TCP
-          targetPort: 80
-          nodePort: 80
+          targetPort: 30080
+          nodePort: 30080
         - appProtocol: https
           name: https
-          port: 443
+          port: 30443
           protocol: TCP
-          targetPort: 443
-          nodePort: 443
+          targetPort: 30443
+          nodePort: 30443
     selector:
         app.kubernetes.io/instance: ingress-nginx
         app.kubernetes.io/name: ingress-nginx
@@ -43,8 +43,8 @@ sops:
             alRiMGVTQXlOcHp1Zy9rQ2dLOC8rSU0KY2Qww/zZF1zyzJuwcPwGNHnDQ4IuWtHa
             NQWECjoM7nYXN9pALQ9x6k8pbH2fvrntEKi2OWpgAYxC2xE60/U4Jg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-19T10:19:07Z"
-    mac: ENC[AES256_GCM,data:7/DC4EsZG+b+27ddvUOI4TdMc3CftR7gC1ZQQ0a6N8kWHdSF4wdMnwYbYcxOUWPnyTFaFgpN0xLc8kURf8U2E628Px+QssCq71GJFRpmH3QN9lmzqvolkqEJxPfjtk6T/8e1b+OfKToUKDAS2OTw+fcqqwV6pT+/iY9+7H8xyfI=,iv:Izal4u95KKNvvY6Abizr2bPmshvk3AOfS96ihJT+kUA=,tag:FdC8EpibM2VXHeNriYDcVw==,type:str]
+    lastmodified: "2023-02-19T10:30:57Z"
+    mac: ENC[AES256_GCM,data:tSlPNOq3ogdWb+2G0k6+kciGv191Vaf0RUAUjl9x3KOp/cytt0RkoeYUmCy0gEYfqVb/kn/dsiti9zyrzTJKDgM3+p59K5bqVROoXFa8KkyjksbE7UsU/MLIOse+t/AIlhvinBxn02zljAm17oUBQGNLoq3XjHuoOsH7J1TsX7Y=,iv:u2SwaQt2hvbvwazf1Zi4+iwtQcMzdrNHpvOJKsPR10U=,tag:+eULUR+dbYicvIH3Dh2w9g==,type:str]
     pgp:
         - created_at: "2023-02-17T06:39:01Z"
           enc: |
