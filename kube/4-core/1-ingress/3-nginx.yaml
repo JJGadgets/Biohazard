@@ -44,6 +44,11 @@ spec:
                 targetPorts:
                     http: http
                     https: https
+            containerPort:
+                http: 2080
+                https: 2443
+            hostNetwork: true
+            dnsPolicy: ClusterFirstWithHostNet
             publishService:
                 enabled: true
             ingressClassByName: true
@@ -103,8 +108,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-17T21:27:44Z"
-    mac: ENC[AES256_GCM,data:1RqHoEbxXA8M83riSugFkXvAiQFuPEV+GCJ/px4G2Hzre08Tb0pe8ZQY3rsaoJHsqsJnmD0hRI4BQYQUu45O9bkY5u40mdtUY1L8kQfQjJlmFo1hIeZfMs+OwJW+sBSz2GRBb81WDxVfMfwtBXd0I9w/rv+NMF4vcC7bHXIXZ1E=,iv:I6A8qL7wU/PAlGwCIktt1+w2IobRW88Y9Hj2X03vPOs=,tag:sQpQQQpS0/nMG0svCHEiAQ==,type:str]
+    lastmodified: "2023-02-19T09:54:01Z"
+    mac: ENC[AES256_GCM,data:jq6sBXEqXYJxGxo1qTyOPZgXKkERuOa5va2Py6npH/Lqn30XycpgE565dvu5RIgoBdEYeb9gsr36eiMhcoax+0B/dO8qn1x+lDlCIkRap3D2rWP7aUNahdQjCYQlG8KadwsNX+z/HIeofCj8FTon8OGD731GcswDj+MK45lSpcI=,iv:c/vLFQe5Iu9ePup/OqxvM73dgqQjk6mXsW9U9KPiHB8=,tag:g7GB6dISPX/wa32v109+7A==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
