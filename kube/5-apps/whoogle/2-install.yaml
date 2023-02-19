@@ -68,18 +68,6 @@ spec:
                 tls:
                     - hosts:
                         - ENC[AES256_GCM,data:0lngFtyYrp0=,iv:7ohv94qGZwkWx/rMxW2EYSAO+tP4mE33dsiyB+WZfgI=,tag:ORz6fhoh2tVUv0ZpCH/cPw==,type:str]
-            external:
-                enabled: true
-                ingressClassName: external
-                nameOverride: external
-                hosts:
-                    - host: ENC[AES256_GCM,data:QRPPDblDSJ8=,iv:HrlZUVG9SpAoW5Ft98Aaek1fIDxepAr04R0Qvcke+Dk=,tag:YbEQYOorUvMaW3Xv1dnueA==,type:str]
-                      paths:
-                        - path: ENC[AES256_GCM,data:7w==,iv:SxB5jFv78Rr2rN6ZSlB3rHcpZpt+onam3de3rK9yYYE=,tag:jG0ZsQJTAYILMD7KMe7CDw==,type:str]
-                          pathType: ENC[AES256_GCM,data:Ddl8tfRx,iv:ogyiNFjhFS+C9Kkz48O/3U7zNginI2F57h+UBvLrorI=,tag:A82AMYDg8AqAxUnrmHV9Gw==,type:str]
-                tls:
-                    - hosts:
-                        - ENC[AES256_GCM,data:t5RyUHCU0DE=,iv:5WAhJr75yOM4SuiRrKVGNngx3rTKcM4eqD9gJ3AmWRw=,tag:vHAQewNYYqu5R/N1TqbYmA==,type:str]
         resources:
             requests:
                 cpu: 5m
@@ -101,8 +89,8 @@ sops:
             U0RucGlTdjJ5eThQQ3M5N0NlVXo3ZFEKWAyldwRjR/Ep5eLngZnRFLbRfo6hBxz/
             tDQUcbgG+x/hmciKhxEHxtFLrHsOZZSKn5/9EmtRixxnl+KnknJP3g==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-15T23:52:35Z"
-    mac: ENC[AES256_GCM,data:YtrmjeJkSxO1tnA0h8XyzH8MWYlgsoE63kzZKkmLUbB7SZhyEQEfEqsqtymv+nkqH9js6Yi9DWI9u0I785RigFvT8NUI7TtxoBXtH6YhiM7cL2oE33aHBw+KENFR96aM9lY7eLq8Mpvih/pduwkJ2SFq7v6OPvDxqZMidklMWaI=,iv:KccvRYWmTdOJCCbimk7yBOrCJUunMUyzwHZGSVBNKsQ=,tag:Hd2VQm+Fq5C1D846SGpE/w==,type:str]
+    lastmodified: "2023-02-19T18:08:00Z"
+    mac: ENC[AES256_GCM,data:4o8tknKdMvvcsoe/gMqxHIVW6tQCu6eZytxEodmSIb+ljEtmMs2gF64NF1a1Ply7EbPCr8hXxYkWNajI5Sgo5K7f2O/XvNoAlHVc3MIRUOICUaHF7vkwlWdAVnQz3bS0JB7GaGu2wUTncbHyQK8M2IouvNzA28lAziR7BKrPEqk=,iv:tBEXa33mgCB7JPFcu8YlC44vPRyhpMtThZtL481FPYg=,tag:THtxg+a7ZcqBkUpydnOd9Q==,type:str]
     pgp:
         - created_at: "2023-02-01T10:34:08Z"
           enc: |
