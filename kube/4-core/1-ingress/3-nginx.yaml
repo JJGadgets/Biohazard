@@ -46,20 +46,20 @@ spec:
                     routehttp: 20080
                     routehttps: 20443
                 targetPorts:
-                    http: 42080
-                    https: 42443
-                    routehttp: 80
-                    routehttps: 443
+                    http: internalhttp
+                    https: internalhttps
+                    routehttp: http
+                    routehttps: https
             #     nodePorts:
             #         http: 80
             #         https: 443
-            # containerPort:
-            #     http: 80
-            #     https: 443
-            #     routehttp: 20080
-            #     routehttps: 20443
-            #     internalhttp: 42080
-            #     internalhttps: 42443
+            containerPort:
+                http: 80
+                https: 443
+                #     routehttp: 20080
+                #     routehttps: 20443
+                internalhttp: 42080
+                internalhttps: 42443
             # hostNetwork: true
             # dnsPolicy: ClusterFirstWithHostNet
             publishService:
@@ -119,8 +119,8 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-20T12:07:51Z"
-    mac: ENC[AES256_GCM,data:hTZYt+SpTaBBiRhWIbCmoSCHI7K2qcJuTfW/MsvF4lXxSS+jibqXWi95jvOG0rd2upKyVeM5zVgrTdzr7UeJ6INOtkiQbVEHcXdJT11Gl63wDCaPRxJVARc5t2A3DMdZc9oVZIA6M1uKwbX5OywBsJXZxl9bp+T9U/7HMhHHzto=,iv:tIlcZ3IUp+IeGYYdGVnTxYFA/6XAJrx5INbvqB5Z7Qk=,tag:60yTtmN3lx/O+XYtIhDjJg==,type:str]
+    lastmodified: "2023-02-20T12:14:35Z"
+    mac: ENC[AES256_GCM,data:UYvfv4CJud4HICGyGov5n+0vPiTftIhEedukkHDy4nhYey4Zl0kEizWk/61v0FM4t8+3CG1IJ3eaOZcBX6xtGeWzR62yhBsTHYpFCIu2YOJoH+l1qByWlNI9qzNLc1Q7XLrgK/dLSR16pi90puuK4WTbynDy9NQP/DRiMxZH/Ik=,iv:YOgj8q4s3WKJZdtABmq874XOsJmcfNyioKCM0RsKYhU=,tag:IAhHXPW8/hA/XpapwNZcpw==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
