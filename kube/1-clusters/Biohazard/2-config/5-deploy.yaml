@@ -1,0 +1,117 @@
+---
+# core components first
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: cilium-charts
+  namespace: flux-system
+spec:
+  url: https://helm.cilium.io/
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-01-networking-cilium
+  namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "cilium"
+spec:
+  path: ./kube/3-deploy/1-core/01-networking/cilium
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: rook-ceph-charts
+  namespace: flux-system
+spec:
+  url: https://charts.rook.io/release
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-02-storage-rook-ceph-crds
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/02-storage/rook-ceph/crds
+  dependsOn:
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-02-storage-rook-ceph-app
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/02-storage/rook-ceph/app
+  dependsOn:
+    - name: biohazard-1-core-02-storage-rook-ceph-crds
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-02-storage-rook-ceph
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/02-storage/rook-ceph/cluster
+  dependsOn:
+    - name: biohazard-1-core-02-storage-rook-ceph-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-03-certs-cert-manager-crds
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/03-certs/cert-manager/crds
+  dependsOn:
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-03-certs-cert-manager
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/03-certs/cert-manager/app
+  dependsOn:
+    - name: biohazard-1-core-03-certs-cert-manager-crds
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-04-dns
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/04-dns
+  dependsOn:
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-05-ingress
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/05-ingress
+  dependsOn:
+    - name: biohazard-1-core-03-certs-cert-manager
+    - name: biohazard-1-core-04-dns
+---
+# all apps hosted on this cluster below here
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-2-apps-whoogle
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/whoogle
+  dependsOn:
+    - name: biohazard-1-core-05-ingress
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-2-apps-gokapi
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/gokapi
+  dependsOn:
+    - name: biohazard-1-core-05-ingress
+    - name: biohazard-1-core-02-storage-rook-ceph

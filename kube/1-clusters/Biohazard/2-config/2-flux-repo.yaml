@@ -1,0 +1,135 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: ssh://git@github.com/JJGadgets/Biohazard
+  ref:
+    branch: main
+  secretRef:
+    name: biohazard-flux-github-ssh-key
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include Kubernetes
+    !/kube
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: 2-biohazard-config
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./kube/1-clusters/Biohazard/2-config
+  prune: true
+  wait: false
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: biohazard-secrets-decrypt-sops-age
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: biohazard-vars
+        optional: false
+      - kind: ConfigMap
+        name: biohazard-secrets
+        optional: false
+  patches:
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          interval: 10m0s
+          sourceRef:
+            kind: GitRepository
+            name: flux-system
+          dependsOn:
+            - name: 2-biohazard-config
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/default notin (false)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          dependsOn:
+            - name: biohazard-1-core-01-networking-cilium
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/name notin (cilium)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          decryption:
+            provider: sops
+            secretRef:
+              name: biohazard-secrets-decrypt-sops-age
+          postBuild:
+            substituteFrom:
+              - kind: ConfigMap
+                name: biohazard-vars
+                optional: false
+              - kind: ConfigMap
+                name: biohazard-secrets
+                optional: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: substitution.flux.home.arpa/disabled notin (true)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: true
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: prune.flux.home.arpa/disabled notin (true)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: prune.flux.home.arpa/disabled=true
+    - patch: |-
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        metadata:
+          name: not-used
+        spec:
+          interval: 10m0s
+          timeout: 3m0s
+      target:
+        group: source.toolkit.fluxcd.io
+        version: v1beta2
+        kind: HelmRepository
+        labelSelector: helmrepo.flux.home.arpa/default notin (false)
