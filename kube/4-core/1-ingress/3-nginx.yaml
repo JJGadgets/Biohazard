@@ -35,21 +35,22 @@ spec:
                 - name: TZ
                   value: Asia/Singapore
             service:
-                type: LoadBalancer
-                externalIPs:
-                    - ENC[AES256_GCM,data:nRZvDKddmB+2gA==,iv:LWxu/b7bAe/7EdGuPINDm3jr7kTvMOPXc2EOZpolIPU=,tag:1HwiIxLc5Ko7Y18L6GvxNQ==,type:str]
-                loadBalancerIP: ENC[AES256_GCM,data:Wk4UKE/pjyE/4Q==,iv:Xn9RJQFV+AzFyzNupcF6RRXFayttwQHjV9hb01c0N4k=,tag:7Xj/64aYUAEZcUTwbKai2A==,type:str]
-                externalTrafficPolicy: Local
-                ports:
-                    http: 80
-                    https: 443
-                    routehttp: 20080
-                    routehttps: 20443
-                targetPorts:
-                    http: internalhttp
-                    https: internalhttps
-                    routehttp: http
-                    routehttps: https
+                enabled: false
+                # type: LoadBalancer
+                # externalIPs:
+                #     - [redacted]
+                # loadBalancerIP: [redacted]
+                # externalTrafficPolicy: Local
+                # ports:
+                #     http: 80
+                #     https: 443
+                #     routehttp: 20080
+                #     routehttps: 20443
+                # targetPorts:
+                #     http: internalhttp
+                #     https: internalhttps
+                #     routehttp: http
+                #     routehttps: https
             #     nodePorts:
             #         http: 80
             #         https: 443
@@ -119,8 +120,75 @@ sops:
             WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
             xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-20T12:14:35Z"
-    mac: ENC[AES256_GCM,data:UYvfv4CJud4HICGyGov5n+0vPiTftIhEedukkHDy4nhYey4Zl0kEizWk/61v0FM4t8+3CG1IJ3eaOZcBX6xtGeWzR62yhBsTHYpFCIu2YOJoH+l1qByWlNI9qzNLc1Q7XLrgK/dLSR16pi90puuK4WTbynDy9NQP/DRiMxZH/Ik=,iv:YOgj8q4s3WKJZdtABmq874XOsJmcfNyioKCM0RsKYhU=,tag:IAhHXPW8/hA/XpapwNZcpw==,type:str]
+    lastmodified: "2023-02-20T12:27:41Z"
+    mac: ENC[AES256_GCM,data:jpCpRx+wbg2nR8w1HAGKkUe3FzytUuV8Jn1o2FV1TH4nc+suBUIbSxaJOvF37OuetnaWMIcKq8ERoLPvhYkckZy/xQRCsOAik38X+kBdiSdXt5/AIZMSyVDboY5qggrGmjcz+9J4OLG1vpLxYLB4XdI6dekPsrHsY2lLITZi+no=,iv:/HLjsg0vdyaWRgR/nUusGXcdSGwB6AxlLKE5x2gQ2M0=,tag:n87cfbVdwYMgObnR4iHuNw==,type:str]
+    pgp:
+        - created_at: "2023-02-15T23:32:36Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAkcgUWpJb59iyv9pEicH3lWdOJMcdbl2tBqZUnazsSjkw
+            D7qErqkhVNGsbf9ufEuZ6sgSI6j7Fj0ZJgH99mcYIcnFNmxv4+ykRpk+XgObmQXE
+            0l4BgOftDV39OcsQel2XkJF7YgsyR4VRFkNS7Lx0B/y6mu2UnzXvZeX6ptZGv4oa
+            7cIDYyeQvG9wRK+sqhB1uVepF1ar5wHk5G3oqZSY22TauzfZDRRx7kFnjSN6xKJe
+            =WiFb
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(data|stringData|commonName|dnsNames|externalIPs|loadBalancerIP|whitelist-source-range)$
+    version: 3.7.3
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: ingress-nginx-controller
+    namespace: ingress
+spec:
+    allocateLoadBalancerNodePorts: true
+    externalIPs:
+        - ENC[AES256_GCM,data:bz/tGneRjCm0dw==,iv:gEPWVzLSyYaNkERNU5IOAcSAn6Ak6GJ3wRQNbKyZlsk=,tag:L84qRSB10uVkg82WvGPuOA==,type:str]
+    externalTrafficPolicy: Local
+    loadBalancerIP: ENC[AES256_GCM,data:+ZkDXwGegYdnug==,iv:vnarIUjdhsh0WMcAzgaxplCMTBQKR57EQsJ70l98lU4=,tag:B09ZR4KmADUSdrgQrnQEpA==,type:str]
+    ports:
+        - appProtocol: http
+          name: http
+          port: 20080
+          protocol: TCP
+          targetPort: 80
+        - appProtocol: https
+          name: https
+          port: 20443
+          protocol: TCP
+          targetPort: 443
+        - name: internalhttp
+          port: 80
+          protocol: TCP
+          targetPort: 42080
+        - name: internalhttps
+          port: 443
+          protocol: TCP
+          targetPort: 42443
+    selector:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/instance: ingress-nginx
+        app.kubernetes.io/name: ingress-nginx
+    type: LoadBalancer
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPdU9RYkFYcHEvV2lMSWJK
+            T24wbWJsWDFVcTg4YUQranFsMnpPZHNobUdvCmV1NUUzYUI0bWxjd3g3ekMyTnFQ
+            NlFwMU1CRHJTUUNNbVdVWG5zajN0RlkKLS0tIG9ESmJFZHl3eHdwQlYwMkpYRnY1
+            WmZ6WCtSWU42UDBJdDZYbWdMOGsyYUEKCKQn/WSsrUipmkVB2zc+iQic7y42agyU
+            xmS4orBGFZz5HgMQrNp4p66Lo6nX4spBWV6mbFYyVAQk2HqOdCOuLg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-02-20T12:27:41Z"
+    mac: ENC[AES256_GCM,data:jpCpRx+wbg2nR8w1HAGKkUe3FzytUuV8Jn1o2FV1TH4nc+suBUIbSxaJOvF37OuetnaWMIcKq8ERoLPvhYkckZy/xQRCsOAik38X+kBdiSdXt5/AIZMSyVDboY5qggrGmjcz+9J4OLG1vpLxYLB4XdI6dekPsrHsY2lLITZi+no=,iv:/HLjsg0vdyaWRgR/nUusGXcdSGwB6AxlLKE5x2gQ2M0=,tag:n87cfbVdwYMgObnR4iHuNw==,type:str]
     pgp:
         - created_at: "2023-02-15T23:32:36Z"
           enc: |
