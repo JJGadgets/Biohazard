@@ -25,6 +25,7 @@ metadata:
   labels:
     kustomization.flux.home.arpa/name: "flux"
     kustomization.flux.home.arpa/default: "false"
+    wait.flux.home.arpa/disabled: "true"
 spec:
   interval: 10m0s
   path: ./kube/1-clusters/Biohazard/2-config
