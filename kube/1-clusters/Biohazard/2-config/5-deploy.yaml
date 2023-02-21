@@ -17,6 +17,7 @@ metadata:
   namespace: flux-system
   labels:
     kustomization.flux.home.arpa/name: "cilium"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   path: ./kube/3-deploy/1-core/01-networking/cilium
   dependsOn: []
