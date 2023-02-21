@@ -6,6 +6,8 @@ metadata:
   name: cilium-charts
   namespace: flux-system
 spec:
+  interval: 10m0s
+  timeout: 3m0s
   url: https://helm.cilium.io/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -24,6 +26,8 @@ metadata:
   name: rook-ceph-charts
   namespace: flux-system
 spec:
+  interval: 10m0s
+  timeout: 3m0s
   url: https://charts.rook.io/release
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2

@@ -22,6 +22,8 @@ kind: Kustomization
 metadata:
   name: 2-biohazard-config
   namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "flux"
 spec:
   interval: 10m0s
   path: ./kube/1-clusters/Biohazard/2-config
@@ -39,7 +41,7 @@ spec:
       - kind: ConfigMap
         name: biohazard-vars
         optional: false
-      - kind: ConfigMap
+      - kind: Secret
         name: biohazard-secrets
         optional: false
   patches:
@@ -72,7 +74,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1beta2
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/name notin (cilium)
+        labelSelector: kustomization.flux.home.arpa/name notin (cilium flux)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         kind: Kustomization
@@ -88,7 +90,7 @@ spec:
               - kind: ConfigMap
                 name: biohazard-vars
                 optional: false
-              - kind: ConfigMap
+              - kind: Secret
                 name: biohazard-secrets
                 optional: false
       target:
@@ -120,16 +122,3 @@ spec:
         version: v1beta2
         kind: Kustomization
         labelSelector: prune.flux.home.arpa/disabled=true
-    - patch: |-
-        apiVersion: source.toolkit.fluxcd.io/v1beta2
-        kind: HelmRepository
-        metadata:
-          name: not-used
-        spec:
-          interval: 10m0s
-          timeout: 3m0s
-      target:
-        group: source.toolkit.fluxcd.io
-        version: v1beta2
-        kind: HelmRepository
-        labelSelector: helmrepo.flux.home.arpa/default notin (false)
