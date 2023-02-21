@@ -6,8 +6,6 @@ kind: OCIRepository
 metadata:
   name: flux-manifests
   namespace: flux-system
-  labels:
-    kustomization.flux.home.arpa/name: "flux"
 spec:
   interval: 10m
   url: oci://ghcr.io/fluxcd/flux-manifests
@@ -20,6 +18,8 @@ kind: Kustomization
 metadata:
   name: 1-flux
   namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "cilium"
 spec:
   interval: 10m
   path: ./
