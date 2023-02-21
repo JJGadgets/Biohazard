@@ -26,6 +26,7 @@ metadata:
     kustomization.flux.home.arpa/name: "flux"
     kustomization.flux.home.arpa/default: "false"
     wait.flux.home.arpa/disabled: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   interval: 10m0s
   path: ./kube/1-clusters/Biohazard/2-config
@@ -153,10 +154,13 @@ spec:
         version: v1beta2
         kind: Kustomization
         labelSelector: wait.flux.home.arpa/disabled=true
-    - patch: |
-        - op: add
-          path: /spec/patches
-          value:
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          patches:
             - patch: |-
                 apiVersion: helm.toolkit.fluxcd.io/v2beta1
                 kind: HelmRelease
