@@ -1,11 +1,13 @@
 ---
 # core components first
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
   name: cilium-charts
   namespace: flux-system
 spec:
+  interval: 10m0s
+  timeout: 3m0s
   url: https://helm.cilium.io/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -25,6 +27,8 @@ metadata:
   name: rook-ceph-charts
   namespace: flux-system
 spec:
+  interval: 10m0s
+  timeout: 3m0s
   url: https://charts.rook.io/release
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -62,6 +66,7 @@ metadata:
   name: jetstack
   namespace: flux-system
 spec:
+  interval: 1h
   url: https://charts.jetstack.io/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -89,6 +94,7 @@ metadata:
   name: k8s-gateway
   namespace: flux-system
 spec:
+  interval: 1h
   url: https://ori-edge.github.io/k8s_gateway/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -106,6 +112,7 @@ metadata:
   name: ingress-nginx
   namespace: flux-system
 spec:
+  interval: 1h
   url: https://kubernetes.github.io/ingress-nginx
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -126,6 +133,8 @@ metadata:
   name: bjw-s
   namespace: flux-system
 spec:
+  interval: 1h
+  timeout: 3m0s
   url: https://bjw-s.github.io/helm-charts/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
