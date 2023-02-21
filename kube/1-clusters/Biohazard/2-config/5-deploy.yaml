@@ -60,6 +60,15 @@ spec:
   dependsOn:
     - name: biohazard-1-core-02-storage-rook-ceph-app
 ---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: jetstack
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://charts.jetstack.io/
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -79,6 +88,15 @@ spec:
   dependsOn:
     - name: biohazard-1-core-03-certs-cert-manager-crds
 ---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: k8s-gateway
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://ori-edge.github.io/k8s_gateway/
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -87,6 +105,15 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/04-dns
   dependsOn: []
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: ingress-nginx
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://kubernetes.github.io/ingress-nginx
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
@@ -100,6 +127,16 @@ spec:
     - name: biohazard-1-core-04-dns
 ---
 # all apps hosted on this cluster below here
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: bjw-s
+  namespace: flux-system
+spec:
+  interval: 1h
+  timeout: 3m0s
+  url: https://bjw-s.github.io/helm-charts/
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
