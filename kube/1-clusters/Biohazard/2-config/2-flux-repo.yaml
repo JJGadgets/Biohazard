@@ -123,3 +123,27 @@ spec:
         version: v1beta2
         kind: Kustomization
         labelSelector: prune.flux.home.arpa/disabled=true
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          wait: true
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: wait.flux.home.arpa/disabled notin (true)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1beta2
+        kind: Kustomization
+        labelSelector: wait.flux.home.arpa/disabled=true
