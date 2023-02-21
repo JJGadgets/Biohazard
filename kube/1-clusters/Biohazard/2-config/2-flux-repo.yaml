@@ -154,6 +154,10 @@ spec:
         kind: Kustomization
         labelSelector: wait.flux.home.arpa/disabled=true
     - patch: |-
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        metadata:
+          name: not-used
         spec:
           chart:
             spec:
@@ -179,6 +183,10 @@ spec:
         kind: HelmRelease
         labelSelector: helm.flux.home.arpa/default notin (false)
     - patch: |-
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        metadata:
+          name: not-used
         spec:
           chart:
             spec:
