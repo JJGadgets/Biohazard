@@ -153,3 +153,29 @@ spec:
         version: v1beta2
         kind: Kustomization
         labelSelector: wait.flux.home.arpa/disabled=true
+    - patch: |-
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        metadata:
+          name: not-used
+        spec:
+          interval: 1h
+          timeout: 3m
+      target:
+        group: source.toolkit.fluxcd.io
+        version: v1beta2
+        kind: HelmRepository
+        labelSelector: helmrepo.flux.home.arpa/default notin (false)
+    - patch: |-
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        metadata:
+          name: not-used
+        spec:
+          interval: 1h
+          timeout: 3m
+      target:
+        group: source.toolkit.fluxcd.io
+        version: v1beta1
+        kind: HelmRepository
+        labelSelector: helmrepo.flux.home.arpa/default notin (false)
