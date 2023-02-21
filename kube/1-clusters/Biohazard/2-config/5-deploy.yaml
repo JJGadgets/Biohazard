@@ -127,6 +127,15 @@ spec:
     - name: biohazard-1-core-03-certs-cert-manager
     - name: biohazard-1-core-04-dns
 ---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-06-monitoring-metrics-server
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/metrics-server
+  dependsOn: []
+---
 # all apps hosted on this cluster below here
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
