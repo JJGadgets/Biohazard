@@ -26,14 +26,14 @@ spec:
         keepHistory: false
     values:
         fullnameOverride: k8s-gateway
-        domain: ENC[AES256_GCM,data:EmBNQnYwvfcQFX6kHotUWX7Af4YgNNee0v0F2NfgNw==,iv:o6n9/yUdmDOxZUF7+x+eQjz4j+y75jJ9xrkILA0FJmE=,tag:BEdFLP6lk+u5kPG6a8Nyew==,type:str]
+        domain: ENC[AES256_GCM,data:wDF9Qkgpd21b/dtDqmFB65UWTz8g5mXvC4b8sUNRWQ==,iv:ZCv60ivBbcbWrV06HYhmNzfZ2oMPlJ7+bVxQJQZdT2U=,tag:oQYThticDm4txQOYNXEVRg==,type:str]
         ttl: 1
         service:
             type: LoadBalancer
             port: 53
-            loadBalancerIP: ENC[AES256_GCM,data:btrvx26+76RPMPc=,iv:sVgPzNTVr+51T0SraqomzTxh/wIf58MJy2la6OkupH8=,tag:vmXVml1kPE9liMZ+gGiVsg==,type:str]
+            loadBalancerIP: ENC[AES256_GCM,data:0KnSD1+LFM7VQp4=,iv:0ZyHEddRpwIGFdxmW6maIrLi35Rxz90mxKJRaldc9z8=,tag:1VXEmAy1ZHdxr1lfSwjTeQ==,type:str]
             externalIPs:
-                - ENC[AES256_GCM,data:7bqjnjHTt7lg/jQ=,iv:OBUDbBJ+dDcq0A4NmW84d26TbvFVP1OFU13NVL8YcpA=,tag:meFMZdE2ZoJdhdPnptqQ4g==,type:str]
+                - ENC[AES256_GCM,data:xjxb5MzVEXG6yvM=,iv:pczVgOt1IGbLY7zQaXCwikN4ZmHmDyl3kCkYArzGjLA=,tag:qyC7nn82FoYTuotsXIuxWA==,type:str]
             externalTrafficPolicy: Local
         extraZonePlugins:
             - name: log
@@ -57,27 +57,27 @@ sops:
     azure_kv: []
     hc_vault: []
     age:
-        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzRUpxMXRPeDFpQzUrZElQ
-            bWMxaFVTM3I1MklBZGk2YzcxaXZXL21melVrCnpKVHJtVTcwVERXN2o4ODNQVDA1
-            RUFuS2R2SEhvMnZCdFhVdDBzVFJpa1UKLS0tIHV4ZmVZN1A4azY1bGxMRG1Ld1Fj
-            V0hDWlQ2OFpUa3RzN0piZEx1YUxZTkkKi2wO12IsWgvPzDcSUfUJaPS4RBWG0j5w
-            PjxMjgGHcjAwO8cDDCb13Shu01F/jrJ2Sz56YjPnRyr7NN5j/FQzsQ==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAvM0xxL05pVERKU0UxSVZQ
+            S09VWWJuWnJEQjRSZmpNdjBrMG1JSTRNT0JRCmtRQWdTVWt2Si9xaVRHSUlVWlZF
+            dko5c2Z4aGlqWUxaQXUrZFVGdm1CaEkKLS0tIFhyVEREdzdqZm5HcmVyeVNIcmVo
+            K3lzYzZCaHRubzJ6VzVIeWJaTitFVkkKmLcRfQW/1SAamvAsX43EKGG+4HfAdlsZ
+            iNs2wWCAhAjUligg/wqlP03M3tK+nxfUxDL2DoLdXQN05CRIp5kAFg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-09T02:38:51Z"
-    mac: ENC[AES256_GCM,data:AUQ5AWSRjHhh557BuSK2XwQLKfvS5w35bdAaC+bBI524KyczOQyOVbv55jyfRCtkdt7y5vNVebx8JKiaG4kg24iYi8pgupBsmzauEaXPPYrKmDJcWwspqdtKu8zy32Jj0YU5loj/Bh9ln0BrWrQHNXAQgde1e/3ZK9FDvRot+U8=,iv:t5L3xKQXUsadx6M9sen7XEamqzLhHH8YOZJLU0gWrA4=,tag:K41iTxy0VqeHITWilr3hJQ==,type:str]
+    lastmodified: "2023-02-21T20:25:11Z"
+    mac: ENC[AES256_GCM,data:pyb3qDdaVxtWRGiGxQJkRgTUjAeEZtDDidjX/uc2Hwm4smpPzv+0ahcOwzSG8mt4gYrd2Dc43lpDWg7bx0tmT2f7+9oOIwz227ZFUSCpB6gtH48HeTmKU9BqNrVfsUdi/c4qCfwm5bck5YuIIvPydCL0vOsMnhRWKis9Elx2l8c=,iv:wat7/Nfv/1Vcr6dKIUipcHp6nDKLbjg0ioeEVnkvAC0=,tag:P94myA/2TNyrcYi+RzvQhg==,type:str]
     pgp:
-        - created_at: "2023-01-31T03:19:34Z"
+        - created_at: "2023-02-21T20:25:11Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdA0755aXaU1lB5hlOyfLl4nIhdKqd3Nexw2rUuIqeAEBQw
-            PUCUQqYYp+wncqkKqKUzGrt1aenR0wmTUfge/+idhp2zhsL4gk7OvlrwTRIdvCpN
-            0l4BR5JHRxAKsqMq87Yv8ZTTmR1j+XCsAygvLY47FmhzHH+Y3xfdDqGWqpVdshHS
-            B1eFB//xoCnqAZDElpHEqEf5XXB2JPj0PextzynB5tbn4uE4BsH4yeapDqS/3LGB
-            =GHqR
+            hF4DAAAAAAAAAAASAQdAq3YAxVy8FTWzFlVM9i2FaHa6C0cELWxxxSNq0bnJ5xIw
+            54WAUFWH6GZMiMD3xl3LP5Y7fTo+Q6QBp3rcHi4Lazpo0MgLzGRvyAIXExed/nKe
+            0l4B1mAUV4/JwD877ulCLmtnoSBZw6xtQUmKbfiAEKQQpGGwZ0zgHqCV9a8yv6HY
+            iyVT8c0fybTVEX8x47TzUMzGkNM92koUYqIwvzAvziC1KG/MfUdbJuJD9wzGz1NJ
+            =x71a
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
     encrypted_regex: ^(data|stringData|domain|loadBalancerIP|externalIPs)$

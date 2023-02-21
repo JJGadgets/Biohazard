@@ -36,7 +36,7 @@ spec:
             WHOOGLE_CONFIG_THEME: dark
             WHOOGLE_CONFIG_SAFE: 0
             WHOOGLE_CONFIG_STYLE: 'body {max-width: 100% !important} :root { --whoogle-dark-logo: #6E6C7E; --whoogle-dark-page-bg: #1E1E2E; --whoogle-dark-element-bg: #302D41; --whoogle-dark-text: #D9E0EE; --whoogle-dark-contrast-text: #F2CDCD; --whoogle-dark-secondary-text: #988BA2; --whoogle-dark-result-bg: #302D41; --whoogle-dark-result-title: #F5E0DC; --whoogle-dark-result-url: #F5E0DC; --whoogle-dark-result-visited: #C9CBFF; } #whoogle-w { fill: #96CDFB; } #whoogle-h { fill: #F28FAD; } #whoogle-o-1 { fill: #FAE3B0; } #whoogle-o-2 { fill: #96CDFB; } #whoogle-g { fill: #ABE9B3; } #whoogle-l { fill: #F28FAD; } #whoogle-e { fill: #FAE3B0; }'
-            WHOOGLE_CONFIG_URL: ENC[AES256_GCM,data:fi3dlJcjpAVIGmLbdRb/Nw==,iv:jiEyZXKBWb8OQkWawS3D1UlTc0Wmt8TfWJqDpSR2LDU=,tag:9U895Ic6MTD1fXQCu1QziQ==,type:str]
+            WHOOGLE_CONFIG_URL: ENC[AES256_GCM,data:H4gGsFTyfFDPfY7I7Ck3gQ==,iv:VxiGgP1ZYTXf04NrzbQvwNJFTyHZ7c5g9KIQmg4DBVc=,tag:AhjzYMtafjeaxVq57FRgFg==,type:str]
             WHOOGLE_CONFIG_GET_ONLY: 1
             WHOOGLE_CONFIG_VIEW_IMAGE: 1
             WHOOGLE_CONFIG_DISABLE: 1
@@ -48,7 +48,7 @@ spec:
                 - name: ndots
                   value: "1"
             nameservers:
-                - ENC[AES256_GCM,data:Q7+Iq5/jbf0=,iv:fSQ9ek9I1vH/nmd2u5wQ7MQzoWrUdW+LT1nGfmM5IxQ=,tag:umC/f280X2YbOVgZbHOrAw==,type:str]
+                - ENC[AES256_GCM,data:kk1LGDObvLM=,iv:zSIMj83AEoUthmbMJsDQKjUNtpojBOfEG4tzlKaIOwU=,tag:CDly0GxZWXrHQNPf8rZHkg==,type:str]
         service:
             main:
                 ports:
@@ -61,13 +61,13 @@ spec:
                 ingressClassName: internal
                 nameOverride: internal
                 hosts:
-                    - host: ENC[AES256_GCM,data:oM+w4Mv9sWE=,iv:L/pmSgOAtDQIrPeJL1foB5HhvhmJQAGs0XMvw7aJJQA=,tag:wGpp4GJkzY8dMKJ7WwbVEg==,type:str]
+                    - host: ENC[AES256_GCM,data:pTf9RNyPL+8=,iv:Pa0iAOctJykVFVYAhV7RG2NZnQFyar2f4uETCDE04F4=,tag:gl6C4HDlYhwAz7N9YBH9yA==,type:str]
                       paths:
-                        - path: ENC[AES256_GCM,data:Vw==,iv:TWNK/+w4wV3cCcqCzsR8BdpCOeWvqOJgvdnC/DNS5vU=,tag:BTQ/7vJiCpVcTwlCaNDowQ==,type:str]
-                          pathType: ENC[AES256_GCM,data:lOtyaBCQ,iv:1XgDu3nNYK9pwyTuw+hyXQqNV33nWEwHiZ2BgkqWEmY=,tag:5ny1eKcECyVmO+UIlaBNKg==,type:str]
+                        - path: ENC[AES256_GCM,data:VA==,iv:zw+apwk5xXziqJdfsxgi/RiO/cS7WrR9+CTFgGArKwk=,tag:W84JCBGhTD9/NvDvZb8L2Q==,type:str]
+                          pathType: ENC[AES256_GCM,data:rikuyvEF,iv:+gAOJmZy7QUQjsfPgdnE1VGWUfWi3gwbwY4IrumjTKo=,tag:gz1lBlxsa5XIardE3wgCoA==,type:str]
                 tls:
                     - hosts:
-                        - ENC[AES256_GCM,data:0lngFtyYrp0=,iv:7ohv94qGZwkWx/rMxW2EYSAO+tP4mE33dsiyB+WZfgI=,tag:ORz6fhoh2tVUv0ZpCH/cPw==,type:str]
+                        - ENC[AES256_GCM,data:sqr3pXgKZq8=,iv:sQh0RNxpL860NnVbd0dp3/ytj8w9cH+M1UYwxgN803Q=,tag:5f7mu0yRbs9c5AmJL/9nEw==,type:str]
         resources:
             requests:
                 cpu: 5m
@@ -80,27 +80,27 @@ sops:
     azure_kv: []
     hc_vault: []
     age:
-        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
+        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
           enc: |
             -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBHOS9Qa2paU21Id1FmMGhG
-            ZXRkNk1NYmNNbGtJSkNGR3JKdGh2STNLL2s4CjdldDJpNVpJbjR1UnRPeDJjVURN
-            RUdrTFNpTUZBOXhEM1Y4c24xd3JqUVkKLS0tIGlNbzZaY0g0RUdyd3U5Y3VSUDVu
-            U0RucGlTdjJ5eThQQ3M5N0NlVXo3ZFEKWAyldwRjR/Ep5eLngZnRFLbRfo6hBxz/
-            tDQUcbgG+x/hmciKhxEHxtFLrHsOZZSKn5/9EmtRixxnl+KnknJP3g==
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBuUVYwMm9IanhYRHlQNEJZ
+            Y3g1MXpRU0xKNkxuR2ErR09pRU5hMVlMeWpjCnNTa2NaaVlvUXp4WElvcE9qY29Z
+            SkRKV01Da2ZqQ3MrbkpTby9EdC9jZHMKLS0tIHZJOWh4THp6UU5OejRTbjFPSDJX
+            dUc1VmE3cGFHT0laMU1qcW1MdVRJc2sKlVVqJHHswazaRZE3NWMJ7sQaihTc7ZVV
+            mI/3SMD6sPoQj9vZH7+xuIyf8q1aaCWCjP8a7ROiFTMC/issrw0LkA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-19T18:08:00Z"
-    mac: ENC[AES256_GCM,data:4o8tknKdMvvcsoe/gMqxHIVW6tQCu6eZytxEodmSIb+ljEtmMs2gF64NF1a1Ply7EbPCr8hXxYkWNajI5Sgo5K7f2O/XvNoAlHVc3MIRUOICUaHF7vkwlWdAVnQz3bS0JB7GaGu2wUTncbHyQK8M2IouvNzA28lAziR7BKrPEqk=,iv:tBEXa33mgCB7JPFcu8YlC44vPRyhpMtThZtL481FPYg=,tag:THtxg+a7ZcqBkUpydnOd9Q==,type:str]
+    lastmodified: "2023-02-21T20:14:12Z"
+    mac: ENC[AES256_GCM,data:Rg46C2KEDJ4PaiQ5PJ3GN82ZaiLrtsTupOfL9KvulJrlCF2mG9Zi7if7HDuN691qKyotYyUc7l1Zhq4MgVMzNj4yCXxZjF+sIKlGjrAso8jUiz4lElP/mm619e9ED7ahQDM2qxB9cxq/fdfD71Kw/q1OoXHL9XLDQ40ENv5LL+Q=,iv:/OsQwF5XYQI3sZ7VGUSYvAHQp4FbrOMNdp1M+K5mx1I=,tag:FD1wUOIBPzRhFgMLt7iTMQ==,type:str]
     pgp:
-        - created_at: "2023-02-01T10:34:08Z"
+        - created_at: "2023-02-21T20:14:11Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DAAAAAAAAAAASAQdAr6teP9qapjcDBwGS9e4BMYmaF40qQtX+az00OUL0KDww
-            V8w6ZuITDYBJWHuG9J00YFyQRODtI+hJexuIb1hEPLKpBjggICKFtUSb1UiZptFx
-            0l4BmzkQ8Gb2DA1oPDIHksb/Oxv2KPUbpbQXXz+D7qiDQBFNJazZ84iSWxV4aIad
-            Wly2A2LvIce8oRdjCOJcYLi5T0pAUpnJFTKI6aruTkmk/D5TnKssN5ehGCDelCPS
-            =pMTn
+            hF4DAAAAAAAAAAASAQdAOuEAO9H/RLnLVNg6oR/aea3zJJp1hepBik26PNSS9How
+            Qa6XkJQ56GqdeYlk1ewHczP8CYZE6iaaXI00L/xJkfPPgdb8fNikDjgzUb4kmjjZ
+            0l4B494UXFz22n1077EM8vP9i9NwncfFIkDwQ0JYeUmFuN8tf2PZXBvr7vvs3QLc
+            AiXQnTQ6m+S4EPpRD6LsJYpynOLC/DYk1+46CT/hjhxv/anxlWnyx5/eOZXsxltp
+            =uN9E
             -----END PGP MESSAGE-----
           fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
     encrypted_regex: ^(hosts|host|WHOOGLE_CONFIG_URL|nameservers)$
