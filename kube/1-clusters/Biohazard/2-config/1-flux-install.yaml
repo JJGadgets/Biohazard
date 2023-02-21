@@ -19,7 +19,8 @@ metadata:
   name: 1-flux
   namespace: flux-system
   labels:
-    kustomization.flux.home.arpa/name: "cilium"
+    kustomization.flux.home.arpa/name: "flux"
+    kustomization.flux.home.arpa/default: "false"
 spec:
   interval: 10m
   path: ./
