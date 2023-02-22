@@ -5,9 +5,18 @@ metadata:
     namespace: flux-system
 data:
     CONFIG_TZ: ENC[AES256_GCM,data:QU5C/D/cxN6t4t55/7A=,iv:Qt83MzR1mPAuKobVQZJQR72SXLAwWwI7HkDxOAkqofs=,tag:3FtJVBMHMSVMgiJWqmqf1g==,type:str]
-    UID_MINECRAFT: ENC[AES256_GCM,data:jEy9vSI=,iv:n1dOM4AxhhykQkLgrY3P2uYZfPMxgCsABkqxybGI7o4=,tag:gkpXCfPs1pCheFAEi6CdsA==,type:str]
+    ASN_ROUTER: ENC[AES256_GCM,data:un6dO7E=,iv:+/4l7pVBFV1Beuvceu7ZbmnmM8jO8oEdxJleSis6EcM=,tag:yB5k4SMRS4HqkdGscBvUBw==,type:str]
+    IP_ROUTER_VLAN_K8S: ENC[AES256_GCM,data:ngwfmrXjohzP,iv:U5DSCUUCZbIhwVAgv2gW98t8d8QwDSOM2YybNQWpgAw=,tag:vPTdK0CHET13l3x2eWb7gA==,type:str]
+    IP_CLUSTER_VIP: ENC[AES256_GCM,data:gadONjiA2bMF,iv:YuVxPGCFVyN+wBtjnWDXe7C5NeTCIyCS+pC6P61iHEY=,tag:ubGWCm3/1Z1ihu2gjiWCbg==,type:str]
+    IP_LB_CIDR: ENC[AES256_GCM,data:/qxOk5Vn8Q1/isE+iw==,iv:BhOMIotgJEWcLJOfP/unKrjX72ZEY1RfBtt5P14hQko=,tag:BSCy1PquhSew/ofhyGOLFg==,type:str]
+    IP_HOME_DNS: ENC[AES256_GCM,data:vgSoWr2cIRU=,iv:xR+QBTE5PGri3u3PmDFEt4Y9CcDLou7TPtDbHjStOoU=,tag:NpepI2uYYpMXnf56+nLuow==,type:str]
+    IP_EXT_MINECRAFT: ENC[AES256_GCM,data:/aio8tUcC+WL3zQ=,iv:a8gFBZ3SInPM6CCFmszl9NP18gYzN7d02v7PINybwPo=,tag:WcMWtQyCKMA6MpGobjUcgw==,type:str]
     DNS_MINECRAFT: ENC[AES256_GCM,data:LRBG8PEgmXKp,iv:j7deoo/L1jkv+Aw1s5vnsA2+Ri931BLZPzidn20HORs=,tag:vbtqVQgGoJhpR2KUQYmAIQ==,type:str]
-    EXT_MINECRAFT_IP: ENC[AES256_GCM,data:eqbeN821tIVjaYg=,iv:j5uBlSV2jYQdGK748wPV3eqGBLwCjF4sOiTKIdUSEmA=,tag:2E/4AJhzQ5usTUnsOmqDDw==,type:str]
+    DNS_CLUSTER: ENC[AES256_GCM,data:dVS38myraH4=,iv:WScCvhcW9C/qckIlbDDWR8tzIYZdG58lbYmThdPQpro=,tag:3RDQ97sbEganiHRf42A11g==,type:str]
+    DNS_SHORT: ENC[AES256_GCM,data:16FRvQx8,iv:5xVBGMf/Bp3XqHDwl9ZBb14nSVkTg3eWq5FU2cYoRyY=,tag:uzCrxTBEv/Iy+Ht0gK0kjQ==,type:str]
+    DNS_MAIN: ENC[AES256_GCM,data:V5QOelS0L9R9drkh/Pk=,iv:GTTFkC73534oXM3QR8J3kHrZb163Gel7eu3e2P1X2Yo=,tag:DUD006mJM/uEjkiRcn/HlA==,type:str]
+    DNS_VPN: ENC[AES256_GCM,data:8JxuF//vCDNq,iv:2WxWpAIdIxL+yvCirawdTtZO+BSZbturp7c3JAwItsw=,tag:jItEw4Mg4a+OY/hmxDt1/Q==,type:str]
+    UID_MINECRAFT: ENC[AES256_GCM,data:jEy9vSI=,iv:n1dOM4AxhhykQkLgrY3P2uYZfPMxgCsABkqxybGI7o4=,tag:gkpXCfPs1pCheFAEi6CdsA==,type:str]
     CONFIG_MINECRAFT_OPS: ENC[AES256_GCM,data:BKfjfUQQXd025nNZCHQki/SeqiMQVCUP9tCkmNwUgfvj7XK6,iv:7+tp1IJ06UfZt53HLnFOByrTWFY31AHiQwjrrUS4OqI=,tag:TSvw3notEqgPIORTWHwUBw==,type:str]
     CONFIG_MINECRAFT_ICON: ENC[AES256_GCM,data:AINTGnjPbWZCVJKdL4Mx8bBhOUnQU2BEhqr0730/OJATkKBzcvxf7R9HlX37uFI=,iv:HsvxmHYUb350vSulAVdBHonB6cA+0pu03t5BaU8EuUs=,tag:gGr7OY++7+yuZ36TwXcbaA==,type:str]
     CONFIG_MINECRAFT_NAME: ENC[AES256_GCM,data:zhsyGymdQKgeX58X2Q==,iv:dGbrb4ZytcRpj4ie9dzM2TUVnzC4YQvCey+/G9uFcGs=,tag:IpFutt4G5JMP4hUIOgbqqw==,type:str]
@@ -26,8 +35,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-22T08:28:11Z"
-    mac: ENC[AES256_GCM,data:FPZlra/UpYvZo/Wi/CuaoDICXL287Ug8ZC8/UPM7QWSW8mdmGhoXqszv6HNzK3Ds4lZD+fqnK2AhCTMfsf28nOUPYovwU3sRvD63hVtoS5YxINu7F8x1ue21AZgjZGtDA0OQkoTnfEXEdRzPqeHLo3mM7C0V52BgQ08McS5q1nA=,iv:T5CS8gsCzp0Ggq43gqgIzJiKGduimbfqKjNWTapuuus=,tag:2QJb/eGjo3izM7OAw53DNw==,type:str]
+    lastmodified: "2023-02-22T17:24:33Z"
+    mac: ENC[AES256_GCM,data:tHCn6tyVpYgTlkGaeVYRqsheNk0dS4dNeToEuiHArbVzWHCVSGWBFlTi+OeCOb0Mrc50O68W3RiDF1at1zxTeulSmoHgGHWcXG7Q5PzR8omxncbS7Zky717el1IStqaxRPMeOZ0OJNQe+Rha+TC4JLKYHJn5GzxqGirwmEQRsoY=,iv:q80u0azJtF+7n0boFAGWIkdmLfT3BDln0g3optRjBlg=,tag:W4YKK4M0nRu1HRM70V12PA==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |

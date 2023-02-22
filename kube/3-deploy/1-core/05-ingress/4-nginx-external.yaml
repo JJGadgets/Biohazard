@@ -1,104 +1,57 @@
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-    name: ingress-nginx-ext
-    namespace: ingress
+  name: ingress-nginx-ext
+  namespace: ingress
 spec:
-    interval: 15m
-    chart:
-        spec:
-            chart: ingress-nginx
-            version: 4.4.2
-            sourceRef:
-                kind: HelmRepository
-                name: ingress-nginx
-                namespace: flux-system
-    maxHistory: 3
-    install:
-        createNamespace: true
-        remediation:
-            retries: 3
-    upgrade:
-        cleanupOnFail: true
-        remediation:
-            retries: 3
-    uninstall:
-        keepHistory: false
-    values:
-        tcp:
-            "42080": ingress/ingress-nginx-controller:20080::PROXY
-            "42443": ingress/ingress-nginx-controller:20443::PROXY
-        controller:
-            replicaCount: 1
-            # kind: DaemonSet
-            extraEnvs:
-                - name: TZ
-                  value: Asia/Singapore
-            service:
-                type: NodePort
-                externalIPs:
-                    - ENC[AES256_GCM,data:n46atqQ1GdAhzPAz,iv:lcWwGE0YjCOlkeUgAuqah2QBi1QMa0iE3pUxf1rr64U=,tag:EiDiOUNHOx7t2K2Sr4Ni0Q==,type:str]
-                externalTrafficPolicy: Local
-                ports:
-                    http: 80
-                    https: 443
-                targetPorts:
-                    http: 42080
-                    https: 42443
-                nodePorts:
-                    http: 80
-                    https: 443
-            containerPort:
-                internalhttp: 42080
-                internalhttps: 42443
-            publishService:
-                enabled: true
-            ingressClassByName: false
-            ingressClassResource:
-                enabled: false
-            config:
-                disable-access-log: "true"
-            nodeSelector:
-                node-restriction.kubernetes.io/nodeType: awsIngress
-            tolerations:
-                - key: nodeType.jj
-                  operator: Equal
-                  value: awsIngress
-                  effect: NoSchedule
-            resources:
-                requests:
-                    cpu: 10m
-                    memory: 250Mi
-                limits:
-                    memory: 500Mi
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAwcFp3NC9oSUxiTjZyc25I
-            U3VxVGVrZjdmOHE0Zkt5Z2F2Vy80R3M0WnlVCjhEaXBINHZqc28rUmN6YkFxZnBh
-            dU5QbmVYekkwM2drN25McThjNThXMTgKLS0tIHVFVmMvU0JSTS9NWTc1UGRNYVhS
-            NVAwV3ZOcTBhWVVrbWxFUVM0dzJqK0EKITGSZI5i8CYA2IG9nMrmASRy9HqxSZ08
-            9+bEkhtlcoJgSEqdp5ojOtlZUQSU1m2/R6UbMAgoLqlVOOndpCBlvA==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-22T07:03:13Z"
-    mac: ENC[AES256_GCM,data:WAGe8AWWw1fk5rmQAFYkAuVS9Y+I7ODFyvPCZZ7Z2mtRflxZajcVanByieVwe8G/9eiT6mMiSYvySAvOeigd9owFCz5Iag82OL8DRr62uLyV70JKgL7DCHbqnNVesS5ieRsmm6KAtsDzQYu5MzJmDnFugO5E9inTrxnR6/0DKFM=,iv:+gsxrMRF+GvlqU/um/2ARcsYFCPQGfPj/Qvhs2ZBF6k=,tag:C3HgnKqVrYHlH6o0YTFJfg==,type:str]
-    pgp:
-        - created_at: "2023-02-21T20:22:02Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdA+n3P3JWdp4ycvHc3DgWvaFGF3Cyg995ieJMxOhTcmkQw
-            ULhoeGDQSN1Wyax8zxDAErh+/65I6PQih1p2eb3pTEvp/VunSWKZ/iAaxNCEC0Mt
-            0lwBbG3LK3fLBEQBq2sMlKjhmaxIZDtiibNUfe2fWvwzZV9t08dFdspZEmJqH+UH
-            PUcL5RBoo87jSPR/GYpcJd+S02PDQTtnEhsADGFjDYdJSTtXLYd+L7NpK/jZKg==
-            =SLmz
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(data|stringData|commonName|dnsNames|externalIPs|loadBalancerIP|whitelist-source-range)$
-    version: 3.7.3
+  chart:
+    spec:
+      chart: ingress-nginx
+      version: 4.4.2
+      sourceRef:
+        name: ingress-nginx
+  values:
+    tcp:
+      "42080": ingress/ingress-nginx-controller:20080::PROXY
+      "42443": ingress/ingress-nginx-controller:20443::PROXY
+    controller:
+      kind: DaemonSet
+      extraEnvs:
+        - name: TZ
+          value: Asia/Singapore
+      service:
+        type: NodePort
+        externalTrafficPolicy: Local
+        ports:
+          http: 80
+          https: 443
+        targetPorts:
+          http: 42080
+          https: 42443
+        nodePorts:
+          http: 80
+          https: 443
+      containerPort:
+        internalhttp: 42080
+        internalhttps: 42443
+      publishService:
+        enabled: true
+      ingressClassByName: false
+      ingressClassResource:
+        enabled: false
+      config:
+        disable-access-log: "true"
+      nodeSelector:
+        node-restriction.kubernetes.io/nodeType: awsIngress
+      tolerations:
+        - key: nodeType.jj
+          operator: Equal
+          value: awsIngress
+          effect: NoSchedule
+      resources:
+        requests:
+          cpu: 10m
+          memory: 250Mi
+        limits:
+          memory: 500Mi

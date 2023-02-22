@@ -4,38 +4,17 @@ metadata:
     name: bgp-config
     namespace: kube-system
 data:
-    config.yaml: ENC[AES256_GCM,data:6FzdYavqFqruLKvVGaqvXsiDRaSXTlCkh9N+OF4OjEVHJ+JeBZhQyFwPzKfGwQsO5txq3GMyj6XrNiBL2FBRBUyQLiESloeBcP9CpEzXOZv/09GQ8vkeSpHUIm70M1EQvg2b+oxRnHkL8BDltzg9/J//tmpGmToAbpeh7KiMy6mJiQFT/laZi1z9XyFZ8bSo+vln4ZKdA/OPvkRsEkElPh5CbgyIoOWssZsdMSwMaf6nszifzp47X0EL5jBaSKxYn2gP+z0DR2kf6ZCFjDJfzKEROin2Dziiw/nhl18Pe4uf9OdvH6ZuNGln25zj9ggfqjgTtxe23GY3vfCnK1uLrReUWE4TGLd41VbNCs6vLNbFsA==,iv:DGKuRyB8Tp5Qsq30LPNGH7xC/IDMgaoY/io7LY1WQyw=,tag:ML93n8MesYa8rPrAbP7Rrg==,type:str]
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzdm1VOXlmV2VNeGw0dnlj
-            KzlaeHJpeTRZVUZrMGJEZktVYitTZVpzN1FZCjZGZ05FeWM4Rmx5ZHQ5aWIyS3BF
-            UXdTZVBkdHBSNjJjZzZZVnJKb3hCVDQKLS0tIHJ3RUI5MHNPWkt1Y0k4Mk1FQTh6
-            MXNvMVdLcFkyYll6bVR2dytNMWxZQ28KCraEBowKDdLork7ra+I92FXItaXLUqDj
-            ZjMHUvAn1lr8CgpbDxhQTog+4xvlj23S3ZPUWcnNHPP+JJUg2VIFOQ==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:23:18Z"
-    mac: ENC[AES256_GCM,data:3fi3u7OVC3vVms31K/Fuw44iBkIZqMTvSq+9SD2Rb/ufdENCMz9ltVjW1fHhztHvmJT1ZshnUkipW147fAwH4honD/XiocetmCE5lWPeIYMhPkXVULMQgvFo5UKEfmN9nNewpEzC0t8MDSodR/5eX50CefYzqLBeK6rTkbXRhEE=,iv:mA4FRsPHYXZd5xr6j1YSCPAMJBDqOq+O0LVKnRbPUA8=,tag:dMAYkoyNxmtObgC2zLWotQ==,type:str]
-    pgp:
-        - created_at: "2023-02-21T20:23:17Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdArkpMhqWacWNtoxwMUu5xlRLhWCyUhG4hZyeSIia5Ohkw
-            AAeb3TMU07lnZoUCko0vR3rSSi91ZQt6KAsUPpI4ossVTdrJPwuahx6zvrEXwYlo
-            0l4B4TvmshTkCpKPMVc4oPUJBSnViGL9SmPHYbWHZLUc+mjo1N+8wsHIOz6bXWVp
-            R1K0jBBx9AkJs9csVsL2JFwdPoktwXU9kRJUHu1YmKqC1iQfUQHSBWCTlMJo3dYD
-            =25a0
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|clusterDomain)$
-    version: 3.7.3
+    config.yaml: |
+        peers:
+          - peer-address: "${IP_ROUTER_VLAN_K8S}"
+            peer-asn: "${ASN_ROUTER}"
+            my-asn: "${ASN_ROUTER}"
+        address-pools:
+          - name: main-addr-pool
+            protocol: bgp
+            avoid-buggy-ips: true
+            addresses:
+              - "${IP_LB_CIDR}"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -90,7 +69,7 @@ spec:
             enabled: true
             range: 80,32767
         kubeProxyReplacement: strict
-        k8sServiceHost: ENC[AES256_GCM,data:8xS3OFpXGfOT,iv:3E0bypQI/tYEMdUfbDSxLX6/WCjXf6KjyBmiZDBXi6M=,tag:ficOHmel5Rvx4M87qyRKWA==,type:str]
+        k8sServiceHost: ${IP_CLUSTER_VIP}
         k8sServicePort: 6443
         kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
         install-no-conntrack-iptables-rules: "false"
@@ -103,7 +82,7 @@ spec:
             integration: containerd
         hubble:
             peerService:
-                clusterDomain: ENC[AES256_GCM,data:+iLDDIppgfk=,iv:UA+jPgeZEOBZUPlJMc0E7fWsvNhw1O4TCXR2npVZ5oc=,tag:3SGe80uQI8lfCD4QptDrfQ==,type:str]
+                clusterDomain: ${DNS_CLUSTER}
             enabled: true
             tls:
                 enabled: false
@@ -114,34 +93,3 @@ spec:
                         enabled: false
             ui:
                 enabled: true
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBzdm1VOXlmV2VNeGw0dnlj
-            KzlaeHJpeTRZVUZrMGJEZktVYitTZVpzN1FZCjZGZ05FeWM4Rmx5ZHQ5aWIyS3BF
-            UXdTZVBkdHBSNjJjZzZZVnJKb3hCVDQKLS0tIHJ3RUI5MHNPWkt1Y0k4Mk1FQTh6
-            MXNvMVdLcFkyYll6bVR2dytNMWxZQ28KCraEBowKDdLork7ra+I92FXItaXLUqDj
-            ZjMHUvAn1lr8CgpbDxhQTog+4xvlj23S3ZPUWcnNHPP+JJUg2VIFOQ==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:23:18Z"
-    mac: ENC[AES256_GCM,data:3fi3u7OVC3vVms31K/Fuw44iBkIZqMTvSq+9SD2Rb/ufdENCMz9ltVjW1fHhztHvmJT1ZshnUkipW147fAwH4honD/XiocetmCE5lWPeIYMhPkXVULMQgvFo5UKEfmN9nNewpEzC0t8MDSodR/5eX50CefYzqLBeK6rTkbXRhEE=,iv:mA4FRsPHYXZd5xr6j1YSCPAMJBDqOq+O0LVKnRbPUA8=,tag:dMAYkoyNxmtObgC2zLWotQ==,type:str]
-    pgp:
-        - created_at: "2023-02-21T20:23:17Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdArkpMhqWacWNtoxwMUu5xlRLhWCyUhG4hZyeSIia5Ohkw
-            AAeb3TMU07lnZoUCko0vR3rSSi91ZQt6KAsUPpI4ossVTdrJPwuahx6zvrEXwYlo
-            0l4B4TvmshTkCpKPMVc4oPUJBSnViGL9SmPHYbWHZLUc+mjo1N+8wsHIOz6bXWVp
-            R1K0jBBx9AkJs9csVsL2JFwdPoktwXU9kRJUHu1YmKqC1iQfUQHSBWCTlMJo3dYD
-            =25a0
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(peer-address|peer-asn|my-asn|addresses|config.yaml|ipv4NativeRoutingCIDR|k8sServiceHost|clusterDomain)$
-    version: 3.7.3

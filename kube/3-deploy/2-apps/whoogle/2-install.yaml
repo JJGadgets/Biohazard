@@ -1,88 +1,58 @@
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-    name: whoogle
-    namespace: whoogle
-    labels:
-        helm.flux.home.arpa/app-template: "true"
+  name: whoogle
+  namespace: whoogle
+  labels:
+    helm.flux.home.arpa/app-template: "true"
 spec:
-    values:
-        controller:
-            strategy: RollingUpdate
-        fullNameOverride: whoogle
-        image:
-            repository: docker.io/benbusby/whoogle-search
-            tag: 0.8.1
-        env:
-            HTTPS_ONLY: 0
-            WHOOGLE_CONFIG_THEME: dark
-            WHOOGLE_CONFIG_SAFE: 0
-            WHOOGLE_CONFIG_STYLE: 'body {max-width: 100% !important} :root { --whoogle-dark-logo: #6E6C7E; --whoogle-dark-page-bg: #1E1E2E; --whoogle-dark-element-bg: #302D41; --whoogle-dark-text: #D9E0EE; --whoogle-dark-contrast-text: #F2CDCD; --whoogle-dark-secondary-text: #988BA2; --whoogle-dark-result-bg: #302D41; --whoogle-dark-result-title: #F5E0DC; --whoogle-dark-result-url: #F5E0DC; --whoogle-dark-result-visited: #C9CBFF; } #whoogle-w { fill: #96CDFB; } #whoogle-h { fill: #F28FAD; } #whoogle-o-1 { fill: #FAE3B0; } #whoogle-o-2 { fill: #96CDFB; } #whoogle-g { fill: #ABE9B3; } #whoogle-l { fill: #F28FAD; } #whoogle-e { fill: #FAE3B0; }'
-            WHOOGLE_CONFIG_URL: ENC[AES256_GCM,data:H4gGsFTyfFDPfY7I7Ck3gQ==,iv:VxiGgP1ZYTXf04NrzbQvwNJFTyHZ7c5g9KIQmg4DBVc=,tag:AhjzYMtafjeaxVq57FRgFg==,type:str]
-            WHOOGLE_CONFIG_GET_ONLY: 1
-            WHOOGLE_CONFIG_VIEW_IMAGE: 1
-            WHOOGLE_CONFIG_DISABLE: 1
-            WHOOGLE_CONFIG_TOR: 0
-            WHOOGLE_TOR_SERVICE: 0
-        dnsPolicy: None
-        dnsConfig:
-            options:
-                - name: ndots
-                  value: "1"
-            nameservers:
-                - ENC[AES256_GCM,data:kk1LGDObvLM=,iv:zSIMj83AEoUthmbMJsDQKjUNtpojBOfEG4tzlKaIOwU=,tag:CDly0GxZWXrHQNPf8rZHkg==,type:str]
-        service:
-            main:
-                ports:
-                    http:
-                        port: 5000
-        ingress:
-            main:
-                enabled: true
-                primary: true
-                ingressClassName: nginx
-                hosts:
-                    - host: ENC[AES256_GCM,data:pTf9RNyPL+8=,iv:Pa0iAOctJykVFVYAhV7RG2NZnQFyar2f4uETCDE04F4=,tag:gl6C4HDlYhwAz7N9YBH9yA==,type:str]
-                      paths:
-                        - path: ENC[AES256_GCM,data:VA==,iv:zw+apwk5xXziqJdfsxgi/RiO/cS7WrR9+CTFgGArKwk=,tag:W84JCBGhTD9/NvDvZb8L2Q==,type:str]
-                          pathType: ENC[AES256_GCM,data:rikuyvEF,iv:+gAOJmZy7QUQjsfPgdnE1VGWUfWi3gwbwY4IrumjTKo=,tag:gz1lBlxsa5XIardE3wgCoA==,type:str]
-                tls:
-                    - hosts:
-                        - ENC[AES256_GCM,data:sqr3pXgKZq8=,iv:sQh0RNxpL860NnVbd0dp3/ytj8w9cH+M1UYwxgN803Q=,tag:5f7mu0yRbs9c5AmJL/9nEw==,type:str]
-        resources:
-            requests:
-                cpu: 5m
-                memory: 100Mi
-            limits:
-                memory: 250Mi
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBuUVYwMm9IanhYRHlQNEJZ
-            Y3g1MXpRU0xKNkxuR2ErR09pRU5hMVlMeWpjCnNTa2NaaVlvUXp4WElvcE9qY29Z
-            SkRKV01Da2ZqQ3MrbkpTby9EdC9jZHMKLS0tIHZJOWh4THp6UU5OejRTbjFPSDJX
-            dUc1VmE3cGFHT0laMU1qcW1MdVRJc2sKlVVqJHHswazaRZE3NWMJ7sQaihTc7ZVV
-            mI/3SMD6sPoQj9vZH7+xuIyf8q1aaCWCjP8a7ROiFTMC/issrw0LkA==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-22T07:20:22Z"
-    mac: ENC[AES256_GCM,data:1unFiyfcNf9t00Xvhw+aEIK6WIYotFHP4jJD6Xa4yYfUSdZOtcE+fLFDAYbRPFgteHA3wfUSZfqZ1wKuB8ZHy27S4iWS8nyq7JqFI8z4I9kVgT28eGKcqpKdS7EkpBqHj3K2KABApAKLWSNn3Mb20xOVLuEyj2B/6xjqHlPuADA=,iv:qjVRi/YCWlOxSEKKCM4hth3+rlsVDxciEA+Ekje+fJA=,tag:rRX7tWiV2FlC4MEU+2GXPA==,type:str]
-    pgp:
-        - created_at: "2023-02-21T20:14:11Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdAOuEAO9H/RLnLVNg6oR/aea3zJJp1hepBik26PNSS9How
-            Qa6XkJQ56GqdeYlk1ewHczP8CYZE6iaaXI00L/xJkfPPgdb8fNikDjgzUb4kmjjZ
-            0l4B494UXFz22n1077EM8vP9i9NwncfFIkDwQ0JYeUmFuN8tf2PZXBvr7vvs3QLc
-            AiXQnTQ6m+S4EPpRD6LsJYpynOLC/DYk1+46CT/hjhxv/anxlWnyx5/eOZXsxltp
-            =uN9E
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(hosts|host|WHOOGLE_CONFIG_URL|nameservers)$
-    version: 3.7.3
+  values:
+    controller:
+      strategy: RollingUpdate
+    fullNameOverride: whoogle
+    image:
+      repository: docker.io/benbusby/whoogle-search
+      tag: 0.8.1
+    env:
+      HTTPS_ONLY: 0
+      WHOOGLE_CONFIG_THEME: dark
+      WHOOGLE_CONFIG_SAFE: 0
+      WHOOGLE_CONFIG_STYLE: 'body {max-width: 100% !important} :root { --whoogle-dark-logo: #6E6C7E; --whoogle-dark-page-bg: #1E1E2E; --whoogle-dark-element-bg: #302D41; --whoogle-dark-text: #D9E0EE; --whoogle-dark-contrast-text: #F2CDCD; --whoogle-dark-secondary-text: #988BA2; --whoogle-dark-result-bg: #302D41; --whoogle-dark-result-title: #F5E0DC; --whoogle-dark-result-url: #F5E0DC; --whoogle-dark-result-visited: #C9CBFF; } #whoogle-w { fill: #96CDFB; } #whoogle-h { fill: #F28FAD; } #whoogle-o-1 { fill: #FAE3B0; } #whoogle-o-2 { fill: #96CDFB; } #whoogle-g { fill: #ABE9B3; } #whoogle-l { fill: #F28FAD; } #whoogle-e { fill: #FAE3B0; }'
+      WHOOGLE_CONFIG_URL: "https://${APP_DNS_WHOOGLE}"
+      WHOOGLE_CONFIG_GET_ONLY: 1
+      WHOOGLE_CONFIG_VIEW_IMAGE: 1
+      WHOOGLE_CONFIG_DISABLE: 1
+      WHOOGLE_CONFIG_TOR: 0
+      WHOOGLE_TOR_SERVICE: 0
+    dnsPolicy: None
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+      nameservers:
+        - "${IP_HOME_DNS}"
+    service:
+      main:
+        ports:
+          http:
+            port: 5000
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: "${APP_DNS_WHOOGLE}"
+            paths:
+            - path: /
+              pathType: Prefix
+        tls:
+          - hosts:
+            - "${APP_DNS_WHOOGLE}"
+    resources:
+      requests:
+        cpu: 5m
+        memory: 100Mi
+      limits:
+        memory: 250Mi
