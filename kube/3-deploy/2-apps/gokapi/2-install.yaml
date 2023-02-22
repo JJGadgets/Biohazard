@@ -3,27 +3,9 @@ kind: HelmRelease
 metadata:
     name: gokapi
     namespace: gokapi
+    labels:
+        helm.flux.home.arpa/app-template: "true"
 spec:
-    interval: 15m
-    chart:
-        spec:
-            chart: app-template
-            version: 1.2.1
-            sourceRef:
-                kind: HelmRepository
-                name: bjw-s
-                namespace: flux-system
-    maxHistory: 3
-    install:
-        createNamespace: true
-        remediation:
-            retries: 3
-    upgrade:
-        cleanupOnFail: true
-        remediation:
-            retries: 3
-    uninstall:
-        keepHistory: false
     values:
         controller:
             strategy: RollingUpdate
@@ -75,8 +57,8 @@ sops:
             MHc3cXY5ZnZBU0gva05ZME5BaG1ZWHMKO1P60Ffaes6oc2fOsPE7QwLc0d3L03ct
             Gj9CzvDAp082iCPiltkFh0VYK2tvJqlcdgmUzYH9tx2htrj4vOPzdw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:13:21Z"
-    mac: ENC[AES256_GCM,data:Ugg0AMersR0PFfGJAmVUi1iOBvqcCopz9+UkdL06gaK7NaH5FD5NHOdHdptfIYmRKyW8f3TIxGeCuIHvj0r0YNiAdewg7TvQC+szVxFqr4tGL3bZOnRoq8wSieU+KcqpbixNWsTBzj1EDppcBbcURJE5hMEYa8Ky+kYcPCco2cM=,iv:Guh2GTV/Es4PPMxCPev+cPHyY7qOgHp7/y4Mz4oB5+U=,tag:/JtocwkkvY515Ao4xcPERQ==,type:str]
+    lastmodified: "2023-02-22T08:17:36Z"
+    mac: ENC[AES256_GCM,data:2+XooYx56YkCkUrKB3bj9Eai4n571mSE5EEjqfRPxywcjaJx/KYVzdijg4ZtMXXSsc3Hjr86U9SeUfT9u/op3m4MX8m2Ph3mdkTSe6eqQlsZDf6PSwV3OvpNMiOyCnIs/dH67Jmq/rGrIHpYM0MykYPDaBpaGkhmntYlc1FksbM=,iv:fNY5/G07lGqCaSvQC8iNSl9mtNPE3073BAHndwiZYlM=,tag:OHcFaX64jhJuLZrJpbQZVA==,type:str]
     pgp:
         - created_at: "2023-02-21T20:13:20Z"
           enc: |

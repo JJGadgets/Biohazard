@@ -167,3 +167,14 @@ spec:
   dependsOn:
     - name: biohazard-1-core-05-ingress
     - name: biohazard-1-core-02-storage-rook-ceph
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-2-apps-minecraft
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/minecraft
+  dependsOn:
+    - name: biohazard-1-core-04-dns
+    - name: biohazard-1-core-02-storage-rook-ceph

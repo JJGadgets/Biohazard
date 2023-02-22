@@ -29,8 +29,8 @@ spec:
             "42080": ingress/ingress-nginx-controller:20080::PROXY
             "42443": ingress/ingress-nginx-controller:20443::PROXY
         controller:
-            replicaCount: 3
-            # kind: DaemonSet
+            # replicaCount: 3
+            kind: DaemonSet
             extraEnvs:
                 - name: TZ
                   value: Asia/Singapore
@@ -67,10 +67,10 @@ spec:
                 enabled: true
             ingressClassByName: true
             ingressClassResource:
-                name: internal
                 enabled: true
                 default: true
-                controllerValue: k8s.io/ingress-nginx-internal
+                name: nginx
+                controllerValue: k8s.io/ingress-nginx
             nodeSelector:
                 node-restriction.kubernetes.io/nodeType: main
             config:
@@ -120,8 +120,8 @@ sops:
             Z21Hem1GM3RqZjRtc3lybjBodG5NMGcKHg5A7ztd0/lIvZJh31X6a18dcKHE+On/
             jkqZi9CfTz4FtLc6V5OXWhQQSkMUQ/MAujN6rndj1hgBT68IcEcHaQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:22:35Z"
-    mac: ENC[AES256_GCM,data:WOdPzJjdR9gdF5Hu7mMKmE4LJ7D0/OM0/o1cQjSiqJKSfHHVNFFi3VUOFAiBeqA9d8vdo94sZeQdqLicYbaTN4sK9UzJ1m2dWj3RQfq76Np9PMdFyYMXP2iImFuuTjsOEF7PIPYdHlr2FdDEHlYHuBmuyb6mUFkhqm9nlN/yZpI=,iv:1gOlBnnrWu3TjbEpz1EorvSE0RqyuETRG2gKLF8v3g0=,tag:5cje88LRHLuv68kdUBmc1w==,type:str]
+    lastmodified: "2023-02-22T07:14:49Z"
+    mac: ENC[AES256_GCM,data:4dH52LPVRtzb2+ApvFiu2KltRithR2t9FgHz9bqBR9kZp/issfOx+Q5J8ud+7X4nfAiaNrwSTEOEWSjMZ3rtoHwHwl+Yx1E7LOPNCRYR60ki0ntwfMQk7Q44KSnwOVLwhHvgRcjys95tWfcCYRZ45WaD70R/IBeWjEZ8W6pqM+s=,iv:IkcdUL/3Wtox7ecTNz7N+MuypvKyHSvi/R7MFSVuk5k=,tag:ORsilrYrnWVumwOa6+aWOw==,type:str]
     pgp:
         - created_at: "2023-02-21T20:22:34Z"
           enc: |
@@ -187,8 +187,8 @@ sops:
             Z21Hem1GM3RqZjRtc3lybjBodG5NMGcKHg5A7ztd0/lIvZJh31X6a18dcKHE+On/
             jkqZi9CfTz4FtLc6V5OXWhQQSkMUQ/MAujN6rndj1hgBT68IcEcHaQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:22:35Z"
-    mac: ENC[AES256_GCM,data:WOdPzJjdR9gdF5Hu7mMKmE4LJ7D0/OM0/o1cQjSiqJKSfHHVNFFi3VUOFAiBeqA9d8vdo94sZeQdqLicYbaTN4sK9UzJ1m2dWj3RQfq76Np9PMdFyYMXP2iImFuuTjsOEF7PIPYdHlr2FdDEHlYHuBmuyb6mUFkhqm9nlN/yZpI=,iv:1gOlBnnrWu3TjbEpz1EorvSE0RqyuETRG2gKLF8v3g0=,tag:5cje88LRHLuv68kdUBmc1w==,type:str]
+    lastmodified: "2023-02-22T07:14:49Z"
+    mac: ENC[AES256_GCM,data:4dH52LPVRtzb2+ApvFiu2KltRithR2t9FgHz9bqBR9kZp/issfOx+Q5J8ud+7X4nfAiaNrwSTEOEWSjMZ3rtoHwHwl+Yx1E7LOPNCRYR60ki0ntwfMQk7Q44KSnwOVLwhHvgRcjys95tWfcCYRZ45WaD70R/IBeWjEZ8W6pqM+s=,iv:IkcdUL/3Wtox7ecTNz7N+MuypvKyHSvi/R7MFSVuk5k=,tag:ORsilrYrnWVumwOa6+aWOw==,type:str]
     pgp:
         - created_at: "2023-02-21T20:22:34Z"
           enc: |

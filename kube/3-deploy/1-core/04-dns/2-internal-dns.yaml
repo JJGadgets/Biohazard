@@ -4,26 +4,12 @@ metadata:
     name: k8s-gateway
     namespace: dns
 spec:
-    interval: 15m
     chart:
         spec:
             chart: k8s-gateway
             version: 2.0.1
             sourceRef:
-                kind: HelmRepository
                 name: k8s-gateway
-                namespace: flux-system
-    maxHistory: 3
-    install:
-        createNamespace: true
-        remediation:
-            retries: 3
-    upgrade:
-        cleanupOnFail: true
-        remediation:
-            retries: 3
-    uninstall:
-        keepHistory: false
     values:
         fullnameOverride: k8s-gateway
         domain: ENC[AES256_GCM,data:wDF9Qkgpd21b/dtDqmFB65UWTz8g5mXvC4b8sUNRWQ==,iv:ZCv60ivBbcbWrV06HYhmNzfZ2oMPlJ7+bVxQJQZdT2U=,tag:oQYThticDm4txQOYNXEVRg==,type:str]
@@ -66,8 +52,8 @@ sops:
             K3lzYzZCaHRubzJ6VzVIeWJaTitFVkkKmLcRfQW/1SAamvAsX43EKGG+4HfAdlsZ
             iNs2wWCAhAjUligg/wqlP03M3tK+nxfUxDL2DoLdXQN05CRIp5kAFg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:25:11Z"
-    mac: ENC[AES256_GCM,data:pyb3qDdaVxtWRGiGxQJkRgTUjAeEZtDDidjX/uc2Hwm4smpPzv+0ahcOwzSG8mt4gYrd2Dc43lpDWg7bx0tmT2f7+9oOIwz227ZFUSCpB6gtH48HeTmKU9BqNrVfsUdi/c4qCfwm5bck5YuIIvPydCL0vOsMnhRWKis9Elx2l8c=,iv:wat7/Nfv/1Vcr6dKIUipcHp6nDKLbjg0ioeEVnkvAC0=,tag:P94myA/2TNyrcYi+RzvQhg==,type:str]
+    lastmodified: "2023-02-22T08:04:07Z"
+    mac: ENC[AES256_GCM,data:gB2ljNlGMpeO55BbgLuiw9X10VOqpegx4zTZmtw24ccANC8JQfhLSOmN4J524WUe6DKVqNvyl1JEp3dL8o59sVKoyUNsl5iMaE01desknbE0454B/cmNnSsTF3AaIRcE0KaTS8eHPq0UdfIyl/YMF0mNhYceZriNBZYHpdug4No=,iv:9sSLYw/bqaNfficWdH/8BvGqahN8ZfzoiL11J6/gSb0=,tag:YCCyRgJ3RgXSwWmzPq9XgQ==,type:str]
     pgp:
         - created_at: "2023-02-21T20:25:11Z"
           enc: |

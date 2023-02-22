@@ -40,8 +40,7 @@ spec:
             main:
                 enabled: true
                 primary: true
-                ingressClassName: internal
-                nameOverride: internal
+                ingressClassName: nginx
                 hosts:
                     - host: ENC[AES256_GCM,data:pTf9RNyPL+8=,iv:Pa0iAOctJykVFVYAhV7RG2NZnQFyar2f4uETCDE04F4=,tag:gl6C4HDlYhwAz7N9YBH9yA==,type:str]
                       paths:
@@ -71,8 +70,8 @@ sops:
             dUc1VmE3cGFHT0laMU1qcW1MdVRJc2sKlVVqJHHswazaRZE3NWMJ7sQaihTc7ZVV
             mI/3SMD6sPoQj9vZH7+xuIyf8q1aaCWCjP8a7ROiFTMC/issrw0LkA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T21:09:51Z"
-    mac: ENC[AES256_GCM,data:O7KuoloxklWe5SRSlVEtwl/vZiqLI3wLrQncGuUboDG3UCZQY6M1u11kiMQ9f/mi7mQ4uPH5sYuphPDivAU4Y2+qhyjWgixlkPMn0RQoLgZPCJUTWY3k+tgxReK8RimEZXcpiOvPRp2wVA1zjF92KfdlSjFLfhzzyEjsWCqztDk=,iv:RahAonLW5JJniIE3zVNO+mAogMkP54p8ZFPcOEQ4H+c=,tag:ni5kBpr/wzrJNzekVtPeBg==,type:str]
+    lastmodified: "2023-02-22T07:20:22Z"
+    mac: ENC[AES256_GCM,data:1unFiyfcNf9t00Xvhw+aEIK6WIYotFHP4jJD6Xa4yYfUSdZOtcE+fLFDAYbRPFgteHA3wfUSZfqZ1wKuB8ZHy27S4iWS8nyq7JqFI8z4I9kVgT28eGKcqpKdS7EkpBqHj3K2KABApAKLWSNn3Mb20xOVLuEyj2B/6xjqHlPuADA=,iv:qjVRi/YCWlOxSEKKCM4hth3+rlsVDxciEA+Ekje+fJA=,tag:rRX7tWiV2FlC4MEU+2GXPA==,type:str]
     pgp:
         - created_at: "2023-02-21T20:14:11Z"
           enc: |
