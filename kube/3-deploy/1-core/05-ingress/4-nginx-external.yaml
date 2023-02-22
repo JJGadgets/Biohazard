@@ -60,6 +60,11 @@ spec:
                 disable-access-log: "true"
             nodeSelector:
                 node-restriction.kubernetes.io/nodeType: awsIngress
+            tolerations:
+                - key: nodeType.jj
+                  operator: Equal
+                  value: awsIngress
+                  effect: NoSchedule
             resources:
                 requests:
                     cpu: 10m
@@ -81,8 +86,8 @@ sops:
             NVAwV3ZOcTBhWVVrbWxFUVM0dzJqK0EKITGSZI5i8CYA2IG9nMrmASRy9HqxSZ08
             9+bEkhtlcoJgSEqdp5ojOtlZUQSU1m2/R6UbMAgoLqlVOOndpCBlvA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:44:22Z"
-    mac: ENC[AES256_GCM,data:lg22n5nJhh+pidCK9ZNryAQ0gcPuQ82xK391++5SG5Q0PF3x4dNFTnCIgN6qF1DvX3D5TuXagmRNz7Np6iXFjlPb1JpKory/Td1oY84HJn/kNF0fEAwqQgvFbW6maYOhPEu8v/7aGfcDTYUGW2A+xE0WiPAWAm893C8be1CL+3I=,iv:7G0aY+iSLSk1T5Qlrl3cwuU8NNCmaPhzlVfWNljQ7ns=,tag:KEpQ1fJVkaMuOAP7RrUXeQ==,type:str]
+    lastmodified: "2023-02-22T07:03:13Z"
+    mac: ENC[AES256_GCM,data:WAGe8AWWw1fk5rmQAFYkAuVS9Y+I7ODFyvPCZZ7Z2mtRflxZajcVanByieVwe8G/9eiT6mMiSYvySAvOeigd9owFCz5Iag82OL8DRr62uLyV70JKgL7DCHbqnNVesS5ieRsmm6KAtsDzQYu5MzJmDnFugO5E9inTrxnR6/0DKFM=,iv:+gsxrMRF+GvlqU/um/2ARcsYFCPQGfPj/Qvhs2ZBF6k=,tag:C3HgnKqVrYHlH6o0YTFJfg==,type:str]
     pgp:
         - created_at: "2023-02-21T20:22:02Z"
           enc: |
