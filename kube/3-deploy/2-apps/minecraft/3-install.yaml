@@ -18,13 +18,13 @@ spec:
       repository: itzg/minecraft-server
       tag: 2022.16.0-java17
     serviceAnnotations:
-      coredns.io/hostname: "${DNS_MINECRAFT}"
+      coredns.io/hostname: "${APP_DNS_MINECRAFT}"
     minecraftServer:
       serviceType: LoadBalancer
       externalTrafficPolicy: Local
-      loadBalancerIP: "${EXT_MINECRAFT_IP}"
+      loadBalancerIP: "${APP_IP_MINECRAFT}"
       externalIPs:
-        - "${EXT_MINECRAFT_IP}"
+        - "${APP_IP_MINECRAFT}"
       eula: "TRUE"
       version: "1.19.3"
       type: "FABRIC"
@@ -64,8 +64,8 @@ spec:
       RCON_CMDS_STARTUP:  |-
         gamerule keepInventory false
     securityContext:
-      runAsUser: "${UID_MINECRAFT}"
-      fsGroup: "${UID_MINECRAFT}"
+      runAsUser: "${APP_UID_MINECRAFT}"
+      fsGroup: "${APP_UID_MINECRAFT}"
     persistence:
       dataDir:
         enabled: true
