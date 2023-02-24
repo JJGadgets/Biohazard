@@ -74,7 +74,7 @@ spec:
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
           - name: config2
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config
-          - name: saveGames
+          - name: savegames
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
     podSecurityContext:
       runAsUser: 1000
@@ -109,7 +109,7 @@ spec:
         size: 1Gi
         retain: true
         readOnly: false
-      saveGames:
+      savegames:
         enabled: true
         type: pvc
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
