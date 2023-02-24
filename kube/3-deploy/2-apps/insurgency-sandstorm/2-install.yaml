@@ -77,10 +77,8 @@ spec:
           - name: savegames
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
     podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
-      fsGroupChangePolicy: OnRootMismatch
+      runAsUser: 0
+      runAsGroup: 0
     persistence:
       mods:
         enabled: true
