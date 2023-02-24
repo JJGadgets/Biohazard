@@ -15,7 +15,7 @@ spec:
     fullNameOverride: insurgency-sandstorm
     image:
       repository: docker.io/andrewmhub/insurgency-sandstorm
-      tag: latest # I wish this wasn't how it's tagged, but alas
+      tag: lite # I wish this wasn't how it's tagged, but alas
     args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27102", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"]
     dnsPolicy: ClusterFirstWithHostNet
     dnsConfig:
@@ -63,11 +63,13 @@ spec:
         command:
           - sh
           - -c
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency
-          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm
+          - chmod -R 775 /home/steam/steamcmd/sandstorm
         securityContext:
           runAsUser: 0
         volumeMounts:
+          - name: game
+            mountPath: /home/steam/steamcmd/sandstorm
           - name: mods
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Mods
           - name: config1
@@ -77,9 +79,20 @@ spec:
           - name: savegames
             mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
     podSecurityContext:
-      runAsUser: 0
-      runAsGroup: 0
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      fsGroupChangePolicy: "Always"
     persistence:
+      game:
+        enabled: true
+        type: pvc
+        mountPath: /home/steam/steamcmd/sandstorm
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 100Gi
+        retain: true
+        readOnly: false
       mods:
         enabled: true
         type: pvc
