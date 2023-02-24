@@ -24,6 +24,13 @@ spec:
           value: "1"
       nameservers:
         - "${IP_HOME_DNS}"
+    probes:
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+      startup:
+        enabled: false
     service:
       main:
         enabled: true
@@ -56,7 +63,6 @@ spec:
             protocol: UDP
           querytcp:
             enabled: true
-            primary: true
             port: 27131
             targetPort: 27131
             protocol: TCP
