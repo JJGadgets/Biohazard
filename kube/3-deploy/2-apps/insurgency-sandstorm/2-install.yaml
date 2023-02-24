@@ -16,7 +16,7 @@ spec:
     image:
       repository: docker.io/andrewmhub/insurgency-sandstorm
       tag: lite # I wish this wasn't how it's tagged, but alas
-    args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27102", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"]
+    args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27012", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"]
     dnsPolicy: ClusterFirstWithHostNet
     dnsConfig:
       options:
@@ -35,20 +35,20 @@ spec:
       main:
         enabled: true
         # type: ClusterIP
-        type: NodePort
+        type: LoadBalancer
         externalTrafficPolicy: Local
-        # loadBalancerIP: "${APP_IP_SANDSTORM}"
-        # externalIPs:
-        #   - "${APP_IP_SANDSTORM}"
+        loadBalancerIP: "${APP_IP_SANDSTORM}"
+        externalIPs:
+          - "${APP_IP_SANDSTORM}"
         ports:
           http:
             enabled: false
             primary: false
           gameudp:
             enabled: true
-            port: 27102
-            targetPort: 27102
-            nodePort: 27102
+            port: 27012
+            targetPort: 27012
+            nodePort: 27012
             protocol: UDP
           queryudp:
             enabled: true
@@ -65,6 +65,14 @@ spec:
           - -c
           - chown -R 1000:1000 /home/steam/steamcmd/sandstorm
           - chmod -R 775 /home/steam/steamcmd/sandstorm
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Mods
+          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Mods
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
+          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Config
+          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Config
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
+          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/SaveGames
         securityContext:
           runAsUser: 0
         volumeMounts:

@@ -1,20 +1,18 @@
-apiVersion: v1
-kind: ConfigMap
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy
 metadata:
-    name: bgp-config
-    namespace: kube-system
-data:
-    config.yaml: |
-        peers:
-          - peer-address: "${IP_ROUTER_VLAN_K8S}"
-            peer-asn: "${ASN_ROUTER}"
-            my-asn: "${ASN_ROUTER}"
-        address-pools:
-          - name: main-addr-pool
-            protocol: bgp
-            avoid-buggy-ips: true
-            addresses:
-              - "${IP_LB_CIDR}"
+  name: home-opnsense-main
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: "linux"
+  virtualRouters:
+    - localASN: "${ASN_CLUSTER}"
+      exportPodCIDR: true
+      neighbors:
+        - peerAddress: "${IP_ROUTER_VLAN_K8S}"
+          peerASN: "${ASN_ROUTER}"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -57,11 +55,8 @@ spec:
         tunnel: vxlan
         ipam:
             mode: kubernetes
-        bgp:
+        bgpControlPlane:
             enabled: true
-            announce:
-                loadbalancerIP: true
-                podCIDR: true
         loadBalancer:
             algorithm: maglev
             mode: snat
