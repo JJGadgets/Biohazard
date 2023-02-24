@@ -54,12 +54,14 @@ spec:
             primary: true
             port: 27131
             targetPort: 27131
+            nodePort: 27131
             protocol: UDP
           querytcp:
             enabled: true
             primary: true
             port: 27131
             targetPort: 27131
+            nodePort: 27131
             protocol: TCP
     persistence:
       mods:
