@@ -34,14 +34,14 @@ spec:
     service:
       main:
         enabled: true
-        type: ClusterIP
-    #     type: LoadBalancer
-    #     externalTrafficPolicy: Local
-    #     loadBalancerIP: "${APP_IP_SANDSTORM}"
-    #     externalIPs:
-    #       - "${APP_IP_SANDSTORM}"
-    #     annotations:
-    #       coredns.io/hostname: "${APP_DNS_SANDSTORM}"
+        # type: ClusterIP
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        loadBalancerIP: "${APP_IP_SANDSTORM}"
+        externalIPs:
+          - "${APP_IP_SANDSTORM}"
+        annotations:
+          coredns.io/hostname: "${APP_DNS_SANDSTORM}"
         ports:
           http:
             enabled: false
@@ -51,21 +51,11 @@ spec:
             port: 27102
             targetPort: 27102
             protocol: UDP
-          gametcp:
-            enabled: true
-            port: 27102
-            targetPort: 27102
-            protocol: TCP
           queryudp:
             enabled: true
             port: 27131
             targetPort: 27131
             protocol: UDP
-          querytcp:
-            enabled: true
-            port: 27131
-            targetPort: 27131
-            protocol: TCP
     persistence:
       mods:
         enabled: true
@@ -121,42 +111,3 @@ spec:
     resources:
       requests:
         memory: 1024Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    coredns.io/hostname: "${APP_DNS_SANDSTORM}"
-  name: insurgency-sandstorm-ext
-  namespace: sandstorm
-spec:
-  allocateLoadBalancerNodePorts: true
-  externalIPs:
-  - "${APP_IP_SANDSTORM}"
-  externalTrafficPolicy: Local
-  loadBalancerIP: "${APP_IP_SANDSTORM}"
-  ports:
-  - name: gametcp
-    nodePort: 27103
-    port: 27102
-    protocol: TCP
-    targetPort: 27102
-  - name: gameudp
-    nodePort: 27102
-    port: 27102
-    protocol: UDP
-    targetPort: 27102
-  - name: querytcp
-    nodePort: 27132
-    port: 27131
-    protocol: TCP
-    targetPort: 27131
-  - name: queryudp
-    nodePort: 27131
-    port: 27131
-    protocol: UDP
-    targetPort: 27131
-  selector:
-    app.kubernetes.io/instance: insurgency-sandstorm
-    app.kubernetes.io/name: insurgency-sandstorm
-  type: LoadBalancer
