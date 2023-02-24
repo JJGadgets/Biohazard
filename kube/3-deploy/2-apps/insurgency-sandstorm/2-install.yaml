@@ -10,7 +10,7 @@ spec:
   values:
     controller:
       strategy: Recreate
-      type: statefulset
+      type: deployment
       replicas: 1
     fullNameOverride: insurgency-sandstorm
     image:
