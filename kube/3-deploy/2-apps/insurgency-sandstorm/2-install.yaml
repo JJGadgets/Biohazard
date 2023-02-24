@@ -73,42 +73,42 @@ spec:
         readOnly: false
       gameini:
         enabled: true
-        type: ConfigMap
+        type: configMap
         name: insurgency-sandstorm-gameini
         subPath: Game.ini
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/Game.ini
         readOnly: true
       engineini:
         enabled: true
-        type: ConfigMap
+        type: configMap
         name: insurgency-sandstorm-engineini
         subPath: Engine.ini
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/Engine.ini
         readOnly: true
       gameusersettingsini:
         enabled: true
-        type: Secret
+        type: secret
         name: insurgency-sandstorm-gameusersettingsini
         subPath: GameUserSettings.ini
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/GameUserSettings.ini
         readOnly: true
       adminstxt:
         enabled: true
-        type: Secret
+        type: secret
         name: insurgency-sandstorm-adminstxt
         subPath: Admins.txt
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/Admins.txt
         readOnly: true
       mapcycletxt:
         enabled: true
-        type: ConfigMap
+        type: configMap
         name: insurgency-sandstorm-mapcycletxt
         subPath: MapCycle.txt
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/MapCycle.txt
         readOnly: true
       modstxt:
         enabled: true
-        type: ConfigMap
+        type: configMap
         name: insurgency-sandstorm-modstxt
         subPath: Mods.txt
         mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/Mods.txt
