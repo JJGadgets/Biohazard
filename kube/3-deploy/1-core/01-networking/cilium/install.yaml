@@ -11,7 +11,7 @@ spec:
     - localASN: ${ASN_CLUSTER}
       exportPodCIDR: true
       neighbors:
-        - peerAddress: "${IP_ROUTER_VLAN_K8S}"
+        - peerAddress: "${IP_ROUTER_VLAN_K8S}/32"
           peerASN: ${ASN_ROUTER}
 # ---
 # apiVersion: v1
