@@ -3,6 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - 1-namespace.yaml
+  - config/secrets.yaml
   - 2-install.yaml
 configMapGenerator:
   - name: insurgency-sandstorm-gameini
