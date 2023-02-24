@@ -7,15 +7,19 @@ resources:
   - 2-install.yaml
 configMapGenerator:
   - name: insurgency-sandstorm-gameini
+    namespace: sandstorm
     files:
       - ./config/Game.ini
   - name: insurgency-sandstorm-engineini
+    namespace: sandstorm
     files:
       - ./config/Engine.ini
   - name: insurgency-sandstorm-mapcycletxt
+    namespace: sandstorm
     files:
       - ./config/MapCycle.txt
   - name: insurgency-sandstorm-modstxt
+    namespace: sandstorm
     files:
       - ./config/Mods.txt
 generatorOptions:
