@@ -14,6 +14,24 @@
 #         - peerAddress: "${IP_ROUTER_VLAN_K8S}"
 #           peerASN: "${ASN_ROUTER}"
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: bgp-config
+    namespace: kube-system
+data:
+    config.yaml: |
+        peers:
+          - peer-address: "${IP_ROUTER_VLAN_K8S}"
+            peer-asn: "${ASN_ROUTER}"
+            my-asn: "${ASN_CLUSTER}"
+        address-pools:
+          - name: main-addr-pool
+            protocol: bgp
+            avoid-buggy-ips: true
+            addresses:
+              - "${IP_LB_CIDR}"
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
