@@ -24,45 +24,45 @@ spec:
           value: "1"
       nameservers:
         - "${IP_HOME_DNS}"
-    service:
-      main:
-        type: LoadBalancer
-        externalTrafficPolicy: Local
-        loadBalancerIP: "${APP_IP_SANDSTORM}"
-        externalIPs:
-          - "${APP_IP_SANDSTORM}"
-        annotations:
-          coredns.io/hostname: "${APP_DNS_SANDSTORM}"
-        ports:
-          http:
-            enabled: false
-            primary: false
-          gameudp:
-            enabled: true
-            primary: true
-            port: 27102
-            targetPort: 27102
-            protocol: UDP
-          gametcp:
-            enabled: true
-            primary: true
-            port: 27102
-            targetPort: 27102
-            protocol: TCP
-          queryudp:
-            enabled: true
-            primary: true
-            port: 27131
-            targetPort: 27131
-            nodePort: 27131
-            protocol: UDP
-          querytcp:
-            enabled: true
-            primary: true
-            port: 27131
-            targetPort: 27131
-            nodePort: 27131
-            protocol: TCP
+    # service:
+    #   main:
+    #     type: LoadBalancer
+    #     externalTrafficPolicy: Local
+    #     loadBalancerIP: "${APP_IP_SANDSTORM}"
+    #     externalIPs:
+    #       - "${APP_IP_SANDSTORM}"
+    #     annotations:
+    #       coredns.io/hostname: "${APP_DNS_SANDSTORM}"
+    #     ports:
+    #       http:
+    #         enabled: false
+    #         primary: false
+    #       gameudp:
+    #         enabled: true
+    #         primary: true
+    #         port: 27102
+    #         targetPort: 27102
+    #         protocol: UDP
+    #       gametcp:
+    #         enabled: true
+    #         primary: true
+    #         port: 27102
+    #         targetPort: 27102
+    #         protocol: TCP
+    #       queryudp:
+    #         enabled: true
+    #         primary: true
+    #         port: 27131
+    #         targetPort: 27131
+    #         nodePort: 27131
+    #         protocol: UDP
+    #       querytcp:
+    #         enabled: true
+    #         primary: true
+    #         port: 27131
+    #         targetPort: 27131
+    #         nodePort: 27131
+    #         protocol: TCP
     persistence:
       mods:
         enabled: true
@@ -119,3 +119,42 @@ spec:
       requests:
         cpu: 500m
         memory: 2048Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    coredns.io/hostname: "${APP_DNS_SANDSTORM}"
+  name: insurgency-sandstorm
+  namespace: sandstorm
+spec:
+  allocateLoadBalancerNodePorts: true
+  externalIPs:
+  - "${APP_IP_SANDSTORM}"
+  externalTrafficPolicy: Local
+  loadBalancerIP: "${APP_IP_SANDSTORM}"
+  ports:
+  - name: gametcp
+    nodePort: 27102
+    port: 27102
+    protocol: TCP
+    targetPort: 27102
+  - name: gameudp
+    nodePort: 27102
+    port: 27102
+    protocol: UDP
+    targetPort: 27102
+  - name: querytcp
+    nodePort: 27131
+    port: 27131
+    protocol: TCP
+    targetPort: 27131
+  - name: queryudp
+    nodePort: 27132
+    port: 27131
+    protocol: UDP
+    targetPort: 27131
+  selector:
+    app.kubernetes.io/instance: insurgency-sandstorm
+    app.kubernetes.io/name: insurgency-sandstorm
+  type: LoadBalancer
