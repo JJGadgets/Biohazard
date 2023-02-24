@@ -28,7 +28,7 @@ metadata:
     wait.flux.home.arpa/disabled: "true"
     kustomization.flux.home.arpa/helmpatches: "false"
 spec:
-  interval: 10m0s
+  interval: 1m0s
   path: ./kube/1-clusters/Biohazard/2-config
   prune: true
   wait: false
@@ -54,7 +54,7 @@ spec:
         metadata:
           name: not-used
         spec:
-          interval: 10m0s
+          interval: 1m0s
           sourceRef:
             kind: GitRepository
             name: flux-system
