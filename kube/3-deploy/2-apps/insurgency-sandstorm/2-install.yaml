@@ -1,0 +1,119 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: insurgency-sandstorm
+  namespace: sandstorm
+  labels:
+    helm.flux.home.arpa/app-template: "true"
+spec:
+  values:
+    controller:
+      strategy: Recreate
+      type: statefulset
+      replicas: 1
+    fullNameOverride: insurgency-sandstorm
+    image:
+      repository: docker.io/andrewmhub/insurgency-sandstorm
+      tag: latest # I wish this wasn't how it's tagged, but alas
+    args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27102", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?password=\"${SECRET_SANDSTORM_ADMIN_PASSWORD}\""]
+    dnsPolicy: ClusterFirstWithHostNet
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+      nameservers:
+        - "${IP_HOME_DNS}"
+    service:
+      main:
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        loadBalancerIP: "${APP_IP_SANDSTORM}"
+        externalIPs:
+          - "${APP_IP_SANDSTORM}"
+        annotations:
+          coredns.io/hostname: "${APP_DNS_SANDSTORM}"
+        ports:
+          http:
+            enabled: false
+            primary: false
+          gameudp:
+            enabled: true
+            primary: true
+            port: 27102
+            targetPort: 27102
+            protocol: UDP
+          gametcp:
+            enabled: true
+            primary: true
+            port: 27102
+            targetPort: 27102
+            protocol: TCP
+          queryudp:
+            enabled: true
+            primary: true
+            port: 27131
+            targetPort: 27131
+            protocol: UDP
+          querytcp:
+            enabled: true
+            primary: true
+            port: 27131
+            targetPort: 27131
+            protocol: UDP
+    persistence:
+      mods:
+        enabled: true
+        type: pvc
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Mods
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 100Gi
+        retain: true
+        readOnly: false
+      gameini:
+        enabled: true
+        type: ConfigMap
+        name: insurgency-sandstorm-gameini
+        subPath: Game.ini
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/Game.ini
+        readOnly: true
+      engineini:
+        enabled: true
+        type: ConfigMap
+        name: insurgency-sandstorm-engineini
+        subPath: Engine.ini
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/Engine.ini
+        readOnly: true
+      gameusersettingsini:
+        enabled: true
+        type: Secret
+        name: insurgency-sandstorm-gameusersettingsini
+        subPath: GameUserSettings.ini
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config/LinuxServer/GameUserSettings.ini
+        readOnly: true
+      adminstxt:
+        enabled: true
+        type: Secret
+        name: insurgency-sandstorm-adminstxt
+        subPath: Admins.txt
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/Admins.txt
+        readOnly: true
+      mapcycletxt:
+        enabled: true
+        type: ConfigMap
+        name: insurgency-sandstorm-mapcycletxt
+        subPath: MapCycle.txt
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/MapCycle.txt
+        readOnly: true
+      modstxt:
+        enabled: true
+        type: ConfigMap
+        name: insurgency-sandstorm-modstxt
+        subPath: Mods.txt
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config/Server/Mods.txt
+        readOnly: true
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2048Mi

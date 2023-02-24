@@ -178,3 +178,14 @@ spec:
   dependsOn:
     - name: biohazard-1-core-04-dns
     - name: biohazard-1-core-02-storage-rook-ceph
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-2-apps-insurgency-sandstorm
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/insurgency-sandstorm
+  dependsOn:
+    - name: biohazard-1-core-04-dns
+    - name: biohazard-1-core-02-storage-rook-ceph
