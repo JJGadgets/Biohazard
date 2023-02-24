@@ -31,17 +31,16 @@ spec:
         enabled: false
       startup:
         enabled: false
+    hostNetwork: true
     service:
       main:
         enabled: true
         # type: ClusterIP
-        type: LoadBalancer
+        type: NodePort
         externalTrafficPolicy: Local
-        loadBalancerIP: "${APP_IP_SANDSTORM}"
-        externalIPs:
-          - "${APP_IP_SANDSTORM}"
-        annotations:
-          coredns.io/hostname: "${APP_DNS_SANDSTORM}"
+        # loadBalancerIP: "${APP_IP_SANDSTORM}"
+        # externalIPs:
+        #   - "${APP_IP_SANDSTORM}"
         ports:
           http:
             enabled: false
@@ -50,11 +49,13 @@ spec:
             enabled: true
             port: 27102
             targetPort: 27102
+            nodePort: 27102
             protocol: UDP
           queryudp:
             enabled: true
             port: 27131
             targetPort: 27131
+            nodePort: 27131
             protocol: UDP
     initContainers:
       init-permission:
