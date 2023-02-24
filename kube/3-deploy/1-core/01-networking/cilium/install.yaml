@@ -1,36 +1,21 @@
 ---
 apiVersion: cilium.io/v2alpha1
-kind: CiliumBGPPeeringPolicy
+kind: CiliumBGPPeeringPolicy # MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
 metadata:
   name: home-opnsense-main
 spec:
   nodeSelector:
     matchLabels:
-      kubernetes.io/os: "linux"
+      kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
   virtualRouters:
-    - localASN: ${ASN_CLUSTER}
+    - localASN: ${ASN_CLUSTER} # ASNs are processed in uint32
       exportPodCIDR: true
+      serviceSelector:
+        matchExpressions:
+          - {key: allservices, operator: NotIn, values: ['will-be-announced']}
       neighbors:
-        - peerAddress: "${IP_ROUTER_VLAN_K8S}/32"
+        - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: ${ASN_ROUTER}
-# ---
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#     name: bgp-config
-#     namespace: kube-system
-# data:
-#     config.yaml: |
-#         peers:
-#           - peer-address: "${IP_ROUTER_VLAN_K8S}"
-#             peer-asn: ${ASN_ROUTER}
-#             my-asn: ${ASN_CLUSTER}
-#         address-pools:
-#           - name: main-addr-pool
-#             protocol: bgp
-#             avoid-buggy-ips: true
-#             addresses:
-#               - "${IP_LB_CIDR}"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -75,6 +60,8 @@ spec:
             mode: kubernetes
         bgpControlPlane:
             enabled: true
+            # `bgp.announce` block is moved to CiliumBGPPeeringPolicy used by bgpControlPlane, for more fine grained control over announced addresses
+            # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
         loadBalancer:
             algorithm: maglev
             mode: snat
