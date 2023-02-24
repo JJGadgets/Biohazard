@@ -24,8 +24,10 @@ spec:
           value: "1"
       nameservers:
         - "${IP_HOME_DNS}"
-    # service:
-    #   main:
+    service:
+      main:
+        enabled: false
+        primary: false
     #     type: LoadBalancer
     #     externalTrafficPolicy: Local
     #     loadBalancerIP: "${APP_IP_SANDSTORM}"
