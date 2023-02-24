@@ -1,18 +1,18 @@
----
-apiVersion: cilium.io/v2alpha1
-kind: CiliumBGPPeeringPolicy
-metadata:
-  name: home-opnsense-main
-spec:
-  nodeSelector:
-    matchLabels:
-      kubernetes.io/os: "linux"
-  virtualRouters:
-    - localASN: "${ASN_CLUSTER}"
-      exportPodCIDR: true
-      neighbors:
-        - peerAddress: "${IP_ROUTER_VLAN_K8S}"
-          peerASN: "${ASN_ROUTER}"
+# ---
+# apiVersion: cilium.io/v2alpha1
+# kind: CiliumBGPPeeringPolicy
+# metadata:
+#   name: home-opnsense-main
+# spec:
+#   nodeSelector:
+#     matchLabels:
+#       kubernetes.io/os: "linux"
+#   virtualRouters:
+#     - localASN: "${ASN_CLUSTER}"
+#       exportPodCIDR: true
+#       neighbors:
+#         - peerAddress: "${IP_ROUTER_VLAN_K8S}"
+#           peerASN: "${ASN_ROUTER}"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
