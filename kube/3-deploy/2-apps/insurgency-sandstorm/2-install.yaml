@@ -16,7 +16,7 @@ spec:
     image:
       repository: docker.io/andrewmhub/insurgency-sandstorm
       tag: latest # I wish this wasn't how it's tagged, but alas
-    args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27102", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?password=\"${SECRET_SANDSTORM_ADMIN_PASSWORD}\""]
+    args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=27102", "-QueryPort=27131", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"]
     dnsPolicy: ClusterFirstWithHostNet
     dnsConfig:
       options:
@@ -56,6 +56,26 @@ spec:
             port: 27131
             targetPort: 27131
             protocol: UDP
+    initContainers:
+      init-permission:
+        image: busybox:1.36.0
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+          - -c
+          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency
+          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+          - name: mods
+            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Mods
+          - name: config1
+            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
+          - name: config2
+            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config
+          - name: saveGames
+            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
     persistence:
       mods:
         enabled: true
@@ -64,6 +84,33 @@ spec:
         accessMode: ReadWriteOnce
         storageClass: block
         size: 100Gi
+        retain: true
+        readOnly: false
+      config1:
+        enabled: true
+        type: pvc
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 1Gi
+        retain: true
+        readOnly: false
+      config2:
+        enabled: true
+        type: pvc
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 1Gi
+        retain: true
+        readOnly: false
+      saveGames:
+        enabled: true
+        type: pvc
+        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 10Gi
         retain: true
         readOnly: false
       gameini:
