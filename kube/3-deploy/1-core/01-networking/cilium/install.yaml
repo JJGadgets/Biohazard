@@ -28,6 +28,9 @@ data:
           - peer-address: "${IP_ROUTER_VLAN_K8S}"
             peer-asn: ${ASN_ROUTER}
             my-asn: ${ASN_CLUSTER}
+          - peer-address: "${IP_EC2_NON_K8S}"
+            peer-asn: ${ASN_EC2_INGRESS}
+            my-asn: ${ASN_CLUSTER}
         address-pools:
           - name: main-addr-pool
             protocol: bgp

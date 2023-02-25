@@ -7,11 +7,13 @@ data:
     CONFIG_TZ: ENC[AES256_GCM,data:QU5C/D/cxN6t4t55/7A=,iv:Qt83MzR1mPAuKobVQZJQR72SXLAwWwI7HkDxOAkqofs=,tag:3FtJVBMHMSVMgiJWqmqf1g==,type:str]
     ASN_CLUSTER: ENC[AES256_GCM,data:v1ltZfY=,iv:Ip1sIVFLw4j6qbqKYf0jANRglSlAnKZhqNdRunZdR24=,tag:fOsYxQObj0Wv664IoRtm9A==,type:str]
     ASN_ROUTER: ENC[AES256_GCM,data:/7gZcwY=,iv:ldZNIACK5B4ZvMWYCzHN9zUlArkOIySHSTUrjlrEF1s=,tag:98OXCN+tI2BIt8CEo99QVA==,type:str]
+    ASN_EC2_INGRESS: ENC[AES256_GCM,data:TcMj7s8=,iv:aQ0lCtQWklJmGstOKeptKAmqHI1W9LrrK6dT2u/4ejs=,tag:WoQXlgdZjc7yMlirgVft8A==,type:str]
     IP_ROUTER_VLAN_K8S: ENC[AES256_GCM,data:ngwfmrXjohzP,iv:U5DSCUUCZbIhwVAgv2gW98t8d8QwDSOM2YybNQWpgAw=,tag:vPTdK0CHET13l3x2eWb7gA==,type:str]
     IP_CLUSTER_VIP: ENC[AES256_GCM,data:GxYFwPSJ60yN,iv:KfSez768cxxjiUi7SFUEBiecfpQ0If9dbvPJlK/SHdM=,tag:8wb4wfnh4+Pnu7GYIlSs4Q==,type:str]
     IP_LB_CIDR: ENC[AES256_GCM,data:/qxOk5Vn8Q1/isE+iw==,iv:BhOMIotgJEWcLJOfP/unKrjX72ZEY1RfBtt5P14hQko=,tag:BSCy1PquhSew/ofhyGOLFg==,type:str]
     IP_HOME_DNS: ENC[AES256_GCM,data:vgSoWr2cIRU=,iv:xR+QBTE5PGri3u3PmDFEt4Y9CcDLou7TPtDbHjStOoU=,tag:NpepI2uYYpMXnf56+nLuow==,type:str]
     IP_EC2_PRIVATE: ENC[AES256_GCM,data:h1fURs4vImzeM7V7,iv:vBouKgNUOU+5RwzIu5Nu4XZlTnYPc0NCuFxZAL7A+ZY=,tag:th3ZSftw2jhvgydpdJ0Aug==,type:str]
+    IP_EC2_NON_K8S: ENC[AES256_GCM,data:l5TXKSqsZrgU998=,iv:mu6amtzWpStZkF3VASVF15It+x3P3SS1p6K2Vz7tcA8=,tag:l3ICXl6t/nTKncGCjjeVSA==,type:str]
     DNS_CLUSTER: ENC[AES256_GCM,data:dVS38myraH4=,iv:WScCvhcW9C/qckIlbDDWR8tzIYZdG58lbYmThdPQpro=,tag:3RDQ97sbEganiHRf42A11g==,type:str]
     DNS_SHORT: ENC[AES256_GCM,data:16FRvQx8,iv:5xVBGMf/Bp3XqHDwl9ZBb14nSVkTg3eWq5FU2cYoRyY=,tag:uzCrxTBEv/Iy+Ht0gK0kjQ==,type:str]
     DNS_MAIN: ENC[AES256_GCM,data:V5QOelS0L9R9drkh/Pk=,iv:GTTFkC73534oXM3QR8J3kHrZb163Gel7eu3e2P1X2Yo=,tag:DUD006mJM/uEjkiRcn/HlA==,type:str]
@@ -48,8 +50,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-24T20:01:33Z"
-    mac: ENC[AES256_GCM,data:sMymxmhRu4j/W5EB3QoPR/40xmBae9948ZFhjWPCu7W9hxesjWx08UXw9uvsE4zQ0QOVEAnL6QmMZzmBvQ9ppfeH6M66zFYWAHqjfZOKBc6qhgC8a2AgSmLcIu+Sj0oAMFSSvdCMrCJuw6eHoD2xw/0usFMsSybkji9wMuWr5XA=,iv:3Mqc/AhwgwtBeW2ZUGlFdMKTbyi+5rZLejJAyeIuxv0=,tag:2rAke8yrMn3m9QQa9oGJfg==,type:str]
+    lastmodified: "2023-02-25T14:48:33Z"
+    mac: ENC[AES256_GCM,data:iA4K8e3yEtcYevDiZaw7Yn3MlVCkUju/E7utQsYIDaIqUHHSWaDFPBi68z2B7dxVUORY4Bqe8wlhIDLo3v6rMk6O+Tr/1hwf79UBE4OQU3jx4yQ9Oj4BiWNlRre/ETs89pmg68oP/85I/DTb5W6QVCD1Lx3cM76edHtAANTsq7g=,iv:TF26IuYGTW86cKzbRSFaPxQqDroa9YfdEZXBcGveDXo=,tag:JF7mDFumO5nuPtfE1x0gng==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |

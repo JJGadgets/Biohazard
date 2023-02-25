@@ -29,6 +29,9 @@ spec:
         internalhttps: 42443
       publishService:
         enabled: true
+      extraArgs:
+        publish-status-address: "${APP_IP_NGINX}"
+        default-ssl-certificate: ingress/short-domain-tls
       ingressClassByName: true
       ingressClassResource:
         enabled: true
@@ -61,8 +64,6 @@ spec:
       #   namespace: networking
       #   namespaceSelector:
       #     any: true
-      extraArgs:
-        default-ssl-certificate: ingress/short-domain-tls
       resources:
         requests:
           cpu: 10m
@@ -75,6 +76,10 @@ kind: Service
 metadata:
   name: ingress-nginx-controller
   namespace: ingress
+  app.kubernetes.io/component: controller
+  app.kubernetes.io/instance: ingress-nginx
+  app.kubernetes.io/name: ingress-nginx
+  app.kubernetes.io/part-of: ingress-nginx
 spec:
   allocateLoadBalancerNodePorts: true
   externalIPs:
