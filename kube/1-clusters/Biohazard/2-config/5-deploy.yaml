@@ -230,9 +230,16 @@ kind: Kustomization
 metadata:
   name: biohazard-2-apps-hugo-test
   namespace: flux-system
+  labels:
+    substitution.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/3-deploy/2-apps/hugo-test
   dependsOn:
     - name: biohazard-1-core-02-storage-rook-ceph
     - name: biohazard-1-core-04-dns
     - name: biohazard-1-core-05-ingress-nginx
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: hugo-test-secrets
+        optional: false

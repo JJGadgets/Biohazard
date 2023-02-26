@@ -13,7 +13,7 @@ spec:
     fullNameOverride: hugo-test
     image:
       repository: docker.io/klakegg/hugo
-      tag: 0.107.0-debian-ci
+      tag: 0.107.0-ext-debian-ci
     command: ["hugo"]
     args: ["server"]
     env:
@@ -23,6 +23,7 @@ spec:
         enabled: true
         type: pvc
         retain: true
+        readOnly: false
         storageClass: block
         size: 5Gi
         mountPath: /src
@@ -48,11 +49,6 @@ spec:
               paths:
               - path: /
                 pathType: Prefix
-              - path: "/outpost.goauthentik.io"
-                pathType: Prefix
-                backend:
-                  service:
-                    name: authentik
           tls:
             - hosts:
               - "${APP_DNS_HUGO_TEST_VSCODE}"

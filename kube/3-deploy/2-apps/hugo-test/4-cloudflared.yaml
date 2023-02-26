@@ -1,0 +1,54 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cloudflared
+  namespace: hugo-test
+  labels:
+    helm.flux.home.arpa/app-template: "true"
+spec:
+  values:
+    controller:
+      strategy: RollingUpdate
+    image:
+      repository: cloudflare/cloudflared
+      tag: 2023.2.1-amd64
+    args:
+      - tunnel
+      - --config
+      - /etc/cloudflared/config.yaml
+      - run
+    service:
+      main:
+        enabled: false
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: cloudflared-config
+        mountPath: /etc/cloudflared/config.yaml
+        subPath: config.yaml
+        readOnly: true
+      credentials:
+        enabled: true
+        type: secret
+        name: cloudflared-credentials
+        mountPath: /etc/cloudflared/credentials.json
+        subPath: credentials.json
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.yaml: |
+            tunnel: "${SECRET_CLOUDFLARE_TUNNEL_HUGO_TEST_ID}"
+            credentials-file: /etc/cloudflared/credentials.json
+            no-autoupdate: true
+            ingress:
+              - hostname: ${APP_DNS_CF_HUGO_TEST_HELLO}
+                service: hello_world
+              - hostname: ${APP_DNS_CF_HUGO_TEST}
+                service: http://hugo-test:1313
+              - hostname: ${APP_DNS_CF_HUGO_TEST_VSCODE}
+                service: http://hugo-test-addon-codeserver:12321
+              - service: http_status:200
