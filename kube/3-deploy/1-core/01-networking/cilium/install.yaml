@@ -108,14 +108,12 @@ spec:
             integration: containerd
         hubble:
             peerService:
-                clusterDomain: ${DNS_CLUSTER}
+                clusterDomain: cluster.local
             enabled: true
-            tls:
-                enabled: false
             relay:
                 enabled: true
-                tls:
-                    server:
-                        enabled: false
+                # tls:
+                #     server:
+                #         enabled: false
             ui:
                 enabled: true
