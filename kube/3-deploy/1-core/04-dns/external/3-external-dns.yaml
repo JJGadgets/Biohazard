@@ -1,0 +1,34 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  chart:
+    spec:
+      chart: external-dns
+      version: 1.12.1
+      sourceRef:
+        name: external-dns
+  values:
+    interval: 2m
+    # logLevel: debug
+    provider: cloudflare
+    env:
+      - name: CF_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-secret
+            key: api-key
+    extraArgs:
+      - --annotation-filter=external-dns.alpha.kubernetes.io/target
+    policy: sync
+    sources:
+      - ingress
+    txtPrefix: "k8s-${CLUSTER_NAME}."
+    txtOwnerId: default
+    domainFilters:
+      - "${DNS_SHORT}"
+      - "${DNS_MAIN}"
+      - "${DNS_VPN}"
