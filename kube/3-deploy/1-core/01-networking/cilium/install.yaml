@@ -1,119 +1,138 @@
-# ---
-# apiVersion: cilium.io/v2alpha1
-# kind: CiliumBGPPeeringPolicy # MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
-# metadata:
-#   name: home-opnsense-main
-# spec:
-#   nodeSelector:
-#     matchLabels:
-#       kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
-#   virtualRouters:
-#     - localASN: ${ASN_CLUSTER} # ASNs are processed in uint32
-#       exportPodCIDR: true
-#       serviceSelector:
-#         matchExpressions:
-#           - {key: allservices, operator: NotIn, values: ['will-be-announced']}
-#       neighbors:
-#         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
-#           peerASN: ${ASN_ROUTER}
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy # MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
+metadata:
+  name: bgp-loadbalancer-ip-main
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
+  virtualRouters:
+    - localASN: ${ASN_ROUTER} # ASNs are processed in uint32
+      exportPodCIDR: true
+      serviceSelector:
+        matchExpressions:
+          - {key: allservices, operator: NotIn, values: ['will-be-announced']}
+      neighbors:
+        - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
+          peerASN: ${ASN_ROUTER}
+    - localASN: ${ASN_EC2_INGRESS}
+      exportPodCIDR: false
+      serviceSelector:
+        matchExpressions:
+          - {key: allservices, operator: NotIn, values: ['will-be-announced']}
+      neighbors:
+        - peerAddress: "${IP_EC2_NON_K8S}/32"
+          peerASN: ${ASN_EC2_INGRESS}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: bgp-config
-    namespace: kube-system
+  name: bgp-config
+  namespace: kube-system
 data:
-    config.yaml: |
-        peers:
-          - peer-address: "${IP_ROUTER_VLAN_K8S}"
-            peer-asn: ${ASN_ROUTER}
-            my-asn: ${ASN_CLUSTER}
-          - peer-address: "${IP_EC2_NON_K8S}"
-            peer-asn: ${ASN_EC2_INGRESS}
-            my-asn: ${ASN_CLUSTER}
-        address-pools:
-          - name: main-addr-pool
-            protocol: bgp
-            avoid-buggy-ips: true
-            addresses:
-              - "${IP_LB_CIDR}"
+  config.yaml: |
+    peers:
+      - peer-address: "${IP_ROUTER_VLAN_K8S}"
+        peer-asn: ${ASN_ROUTER}
+        my-asn: ${ASN_ROUTER}
+      - peer-address: "${IP_EC2_NON_K8S}"
+        peer-asn: ${ASN_EC2_INGRESS}
+        my-asn: ${ASN_EC2_INGRESS}
+    address-pools:
+      - name: main-addr-pool
+        protocol: bgp
+        avoid-buggy-ips: true
+        addresses:
+          - "${IP_LB_CIDR}"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-    name: cilium
-    namespace: kube-system
-    annotations:
-        meta.helm.sh/release-name: cilium
-        meta.helm.sh/release-namespace: kube-system
-    labels:
-        app.kubernetes.io/managed-by: Helm
+  name: cilium
+  namespace: kube-system
+  annotations:
+    meta.helm.sh/release-name: cilium
+    meta.helm.sh/release-namespace: kube-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
 spec:
-    interval: 5m
-    chart:
-        spec:
-            chart: cilium
-            version: 1.13.0
-            sourceRef:
-                kind: HelmRepository
-                name: cilium-charts
-                namespace: flux-system
-            interval: 5m
-    install:
-        # perform remediation when helm install fails
-        remediation:
-            retries: 100
-    upgrade:
-        # perform remediation when helm upgrade fails
-        remediation:
-            retries: 100
-            # remediate the last failure, when no retries remain
-            remediateLastFailure: true
-        cleanupOnFail: true
-    values:
-        securityContext:
-            privileged: true
-        cluster:
-            name: Biohazaard
-            id: "1"
-        tunnel: vxlan
-        ipam:
-            mode: kubernetes
-        bgp:
-            enabled: true
-            announce:
-                loadbalancerIP: true
-                podCIDR: true
-        # bgpControlPlane:
-        #     enabled: true
-            # `bgp.announce` block is moved to CiliumBGPPeeringPolicy used by bgpControlPlane, for more fine grained control over announced addresses
-            # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
-        loadBalancer:
-            algorithm: maglev
-            mode: snat
-        nodePort:
-            enabled: true
-            range: 80,32767
-        kubeProxyReplacement: strict
-        k8sServiceHost: ${IP_CLUSTER_VIP}
-        k8sServicePort: 6443
-        kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
-        install-no-conntrack-iptables-rules: "false"
-        operator:
-            rollOutPods: true
-        autoDirectNodeRoutes: false
-        rollOutCiliumPods: true
-        localRedirectPolicy: true
-        containerRuntime:
-            integration: containerd
-        hubble:
-            peerService:
-                clusterDomain: cluster.local
-            enabled: true
-            relay:
-                enabled: true
-                # tls:
-                #     server:
-                #         enabled: false
-            ui:
-                enabled: true
+  interval: 5m
+  chart:
+    spec:
+      chart: cilium
+      version: 1.13.0
+      sourceRef:
+        kind: HelmRepository
+        name: cilium-charts
+        namespace: flux-system
+      interval: 5m
+  install:
+    # perform remediation when helm install fails
+    remediation:
+      retries: 100
+  upgrade:
+    # perform remediation when helm upgrade fails
+    remediation:
+      retries: 100
+      # remediate the last failure, when no retries remain
+      remediateLastFailure: true
+    cleanupOnFail: true
+  values:
+    securityContext:
+      privileged: true
+    cluster:
+      name: Biohazaard
+      id: "1"
+    tunnel: vxlan
+    ipam:
+      mode: kubernetes
+    # bgp:
+    #   enabled: true
+    #   announce:
+    #     loadbalancerIP: true
+    #     podCIDR: true
+    bgpControlPlane:
+      enabled: true
+        # `bgp.announce` block is moved to CiliumBGPPeeringPolicy used by bgpControlPlane, for more fine grained control over announced addresses
+        # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
+    loadBalancer:
+      algorithm: maglev
+      mode: snat
+    nodePort:
+      enabled: true
+      range: 80,32767
+    kubeProxyReplacement: strict
+    k8sServiceHost: ${IP_CLUSTER_VIP}
+    k8sServicePort: 6443
+    kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+    install-no-conntrack-iptables-rules: "false"
+    operator:
+      rollOutPods: true
+    autoDirectNodeRoutes: false
+    rollOutCiliumPods: true
+    localRedirectPolicy: true
+    containerRuntime:
+      integration: containerd
+    hubble:
+      enabled: true
+      peerService:
+        clusterDomain: cluster.local
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+        ingress:
+          enabled: true
+          className: "nginx"
+          hosts:
+            - "${APP_DNS_HUBBLE}"
+          tls:
+            - hosts:
+                - "${APP_DNS_HUBBLE}"
+      tls:
+        enabled: true
+        auto:
+          enabled: true
+          method: "helm"
+          certValidityDuration: 3650
