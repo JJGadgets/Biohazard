@@ -20,6 +20,7 @@ spec:
       extraEnvs:
         - name: TZ
           value: Asia/Singapore
+      dnsPolicy: ClusterFirstWithHostNet
       service:
         enabled: false
       containerPort:

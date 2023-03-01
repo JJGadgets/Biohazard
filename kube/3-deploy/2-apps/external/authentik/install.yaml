@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: *app
 spec:
   type: ExternalName
-  externalName: ${IP_OLD_DOCKER}
+  externalName: ${DNS_OLD_DOCKER}
   ports:
     - name: http
       port: &port 7443
