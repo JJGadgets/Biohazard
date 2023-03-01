@@ -16,6 +16,11 @@ spec:
     # logLevel: debug
     provider: cloudflare
     env:
+      - name: CF_API_EMAIL
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-secret
+            key: email
       - name: CF_API_KEY
         valueFrom:
           secretKeyRef:
