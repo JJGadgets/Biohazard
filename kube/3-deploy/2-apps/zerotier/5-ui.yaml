@@ -1,111 +1,62 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-    name: zerotier-ui
-    namespace: zerotier
+  name: zerotier-ui
+  namespace: zerotier
+  labels:
+    helm.flux.home.arpa/app-template: "true"
 spec:
-    interval: 15m
-    chart:
-        spec:
-            chart: app-template
-            version: 1.2.1
-            sourceRef:
-                kind: HelmRepository
-                name: bjw-s
-                namespace: flux-system
-    maxHistory: 3
-    install:
-        createNamespace: true
-        remediation:
-            retries: 3
-    upgrade:
-        cleanupOnFail: true
-        remediation:
-            retries: 3
-    uninstall:
-        keepHistory: false
-    values:
-        controller:
-            type: statefulset
-            strategy: RollingUpdate
-        fullNameOverride: zerotier-ui
-        image:
-            repository: docker.io/dec0dos/zero-ui
-            tag: 1.5.1
-        env:
-            ZU_CONTROLLER_ENDPOINT: ENC[AES256_GCM,data:zAhu03Pf5dtJVcOovxDULhRQg3IrsoGD5ggbA+1f9M98UkTGWiVY2CjZVaPg9FXjjJQLW+wH7eNGH6Q=,iv:XRfEtIvdoGYbOR2iR+Y+LsxdSyWP7m0Lb5xKGus5SxQ=,tag:VyQ9jP+K1hTYu3uuoTLYcA==,type:str]
-            ZU_SECURE_HEADERS: "true"
-            ZU_DEFAULT_USERNAME: ENC[AES256_GCM,data:9bSzd2KLzw==,iv:e47uZg9rCjkgs4216ZMN0+TuDjeDOo0/B7Sw19cIdt4=,tag:2foh8j4h5y7mRJ9N0UY9ZA==,type:str]
-            ZU_DEFAULT_PASSWORD: ENC[AES256_GCM,data:u9qF0eVeyqM0muEEcsH2tiULAOmBLI8H,iv:KkrS2Vj95a+s0gW8qSVztlyEy03FmztgOJNL+lMA/lk=,tag:XKH3h6To2y/XtAYymwDxDg==,type:str]
-        # dnsPolicy: None
-        dnsConfig:
-            options:
-                - name: ndots
-                  value: "1"
-        #     nameservers:
-        #         - fake.ip
-        service:
-            main:
-                ports:
-                    http:
-                        port: 4000
-        ingress:
-            main:
-                enabled: true
-                ingressClassName: nginx
-                hosts:
-                    - host: ENC[AES256_GCM,data:T1zkZ4qRSQCqeFfR,iv:9qE3EspO4omI9sWuX1u2J5O9GuOtQaVLfBAf/jeT2u0=,tag:YqUvoT5dwx63UM/htbrRJw==,type:str]
-                      paths:
-                        - path: ENC[AES256_GCM,data:ag==,iv:sWpz7xwLy7njFZXW4rVFgHp0QesZ8XcEGxm7UW5vccs=,tag:970D7QvBxzQ67aboS3N1Qg==,type:str]
-                          pathType: ENC[AES256_GCM,data:XbEbgilh,iv:WNXxaiA5P2/uHOsFviGZT/raLO+hc5NbIpCT+YA5n/c=,tag:P0q3wauFUKXUPQFgmPbn/Q==,type:str]
-                tls:
-                    - hosts:
-                        - ENC[AES256_GCM,data:eUL5pUezplowjyci,iv:eVvP9njgYh2uVnrSiQ9xtFJQ2XkPRlyiwuhO2K+0Fw0=,tag:XtxJAUsmmIsDvPy+8W/j7w==,type:str]
-                      secretName: ENC[AES256_GCM,data:i8GW,iv:B+b4MPSwGBZRAsABbly1t8XgL0AVRuDbi8cfw1OjX1M=,tag:vA0m8jFfQux4MKcJ12TIiw==,type:str]
-        persistence:
-            zerotier-one:
-                enabled: true
-                type: pvc
-                mountPath: /var/lib/zerotier-one
-                retain: true
-                existingClaim: zerotier-one
-            zerotier-ui-data:
-                enabled: true
-                type: pvc
-                mountPath: /app/backend/data
-                readOnly: false
-                accessMode: ReadWriteOnce
-                storageClass: block
-                size: 1Gi
-                retain: true
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1xl3fcwdw56k73lraxsjhde4ygwn7jw0js5l5qw7vsp54vc5czuwstcejxu
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAxdTJzZjRZSExQWm5rSGxQ
-            YS9IYk1zMEFmUGtzckN2N0t5SnE5a1hSOG1FCnNPUkgyVlNXdlZBQlNqVkF3Qm56
-            L0xoSVVtUjdpenp4RlF5ZERpWkRybzQKLS0tIDRQU2Q3SUQwTXltMTNTTDFPVGdX
-            eWRxUUpKdGJybHVnZG1TamtlWUtLZE0K0YlJVZbj/18ARi5+KsoEZZV4TiWlOGRh
-            uCwFK2znj1m8Q9ErCFSXLc1MVtVfhcXx8JgNZhtoz7V9l8p9dyKPhg==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-10T16:02:23Z"
-    mac: ENC[AES256_GCM,data:D1E7pktkIqCvTyY4uIEvI/W+TUMGeKKOAhXDkXoBUBCIorWsOl05l4iZE03bUBL+YERwD2KwOgP3gEdC4lDrXqD6uF22u4DvywXlkPiMoIMWFq6UN6M4XNqUKKTq+JlojTdwItZC4O+lIBEbz5iteoj3IN+qsLbVen0qCy3vWXE=,iv:cbAZQufjBsn7LIrMjHSMDfdwB2UXG5lzx9ZmnncRb1o=,tag:zRcKKv2lLfcPxia+Nfr3FA==,type:str]
-    pgp:
-        - created_at: "2023-02-08T19:24:20Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdACIaRZaDeWUhEc3JZV3/IDGRn8EVhCdZwZdQnONhmUzAw
-            glSkslUmetrcdwAbucn5s+SXC2PBt3gIz7OV7EahbBPNf56NBi5b0O+HCKNc8LRj
-            0l4B75cK4zS8g82hx7gazdnG33S7L1d4m7G7FE5MOZ+UhOeeM2CF7prmXNUQ87iL
-            0CWCTpOlu1bLU8EktGQh1hfoIzTxnIJHcC4JZM8EfMH5b1dJDSC3HGbo2Qw9p6R8
-            =2zwW
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(hosts|host|ZU_DEFAULT_USERNAME|ZU_DEFAULT_PASSWORD|ZU_CONTROLLER_ENDPOINT|nameservers|secretName|commonName|dnsNames|externalIPs|ZT_ALLOW_MANAGEMENT_FROM)$
-    version: 3.7.3
+  values:
+    controller:
+      type: statefulset
+      strategy: RollingUpdate
+    fullNameOverride: zerotier-ui
+    image:
+      repository: docker.io/dec0dos/zero-ui
+      tag: 1.5.1
+    env:
+      ZU_CONTROLLER_ENDPOINT: "${CONFIG_ZEROTIER_ENDPOINT}"
+      ZU_SECURE_HEADERS: "true"
+      ZU_DEFAULT_USERNAME: "${SECRET_ZEROTIER_UI_USERNAME}"
+      ZU_DEFAULT_PASSWORD: "${SECRET_ZEROTIER_UI_PASSWORD}"
+    nodeSelector:
+      node-restriction.kubernetes.io/nodeType: main
+    # dnsPolicy: None
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    service:
+      main:
+        ports:
+          http:
+            port: 4000
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - host: "${APP_DNS_ZEROTIER}"
+            paths:
+            - path: /
+              pathType: Prefix
+        tls:
+          - hosts:
+            - "${APP_DNS_ZEROTIER}"
+            secretName: vpn
+    persistence:
+      zerotier-one:
+        enabled: true
+        type: pvc
+        mountPath: /var/lib/zerotier-one
+        retain: true
+        existingClaim: zerotier-one
+      zerotier-ui-data:
+        enabled: true
+        type: pvc
+        mountPath: /app/backend/data
+        readOnly: false
+        accessMode: ReadWriteOnce
+        storageClass: block
+        size: 1Gi
+        retain: true

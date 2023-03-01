@@ -22,6 +22,8 @@ data:
     APP_DNS_INGRESS_WILDCARD: ENC[AES256_GCM,data:7OG0ww6rUzU=,iv:5ig0dQIfSVxbQS7nuqQygRcBKk8UmBFxX0unVT9bdzE=,tag:mCOMUNFEZs5IFvVrRNpFiQ==,type:str]
     APP_IP_NGINX: ENC[AES256_GCM,data:9Kg5zjk+1XfUHg==,iv:dbO0hMMho8J3t0mz6Eb5uMDB3QUCjG5pXPdeuQUFbNE=,tag:ICGE5EVo27W0rUB+Jekf2Q==,type:str]
     APP_IP_K8S_GATEWAY: ENC[AES256_GCM,data:oakciyUzwLlGJsc=,iv:leuHfW59gWSDaEpaOEMGbSpGFtbzAnoRp4spLxlTEq0=,tag:vltbWvNKa4QvEgXXo58d/A==,type:str]
+    APP_IP_ZEROTIER: ENC[AES256_GCM,data:GjIY+6p4+6milRg=,iv:agX8rov+AtECRVeOu3wmoQRVWMNutOc3a69fzWY6eoA=,tag:NS0yiFfBTWt7/P9an/3OQw==,type:str]
+    APP_DNS_ZEROTIER: ENC[AES256_GCM,data:On0V31SI96BRUOjQ,iv:H50ISSmHflDqOqURbwBrcWRkvOQGlVI3mnSXfY8pZ28=,tag:/VlnnoGna2H3L0LGMWF0dw==,type:str]
     APP_UID_MINECRAFT: ENC[AES256_GCM,data:ArIA644=,iv:Q3SqB3O2nrPrOUcwhhbdXiegsty/TlHIllH/wRicYo8=,tag:yTGH0JEXPOCfqB5iU1azCA==,type:str]
     APP_DNS_MINECRAFT: ENC[AES256_GCM,data:XYM4FJAjpDBg,iv:bmnvwvaKOKfY2+S7O0PyV8JOtOH9m94eUIQa2M97RfY=,tag:tvIllwZ72w4GbEqZJjZX7A==,type:str]
     APP_IP_MINECRAFT: ENC[AES256_GCM,data:tU18Ee5Vi98mNRw=,iv:MSNHyroetvWu1wPdPE2+JtxDegZZj25QfcQVq8hcywE=,tag:wxhrsqA5lCPlRwjFgrtPHg==,type:str]
@@ -40,6 +42,8 @@ data:
     CONFIG_SANDSTORM_MUTATORS: ENC[AES256_GCM,data:HumP4HOeZ06JaFBHCl9PHza5orjTVWfmLBq3kSdW+ygD+Avf6dDM+BVm7GkoqRIPtWEJMyMcOOUyF1bzbzrNca/PkMsNsP6/YspRd+QsH+w6JxsGSMqxEpKzN4wbBuIRH7PYbp7PncBOmoOMAOaYW3BEnsdBcV4II7V0+sAKPNQ4zsi0y6LmLaCFtjAOQhi6MMSPfcl9JTD6UoLizD8=,iv:BwbTdDXi6nVqtF7TrSoDLxJKz3Xv6gKZFiU2D2bRgkY=,tag:atIZxrt/BJdijPf2fMDEvw==,type:str]
     CONFIG_SANDSTORM_INIT_MAP: ENC[AES256_GCM,data:uaM2kX5hlN2BoQ==,iv:U2jmxP35cy/eWT1JTdfr6Z3b4NAzIHG55Kb4emoAin0=,tag:rNCaa5zwKHesrto092oUcg==,type:str]
     CONFIG_SANDSTORM_INIT_SCENARIO: ENC[AES256_GCM,data:OJVCFbvqWXuYUPvdCiwRngUzfw==,iv:1NkA4VaF/xUdudDD2W5dHEDw55dkzwo2sof5krinJz0=,tag:rmD5eZpnHpOcSJXel3AQbg==,type:str]
+    CONFIG_ZEROTIER_ENDPOINT: ENC[AES256_GCM,data:We/k3H6tvdmYoZ+i27Lll3bLRhXquz3fvztDI9T4tPjRc4uhG6fkpoa04hEAJffZc7yWNFUzUycPAp0=,iv:B6QCm/4bR68QEudl5o9kwJ6OtQvn1RrWeS6/W+Iaf/Q=,tag:S5xCE5e97gsBId7tpQA/mQ==,type:str]
+    CLUSTER_NAME: ENC[AES256_GCM,data:UTNoF7TkZ/Le,iv:mkA1AMzFXq0XEbprrqFCVWEyU37m/2y0P2SDzjDyTmw=,tag:bmh3LiqDrLEYuCzH1TnJzw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -55,8 +59,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-27T19:05:44Z"
-    mac: ENC[AES256_GCM,data:EjwdMQr5oeoQl159Djtc896Mywd0CJ8m2xL/IrZAtRJtlBHeYJG+/7Iolo12vav079loAXWf0s0HOOcjjkB1VARgbPq8qjA8fokEPNyUHBNI5QU2CTV8t07yYWIXe2C8y117vTUDRj2LRsH4ACS88MerFaTEJQOxD0jHQQclIHc=,iv:gDBWUs84iNNP/aTW1U7bcHu1sNUm+78Eliis/xN/Czo=,tag:IzPdGWKUwo5izx1p1LPYlw==,type:str]
+    lastmodified: "2023-03-01T15:51:06Z"
+    mac: ENC[AES256_GCM,data:3FTlFbBF/lUxKYqd4jepWC3elJfvKoLkmcXPAa+Myym+IYJ1v0GD32ysAS/t4J2x+Dk7MKgn1JL2nFq3qbVl4Vgg1qpfudw8GGASvEKFotdBtKG1JEsfsE2ihPqAXlyfEvSuQDEFrc99vGnWOvW2Yr6t+2/BMYIwYCTFEGGXKa4=,iv:ZUEf3VnlEB8VWggBjfci2tjU3rDDApwLv9HxWI5WkHA=,tag:L97F+DujKhxAcb9Mofn6Zg==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |
