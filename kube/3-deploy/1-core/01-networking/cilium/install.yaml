@@ -1,6 +1,9 @@
 ---
 apiVersion: cilium.io/v2alpha1
-kind: CiliumBGPPeeringPolicy # MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
+kind: CiliumBGPPeeringPolicy
+# MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
+# "CiliumBGPPeeringPolicy" Custom Resource will replace the old MetalLB BGP's "bgp-config" ConfigMap
+# "CiliumBGPPeeringPolicy" is used with `bgpControlPlane.enabled: true` which uses GoBGP, NOT the old `bgp.enabled: true` which uses MetalLB
 metadata:
   name: bgp-loadbalancer-ip-main
 spec:
@@ -10,9 +13,9 @@ spec:
   virtualRouters:
     - localASN: ${ASN_ROUTER} # ASNs are processed in uint32
       exportPodCIDR: true
-      serviceSelector:
+      serviceSelector: # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
         matchExpressions:
-          - {key: allservices, operator: NotIn, values: ['will-be-announced']}
+          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
       neighbors:
         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: ${ASN_ROUTER}
@@ -20,7 +23,7 @@ spec:
       exportPodCIDR: false
       serviceSelector:
         matchExpressions:
-          - {key: allservices, operator: NotIn, values: ['will-be-announced']}
+          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
       neighbors:
         - peerAddress: "${IP_EC2_NON_K8S}/32"
           peerASN: ${ASN_EC2_INGRESS}
@@ -28,7 +31,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: bgp-config
+  name: bgp-config # this "bgp-config" ConfigMap is used for the old `bgp.enabled: true` which is the old MetalLB BGP, this will be deprecated in future releases
   namespace: kube-system
 data:
   config.yaml: |
