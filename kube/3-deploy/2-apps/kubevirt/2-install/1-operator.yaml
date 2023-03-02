@@ -22,7 +22,7 @@ kind: Kustomization
 metadata:
   name: kubevirt-operator
   namespace: flux-system
-  labels:
+  labels: # for my repo's Fluxtomization patching, can be ignored for those passing by
     kustomization.flux.home.arpa/name: "kubevirt"
     kustomization.flux.home.arpa/default: "false"
     kustomization.flux.home.arpa/helmpatches: "false"
