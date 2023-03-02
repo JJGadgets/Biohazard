@@ -1,0 +1,38 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: kubevirt-operator
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: ssh://git@github.com/JJGadgets/kubevirt-flux
+  ref:
+    branch: v0.59.0
+  secretRef:
+    name: biohazard-flux-github-ssh-key
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include operator
+    !/kubevirt-operator.yaml
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: kubevirt-operator
+  namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "kubevirt"
+    kustomization.flux.home.arpa/default: "false"
+    kustomization.flux.home.arpa/helmpatches: "false"
+    substitution.flux.home.arpa/disabled: "true"
+    prune.flux.home.arpa/disabled: "true"
+spec:
+  interval: 5m
+  prune: false
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: kubevirt-operator
+  dependsOn: []
