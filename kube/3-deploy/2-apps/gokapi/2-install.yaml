@@ -33,6 +33,7 @@ spec:
         tls:
           - hosts:
             - "${APP_DNS_GOKAPI}"
+            secretName: long-domain-tls
     persistence:
       config:
         enabled: true
