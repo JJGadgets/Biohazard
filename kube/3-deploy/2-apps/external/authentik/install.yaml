@@ -12,7 +12,7 @@ spec:
   externalName: ${DNS_OLD_DOCKER}
   ports:
     - name: http
-      port: &port 7443
+      port: &port 443
       protocol: TCP
       targetPort: *port
 ---
@@ -23,6 +23,12 @@ metadata:
   namespace: ingress
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # below is needed to reverse proxy to a HTTPS backend with SNI validation
+    # respective annotations don't work till this issue is fixed:
+    # https://github.com/kubernetes/ingress-nginx/issues/6728
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_ssl_name ${APP_DNS_AUTH};
+      proxy_ssl_server_name on;
   labels:
     app.kubernetes.io/name: *app
     app.kubernetes.io/instance: *app
