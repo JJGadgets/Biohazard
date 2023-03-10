@@ -1,0 +1,67 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+  labels:
+    helm.flux.home.arpa/app-template: "true"
+spec:
+  values:
+    controller:
+      type: statefulset
+    image:
+      repository: ghcr.io/onedr0p/jellyfin
+      tag: 10.8.9@sha256:01a6497a1290b73f63251aebe6d01327c15b3413c3e1013c2a396ffe116ced4d
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        ports:
+          http:
+            port: 8096
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_JELLYFIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: 568
+      runAsGroup: 568
+      fsGroup: 568
+      fsGroupChangePolicy: OnRootMismatch
+      supplementalGroups: [6969]
+    volumeClaimTemplates:
+      - name: config
+        mountPath: /config
+        accessMode: ReadWriteOnce
+        size: 50Gi
+        storageClass: block
+    persistence:
+      media:
+        enabled: true
+        type: nfs
+        server: "${DNS_NAS}"
+        path: "${PATH_NAS_MEDIA}"
+        mountPath: /media
+        readOnly: true
+      transcode:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+    nodeSelector:
+      nodes.home.arpa/type: "stable" # one of my nodes keeps freezing till requiring manual reboot due to bad RAM
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1000Mi
+      limits:
+        memory: 6000Mi
