@@ -1,0 +1,103 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: dnsdist
+  namespace: dns
+  labels:
+    helm.flux.home.arpa/app-template: "true"
+spec:
+  values:
+    controller:
+      type: daemonset
+    image:
+      repository: docker.io/powerdns/dnsdist-17
+      tag: 1.7.3
+      pullPolicy: IfNotPresent
+    # probes:
+    #   liveness:
+    #     enabled: false
+    #   readiness:
+    #     enabled: false
+    #   startup:
+    #     enabled: false
+    dnsPolicy: ClusterFirstWithHostNet
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    service:
+      main:
+        enabled: true
+        primary: true
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        labels:
+          exposedSvc: dns
+        annotations:
+          "io.cilium/lb-ipam-ips": "${IP_LB_DNS}"
+        ports:
+          http:
+            enabled: false
+            primary: false
+          dns:
+            enabled: true
+            primary: true
+            protocol: UDP
+            port: 53
+            targetPort: 6953
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: dnsdist-config
+        mountPath: /etc/dnsdist
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          dnsdist.conf: |
+            -- udp/tcp dns listening
+            setLocal("0.0.0.0:6953", {})
+
+            -- OPNsense Unbound
+            newServer({
+              address = "${IP_ROUTER_LAN}:53",
+              pool = "opnsense"
+            })
+
+            -- AdGuard Home (for transition)
+            newServer({
+              address = "${IP_HOME_DNS}:53",
+              pool = "agh"
+            })
+
+            -- In-cluster k8s-gateway
+            newServer({
+              address = "${APP_IP_K8S_GATEWAY}:53",
+              pool = "k8sgw"
+            })
+
+            -- Enable caching
+            pc = newPacketCache(10000, {
+              maxTTL = 86400,
+              minTTL = 0,
+              temporaryFailureTTL = 60,
+              staleTTL = 60,
+              dontAge = false
+            })
+            getPool(""):setCache(pc)
+
+            -- Routing rules
+            addAction('${DNS_MAIN}', PoolAction('opnsense'))
+            addAction('${DNS_SHORT}', PoolAction('k8sgw'))
+            addAction('10.0.0.0/8', PoolAction('agh'))
+            addAction('172.16.0.0/12', PoolAction('agh'))
+            addAction('192.168.0.0/16', PoolAction('agh'))
+            addAction('100.64.0.0/10', PoolAction('agh'))
+    resources:
+      requests:
+        memory: 100Mi
+      limits:
+        memory: 300Mi

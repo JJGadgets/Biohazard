@@ -1,0 +1,6 @@
+This folder will deploy my home DNS infrastructure. The order of DNS servers is as follows:
+
+1. *dnsdist* will be the exposed user-facing DNS server. This routes DNS traffic to specific DNS servers based on certain rules.
+2. *CoreDNS* will be the authoritative DNS server for my domains _only within my home_. This will do split DNS in my internal networks for hosts needing hostnames that can be queried via DNS.
+3. *Blocky* will block domains matching blocklists, and forward any unblocked and non-authoritative hostnames to Unbound.
+4. *Unbound* will recursively resolve public hostnames from well-known root DNS servers located on the Internet.

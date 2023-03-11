@@ -251,6 +251,15 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
+  name: biohazard-2-apps-dns-dnsdist
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/dns/dnsdist
+  dependsOn: []
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
   name: biohazard-2-apps-whoogle
   namespace: flux-system
 spec:

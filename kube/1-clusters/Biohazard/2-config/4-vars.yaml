@@ -8,9 +8,13 @@ data:
     ASN_CLUSTER: ENC[AES256_GCM,data:v1ltZfY=,iv:Ip1sIVFLw4j6qbqKYf0jANRglSlAnKZhqNdRunZdR24=,tag:fOsYxQObj0Wv664IoRtm9A==,type:str]
     ASN_ROUTER: ENC[AES256_GCM,data:/7gZcwY=,iv:ldZNIACK5B4ZvMWYCzHN9zUlArkOIySHSTUrjlrEF1s=,tag:98OXCN+tI2BIt8CEo99QVA==,type:str]
     ASN_EC2_INGRESS: ENC[AES256_GCM,data:TcMj7s8=,iv:aQ0lCtQWklJmGstOKeptKAmqHI1W9LrrK6dT2u/4ejs=,tag:WoQXlgdZjc7yMlirgVft8A==,type:str]
+    IP_ROUTER_LAN: ENC[AES256_GCM,data:xanezieQQCE=,iv:sz1ZvwmS3zfHUhgvLZjeyk9InAJ4nPovhRaMq3tE/EE=,tag:oELn/j4ZKlKg4v6SKZkNsg==,type:str]
+    IP_ROUTER_LAN_CIDR: ENC[AES256_GCM,data:533OOX4NiEO2QK0=,iv:Wcb1Wj4OO7ZnyEC7jcNXadQxQBm9V8DQkaJX9XoMVjA=,tag:uIB6K4G9hUGFNLQT55GKIg==,type:str]
     IP_ROUTER_VLAN_K8S: ENC[AES256_GCM,data:ngwfmrXjohzP,iv:U5DSCUUCZbIhwVAgv2gW98t8d8QwDSOM2YybNQWpgAw=,tag:vPTdK0CHET13l3x2eWb7gA==,type:str]
+    IP_ROUTER_VLAN_K8S_CIDR: ENC[AES256_GCM,data:a6CelKuP9lYOjXHm,iv:hZxSfx0Nj2aCPxj9GeHpaiuKDa85pqxzx47v4zxOPHM=,tag:8xpQHvtXLDQ7C5KcjqMG0Q==,type:str]
     IP_CLUSTER_VIP: ENC[AES256_GCM,data:GxYFwPSJ60yN,iv:KfSez768cxxjiUi7SFUEBiecfpQ0If9dbvPJlK/SHdM=,tag:8wb4wfnh4+Pnu7GYIlSs4Q==,type:str]
     IP_LB_CIDR: ENC[AES256_GCM,data:/qxOk5Vn8Q1/isE+iw==,iv:BhOMIotgJEWcLJOfP/unKrjX72ZEY1RfBtt5P14hQko=,tag:BSCy1PquhSew/ofhyGOLFg==,type:str]
+    IP_LB_DNS: ENC[AES256_GCM,data:EjqSz37GAhmunLI=,iv:IYQ46iJMT3A5JrfKM/+AmV9JIcYJ0uMXxWUKyinV5JQ=,tag:hWkC7U5zKvcxBp7oThYguQ==,type:str]
     IP_HOME_DNS: ENC[AES256_GCM,data:vgSoWr2cIRU=,iv:xR+QBTE5PGri3u3PmDFEt4Y9CcDLou7TPtDbHjStOoU=,tag:NpepI2uYYpMXnf56+nLuow==,type:str]
     IP_EC2_PRIVATE: ENC[AES256_GCM,data:h1fURs4vImzeM7V7,iv:vBouKgNUOU+5RwzIu5Nu4XZlTnYPc0NCuFxZAL7A+ZY=,tag:th3ZSftw2jhvgydpdJ0Aug==,type:str]
     IP_EC2_NON_K8S: ENC[AES256_GCM,data:l5TXKSqsZrgU998=,iv:mu6amtzWpStZkF3VASVF15It+x3P3SS1p6K2Vz7tcA8=,tag:l3ICXl6t/nTKncGCjjeVSA==,type:str]
@@ -66,8 +70,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-03-10T23:41:51Z"
-    mac: ENC[AES256_GCM,data:mOmTvn0AmdjU4lFfvGOi6heGM2Dt8qemrsl5DHecXPq5ePSTSIZd3xaDaLPJ4gWQNiA5AtxxRIf9o0LzBqfS/ftjvufqRQErBjniY+au79+jYM5HOHK56MxsqyZDvd0Sa6nhO/wODOTni/h0zphV16jake/utSKmvzhFdHox0aQ=,iv:ZeU91ZZqljau9axwq6zuQ0eBIo69R0J6mXuAhbGXlYc=,tag:dn8U1uzSPxApqgOYtNrSeg==,type:str]
+    lastmodified: "2023-03-11T22:26:20Z"
+    mac: ENC[AES256_GCM,data:glPuKX1MhPE/813oStAuLXEB98t8lXyvfZcbacJ8YRPla6meWSAEHI3ySA4LOsAZr5upZrsLvg1NOYUbcliC/u2TsaE36TbAB9h8//AmIZbXNvnDyo06LxacDAovf537VefB+K0ijnPMgvnQC9c3wuQF55pdZUpVIQVw3DGaA1A=,iv:tmocwPjJTiRC44P+2l7+2hO+5FMvs/wqO+0uoMHdP5o=,tag:Ff5ysgt5o07F8Cxr1zN0ZQ==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |
