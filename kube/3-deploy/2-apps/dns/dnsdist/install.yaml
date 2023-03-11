@@ -33,7 +33,7 @@ spec:
         type: LoadBalancer
         externalTrafficPolicy: Local
         labels:
-          exposedSvc: dns
+          exposeSvc: dns
         annotations:
           "io.cilium/lb-ipam-ips": "${IP_LB_DNS}"
         ports:
