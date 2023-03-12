@@ -1,0 +1,36 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+    parameters:
+      compression_mode: aggressive
+      compression_algorithm: zstd
+  dataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+    parameters:
+      compression_mode: aggressive
+      compression_algorithm: zstd
+  preservePoolsOnDelete: true
+  gateway:
+    sslCertificateRef: radosgw-tls
+    securePort: 443
+    instances: 2
+    service:
+      annotations:
+        "io.cilium/lb-ipam-ips": "${APP_IP_RADOSGW}"
+    resources:
+      limits:
+        memory: "2048Mi"
+      requests:
+        cpu: "100m"
+        memory: "1024Mi"
+    priorityClassName: system-cluster-critical
