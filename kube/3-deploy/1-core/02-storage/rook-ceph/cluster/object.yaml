@@ -27,7 +27,6 @@ spec:
     service:
       annotations:
         "io.cilium/lb-ipam-ips": "${APP_IP_RADOSGW}"
-      type: LoadBalancer
     resources:
       limits:
         memory: "2048Mi"
