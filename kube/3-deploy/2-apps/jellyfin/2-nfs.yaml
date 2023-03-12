@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nas-media
+spec:
+  storageClassName: nas-media
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_MEDIA}"
+  mountOptions:
+    - nfsvers=4.2
+    - tcp
+    - intr
+    - soft
+    - noatime
+    - nodiratime
+    - nocto
+    - nconnect=8
+    - rsize=131072
+    - wsize=131072
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-media
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nas-movies
+  resources:
+    requests:
+      storage: 1Mi

@@ -48,9 +48,7 @@ spec:
     persistence:
       media:
         enabled: true
-        type: nfs
-        server: "${DNS_NAS}"
-        path: "${PATH_NAS_MEDIA}"
+        existingClaim: nfs-media
         mountPath: /media
         readOnly: true
       transcode:

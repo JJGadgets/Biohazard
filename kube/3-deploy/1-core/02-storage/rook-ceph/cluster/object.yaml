@@ -2,7 +2,7 @@
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: ${CLUSTER_NAME}
+  name: ${CLUSTER_NAME_LOWER}
   namespace: rook-ceph
 spec:
   metadataPool:

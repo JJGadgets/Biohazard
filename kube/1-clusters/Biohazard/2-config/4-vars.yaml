@@ -20,6 +20,7 @@ data:
     IP_EC2_PRIVATE: ENC[AES256_GCM,data:h1fURs4vImzeM7V7,iv:vBouKgNUOU+5RwzIu5Nu4XZlTnYPc0NCuFxZAL7A+ZY=,tag:th3ZSftw2jhvgydpdJ0Aug==,type:str]
     IP_EC2_NON_K8S: ENC[AES256_GCM,data:l5TXKSqsZrgU998=,iv:mu6amtzWpStZkF3VASVF15It+x3P3SS1p6K2Vz7tcA8=,tag:l3ICXl6t/nTKncGCjjeVSA==,type:str]
     IP_OLD_DOCKER: ENC[AES256_GCM,data:+q2fSaAdgRIr,iv:9N2okAfqW093u4s1/8UbXtuaJr7QVhl2O0ulorZtfE0=,tag:a/5TMV+YPhpJ4GWrnL3uBw==,type:str]
+    IP_TRUENAS: ENC[AES256_GCM,data:HYQ0BxOcG2JY,iv:IRSY4sX0rqK7clCm1IyqI2rJc/ZSTNYnATsJ268fVfE=,tag:EIBHZURvYt+NOl5R9I0cAg==,type:str]
     DNS_CLUSTER: ENC[AES256_GCM,data:dVS38myraH4=,iv:WScCvhcW9C/qckIlbDDWR8tzIYZdG58lbYmThdPQpro=,tag:3RDQ97sbEganiHRf42A11g==,type:str]
     DNS_SHORT: ENC[AES256_GCM,data:16FRvQx8,iv:5xVBGMf/Bp3XqHDwl9ZBb14nSVkTg3eWq5FU2cYoRyY=,tag:uzCrxTBEv/Iy+Ht0gK0kjQ==,type:str]
     DNS_MAIN: ENC[AES256_GCM,data:V5QOelS0L9R9drkh/Pk=,iv:GTTFkC73534oXM3QR8J3kHrZb163Gel7eu3e2P1X2Yo=,tag:DUD006mJM/uEjkiRcn/HlA==,type:str]
@@ -27,6 +28,7 @@ data:
     DNS_NAS: ENC[AES256_GCM,data:grpo8AdSb+VFPQSx2Z/KE1YSIrs+ogdpGA==,iv:ZJqmNumTpuq0A3JeS8jVvJNl+M9CdvQnHj+mooh00oo=,tag:CLHf7w+fUtLQ5cpnof2cuQ==,type:str]
     DNS_OLD_DOCKER: ENC[AES256_GCM,data:uDLk+qfZlM9FkJ7uWP1ZYWD0wdIG,iv:iHJojVMWN6cq2XdvQLMsODrVeLhhn/Cqt5ZGr/ONy2A=,tag:3WuGLTQirXUjfiY1rIYcgA==,type:str]
     PATH_NAS_MEDIA: ENC[AES256_GCM,data:fzeT0pUx/geFxfnY67ZwUgAOF1r13bjSxFCCQz+1,iv:nYFnXgfJWl8ZPpxleet1Yq19t+6ncVkrmGyhGSchSxE=,tag:uj9grinnmKB1xKC2LwrPkA==,type:str]
+    APP_IP_RADOSGW: ENC[AES256_GCM,data:79oO927eM1X8MA==,iv:cbhtTynWbMIKM8yRGywO9OJWxyWabZzW8VgJQxpSZd8=,tag:OU5+0QEKqjvAwATFdIBwgg==,type:str]
     APP_DNS_INGRESS_WILDCARD: ENC[AES256_GCM,data:7OG0ww6rUzU=,iv:5ig0dQIfSVxbQS7nuqQygRcBKk8UmBFxX0unVT9bdzE=,tag:mCOMUNFEZs5IFvVrRNpFiQ==,type:str]
     APP_IP_NGINX: ENC[AES256_GCM,data:9Kg5zjk+1XfUHg==,iv:dbO0hMMho8J3t0mz6Eb5uMDB3QUCjG5pXPdeuQUFbNE=,tag:ICGE5EVo27W0rUB+Jekf2Q==,type:str]
     APP_IP_K8S_GATEWAY: ENC[AES256_GCM,data:oakciyUzwLlGJsc=,iv:leuHfW59gWSDaEpaOEMGbSpGFtbzAnoRp4spLxlTEq0=,tag:vltbWvNKa4QvEgXXo58d/A==,type:str]
@@ -56,6 +58,7 @@ data:
     CONFIG_SANDSTORM_INIT_SCENARIO: ENC[AES256_GCM,data:OJVCFbvqWXuYUPvdCiwRngUzfw==,iv:1NkA4VaF/xUdudDD2W5dHEDw55dkzwo2sof5krinJz0=,tag:rmD5eZpnHpOcSJXel3AQbg==,type:str]
     CONFIG_ZEROTIER_ENDPOINT: ENC[AES256_GCM,data:We/k3H6tvdmYoZ+i27Lll3bLRhXquz3fvztDI9T4tPjRc4uhG6fkpoa04hEAJffZc7yWNFUzUycPAp0=,iv:B6QCm/4bR68QEudl5o9kwJ6OtQvn1RrWeS6/W+Iaf/Q=,tag:S5xCE5e97gsBId7tpQA/mQ==,type:str]
     CLUSTER_NAME: ENC[AES256_GCM,data:UTNoF7TkZ/Le,iv:mkA1AMzFXq0XEbprrqFCVWEyU37m/2y0P2SDzjDyTmw=,tag:bmh3LiqDrLEYuCzH1TnJzw==,type:str]
+    CLUSTER_NAME_LOWER: ENC[AES256_GCM,data:dxucmLtxUMJg,iv:tco3xaQ03sBsr845xNrJvrqBa06DN+UwCZZrQ7GHkhA=,tag:Q0EtxM/GSYPGGPHCL7loSw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -71,8 +74,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-03-11T23:02:14Z"
-    mac: ENC[AES256_GCM,data:fi4nay1FC6PyeIk7T2ioJAULdbmqO/VKJYZcHSdY+rwP09m3bbe3fEP37nZJB6HM8JM586lql0Q64WpvIxV0BbJFYsqxzHo32JXwRRwBp450K0U1gj1OcQ3JpBJ8JuX9EdgzQ5ZvxnfPx4+b+Ycql68ALEPEhdQaT2cIY56NURg=,iv:avmB6lGWFl4hb2r9JwHMQTH51FV0MafZANpcjd68XTs=,tag:oflOjRtRH7HxC5aRnKUGOg==,type:str]
+    lastmodified: "2023-03-12T21:25:41Z"
+    mac: ENC[AES256_GCM,data:Ktg9ET9peepOEV0KXCg7cefVm87jE5tWIKtavJ6RUJRgAAMsynq2MV5VLSVwtFEmBKpH2oyCPSRGWeIgpfZZAysGl+QLHc8lWLf+GBjeoBXDhGUc0n8n83LczJkklPiI/1t3//qxO+zldGmAYYvQW86TM1o/I6qv7x4psbhPVNo=,iv:eOgIOoK1eQkWhD4GXxGH4Xe6QdeNCIRRVf+qIa+vYcY=,tag:KMxkHCuO/R/BUag4STXxuA==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |
