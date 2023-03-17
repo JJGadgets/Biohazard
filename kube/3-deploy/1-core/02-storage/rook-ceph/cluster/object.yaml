@@ -5,6 +5,8 @@ metadata:
   name: ${CLUSTER_NAME_LOWER}
   namespace: rook-ceph
 spec:
+  zone:
+    name: "${CLUSTER_NAME_LOWER}"
   metadataPool:
     failureDomain: host
     replicated:
