@@ -1,12 +1,25 @@
 ---
 apiVersion: ceph.rook.io/v1
-kind: CephObjectStore
+kind: CephObjectRealm
+metadata:
+  name: ${CLUSTER_NAME_LOWER}
+  namespace: rook-ceph
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZoneGroup
 metadata:
   name: ${CLUSTER_NAME_LOWER}
   namespace: rook-ceph
 spec:
-  zone:
-    name: "${CLUSTER_NAME_LOWER}"
+  realm: "${CLUSTER_NAME_LOWER}"
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZone
+metadata:
+  name: ${CLUSTER_NAME_LOWER}
+  namespace: rook-ceph
+spec:
+  zoneGroup: "${CLUSTER_NAME_LOWER}"
   metadataPool:
     failureDomain: host
     replicated:
@@ -21,6 +34,15 @@ spec:
     parameters:
       compression_mode: aggressive
       compression_algorithm: zstd
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ${CLUSTER_NAME_LOWER}
+  namespace: rook-ceph
+spec:
+  zone:
+    name: "${CLUSTER_NAME_LOWER}"
   preservePoolsOnDelete: true
   gateway:
     sslCertificateRef: radosgw-tls
