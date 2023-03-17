@@ -58,3 +58,33 @@ spec:
         cpu: "100m"
         memory: "1024Mi"
     priorityClassName: system-cluster-critical
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    io.cilium/lb-ipam-ips: 10.12.34.3
+  labels:
+    app: rook-ceph-rgw
+    ceph_daemon_id: biohazard
+    rgw: biohazard
+    rook_cluster: rook-ceph
+    rook_object_store: biohazard
+  name: rook-ceph-rgw-biohazard
+  namespace: rook-ceph
+spec:
+  type: LoadBalancer
+  externalIPs:
+    - 10.12.34.3
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: rook-ceph-rgw
+    ceph_daemon_id: biohazard
+    rgw: biohazard
+    rook_cluster: rook-ceph
+    rook_object_store: biohazard
+  externalTrafficPolicy: Local
