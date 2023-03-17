@@ -45,8 +45,9 @@ spec:
     name: "${CLUSTER_NAME_LOWER}"
   preservePoolsOnDelete: true
   gateway:
-    sslCertificateRef: radosgw-tls
-    securePort: 443
+    # sslCertificateRef: radosgw-tls
+    port: 6953
+    # securePort: 443
     instances: 2
     service:
       annotations:
@@ -59,32 +60,30 @@ spec:
         memory: "1024Mi"
     priorityClassName: system-cluster-critical
 ---
-apiVersion: v1
-kind: Service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  annotations:
-    io.cilium/lb-ipam-ips: 10.12.34.3
-  labels:
-    app: rook-ceph-rgw
-    ceph_daemon_id: biohazard
-    rgw: biohazard
-    rook_cluster: rook-ceph
-    rook_object_store: biohazard
-  name: rook-ceph-rgw-biohazard
+  name: &app rgw
   namespace: rook-ceph
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/server-alias: '*.${APP_DNS_RGW_S3}'
+  labels:
+    app.kubernetes.io/name: *app
+    app.kubernetes.io/instance: *app
 spec:
-  type: LoadBalancer
-  externalIPs:
-    - 10.12.34.3
-  ports:
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 443
-  selector:
-    app: rook-ceph-rgw
-    ceph_daemon_id: biohazard
-    rgw: biohazard
-    rook_cluster: rook-ceph
-    rook_object_store: biohazard
-  externalTrafficPolicy: Local
+  ingressClassName: nginx
+  rules:
+    - host: &host ${APP_DNS_RGW_S3}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rook-ceph-rgw-biohazard
+                port:
+                  number: 6953
+  tls:
+    - hosts:
+        - *host
