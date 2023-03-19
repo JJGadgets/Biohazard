@@ -42,12 +42,12 @@ spec:
     persistence:
       media:
         enabled: true
-        existingClaim: nfs-media
+        existingClaim: kavita-nas-media
         mountPath: /media
         readOnly: true
       backups:
         enabled: true
-        existingClaim: nfs-backups
+        existingClaim: kavita-nas-backups
         mountPath: /kavita/config/backups
     resources:
       requests:

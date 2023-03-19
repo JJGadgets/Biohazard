@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nas-media
+  name: jellyfin-nas-media
 spec:
-  storageClassName: nas-media
+  storageClassName: jellyfin-nas-media
   capacity:
     storage: 1Mi
   accessModes:
@@ -28,12 +28,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nas-media
+  name: jellyfin-nas-media
   namespace: jellyfin
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nas-movies
+  storageClassName: jellyfin-nas-media
   resources:
     requests:
       storage: 1Mi

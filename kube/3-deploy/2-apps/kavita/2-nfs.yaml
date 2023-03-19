@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nas-media
+  name: kavita-nas-media
 spec:
-  storageClassName: nas-media
+  storageClassName: kavita-nas-media
   capacity:
     storage: 1Mi
   accessModes:
@@ -28,12 +28,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nas-media
+  name: kavita-nas-media
   namespace: kavita
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nas-media
+  storageClassName: kavita-nas-media
   resources:
     requests:
       storage: 1Mi
@@ -41,9 +41,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nas-backups
+  name: kavita-nas-backups
 spec:
-  storageClassName: nas-backups
+  storageClassName: kavita-nas-backups
   capacity:
     storage: 1Mi
   accessModes:
@@ -67,12 +67,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nas-backups
+  name: kavita-nas-backups
   namespace: kavita
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nas-backups
+  storageClassName: kavita-nas-backups
   resources:
     requests:
       storage: 1Mi
