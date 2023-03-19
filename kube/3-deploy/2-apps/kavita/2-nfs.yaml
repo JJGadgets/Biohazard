@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nas-media
+spec:
+  storageClassName: nas-media
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_MEDIA}"
+  mountOptions:
+    - nfsvers=4.2
+    - tcp
+    - intr
+    - soft
+    - noatime
+    - nodiratime
+    - nocto
+    - nconnect=8
+    - rsize=131072
+    - wsize=131072
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-media
+  namespace: kavita
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nas-media
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nas-backups
+spec:
+  storageClassName: nas-backups
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_BACKUPS_K8S}/kavita"
+  mountOptions:
+    - nfsvers=4.2
+    - tcp
+    - intr
+    - hard
+    - noatime
+    - nodiratime
+    - nocto
+    - nconnect=8
+    - rsize=131072
+    - wsize=131072
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-backups
+  namespace: kavita
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nas-backups
+  resources:
+    requests:
+      storage: 1Mi

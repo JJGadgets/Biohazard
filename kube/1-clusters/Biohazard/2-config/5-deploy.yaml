@@ -340,3 +340,15 @@ spec:
     - name: biohazard-1-core-02-storage-rook-ceph
     - name: biohazard-1-core-04-dns-internal
     - name: biohazard-1-core-05-ingress-nginx
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-2-apps-kavita
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/kavita
+  dependsOn:
+    - name: biohazard-1-core-02-storage-rook-ceph
+    - name: biohazard-1-core-04-dns-internal
+    - name: biohazard-1-core-05-ingress-nginx
