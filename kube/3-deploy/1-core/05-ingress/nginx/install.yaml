@@ -82,12 +82,13 @@ metadata:
   app.kubernetes.io/instance: ingress-nginx
   app.kubernetes.io/name: ingress-nginx
   app.kubernetes.io/part-of: ingress-nginx
+  annotations:
+    "io.cilium/lb-ipam-ips": "${APP_IP_NGINX}"
 spec:
   allocateLoadBalancerNodePorts: true
   externalIPs:
     - "${APP_IP_NGINX}"
   externalTrafficPolicy: Local
-  loadBalancerIP: "${APP_IP_NGINX}"
   ports:
     - appProtocol: http
       name: http
