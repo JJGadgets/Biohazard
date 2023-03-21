@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minecraft-restic
+  namespace: minecraft
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_B2_REPO}/minecraft
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_B2_PASSWORD}
+  B2_ACCOUNT_ID: ${SECRET_VOLSYNC_B2_ID}
+  B2_ACCOUNT_KEY: ${SECRET_VOLSYNC_B2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: minecraft-restic
+  namespace: minecraft
+spec:
+  sourcePVC: minecraft-minecraft-datadir
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: minecraft-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: block
+    storageClassName: block
+    moverSecurityContext:
+      runAsUser: ${APP_UID_MINECRAFT}
+      runAsGroup: ${APP_UID_MINECRAFT}
+      fsGroup: ${APP_UID_MINECRAFT}
+    retain:
+      daily: 14
+      within: 7d
