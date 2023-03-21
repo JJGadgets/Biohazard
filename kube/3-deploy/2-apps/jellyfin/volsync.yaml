@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jellyfin-restic
+  namespace: jellyfin
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_B2_REPO}-jellyfin
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_B2_PASSWORD}
+  B2_ACCOUNT_ID: ${SECRET_VOLSYNC_B2_ID}
+  B2_ACCOUNT_KEY: ${SECRET_VOLSYNC_B2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: jellyfin-restic
+  namespace: jellyfin
+spec:
+  sourcePVC: config-jellyfin-0
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: jellyfin-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: block
+    storageClassName: block
+    moverSecurityContext:
+      runAsUser: 568
+      runAsGroup: 568
+      fsGroup: 568
+    retain:
+      daily: 14
+      within: 7d
