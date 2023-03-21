@@ -2,7 +2,7 @@
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
-  name: csi-rbdplugin-snapclass
+  name: block
   namespace: rook-ceph
 driver: rook-ceph.rbd.csi.ceph.com
 parameters:
@@ -14,7 +14,7 @@ deletionPolicy: Delete
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
-  name: csi-cephfsplugin-snapclass
+  name: file
   namespace: rook-ceph
 driver: rook-ceph.cephfs.csi.ceph.com
 parameters:
