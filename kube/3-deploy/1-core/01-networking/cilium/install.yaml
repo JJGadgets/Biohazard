@@ -83,7 +83,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: 1.13.1
+      version: 1.13.0
       sourceRef:
         kind: HelmRepository
         name: cilium-charts
@@ -113,10 +113,10 @@ spec:
 
     cluster:
       name: "${CLUSTER_NAME}"
-      id: "${CLUSTER_ID}"
-    tunnel: disabled
-    autoDirectNodeRoutes: true
-    ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
+      id: 1
+    tunnel: vxlan
+    autoDirectNodeRoutes: false
+    # ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
     localRedirectPolicy: true
     ipam:
       mode: kubernetes
@@ -136,12 +136,13 @@ spec:
         # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
     loadBalancer:
       algorithm: maglev
-      mode: dsr
+      mode: snat
+      # mode: dsr
     nodePort:
       enabled: true
       range: 80,32767
     bandwidthManager:
-      enabled: true
+      enabled: false
     l7Proxy: true
     kubeProxyReplacement: strict
     k8sServiceHost: ${IP_CLUSTER_VIP}
