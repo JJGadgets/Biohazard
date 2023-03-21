@@ -101,8 +101,16 @@ spec:
       remediateLastFailure: true
     cleanupOnFail: true
   values:
-    securityContext:
-      privileged: true # required for Talos
+    securityContext: # required for Talos
+      privileged: true
+      capabilities:
+        ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
+        cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+    cgroup:
+      autoMount:
+        enabled: false
+      hostRoot: "/sys/fs/cgroup"
+
     cluster:
       name: "${CLUSTER_NAME}"
       id: "${CLUSTER_ID}"
@@ -128,7 +136,7 @@ spec:
         # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
     loadBalancer:
       algorithm: maglev
-      mode: hybrid
+      mode: dsr
     nodePort:
       enabled: true
       range: 80,32767
@@ -162,8 +170,6 @@ spec:
           enabled: true
           method: "helm"
           certValidityDuration: 3650
-    containerRuntime:
-      integration: containerd
     rollOutCiliumPods: true
     operator:
       rollOutPods: true
