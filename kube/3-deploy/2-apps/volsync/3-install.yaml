@@ -9,8 +9,11 @@ spec:
     spec:
       chart: volsync
       version: 0.7.0
+      interval: 5m
       sourceRef:
+        kind: HelmRepository
         name: backube
+        namespace: flux-system
   values:
     manageCRDs: true
     metrics:
