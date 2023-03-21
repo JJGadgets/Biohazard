@@ -22,6 +22,15 @@ spec:
   path: ./kube/3-deploy/1-core/01-networking/cilium
   dependsOn: []
 ---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-02-storage-1-external-snapshotter
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/02-storage/1-external-snapshotter
+  dependsOn: []
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -49,6 +58,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/02-storage/rook-ceph/app
   dependsOn:
+    - name: biohazard-1-core-02-storage-1-external-snapshotter
     - name: biohazard-1-core-02-storage-rook-ceph-crds
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -59,6 +69,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/02-storage/rook-ceph/cluster
   dependsOn:
+    - name: biohazard-1-core-02-storage-1-external-snapshotter
     - name: biohazard-1-core-02-storage-rook-ceph-app
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
