@@ -19,10 +19,10 @@ spec:
       tag: 2022.16.0-java17
     serviceAnnotations:
       coredns.io/hostname: "${APP_DNS_MINECRAFT}"
+      "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
     minecraftServer:
       serviceType: LoadBalancer
       externalTrafficPolicy: Local
-      loadBalancerIP: "${APP_IP_MINECRAFT}"
       externalIPs:
         - "${APP_IP_MINECRAFT}"
       eula: "TRUE"
