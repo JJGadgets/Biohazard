@@ -1,0 +1,72 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: crds-victoria
+  namespace: flux-system
+spec:
+  interval: 30m
+  # renovate: datasource=github-releases
+  url: https://github.com/VictoriaMetrics/operator.git
+  ref:
+    tag: v0.30.4
+  ignore: |
+    # exclude all
+    /*
+    # path to crds
+    !/config/crd/
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: crds-victoria
+  namespace: flux-system
+spec:
+  interval: 15m
+  prune: false
+  sourceRef:
+    kind: GitRepository
+    name: crds-victoria
+  healthChecks:
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmagents.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmalertmanagerconfigs.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmalertmanagers.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmalerts.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmauths.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmclusters.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmnodescrapes.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmpodscrapes.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmprobes.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmrules.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmservicescrapes.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmsingles.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmstaticscrapes.operator.victoriametrics.com
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: vmusers.operator.victoriametrics.com

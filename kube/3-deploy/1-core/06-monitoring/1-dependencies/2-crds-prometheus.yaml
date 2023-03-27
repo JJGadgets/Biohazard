@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
-  name: kube-prometheus-stack-source
+  name: crds-prometheus
   namespace: flux-system
 spec:
   interval: 12h
@@ -34,4 +34,4 @@ spec:
   dependsOn: []
   sourceRef:
     kind: GitRepository
-    name: kube-prometheus-stack-source
+    name: crds-prometheus
