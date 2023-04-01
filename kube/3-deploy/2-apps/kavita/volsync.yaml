@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kavita-restic
+  namespace: kavita
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_B2_REPO}-kavita
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_B2_PASSWORD}
+  B2_ACCOUNT_ID: ${SECRET_VOLSYNC_B2_ID}
+  B2_ACCOUNT_KEY: ${SECRET_VOLSYNC_B2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: kavita-restic
+  namespace: kavita
+spec:
+  sourcePVC: config-kavita-0
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: kavita-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: block
+    storageClassName: block
+    moverSecurityContext:
+      runAsUser: 0
+      runAsGroup: 0
+      fsGroup: 0
+    retain:
+      daily: 14
+      within: 7d
