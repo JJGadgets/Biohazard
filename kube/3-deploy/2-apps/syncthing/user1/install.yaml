@@ -13,6 +13,10 @@ spec:
     image:
       repository: syncthing/syncthing
       tag: 1.23.4
+    env:
+      TZ: "${CONFIG_TZ}"
+      PUID: "${USERS_1_UID}"
+      PGID: "${USERS_1_UID}"
     service:
       main:
         ports:
@@ -22,6 +26,9 @@ spec:
         type: LoadBalancer
         externalIPs:
           - "${APP_IP_SYNCTHING_USER_1}"
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_SYNCTHING_USER_1}"
+          coredns.io/hostname: "${APP_DNS_SYNCTHING_USER_1}"
         externalTrafficPolicy: Local
         ports:
           datatcp:

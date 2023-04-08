@@ -1,0 +1,44 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: syncthing-${USERS_1_ID}
+  namespace: syncthing-${USERS_1_ID}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: syncthing-${USERS_1_ID}
+  ingress:
+    - fromCIDRSet:
+        - cidr: ${IP_WG_USER_1_V4}
+      toPorts:
+        - ports:
+            - port: "22000"
+              protocol: TCP
+        - ports:
+            - port: "22000"
+              protocol: UDP
+        - ports:
+            - port: "21027"
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
+      toPorts:
+        - ports:
+            - port: "8384"
+  egress:
+    - toCIDRSet:
+        - cidr: ${IP_WG_USER_1_V4}
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*"
