@@ -8,3 +8,180 @@ resources:
   - 4-vars.yaml
   - 5-deploy.yaml
   - ceph-rgw-ext-users.yaml
+  - ../../../3-deploy/2-apps/syncthing/
+patches:
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        interval: 1m0s
+        timeout: 10m0s
+        decryption:
+          provider: sops
+          secretRef:
+            name: biohazard-secrets-decrypt-sops-age
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        sourceRef:
+          kind: GitRepository
+          name: flux-system
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: kustomization.flux.home.arpa/default notin (false)
+  - patch: |
+      - op: add
+        path: /spec/dependsOn/-
+        value:
+          name: 2-biohazard-config
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: kustomization.flux.home.arpa/default notin (false)
+  - patch: |
+      - op: add
+        path: /spec/dependsOn/-
+        value:
+          name: biohazard-1-core-01-networking-cilium
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        postBuild:
+          substituteFrom:
+            - kind: ConfigMap
+              name: biohazard-vars
+              optional: false
+            - kind: Secret
+              name: biohazard-secrets
+              optional: false
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: substitution.flux.home.arpa/disabled notin (true)
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        # prune: true
+        prune: false # disable prune for Flux restructure
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: prune.flux.home.arpa/disabled notin (true)
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        prune: false
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: prune.flux.home.arpa/disabled=true
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        wait: true
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: wait.flux.home.arpa/disabled notin (true)
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        wait: false
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: wait.flux.home.arpa/disabled=true
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: not-used
+      spec:
+        patches:
+          - patch: |-
+              apiVersion: helm.toolkit.fluxcd.io/v2beta1
+              kind: HelmRelease
+              metadata:
+                name: not-used
+              spec:
+                chart:
+                  spec:
+                    sourceRef:
+                      kind: HelmRepository
+                      namespace: flux-system
+                interval: 5m
+                maxHistory: 5
+                install:
+                  createNamespace: true
+                  remediation:
+                    retries: 5
+                upgrade:
+                  cleanupOnFail: true
+                  remediation:
+                    retries: 5
+                uninstall:
+                  keepHistory: false
+            target:
+              group: helm.toolkit.fluxcd.io
+              version: v2beta1
+              kind: HelmRelease
+              labelSelector: helm.flux.home.arpa/default notin (false)
+          - patch: |-
+              apiVersion: helm.toolkit.fluxcd.io/v2beta1
+              kind: HelmRelease
+              metadata:
+                name: not-used
+              spec:
+                chart:
+                  spec:
+                    chart: app-template
+                    version: 1.2.1
+                    sourceRef:
+                      name: bjw-s
+            target:
+              group: helm.toolkit.fluxcd.io
+              version: v2beta1
+              kind: HelmRelease
+              labelSelector: helm.flux.home.arpa/app-template=true
+    target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta2
+      kind: Kustomization
+      labelSelector: kustomization.flux.home.arpa/helmpatches notin (false)
