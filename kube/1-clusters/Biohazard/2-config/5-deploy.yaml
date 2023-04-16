@@ -209,15 +209,6 @@ spec:
   path: ./kube/3-deploy/1-core/06-monitoring/metrics-server
   dependsOn: []
 ---
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  name: biohazard-1-core-06-monitoring-1-dependencies
-  namespace: flux-system
-spec:
-  path: ./kube/3-deploy/1-core/06-monitoring/1-dependencies
-  dependsOn: []
----
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -236,17 +227,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/06-monitoring/kube-state-metrics
   dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  name: biohazard-1-core-06-monitoring-node-exporter
-  namespace: flux-system
-spec:
-  path: ./kube/3-deploy/1-core/06-monitoring/node-exporter
-  dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: monitoring-deps
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -266,7 +247,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/06-monitoring/victoria/1-crds
   dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: monitoring-deps
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
@@ -276,7 +257,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/06-monitoring/victoria/2-operator
   dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: monitoring-deps
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
@@ -286,7 +267,7 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/06-monitoring/victoria/3-cluster
   dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: monitoring-deps
     - name: biohazard-1-core-06-monitoring-victoria-2-operator
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -297,11 +278,11 @@ metadata:
 spec:
   path: ./kube/3-deploy/1-core/06-monitoring/victoria/4-agent
   dependsOn:
-    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: monitoring-deps
     - name: biohazard-1-core-06-monitoring-victoria-2-operator
     - name: biohazard-1-core-06-monitoring-victoria-3-cluster
     - name: biohazard-1-core-06-monitoring-kube-state-metrics
-    - name: biohazard-1-core-06-monitoring-node-exporter
+    - name: monitoring-node-exporter-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization

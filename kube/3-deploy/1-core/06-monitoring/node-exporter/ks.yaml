@@ -1,0 +1,19 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: monitoring-node-exporter-deps
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/node-exporter/deps
+  dependsOn: []
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: monitoring-node-exporter-app
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/node-exporter/app
+  dependsOn:
+    - name: monitoring-node-exporter-deps
