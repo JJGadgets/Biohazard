@@ -16,7 +16,7 @@ spec:
       "42080": ingress/ingress-nginx-controller:20080::PROXY
       "42443": ingress/ingress-nginx-controller:20443::PROXY
     controller:
-      kind: Deployment
+      kind: DaemonSet
       replicaCount: 3
       extraEnvs:
         - name: TZ
