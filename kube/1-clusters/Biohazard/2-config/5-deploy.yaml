@@ -221,6 +221,36 @@ spec:
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
+  name: prometheus-community
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  timeout: 3m0s
+  url: https://prometheus-community.github.io/helm-charts
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-06-monitoring-kube-state-metrics
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/kube-state-metrics
+  dependsOn:
+    - name: biohazard-1-core-06-monitoring-1-dependencies
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-06-monitoring-node-exporter
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/node-exporter
+  dependsOn:
+    - name: biohazard-1-core-06-monitoring-1-dependencies
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
   name: victoria
   namespace: flux-system
 spec:
@@ -231,32 +261,47 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: biohazard-1-core-06-monitoring-2-victoria-1-crds
+  name: biohazard-1-core-06-monitoring-victoria-1-crds
   namespace: flux-system
 spec:
-  path: ./kube/3-deploy/1-core/06-monitoring/2-victoria/1-crds
+  path: ./kube/3-deploy/1-core/06-monitoring/victoria/1-crds
   dependsOn:
     - name: biohazard-1-core-06-monitoring-1-dependencies
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: biohazard-1-core-06-monitoring-2-victoria-2-operator
+  name: biohazard-1-core-06-monitoring-victoria-2-operator
   namespace: flux-system
 spec:
-  path: ./kube/3-deploy/1-core/06-monitoring/2-victoria/2-operator
+  path: ./kube/3-deploy/1-core/06-monitoring/victoria/2-operator
   dependsOn:
     - name: biohazard-1-core-06-monitoring-1-dependencies
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: biohazard-1-core-06-monitoring-2-victoria-3-cluster
+  name: biohazard-1-core-06-monitoring-victoria-3-cluster
   namespace: flux-system
 spec:
-  path: ./kube/3-deploy/1-core/06-monitoring/2-victoria/3-cluster
+  path: ./kube/3-deploy/1-core/06-monitoring/victoria/3-cluster
   dependsOn:
     - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: biohazard-1-core-06-monitoring-victoria-2-operator
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: biohazard-1-core-06-monitoring-victoria-4-agent
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/06-monitoring/victoria/4-agent
+  dependsOn:
+    - name: biohazard-1-core-06-monitoring-1-dependencies
+    - name: biohazard-1-core-06-monitoring-victoria-2-operator
+    - name: biohazard-1-core-06-monitoring-victoria-3-cluster
+    - name: biohazard-1-core-06-monitoring-kube-state-metrics
+    - name: biohazard-1-core-06-monitoring-node-exporter
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
