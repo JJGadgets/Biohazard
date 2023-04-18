@@ -75,12 +75,12 @@ spec:
     volumeClaimTemplates:
       - name: data
         mountPath: /data
-        accessModen: ReadWriteOnce
+        accessMode: ReadWriteOnce
         size: 20Gi
         storageClass: block
       - name: backup
         mountPath: /backup
-        accessModen: ReadWriteOnce
+        accessMode: ReadWriteOnce
         size: 20Gi
         storageClass: block
     persistence:
