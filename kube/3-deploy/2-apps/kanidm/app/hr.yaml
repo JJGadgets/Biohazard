@@ -78,7 +78,6 @@ spec:
         accessModen: ReadWriteOnce
         size: 20Gi
         storageClass: block
-    volumeClaimTemplates:
       - name: backup
         mountPath: /backup
         accessModen: ReadWriteOnce
