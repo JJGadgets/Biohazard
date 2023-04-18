@@ -24,13 +24,6 @@ spec:
     service:
       main:
         enabled: true
-        ports:
-          http:
-            port: 8443
-            targetPort: 8443
-            protocol: HTTPS
-      ldap:
-        enabled: true
         type: LoadBalancer
         externalTrafficPolicy: Local
         annotations:
@@ -39,6 +32,11 @@ spec:
         externalIPs:
           - "${APP_IP_KANIDM}"
         ports:
+          http:
+            enabled: true
+            port: 443
+            targetPort: 8443
+            protocol: HTTPS
           ldap-tcp:
             enabled: true
             port: 636
@@ -47,6 +45,7 @@ spec:
           ldap-udp:
             enabled: true
             port: 636
+            targetPort: 3636
             protocol: UDP
     ingress:
       main:
@@ -148,40 +147,3 @@ spec:
           name: data
         - mountPath: /config
           name: config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kanidm-lb-ldap
-  namespace: ingress
-  annotations:
-    coredns.io/hostname: "${APP_DNS_KANIDM}"
-    "io.cilium/lb-ipam-ips": "${APP_IP_KANIDM}"
-spec:
-  type: LoadBalancer
-  externalIPs:
-    - ${APP_IP_KANIDM}
-  externalTrafficPolicy: Local
-  ports:
-    - appProtocol: http
-      name: http
-      protocol: TCP
-      port: 20080
-      targetPort: 80
-    - appProtocol: https
-      name: https
-      protocol: TCP
-      port: 20443
-      targetPort: 443
-    - name: internalhttp
-      protocol: TCP
-      port: 80
-      targetPort: 42080
-    - name: internalhttps
-      protocol: TCP
-      port: 443
-      targetPort: 42443
-  selector:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/name: ingress-nginx
