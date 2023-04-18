@@ -35,15 +35,17 @@ spec:
           http:
             enabled: true
             port: 443
+            targetPort: 8443
             protocol: HTTPS
           ldap-tcp:
             enabled: true
             port: 636
+            targetPort: 3636
             protocol: TCP
-          ldap-udp:
-            enabled: true
-            port: 636
-            protocol: UDP
+#           ldap-udp:
+#             enabled: true
+#             port: 636
+#             protocol: UDP
     ingress:
       main:
         enabled: true
@@ -56,17 +58,17 @@ spec:
             proxy_ssl_name ${APP_DNS_KANIDM};
             proxy_ssl_server_name on;
         hosts:
-          - host: &host "${APP_DNS_KANIDM}"
+          - host: &host "nginx.${APP_DNS_KANIDM}"
             paths:
               - path: /
                 pathType: Prefix
         tls:
           - hosts:
               - *host
-    dnsConfig:
-      options:
-        - name: ndots
-          value: "1"
+#     dnsConfig:
+#       options:
+#         - name: ndots
+#           value: "1"
     podSecurityContext:
       runAsUser: &uid ${APP_UID_KANIDM}
       runAsGroup: *uid
@@ -115,15 +117,15 @@ spec:
             tls_chain = "/tls/fullchain.pem"
             tls_key = "/tls/privkey.pem"
             role = "WriteReplica"
-            log_level = "default"
-            bindaddress = "[::]:443"
-            ldapbindaddress = "[::]:636"
+            log_level = "verbose"
+            bindaddress = "[::]:8443"
+            ldapbindaddress = "[::]:3636"
             trust_x_forward_for = true
             db_path = "/data/kanidm.db"
             db_fs_type = "other"
             [online_backup]
             path = "/backup/"
-            schedule = "00 22 * * *"
+            schedule = "0 0 22 * * * *"
             versions = 7
     resources:
       requests:
@@ -131,3 +133,16 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
+    initContainers:
+      01-init-kanidm-admin-password:
+        command:
+        - /bin/sh
+        - -c
+        - '[ -s /data/kanidm.db ] || /sbin/kanidmd recover_account -c /data/server.toml admin'
+        image: docker.io/kanidm/server:latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /config
+          name: config
