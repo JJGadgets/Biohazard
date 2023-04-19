@@ -58,6 +58,11 @@ spec:
           nginx.ingress.kubernetes.io/server-snippet: |
             proxy_ssl_name ${APP_DNS_KANIDM};
             proxy_ssl_server_name on;
+            large_client_header_buffers 4 8k;
+            client_header_buffer_size 8k;
+          # without header buffer size, will get following errors due to hardening ingress-nginx number of header buffers to 2 and header buffer size to 1k:
+          # HTTP1.1 /v1/auth/valid: 400 Request Header Or Cookie Too Large
+          # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
         hosts:
           - host: &host "${APP_DNS_KANIDM}"
             paths:
