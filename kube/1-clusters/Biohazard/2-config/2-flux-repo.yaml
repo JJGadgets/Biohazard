@@ -218,6 +218,46 @@ spec:
                 version: v2beta1
                 kind: HelmRelease
                 labelSelector: helm.flux.home.arpa/app-template=true
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta1
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  values:
+                    ingress:
+                      main:
+                        annotations:
+                          nginx.ingress.kubernetes.io/satisfy: "any"
+                          nginx.ingress.kubernetes.io/whitelist-source-range: |
+                            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+                          nginx.ingress.kubernetes.io/auth-url: |-
+                            https://${APP_DNS_AUTH}/outpost.goauthentik.io/auth/nginx
+                          nginx.ingress.kubernetes.io/auth-response-headers: |-
+                            Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid
+                          nginx.ingress.kubernetes.io/auth-snippet: |
+                            proxy_set_header X-Forwarded-Host $http_host;
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta1
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type=auth-external-only
+            - patch: |
+                - op: add
+                  path: /spec/values/ingress/main/hosts/0/paths/-
+                  value:
+                    path: /outpost.goauthentik.io
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: authentik
+                            port:
+                                number: 443
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta1
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type=auth-external-only
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1beta2
