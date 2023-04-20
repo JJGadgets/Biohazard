@@ -10,10 +10,11 @@ resources:
   - ceph-rgw-ext-users.yaml
   - ../../../3-deploy/1-core/06-monitoring/1-deps/
   - ../../../3-deploy/1-core/06-monitoring/node-exporter/
+  - ../../../3-deploy/2-apps/default/
+  - ../../../3-deploy/2-apps/authentik/
   - ../../../3-deploy/2-apps/kanidm/
   - ../../../3-deploy/2-apps/syncthing/
   - ../../../3-deploy/2-apps/excalidraw/
-  - ../../../3-deploy/2-apps/authentik/
 patches:
   - patch: |-
       apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
