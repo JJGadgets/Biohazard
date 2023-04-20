@@ -21,7 +21,7 @@ spec:
           secretKeyRef:
             name: cloudflare-secret
             key: email
-      - name: CF_API_KEY
+      - name: CF_API_TOKEN
         valueFrom:
           secretKeyRef:
             name: cloudflare-secret
