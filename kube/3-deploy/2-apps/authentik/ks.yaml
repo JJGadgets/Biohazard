@@ -1,0 +1,46 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: authentik-deps
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/authentik/deps
+  dependsOn:
+    - name: ${CLUSTER_NAME_LOWER}-1-core-03-certs-cert-manager # change to shorter name
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+# kind: Kustomization
+# metadata:
+#   name: authentik-app
+#   namespace: flux-system
+# spec:
+#   path: ./kube/3-deploy/2-apps/authentik/app
+#   dependsOn:
+#     - name: authentik-deps
+#     - name: ${CLUSTER_NAME_LOWER}-1-core-02-storage-rook-ceph
+#     - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-internal
+#     - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
+#     #- name: ${CLUSTER_NAME_LOWER}-2-apps-volsync
+#   healthChecks:
+#     - name: authentik
+#       namespace: authentik
+#       kind: HelmRelease
+#       apiVersion: helm.toolkit.fluxcd.io/v2beta1
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: authentik-remote-cluster
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/authentik/remote-cluster
+  dependsOn:
+    - name: authentik-deps
+    - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-internal
+    - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
+  healthChecks:
+    - name: remote-cluster
+      namespace: authentik
+      kind: HelmRelease
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1
