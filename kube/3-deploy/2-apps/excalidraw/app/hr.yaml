@@ -2,8 +2,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app excalidraw
-  namespace: *app
+  name: excalidraw
+  namespace: default
   labels:
     nginx.ingress.home.arpa/type: auth-external-only
 spec:
