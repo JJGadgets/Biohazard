@@ -214,11 +214,9 @@ patches:
                 value:
                   path: /outpost.goauthentik.io
                   pathType: Prefix
-                  backend:
-                      service:
-                          name: authentik
-                          port:
-                              number: 443
+                  service:
+                    name: authentik
+                    port: 443
             target:
               group: helm.toolkit.fluxcd.io
               version: v2beta1
