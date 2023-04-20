@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app excalidraw
   namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth-external-only
 spec:
   chart:
     spec:
@@ -29,6 +31,9 @@ spec:
         enabled: true
         primary: true
         ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_EXCALIDRAW}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_EXCALIDRAW}"
             paths:
