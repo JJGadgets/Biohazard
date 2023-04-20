@@ -11,6 +11,8 @@ spec:
       version: 1.12.1
       sourceRef:
         name: external-dns
+        kind: HelmRepository
+        namespace: flux-system
   values:
     interval: 2m
     # logLevel: debug
