@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: remote-cluster
-  namespace: authentik
+  namespace: ingress
 spec:
   chart:
     spec:
@@ -21,6 +21,6 @@ kind: Secret
 type: kubernetes.io/service-account-token
 metadata:
   name: authentik-remote-cluster-token
-  namespace: authentik
+  namespace: ingress
   annotations:
     kubernetes.io/service-account.name: "authentik-remote-cluster"
