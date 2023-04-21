@@ -21,6 +21,7 @@ spec:
       TZ: "${CONFIG_TZ}"
       AUTHENTIK_INSECURE: "false"
       AUTHENTIK_HOST: "https://${APP_DNS_AUTH}/"
+      AUTHENTIK_HOST_BROWSER: "https://${APP_DNS_AUTHENTIK_OUTPOST}/"
       AUTHENTIK_TOKEN: "${SECRET_AUTHENTIK_REMOTE_TOKEN}"
     service:
       main:
@@ -44,7 +45,7 @@ spec:
           # - HTTP/1.1: 400 Request Header Or Cookie Too Large
           # - HTTP/2: HTTP/2 stream was not closed cleanly before end of the underlying stream
         hosts:
-          - host: &host "${APP_DNS_AUTH}"
+          - host: &host "${APP_DNS_AUTHENTIK_OUTPOST}"
             paths:
               - path: /
                 pathType: Prefix
