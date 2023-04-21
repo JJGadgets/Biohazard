@@ -33,6 +33,8 @@ spec:
         ingressClassName: nginx
         annotations:
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_EXCALIDRAW}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_EXCALIDRAW}"
             paths:
