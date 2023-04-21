@@ -13,3 +13,14 @@ spec:
         name: authentik
         kind: HelmRepository
         namespace: flux-system
+  values:
+    fullnameOverride: "authentik-remote-cluster"
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: authentik-remote-cluster-token
+  namespace: authentik
+  annotations:
+    kubernetes.io/service-account.name: "authentik-remote-cluster"
