@@ -12,27 +12,23 @@ spec:
       sourceRef:
         name: ingress-nginx
   values:
-    tcp:
-      "42080": ingress/ingress-nginx-controller:20080::PROXY
-      "42443": ingress/ingress-nginx-controller:20443::PROXY
     controller:
       kind: DaemonSet
       replicaCount: 3
       extraEnvs:
         - name: TZ
-          value: Asia/Singapore
+          value: ${CONFIG_TZ}
       dnsPolicy: ClusterFirstWithHostNet
       service:
-        enabled: false
-      containerPort:
-        http: 80
-        https: 443
-        internalhttp: 42080
-        internalhttps: 42443
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_NGINX}"
+        externalIPs:
+          - "${APP_IP_NGINX}"
       publishService:
         enabled: true
       extraArgs:
-        publish-status-address: "${APP_IP_NGINX}"
         default-ssl-certificate: ingress/short-domain-tls
       ingressClassByName: true
       ingressClassResource:
@@ -46,7 +42,7 @@ spec:
         client-body-timeout: 10
         client-header-timeout: 10
         enable-real-ip: "true"
-        use-proxy-protocol: "true"
+        use-proxy-protocol: "false"
         use-forwarded-headers: "true"
         # whitelist-source-range: 10.0.0.0/8, 100.64.0.0/10
         hsts-max-age: "31449600"
@@ -72,44 +68,3 @@ spec:
           memory: 250Mi
         limits:
           memory: 500Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ingress-nginx-controller
-  namespace: ingress
-  app.kubernetes.io/component: controller
-  app.kubernetes.io/instance: ingress-nginx
-  app.kubernetes.io/name: ingress-nginx
-  app.kubernetes.io/part-of: ingress-nginx
-  annotations:
-    "io.cilium/lb-ipam-ips": "${APP_IP_NGINX}"
-spec:
-  allocateLoadBalancerNodePorts: true
-  externalIPs:
-    - "${APP_IP_NGINX}"
-  externalTrafficPolicy: Local
-  ports:
-    - appProtocol: http
-      name: http
-      port: 20080
-      protocol: TCP
-      targetPort: 80
-    - appProtocol: https
-      name: https
-      port: 20443
-      protocol: TCP
-      targetPort: 443
-    - name: internalhttp
-      port: 80
-      protocol: TCP
-      targetPort: 42080
-    - name: internalhttps
-      port: 443
-      protocol: TCP
-      targetPort: 42443
-  selector:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/name: ingress-nginx
-  type: LoadBalancer
