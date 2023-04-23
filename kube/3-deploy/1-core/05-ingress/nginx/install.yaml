@@ -20,7 +20,7 @@ spec:
       replicaCount: 3
       extraEnvs:
         - name: TZ
-          value: Asia/Singapore
+          value: ${CONFIG_TZ}
       dnsPolicy: ClusterFirstWithHostNet
       service:
         enabled: false
@@ -29,8 +29,6 @@ spec:
         https: 443
         internalhttp: 42080
         internalhttps: 42443
-      publishService:
-        enabled: true
       extraArgs:
         publish-status-address: "${APP_IP_NGINX}"
         default-ssl-certificate: ingress/short-domain-tls
