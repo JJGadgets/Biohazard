@@ -1,0 +1,60 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cloudflared
+  namespace: cloudflare
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controller:
+      type: daemonset
+    image:
+      repository: cloudflare/cloudflared
+      tag: 2023.4.2
+    args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', 'run']
+    service:
+      main:
+        enabled: false
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: cloudflared-config
+        mountPath: /etc/cloudflared/config.yaml
+        subPath: config.yaml
+        readOnly: true
+      credentials:
+        enabled: true
+        type: secret
+        name: cloudflared-credentials
+        mountPath: /etc/cloudflared/credentials.json
+        subPath: credentials.json
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.yaml: |
+            tunnel: "${SECRET_CLOUDFLARE_TUNNEL_ID}"
+            credentials-file: /etc/cloudflared/credentials.json
+            no-autoupdate: true
+            ingress:
+              - hostname: "cftest.${DNS_SHORT}"
+                service: hello_world
+              - hostname: "home.${DNS_SHORT}"
+                service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
+                originRequest:
+                  originServerName: "https://ingress.${DNS_SHORT}"
+              - hostname: "home-cluster.${DNS_MAIN}"
+                service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
+                originRequest:
+                  originServerName: "https://ingress.${DNS_MAIN}"
+              - service: http_status:200
