@@ -19,7 +19,7 @@ spec:
     image:
       repository: cloudflare/cloudflared
       tag: 2023.4.2
-    args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', 'run']
+    args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
         enabled: true
@@ -28,8 +28,8 @@ spec:
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
         ports:
-          metrics:
-            port: 9000
+          http:
+            port: 9090
     persistence:
       config:
         enabled: true
