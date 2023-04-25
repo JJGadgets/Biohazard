@@ -65,7 +65,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: home.${DNS_SHORT}
+    external-dns.alpha.kubernetes.io/hostname: ${DNS_SHORT_CF}
     external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
   name: cloudflared-external-dns-${DNS_SHORT//./-}
@@ -78,7 +78,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: home.${DNS_MAIN//./-}
+    external-dns.alpha.kubernetes.io/hostname: ${DNS_MAIN_CF}
     external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
   name: cloudflared-external-dns-${DNS_MAIN//./-}
