@@ -54,11 +54,11 @@ spec:
               - hostname: "*.${DNS_SHORT}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
-                  originServerName: "https://ingress.${DNS_SHORT}"
+                  originServerName: "ingress.${DNS_SHORT}"
               - hostname: "*.${DNS_MAIN}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
-                  originServerName: "https://ingress.${DNS_MAIN}"
+                  originServerName: "ingress.${DNS_MAIN}"
               - service: http_status:200
 ---
 apiVersion: v1
