@@ -22,13 +22,6 @@ spec:
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
-        enabled: true
-        labels:
-          ingress.home.arpa/external: "external"
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: "home.${DNS_SHORT}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
         ports:
           http:
             port: 9090
@@ -58,12 +51,38 @@ spec:
             ingress:
               - hostname: "cftest.${DNS_SHORT}"
                 service: hello_world
-              - hostname: "home.${DNS_SHORT}"
+              - hostname: "*.${DNS_SHORT}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "https://ingress.${DNS_SHORT}"
-              - hostname: "home-cluster.${DNS_MAIN}"
+              - hostname: "*.${DNS_MAIN}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "https://ingress.${DNS_MAIN}"
               - service: http_status:200
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: home.${DNS_SHORT}
+    external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+  name: cloudflared-external-dns-${DNS_SHORT}
+  namespace: cloudflare
+spec:
+  type: ExternalName
+  externalName: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: home.${DNS_MAIN}
+    external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+  name: cloudflared-external-dns-${DNS_MAIN}
+  namespace: cloudflare
+spec:
+  type: ExternalName
+  externalName: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
