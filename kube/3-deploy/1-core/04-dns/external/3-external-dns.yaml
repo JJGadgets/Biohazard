@@ -29,8 +29,8 @@ spec:
             name: cloudflare-secret
             key: api-key
     extraArgs:
-      #- --annotation-filter=external-dns.alpha.kubernetes.io/target
-      - --label-filter=ingress.home.arpa/type in (external, auth-external-only)
+      - --annotation-filter=external-dns.alpha.kubernetes.io/target
+      #- --label-filter=ingress.home.arpa/type in (external, auth-external-only)
     policy: sync
     sources:
       - ingress
