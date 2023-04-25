@@ -23,6 +23,8 @@ spec:
     service:
       main:
         enabled: true
+        labels:
+          ingress.home.arpa/external: "external"
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "home.${DNS_SHORT}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
