@@ -56,7 +56,7 @@ spec:
         ssl-protocols: TLSv1.3 TLSv1.2
         hide-headers: Server,X-Powered-By
         enable-ocsp: "true"
-        large-client-header-buffers: 2 1k
+        #large-client-header-buffers: 2 1k # disable this hardening, causing too many issues with services e.g. Kanidm, CloudFlare Access/ZeroTrust etc
       # metrics:
       #   enabled: true
       #   serviceMonitor:
@@ -76,10 +76,11 @@ kind: Service
 metadata:
   name: ingress-nginx-controller
   namespace: ingress
-  app.kubernetes.io/component: controller
-  app.kubernetes.io/instance: ingress-nginx
-  app.kubernetes.io/name: ingress-nginx
-  app.kubernetes.io/part-of: ingress-nginx
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
   annotations:
     "io.cilium/lb-ipam-ips": "${APP_IP_NGINX}"
 spec:
