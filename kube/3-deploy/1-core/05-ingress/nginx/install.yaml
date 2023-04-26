@@ -56,7 +56,8 @@ spec:
         ssl-protocols: TLSv1.3 TLSv1.2
         hide-headers: Server,X-Powered-By
         enable-ocsp: "true"
-        #large-client-header-buffers: 2 1k # disable this hardening, causing too many issues with services e.g. Kanidm, CloudFlare Access/ZeroTrust etc
+        #large-client-header-buffers: 2 1k # dehardened, causing too many issues with services e.g. Kanidm, CloudFlare Access/ZeroTrust etc
+        large-client-header-buffers: 2 2k # still more hardened than defaults
       # metrics:
       #   enabled: true
       #   serviceMonitor:
