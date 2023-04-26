@@ -89,7 +89,7 @@ spec:
 
       backend https_servers
         mode http
-        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni])
+        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni]) check check-sni str(external-proxy-x.${DNS_SHORT})
 
       frontend http
         mode http
@@ -99,6 +99,6 @@ spec:
 
       backend http_servers
         mode http
-        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:80
+        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:80 check
 # TODO: fix SSL verify
 # server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify required ca-file /tls/ca.pem
