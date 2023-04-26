@@ -1,0 +1,104 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: external-proxy-x
+  namespace: ingress
+spec:
+  chart:
+    spec:
+      chart: haproxy
+      version: 1.18.0
+      sourceRef:
+        name: haproxytech
+  values:
+    image:
+      repository: haproxytech/haproxy-debian
+      tag: "2.7.6"
+      pullPolicy: IfNotPresent
+    kind: DaemonSet
+    service:
+      type: LoadBalancer
+      annotations:
+        "io.cilium/lb-ipam-ips": "${APP_IP_HAPROXY_PROXY_X}"
+    containerPorts:
+      http: 80
+      https: 443
+    mountedSecrets:
+      - volumeName: short-domain-tls
+        secretName: short-domain-tls
+        mountPath: /ssl/short
+      - volumeName: long-domain-tls
+        secretName: long-domain-tls
+        mountPath: /ssl/long
+    extraVolumes:
+      - name: tls
+        emptyDir:
+          medium: Memory
+    extraVolumeMounts:
+      - name: tls
+        mountPath: /tls
+    initContainers:
+      - name: 01-init-tls-cert-key-combine
+        command:
+          - /bin/sh
+          - -c
+          - 'cat /ssl/short/tls.crt /ssl/short/tls.key > /tls/short.pem && cat /ssl/long/tls.crt /ssl/long/tls.key > /tls/long.pem'
+        image: public.ecr.aws/docker/library/busybox:latest@sha256:b5d6fe0712636ceb7430189de28819e195e8966372edfc2d9409d79402a0dc16
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - name: tls
+            mountPath: /tls
+          - name: short-domain-tls
+            mountPath: /ssl/short
+          - name: long-domain-tls
+            mountPath: /ssl/long
+      # - name: 01-init-tls-ca-extract
+      #   # sed command to extract CA certificate data is specific to and assumes cert-manager + Let's Encrypt certificate chain ordering, and that tls.crt includes CA certs, as of 27 April 2022
+      #   command:
+      #     - /bin/sh
+      #     - -c
+      #     - sed -n "0,/END CERTIFICATE/d;/BEGIN CERTIFICATE/,/END CERTIFICATE/p" /ssl/short/tls.crt > /tls/ca.pem
+      #   image: public.ecr.aws/debian/debian:11.6-slim
+      #   imagePullPolicy: IfNotPresent
+      #   volumeMounts:
+      #     - name: tls
+      #       mountPath: /tls
+      #     - name: short-domain-tls
+      #       mountPath: /ssl/short
+      #     - name: long-domain-tls
+      #       mountPath: /ssl/long
+    config: |
+      global
+        log stdout format raw local0 debug
+
+      defaults
+        mode tcp
+        log global
+        option tcplog
+        timeout client 30s
+        timeout connect 4s
+        timeout server 30s
+        retries 3
+
+      frontend https
+        mode http
+        bind :443 accept-proxy ssl crt /tls/short.pem crt /tls/long.pem
+        option forwardfor
+        default_backend https_servers
+
+      backend https_servers
+        mode http
+        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni])
+
+      frontend http
+        mode http
+        bind :80 accept-proxy
+        option forwardfor
+        default_backend http_servers
+
+      backend http_servers
+        mode http
+        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:80
+# TODO: fix SSL verify
+# server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify required ca-file /tls/ca.pem

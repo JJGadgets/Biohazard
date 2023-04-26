@@ -51,6 +51,8 @@ data:
     APP_DNS_INGRESS_WILDCARD: ENC[AES256_GCM,data:7OG0ww6rUzU=,iv:5ig0dQIfSVxbQS7nuqQygRcBKk8UmBFxX0unVT9bdzE=,tag:mCOMUNFEZs5IFvVrRNpFiQ==,type:str]
     APP_IP_NGINX: ENC[AES256_GCM,data:9Kg5zjk+1XfUHg==,iv:dbO0hMMho8J3t0mz6Eb5uMDB3QUCjG5pXPdeuQUFbNE=,tag:ICGE5EVo27W0rUB+Jekf2Q==,type:str]
     APP_IP_K8S_GATEWAY: ENC[AES256_GCM,data:oakciyUzwLlGJsc=,iv:leuHfW59gWSDaEpaOEMGbSpGFtbzAnoRp4spLxlTEq0=,tag:vltbWvNKa4QvEgXXo58d/A==,type:str]
+    APP_IP_HAPROXY_PROXY_X: ENC[AES256_GCM,data:xkHni8dSMhZ3WQ4=,iv:qSAn5AS/eTeoxHKm0jLE0UUacDWKn1zF3WwYRwgCrrA=,tag:aYASxzUU2eOpTEBZFe6fwg==,type:str]
+    APP_UID_HAPROXY_PROXY_X: ENC[AES256_GCM,data:mbTqeA==,iv:Rldvrqt/CCBDjkGjN5mYo6W/HS4KmbbyYQ/iM6gajXI=,tag:ZclSGas3/QO2vj0CSaEIoQ==,type:str]
     APP_DNS_HUBBLE: ENC[AES256_GCM,data:90bcM7y76gSJjw==,iv:JJc4oW8z9Yz+sYoa43c5AdQuxaxdg17C1S5ywIE5NJo=,tag:LMt18yKdpR+hA7e2OOzI0g==,type:str]
     APP_IP_KANIDM: ENC[AES256_GCM,data:MoL8QlY+3Lu67bA=,iv:peKQUJaEVeij0r0mJR5kksz8zO8vBjLWolLFL8sWJbg=,tag:X4uvnVT/SnUzl4mAxQAl2A==,type:str]
     APP_UID_KANIDM: ENC[AES256_GCM,data:iyQvyaY=,iv:2I+/oGDd0c7ghC0VbGpJafCTDw1PnLB0jXa06qdoI+M=,tag:EJz7ywUbTIoCMxJJOX10wQ==,type:str]
@@ -100,8 +102,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-25T10:24:16Z"
-    mac: ENC[AES256_GCM,data:ewsZiBEz9NoWVEsbd2MNt7lx1xBQJoR5wKm/EQnRTDebTmfEtbxdU0Z7x1tt1EHXUdpJaY6XASTgP9YcBHoKTITy5YkY0xVnHpxkb10E0EynK79VUOPVLygdjFL8i7rIkpHz0nrlV/EFQMBYT5vpdn82qO7kZLGbMuuRAPr0iT8=,iv:ePdlpxH/EqwiSncMHUTDPYfbeSpXP4daU9Vf2244ru0=,tag:4X3McGA8FSqitP2ULgwq8w==,type:str]
+    lastmodified: "2023-04-26T17:17:18Z"
+    mac: ENC[AES256_GCM,data:mMrantpfpb4IdHi7YeU0wLMNb/e5Ux/tFpzrWIAEv5Nbdu12wkdkN6SJwgZisMiSNgLG0xHHujxRHGNNLeFZNGuuIr9ok3QGj68I8/zYOxlivLInUejWuTu1rSeJ/q0poB/B/ITnYzNcGE2S2qxraf9OSRD0LaQDaXah18x8ifQ=,iv:cF51KYxPkEv4fPv6Ih1nwC6+jB6bA1R5ZvXhAUcBaTU=,tag:DM2nMqG4Y3AvCqbnPdk06A==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |
