@@ -53,6 +53,7 @@ spec:
         primary: true
         ingressClassName: nginx
         annotations:
+          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
