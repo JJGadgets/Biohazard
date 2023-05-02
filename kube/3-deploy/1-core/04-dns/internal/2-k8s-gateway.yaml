@@ -1,3 +1,4 @@
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -13,6 +14,8 @@ spec:
   values:
     fullnameOverride: k8s-gateway
     domain: "${DNS_SHORT} ${DNS_MAIN} ${DNS_VPN}"
+    fallthrough:
+      enabled: true
     ttl: 1
     service:
       type: LoadBalancer
@@ -32,6 +35,12 @@ spec:
       # Serves a /metrics endpoint on :9153, required for serviceMonitor
       - name: prometheus
         parameters: 0.0.0.0:9153
+      - name: forward
+        parameters: ${DNS_SHORT} ${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3
+        configBlock: policy sequential
+      - name: forward
+        parameters: ${DNS_MAIN} ${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3
+        configBlock: policy sequential
       - name: forward
         parameters: . /etc/resolv.conf
       - name: loop
