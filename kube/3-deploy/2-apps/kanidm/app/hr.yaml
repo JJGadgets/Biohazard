@@ -53,7 +53,8 @@ spec:
         primary: true
         ingressClassName: nginx
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
