@@ -22,6 +22,12 @@ spec:
     # external Ceph cluster
     - toCIDRSet:
         - cidr: "${IP_PVE_CEPH_CIDR}"
+    # k8s apiserver
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            component: apiserver
+            provider: kubernetes
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
