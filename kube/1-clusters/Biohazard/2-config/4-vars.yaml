@@ -25,6 +25,7 @@ data:
     IP_ROUTER_VLAN_K8S: ENC[AES256_GCM,data:ngwfmrXjohzP,iv:U5DSCUUCZbIhwVAgv2gW98t8d8QwDSOM2YybNQWpgAw=,tag:vPTdK0CHET13l3x2eWb7gA==,type:str]
     IP_ROUTER_VLAN_K8S_CIDR: ENC[AES256_GCM,data:a6CelKuP9lYOjXHm,iv:hZxSfx0Nj2aCPxj9GeHpaiuKDa85pqxzx47v4zxOPHM=,tag:8xpQHvtXLDQ7C5KcjqMG0Q==,type:str]
     IP_WG_USER_1_V4: ENC[AES256_GCM,data:V9jINBdQjtkYwd1YcKE=,iv:ozo245sBYp4JhPN8EFtrLLlsH5oYtR56sRmXSC9TApU=,tag:4onSK4qyLBW7wV1XQOrCnA==,type:str]
+    IP_WG_GUEST_V4: ENC[AES256_GCM,data:dhkFXxdMUpqrGyvRePI=,iv:to7XIY/iJUeZSfWZl4983Ageg4SquUasBLCsyxgo+m8=,tag:XUP4K1GuJhyFEy4By0aEFg==,type:str]
     IP_CLUSTER_VIP: ENC[AES256_GCM,data:GxYFwPSJ60yN,iv:KfSez768cxxjiUi7SFUEBiecfpQ0If9dbvPJlK/SHdM=,tag:8wb4wfnh4+Pnu7GYIlSs4Q==,type:str]
     IP_POD_CIDR_V4: ENC[AES256_GCM,data:8NQgsJ5G6NB3i5Z+oQ==,iv:gqvHClld24aRnLEVS+ZXTXEee5WKNux6DgOcNIStvLk=,tag:keMcbbSis5cjsi7L76TMbA==,type:str]
     IP_LB_CIDR: ENC[AES256_GCM,data:/qxOk5Vn8Q1/isE+iw==,iv:BhOMIotgJEWcLJOfP/unKrjX72ZEY1RfBtt5P14hQko=,tag:BSCy1PquhSew/ofhyGOLFg==,type:str]
@@ -36,6 +37,10 @@ data:
     IP_EC2_INGRESS: ENC[AES256_GCM,data:Vet36CiEB0M0hw==,iv:TIRton/qZlehRvOH5pWBbuhqjdMJofYFriZ93pSPNic=,tag:uEXxhd9/ZKBfuaGOx02lpA==,type:str]
     IP_OLD_DOCKER: ENC[AES256_GCM,data:+q2fSaAdgRIr,iv:9N2okAfqW093u4s1/8UbXtuaJr7QVhl2O0ulorZtfE0=,tag:a/5TMV+YPhpJ4GWrnL3uBw==,type:str]
     IP_TRUENAS: ENC[AES256_GCM,data:HYQ0BxOcG2JY,iv:IRSY4sX0rqK7clCm1IyqI2rJc/ZSTNYnATsJ268fVfE=,tag:EIBHZURvYt+NOl5R9I0cAg==,type:str]
+    IP_PVE_CEPH_CIDR: ENC[AES256_GCM,data:uL5b7pXEasFjq6gr5g4=,iv:HG1HuMTUsFIjq2aw5NQfJa/Zs1Kfg8KL3XzgQErY5+U=,tag:b3P9aaHuy2obRoxG0rqIaQ==,type:str]
+    IP_PVE_CEPH_1: ENC[AES256_GCM,data:k+/fYQrxXzLUPTA=,iv:14r6kh+UEOnkw11kxUXgbKRRkHpoYcdEB4lex+BjDMA=,tag:WXziFucgkYyvbTfw0X3g2w==,type:str]
+    IP_PVE_CEPH_2: ENC[AES256_GCM,data:LTtBfHMenuBqbPI=,iv:B1tuxqSaIph63XUOstI0MnrJ+HZ1A430Q7BBX3ybz8Y=,tag:du4p3ez3O+mupvOSb56OMg==,type:str]
+    IP_PVE_CEPH_3: ENC[AES256_GCM,data:gxjoi4WkwLtHxns=,iv:rv8ine1GbF+F5WdN6l8P/jafiWvdnVqtdLuSQ9Qvi1w=,tag:ben6zFJc4S8lK59s0Uvfvg==,type:str]
     DNS_CLUSTER: ENC[AES256_GCM,data:dVS38myraH4=,iv:WScCvhcW9C/qckIlbDDWR8tzIYZdG58lbYmThdPQpro=,tag:3RDQ97sbEganiHRf42A11g==,type:str]
     DNS_SHORT: ENC[AES256_GCM,data:16FRvQx8,iv:5xVBGMf/Bp3XqHDwl9ZBb14nSVkTg3eWq5FU2cYoRyY=,tag:uzCrxTBEv/Iy+Ht0gK0kjQ==,type:str]
     DNS_SHORT_CF: ENC[AES256_GCM,data:KIQsZOwPdbFchTAls1w=,iv:EGuLZDXAgYo3TMW6bwxBY7cxInsOirTN4MRIBC0ipT0=,tag:ou3/FHNn5NYKvqRJAl74kg==,type:str]
@@ -102,8 +107,8 @@ sops:
             SnpvS3RUUlFMM1dUNGZQNkVqQ2VqNDAKywch6CgtS1AFLYxfML5dB7/5V6qZ0ob1
             63vBpqjOza3EqvfNKo+UMtK/fRK0Q5jlpuI+0/z9VrxzKEWsgUCBVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-26T17:17:18Z"
-    mac: ENC[AES256_GCM,data:mMrantpfpb4IdHi7YeU0wLMNb/e5Ux/tFpzrWIAEv5Nbdu12wkdkN6SJwgZisMiSNgLG0xHHujxRHGNNLeFZNGuuIr9ok3QGj68I8/zYOxlivLInUejWuTu1rSeJ/q0poB/B/ITnYzNcGE2S2qxraf9OSRD0LaQDaXah18x8ifQ=,iv:cF51KYxPkEv4fPv6Ih1nwC6+jB6bA1R5ZvXhAUcBaTU=,tag:DM2nMqG4Y3AvCqbnPdk06A==,type:str]
+    lastmodified: "2023-05-07T11:21:17Z"
+    mac: ENC[AES256_GCM,data:bvsVkwJlQNZC7qnloVTfoMFYjABAXdolDPlnWn1AC/LO39r5WWCiBgS/zhcmhoo5sqRYcp4xvFpg4X0YEi2KgdELr3lbEskIQcEMz/V7X5plV+/V+lX1z0S2PV8z1jvFeg1LhtL1iMI6ESCKc9uoKa2ar9V8M+DyUj5LcbQ4UTo=,iv:Y75CK9JVIj49fVJJSSuDem5MJrRRJuXwICzuHv9hwpI=,tag:YQqw0CugJ00/VO3SfrDD0Q==,type:str]
     pgp:
         - created_at: "2023-02-22T08:12:31Z"
           enc: |

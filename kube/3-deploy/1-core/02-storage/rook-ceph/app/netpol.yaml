@@ -1,0 +1,53 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app rook-ceph
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # external Ceph cluster
+    - fromCIDRSet:
+        - cidr: "${IP_PVE_CEPH_CIDR}"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # external Ceph cluster
+    - toCIDRSet:
+        - cidr: "${IP_PVE_CEPH_CIDR}"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app ceph-rgw
+  namespace: &ns rook-ceph
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: *app
+  ingress:
+    # ingress controller
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "6953"
+  egress:
+    # ingress controller webhook admission
+    - toServices:
+        - k8sService:
+            serviceName: ingress-nginx-controller-admission
+            namespace: ingress
+      toPorts:
+        - ports:
+            - port: "443"
