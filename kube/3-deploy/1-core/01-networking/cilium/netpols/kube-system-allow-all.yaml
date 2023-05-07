@@ -1,0 +1,22 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-system-allow-all
+  namespace: kube-system
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEntities:
+        - cluster
+    - fromEndpoints:
+        - {}
+    - fromEntities:
+        - world
+  egress:
+    - toEntities:
+        - world
+    - toEndpoints:
+        - {}
+    - toEntities:
+        - cluster

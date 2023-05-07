@@ -1,0 +1,40 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app kanidm
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # ingress controller
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "443"
+            - port: "8443"
+            - port: "636"
+            - port: "3636"
+    - fromCIDRSet:
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
+        - cidr: "${IP_WG_USER_1_V4}"
+        - cidr: "${IP_WG_GUEST_V4}"
+      toPorts:
+        - ports:
+            - port: "443"
+            - port: "8443"
+            - port: "636"
+            - port: "3636"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app

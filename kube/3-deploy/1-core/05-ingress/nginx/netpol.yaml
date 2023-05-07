@@ -1,0 +1,77 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ingress-nginx-default
+  namespace: ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: ingress-nginx
+      app.kubernetes.io/name: ingress-nginx
+  ingress:
+    # all ingress-nginx traffic
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+    # allow all ingress traffic outside cluster
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+            - port: "443"
+    # allow traffic from external-proxy-x
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: external-proxy-x
+      toPorts:
+        - ports:
+            - port: "80"
+            - port: "443"
+            - port: "8443"
+    # allow traffic from CloudFlare's cloudflared tunnel
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: cloudflared
+            app.kubernetes.io/name: cloudflared
+            io.kubernetes.pod.namespace: cloudflare
+      toPorts:
+        - ports:
+            - port: "443"
+  egress:
+    # allow egress to all owned/controlled resources outside cluster
+    - toFQDNs:
+        - matchPattern: "*.${DNS_MAIN}"
+        - matchPattern: "*.${DNS_SHORT}"
+    - toCIDRSet:
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
+      toPorts:
+        - ports:
+            - port: "80"
+            - port: "443"
+            - port: "9000"
+            - port: "9443"
+            - port: "8086"
+    # allow ingress-nginx traffic
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+    # allow egress to all pods, except pods in core namespaces that don't need ingress controllers
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: NotIn
+              values:
+                - kube-system
+                - flux-system
+                - rook-ceph
+    # allow egress to hubble-ui (2023-05-07: no kube-system netpols planned)
+    - toServices:
+        - k8sService:
+            serviceName: hubble-ui
+            namespace: kube-system
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: hubble-ui
+            io.kubernetes.pod.namespace: kube-system
