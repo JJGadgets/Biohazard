@@ -1,0 +1,146 @@
+version:
+    name: velociraptor
+    version: 0.6.8-2
+    commit: 02edb7d
+    build_time: "2023-03-27T02:28:58Z"
+    install_time: 1683495915
+    ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/4528050753
+    compiler: go1.20.2
+Client:
+    server_urls:
+        - https://${APP_DNS_VELOCIRAPTOR}/
+    ca_certificate: ENC[AES256_GCM,data:/dDaQNGXm0B/Qu1szTeTVI1SYnkeFzkMjZcOR2PmBIwN7QwjuPJlqztaWJwVtKqg9pP8SFw6fey9sMY1Wg6B/oQ98jQos10mzkJLhLULlxaajR05qATBl0AG+5Fyuqm/Gxp6kynoYoVjLvruhs1yxkvLL62DJrHS2oe9zKwYO7zoz7v/4W2SXemQ8wmYZqEufhRC5wsOWRYkXZBLBFmt5Sij/dmXuF7ZsXCri+R44BAKNn15r72JMe0NhvHda88puCjh6NjhjSlVFsa0L1ELDjoQb9tEjmJijLuPRxRFfAr0MR99454PL5T/lJZRThR9zWqDfeTHW9pQ3GAIvSPjEruUZzRKbMjYtszZfRVcfciS5FFp1APMWKSZi+RPj8WHqlDP4XYdjdo3en0+qe4a6DEwvCHgJIfqEJUqkBl645ZCh4biGv0nDVOeOblKSKNAHI1dcNREj4CbNVDge3Nt1olTtxLsCujJpdeCXuf1E2AeItvmXRUwCwA7xER7K15BKGNweSmvJkL2qclPgD+ymFk4shvnNgTV5KHRU3kE+mK+jx2EcZ5RMEBRsEcQOeUXrmVjFmRfwS5aslM6qV4/UkWgNqMPCkpkQsgP/d7a3Kh4EOIfs5rOgTZXmMabMD1nterlTTFNT+OIVAKr3Pnooc1hQrvJiwTkFKy/tWKYwNAbM4sMnWLZhRopUQRWgINzaohh5Jcu9XWHL1yqv6MzHeDIxHsLrUwahoUZK0YB8+TxfWGrUN0DN6t247+AiE5y23TUrBNXUfJeznOIGiD2ZJp2ieTSo/WcU4xQMEu7ZKWUZDnVRkAajm+xQVc1CuNKfcOo0zRHGFyqV2hKrIguwkIm+UMNVOSKu2bNaEwNMGhAeW0iVkNB/786JURU1k+UII9CG+9t1+Ii3nE7HmLvOifv3lUcJt+sGjpkJbsDaWHVG6k4FxzZfffL0wBdYQSgSWfr5bUV3QOF3QfT44cTVPZmFldVAF6DtAIAacgWKvtWyXOMSQCfkmNSP6IJYqfIvDn1pg8VCDNb1haqoxWTr0qzUJ6Y7KSeblX3UE8zl2EvZPB+o8ESrao8d/LtDX4sGN4ZG+Uw0lA3AqvkpZbXx0bmZpF6R5VexAXviQ/q8InipS9z2XsT3vkK1d5xgBi/CzFGcDdkwF0fpQ2Y3J63ACLcrTm3l5ksYCXzuuu9YZLUlgyRCOIrgCDzziQ+qE8zn0Ucic3iPTIM11IMYd8Oy1CO3t31tJ3s9IMWQrk9Up6xaXmK7CexvtaFbDQp2FREGtwye3yBQKNKH/f4M4rOVH4fO4qbA0UlX/DFcKUfeyBOJb2YQNZoedYgTNElcL2cHRbua1XkZDSQx5hxjT3cpunK7x2vneARtmwUSA7NBhJupSLdTun5uQuRzArBJT5k7Jt2RWsNqlN7HeX+rucvofo1C33gpl4OIGYEQoPhVdJ68J03RTmudD0usJ+kAtdgk4oRJJ22ErF/DXWDgW0mHR5ucOkOkWhsUxCHgcwxjvoeXBz2Y8HkdZfnf79PzbaGuLm3cWGYrfWmpdTSxGAyrXgubgL+uEjz6jQTzlxM1xA9FLB+pOMahbdR+JVcZ3DYpMXgwg==,iv:HaRjI485d4176KPDVFtzSZJse0ICgxMHzEYKgN9/O08=,tag:QLtOh+bbKR76Vng9Szsluw==,type:str]
+    nonce: ${SECRET_VELOCIRAPTOR_NONCE_CLIENT}
+    writeback_darwin: /etc/velociraptor.writeback.yaml
+    writeback_linux: /etc/velociraptor.writeback.yaml
+    writeback_windows: $ProgramFiles\Velociraptor\velociraptor.writeback.yaml
+    tempdir_windows: $ProgramFiles\Velociraptor\Tools
+    max_poll: 60
+    nanny_max_connection_delay: 600
+    windows_installer:
+        service_name: Velociraptor (${APP_DNS_VELOCIRAPTOR})
+        install_path: $ProgramFiles\Velociraptor\Velociraptor.exe
+        service_description: Velociraptor service (${APP_DNS_VELOCIRAPTOR})
+    darwin_installer:
+        service_name: com.velocidex.velociraptor
+        install_path: /usr/local/sbin/velociraptor
+    version:
+        name: velociraptor
+        version: 0.6.8-2
+        commit: 02edb7d
+        build_time: "2023-03-27T02:28:58Z"
+        install_time: 1683495915
+        ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/4528050753
+        compiler: go1.20.2
+    pinned_server_name: ${APP_DNS_VELOCIRAPTOR}
+    max_upload_size: 5242880
+    local_buffer:
+        memory_size: 52428800
+        disk_size: 1073741824
+        filename_linux: /var/tmp/Velociraptor_Buffer.bin
+        filename_windows: $TEMP/Velociraptor_Buffer.bin
+        filename_darwin: /var/tmp/Velociraptor_Buffer.bin
+API:
+    hostname: ${APP_DNS_VELOCIRAPTOR}
+    bind_address: 127.0.0.1
+    bind_port: 8001
+    bind_scheme: tcp
+    pinned_gw_name: GRPC_GW
+GUI:
+    bind_address: 0.0.0.0
+    bind_port: 8889
+    base_path: /gui
+    use_plain_http: true
+    gw_certificate: ENC[AES256_GCM,data:2JvQgBQ//sjlFaL0xVlldDR0wbWGUqRHXZxa4Kn+r/jtzOVnTAvl5QnpvA89Xk9JnS6CkGNdJ3HjEGyMrUniuANQkIwtR1jXq6nC7GkZMwRDTTWgKd+jERY0PsNY8V9xBYQL44pqkmFiYO31FlaoAxC/zO1WxC/fpoi5HZRDCvl+5/eLewOJfn86byagVZ1zMFsyqAApMnXCPHUgPhvrg5xv/MMcA5wgd0qCoCYI+aVd1jOzY1bcBUHaTzbKVQebKjXVx4m0vxx3HtEfXSRuEaJqbSYKtkOpdNt15mpgordOctWKYnX66UNjAucOhpihFsOyRDBa2AS1plAFyOBYYu+QR/QjppG25ngj7nsB+hreFvqcx0XT0UxLWFzs5WwWm1m0j7921RhVEaej/Nb52Kck0JklDiDgogyKyjJcbF8EGgSxhbU4wORlM3sZpNDdKFW3GZT+Yh9WfTWibdRvXWwbSIrRG8iCzu6kHDHzYTOS8KT7cxvQBddmyeoOrpPBSgiKOZQnkKGf2FdAZK1YRkLFP+XqEPxsHK+pjGyQEV0aGJvnw1E2/YGgvDYHhvuj7rsu8go2CTV7rFl3eCjOT9GqeukAm6ZJgGv9Oypl5FASDHH42nIOjDpMRmdrQJgs0mLsLj5cYdits3jJmU2gZm6bCjoJ4v2LFxTi9uYhAmp88k8LRh2pPO0WcOfg6s8OJRgs61nayVPnV1EdKt8PgGJ3LcCa/2jOUeRhMf6+/hPTtfrDVO90wsOPoZQzM1gDI2L/vNd5gYJJ3I3wj+p1yfWKEw6XDo7FwNabGaXarDAbJ0UEPXl7Ojn+iGndhydziRyGn1ICT4PBBgHy5fftL84wsBf7AUTWHk3utIqVQxz4yGFawVme7fqMACfi2AQ6dTbeeGC6OoLFoM+OQGti6SxW13KH5d0VoYHn0Ll+Y7AuqVPTnQ2Fa6BOkJRXSOtbkJ6UoscthcMnjFK7JtbTrJDxJrPGy+o5qU+AtDdjMbFnERHHhIBOnV2+vW7pCDPDX17iBQbsY5BuvpuDewXrvt1ZX88sCRCUiPwpYgPMM3kbDCy2YQeB6kGxPYWT0B+vYttcRob79zXZ4TOUHQjX2jYbj9+pw0pxIC98AJF/2RuKqd/NyrS79wJ8qV2bJLymT62xQ90UjDCvR7ifkKT+QZ7c5XCiyT0wrY0RWJrdLkwX4mWV6CpWH/fqoNZW5+BQzM4eDucESUbF2tK5v0iJUHv8inO4SL+8q6ZPTkVUzHo1D5EPeUWLm/YAfb3bnViMPeUlqs0X6ciBKoPPATKNUV9bJjFE8mZGqLOWF2YB473ghKvPuEr4/jo6gBBS1lDOmyEVxlXDIV+/Xn16ep/UVhFfJe4lDt9V2mlTcl1mXM8BaFOcZq1sL/aCE/n/+UZwjiOTI4CgQ5DCgiyqQ+Y2NPtgykVq3tw2Gx8217fpLhD2Ker/OaKXe75Ll+25wyYxe/vjHX5UGFs7Y5uS7ZWMqNwCPgdrk/ELHnlMKcVZ4bxZDJch/G+Ebh5LArqVPbR0TZhUAp7rwDWBDb1iJyyCQtVhhUWje0Iq31eLJYPk+MbJeBQf,iv:VN8NKipywC13wXn0a1PFYC/SQOTDHKPh7+4/62ZTSUo=,tag:YsA88j9Wnt/sf9QTrVEP0Q==,type:str]
+    gw_private_key: ENC[AES256_GCM,data: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,iv:ZhyRnFTFdxv9YxrMMcojvSr8SAZjmTpIsmktxG13f9w=,tag:i6PpBHmhrx9mRjRzRNHUNw==,type:str]
+    public_url: https://${APP_DNS_VELOCIRAPTOR}/
+    links:
+        - text: Documentation
+          url: https://docs.velociraptor.app/
+          icon_url: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MyIgaGVpZ2h0PSI2MyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTMgNjMiPjxwYXRoIGQ9Ik0yNyAzYy0zIDItMTMgOC0yMyAxMGw2IDMyYTEwMyAxMDMgMCAwIDAgMTcgMTZsNi01IDExLTExIDYtMzJDMzkgMTEgMzAgNSAyNyAzeiIgZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PHBhdGggZD0iTTI2IDBDMjMgMiAxMiA4IDAgMTBjMSA3IDUgMzIgNyAzNWExMTMgMTEzIDAgMCAwIDE5IDE4bDctNiAxMi0xMmMyLTMgNi0yOCA4LTM1QzQwIDggMjkgMiAyNiAwWm0wIDU1LTYtNC04LTktNS0yNnYtMWwyLTFjOC0xIDE2LTYgMTYtNmwxLTEgMSAxczggNSAxNyA2bDEgMXYxcy0zIDIzLTUgMjZsLTggOWMtMiAyLTQgNC02IDR6IiBmaWxsPSIjYWIwMDAwIiBmaWxsLW9wYWNpdHk9IjEiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjxwYXRoIGQ9Ik0zOSAxOWExMzQ3IDEzNDcgMCAwIDEtMTMgMjZoLTJMMTQgMTloM2wyIDEgMSAxdjFhMjUwIDI1MCAwIDAgMSA2IDE3IDUyODkgNTI4OSAwIDAgMCA5LTIwaDR6IiBmaWxsPSIjMDAwIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWRhc2hhcnJheT0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==
+          type: sidebar
+          new_tab: true
+    initial_users:
+        - name: ${SECRET_VELOCIRAPTOR_OIDC_INIT_USER}
+    authenticator:
+        type: OIDC
+        oidc_issuer: ${SECRET_VELOCIRAPTOR_OIDC_URL}
+        oauth_client_id: ${SECRET_VELOCIRAPTOR_OIDC_ID}
+        oauth_client_secret: ${SECRET_VELOCIRAPTOR_OIDC_SECRET}
+CA:
+    private_key: ENC[AES256_GCM,data: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,iv:doKrWiTgkym/uGx8ycLWrEuYqyu4QbzTJHwaX8G2Nb0=,tag:tBJ8GoANBCY++StU6aYzWQ==,type:str]
+Frontend:
+    hostname: ${APP_DNS_VELOCIRAPTOR}
+    bind_address: 0.0.0.0
+    bind_port: 8000
+    use_plain_http: true
+    certificate: ENC[AES256_GCM,data:9h1Zl9n0sltgHVD0WYQBE/IwMlUT0mA6o6nsPbPvt/Z1baXQWeTvJgzWu/sYDuhr0HiKFwNbAD52DwkcgpLxYH+F0dAkR7FYGNbEV5oOfrIHCIkljFpwkBaM96OCQpSz0OIZl8WXUNfn2q2jQb60aWo90cfH336wspWWQUpK9fP7G4XQ09OAMdi4+W80NADdB5BhMxGBhij9mVuPCMI/BVUVwCO4MWmuoUzFZlYY95xDwkMwuIFE4h4U/RIMJl5RGTI30+hOJ+eiw70OwbjgZjLGIYnpHz0Pl3Pa/RWQOlFosYNZnHpMnYMPPQzmw5/8R/Bej4sJNUzEJcs8U61ytGInv5tsbc+Gp7srU+25WKh6UnSzuacW2Jc83nFj8IwXff8G8fPwwSgl8gko/8mpJDZxMtJiZD4PuqSF7wcOOqEKEbzzhsoArS0YCYS9R3+NIw8o9Q49T1W5Wdrfwtw2DM1vAT2BmwfnNam0H9yQk3vaeaLdyUcHd9V/CgAWGzrf/MoXntAa8mLP7fVpmQ7C3X+ZbVf5sbzPSIf7wfBuzjjSruV7pQpFcgNhpvFwP9ZH2O7JNsIOejNm5bE26coYRQZW9MFW0v6+v+KHXVbv7Pzd7O+soqH+7t1fDxCmYgmKxstHY7hNkQElXWgL4W4XBRQBTOA6FRTWtYu5Vi6WAb815KFwtdJQ9oVUZRais+FhsjJ2PqhZQw6pk5Lmvhb/bpw5FNDAh8Vwbo4tXUXITo5Eht+dQTmzqjfZiCSshAQ7CsutaDYxg+YhTquEylkZ42nZjE1iSj5JYX9TEiGmG3VaV1N9oiyn5EfeYtawpM8q7NdceHcIaWwMcwvmNGOKxoh/Qsaz8vpqebYFIi9UUzunC7xMKe6mzUfxLnQRjo7AkztpaFh67F9JYPIub09t/hD9rbYkQQGzBj6TBsNFz7eG6sDQiQktvWF4A91IkrpyH+CknVYu9n796y2dePTFvv/ar5ky9RjgkQTAbG2GcrjJv8xpskm3aGvaNHZqLCX9GBkOLhaHWFRqkHXdj4ijYvb0l4BGbBMfbE/0oxK/ANqKVtSkGaVid5quNCOOvrRfLMSruPJqy0FyAs/+VyyLgW7c70jMzQ9AJpD+CYBrJm962iJjZ9R2pci63f6euyO0KhyRSc1OQxKQalrsIsaFXKIpSCDm3XL7UxS8bwbJVdFfpeCz24ICLLwsPJ0OYGxyCNYZA7PbZSGnyWdpoGnY5hUHyzUT5JXybUB0hK/W/7fmbmi7VVlYjVBGWqGc2VFRx7SttL+SGvhM5LKfRvdW+jxtUdsP3LiqB59QLSB4Elqpudc9L+4XhdEaskav8aQuCJLrva0SqyJQg88flruFyCi9neMO+tWDOUH4T4NHJsmejbu8VdgoGLoNUwHqaE+gwSWrtay1bx0tJGM3xm37LrGu0dPR8gtzNd23lW8Kc2X/lmBcE6WqkaaNRyNZvdSU6ay+xo3GIOS3nzY/B4J63ZzZyxL+XFDSKtB2zvrX/c8MAxsOaGmaXsEb2WhJ24TEUBQ/E8IIiOeAKqUVOHSOBpe8mbkULBJapqWRdWFQPsuMFXSPEgRt4M2tvzX/mgHGUguhwmOZvz6e7qmqoJBovsJ9+ys=,iv:SwMd/B9TYHKWcvPrfzPhIlHotjC8qE8ORtCrKXafsCI=,tag:7WncRZMSDHwcq8pLZ7SYbw==,type:str]
+    private_key: ENC[AES256_GCM,data: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,iv:zKwThrFYN7i945zMfh/LYqcwIjagvgfg1UwrWEkMHuM=,tag:owf1vT+gSihnkOOZVXDGeQ==,type:str]
+    # tls_certificate_filename: /cert/tls.crt
+    # tls_private_key_filename: /cert/tls.key
+    dyn_dns: {}
+    default_client_monitoring_artifacts:
+        - Generic.Client.Stats
+    GRPC_pool_max_size: 100
+    GRPC_pool_max_wait: 60
+    resources:
+        connections_per_second: 100
+        notifications_per_second: 30
+        max_upload_size: 10485760
+        expected_clients: 30000
+Datastore:
+    implementation: FileBaseDataStore
+    location: /persist
+    filestore_directory: /persist
+Logging:
+    output_directory: /persist/logs
+    separate_logs_per_component: true
+    debug:
+        disabled: true
+    info:
+        rotation_time: 604800
+        max_age: 31536000
+    error:
+        rotation_time: 604800
+        max_age: 31536000
+autocert_cert_cache: /persist
+Monitoring:
+    bind_address: 127.0.0.1
+    bind_port: 8003
+api_config: {}
+server_type: linux
+obfuscation_nonce: ${SECRET_VELOCIRAPTOR_NONCE_OBFUSCATION}
+defaults:
+    hunt_expiry_hours: 168
+    notebook_cell_timeout_min: 10
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDelFJd3c5Mmg4NFpOeXlm
+            dGxXbGZadUtZcmI4NWthM3BHMkEzKzZ2K2hNCjFrekNOUVkvTTJydlBFMTI1TWxj
+            MlVYcDY5b2F3cU43bXVCVDZXTWRTSmMKLS0tIG5Id0x1MmlzR01hOHR2ZS9ZRmRh
+            VDBXY0huNGtxLzlOR2l2ZjJmZU8wNE0Kh6FOpATFDFpduEbOGyJM5VfLfKkiuPpX
+            Wgoqx1yVg8rNwyF1jGfsmTP1HYad5j1coUsHYGGZdjK+qjqBxtPxUg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-05-07T23:59:43Z"
+    mac: ENC[AES256_GCM,data:uK4Kj9lYrZgUEk3x2Uz0ORIcFIWcY5RMAIE2QY6Xr11/Vz/N2BNk7F48CFR4GM0X8AJVdxZLQw2gs8XZPuGiGznsQxzg8jNf5YS/+VCZNLgHfTzwZZcfTT3Obv4lsnzNFKL5ipZSK2pf/C3fHmbGQa2DmNyLAO4QT1p6nTBn+Y0=,iv:wFMRsVAnfp4QDJWSxrPVKL0NymjBqZa4eF9xmW8MGoU=,tag:qFgDK+vXoT4jKcUL8HHvSw==,type:str]
+    pgp:
+        - created_at: "2023-05-07T23:59:42Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAoBgl+4M3bSMWPbwsXP5cBooC3L4/7HORuT/vUpoDxxgw
+            zsyoC6dRyJPV2MtWqKIytxcqfRrEZEKJ3C1EtNBsfCNYmCIgMvOzM6h7Qb5dGvEG
+            0l4B3CR96r7+QHXyyN7VmFflcn6YGjjHUfX+XXduR/k/GmHyJgW0HQ6PCpnvM0Yn
+            GL5Tg8QrQXbg/MbAaXojFDw3mdNVwloWhx/oFW4gOnxq9C6aGTURYOVbJbkDo3LG
+            =STf/
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(ca_certificate|gw_certificate|gw_private_key|private_key|certificate)$
+    version: 3.7.3

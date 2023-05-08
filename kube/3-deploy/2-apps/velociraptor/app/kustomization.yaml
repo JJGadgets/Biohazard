@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - hr.yaml
+  - netpol.yaml
+configMapGenerator:
+  - name: velociraptor-config
+    namespace: &app velociraptor
+    files:
+      - server.config.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+labels:
+  - pairs:
+      app.kubernetes.io/name: *app
+      app.kubernetes.io/instance: *app
