@@ -32,3 +32,8 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+    - toCIDRSet:
+        - cidr: "${IP_OLD_DOCKER}/32"
+      toPorts:
+        - ports:
+            - port: "443"
