@@ -26,3 +26,9 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # allow traffic to Authentik for OIDC
+    - toFQDNs:
+        - matchName: "${APP_DNS_AUTH}"
+      toPorts:
+        - ports:
+            - port: "443"
