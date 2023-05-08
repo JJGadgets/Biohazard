@@ -1,0 +1,37 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: k8s-gateway
+  namespace: dns
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: k8s-gateway
+      app.kubernetes.io/name: k8s-gateway
+  ingress:
+    - fromCIDRSet:
+        - cidr: ${IP_ROUTER_LAN_CIDR}
+        - cidr: "${IP_WG_USER_1_V4}"
+      toPorts:
+        - ports:
+            - port: "53"
+            - port: "1053"
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "53"
+            - port: "1053"
+  egress:
+    - toCIDRSet:
+        - cidr: ${IP_ROUTER_VLAN_K8S}/32
+        - cidr: 1.1.1.0/30
+        - cidr: 1.0.0.0/30
+      toPorts:
+        - ports:
+            - port: "53"
+            - port: "853"
+            - port: "443"
+    - toEntities:
+        - kube-apiserver
