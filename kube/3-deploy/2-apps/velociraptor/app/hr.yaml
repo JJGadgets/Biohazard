@@ -30,10 +30,10 @@ spec:
           coredns.io/hostname: "${APP_DNS_VELOCIRAPTOR}"
         ports:
           http:
-            port: &http 8000
-            protocol: TCP
-          gui:
             port: &gui 8889
+            protocol: TCP
+          frontend:
+            port: &frontend 8000
             protocol: TCP
     ingress:
       main:
@@ -52,7 +52,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  port: *http
+                  port: *frontend
         tls:
           - hosts:
               - *host
