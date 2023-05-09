@@ -1,0 +1,29 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: 1-core-db-pg-app
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/09-db/pg/app
+  dependsOn: []
+  healthChecks:
+    - name: cloudnative-pg
+      namespace: cnpg
+      kind: HelmRelease
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: 1-core-db-pg-cluster
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/1-core/09-db/pg/cluster
+  dependsOn:
+    - 1-core-db-pg-app
+  healthChecks:
+    - name: pg-default
+      namespace: pg
+      kind: Cluster
+      apiVersion: postgresql.cnpg.io/v1

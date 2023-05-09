@@ -1,0 +1,9 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: pg-default-s3
+  namespace: pg
+spec:
+  store: biohazard
+  displayName: "pg-default"

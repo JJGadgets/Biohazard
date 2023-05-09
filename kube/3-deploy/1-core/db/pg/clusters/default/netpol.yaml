@@ -1,0 +1,45 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pg-default
+  namespace: &app pg
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # allow pods marked with db label to connect
+    - fromEndpoints:
+        - matchLabels:
+            db: pg-default
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "5432"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # connect to Rook-Ceph RGW/S3 object store in-cluster
+    - toServices:
+        - k8sServiceSelector:
+            selector:
+              matchLabels:
+                rook_object_store: "${CLUSTER_NAME_LOWER}"
+            namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+    - toEndpoints:
+        - matchLabels:
+            rook_object_store: "${CLUSTER_NAME_LOWER}"
+            io.kubernetes.pod.namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"

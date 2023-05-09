@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: pg-default-superuser
+    namespace: pg
+type: Opaque
+stringData:
+    username: ENC[AES256_GCM,data:StfEhX0x2D/LI4/RcCTD25+Rg+A2ZamTVnTGf2DKEHGcg4gxms803lqM8/9gjs1V10YFEUX9hQwotz1GFSb84MXLhRtslE8tzkfxfuiHf9KoZ6rSiu4r5BADCWvLQyN9XvOWGKnXRgtK9CiPG/O3ea1viEfCO9+YgxGLU+tdCjieFEyCUO0Q8b8jLDxRPuqIfP9ohWxBSJ4+/wAZctHG7w==,iv:MPKMw2uIe7hBVQYboMMjJQxeghBm4fa7pHDGOORSRIY=,tag:XGi+NQgy8662mLMNJKJ3Lg==,type:str]
+    password: ENC[AES256_GCM,data:lrf/v/QaPRse6kvOF88UV79R/8qHQ26VvYl46NzGu2l9YX0BY7fGfoYKQyQpVOklqGeILTK4ONN9mcZJ+oqS5Y7Iz8z0L8IWDSDkp676gB5K5wHtO5IoJh05KCFSYOdbJ2Rf1JB/KAHlxaFXMla+2bymM9ogsY1qDphC71gPZp7BaC0YO6A1u2s2KT8zTWW7VeaH4KAKaeCC8o5O5D1NM5xHSRzoBK2d/wFgbWSVJhliSVSlXa26fd+Xb4I9nb866k4eGgrmAP1fmFpyCk4j6F4t6GzDbNPhoUIyAnZ5Bl43C6J744JqdeMc0GQWN2hIpnMJMH/f2qUqUaaKONs7//3/SiNr+tVvaLUbBA==,iv:ZSvquCbRyKmJ/y8A+JxG3ppoc7E3m2++pEokGJFEQWs=,tag:GsQW8UrJGlbWVsSipeS1lg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBsWG5INnRSaE1VdEhiOHEr
+            djRYanlKL2t6YXNQRVFHdGFjcC9XOXRwR0U0CjNkVHZ4Smw3Wm9EZHpRQ3lPNllv
+            b01PdVFpRnVLTDJxaFRiWU54UzNuNHMKLS0tIG1leFA2ZFJTdEVBd3dORGx3djZ6
+            alJiUEFkVkhDOTZGRExVSU9aMERzMnMKJA+7zadyK0feckVVZQ/jTvgESJY4Mh2f
+            7RAy6fQxNvFPxZhPLUMrO+ps3WrbtoXHKsb7bdc1YSbIc+aZQ/jqJg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-05-09T23:23:29Z"
+    mac: ENC[AES256_GCM,data:Mh7RwAO7EAH6cYo2HxbJl+egwSmyzcwXTpj2bwP2v0bfFn/bZsWIOgUOpUt0RBFAAv5d9UN60EQm+CX8x4tfc7mZhtmjsDkHwhMP1kcT73viojpx/Gyld9N1v4GIezNPk0vj1jFSdU6jn4tFC1FKQHF17sBZZmAcWrHj+JTS6QU=,iv:Xg8kAQTkKwmkv/JLj8GHgacv33WKd6vdi54gm+WwsOs=,tag:/6q2+DSEHnE9jIhaJ42fcA==,type:str]
+    pgp:
+        - created_at: "2023-05-09T23:06:45Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DAAAAAAAAAAASAQdAnWoqiCIRlvqIz3HYI8e1wxJuZSjiXQCIrP0UDpgVEAIw
+            qAufuy78r2Jlns6DRj6OeF/shIr5H2gx/LYXuEO5gzR6uSWrRLYaqq6nMFRTpbeI
+            0l4BlZUGzO0BHk7+JqfYL801tGpDy1GsSG2GMEd8zwd88T8DkHK3yTlZa8NovuRg
+            XjnNIOOwi2HWBoArAjmdNkuBZaFo7QuAAQlVfmeBdOcqWYchj0OQISuQWpvZJFEn
+            =MhK7
+            -----END PGP MESSAGE-----
+          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
+    encrypted_regex: ^(NETBIRD_AUTH_AUDIENCE|NETBIRD_AUTH_CLIENT_ID|NETBIRD_AUTH_DEVICE_AUTH_CLIENT_ID|NETBIRD_AUTH_OIDC_CONFIGURATION_ENDPOINT|NETBIRD_DOMAIN|NETBIRD_MGMT_DNS_DOMAIN|WHOOGLE_CONFIG_URL|ZT_ALLOW_MANAGEMENT_FROM|ZU_CONTROLLER_ENDPOINT|ZU_DEFAULT_PASSWORD|ZU_DEFAULT_USERNAME|addresses|clusterDomain|commonName|config.yaml|data|dnsNames|dnsZones|domain|email|externalIPs|host|hosts|ip|ipv4NativeRoutingCIDR|k8sServiceHost|loadBalancerIP|my-asn|nameservers|peer-address|peer-asn|secretName|stringData|whitelist-source-range)$
+    version: 3.7.3
