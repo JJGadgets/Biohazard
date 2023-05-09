@@ -5,7 +5,7 @@ metadata:
   name: 1-core-db-pg-app
   namespace: flux-system
 spec:
-  path: ./kube/3-deploy/1-core/09-db/pg/app
+  path: ./kube/3-deploy/1-core/db/pg/app
   dependsOn: []
   healthChecks:
     - name: cloudnative-pg
@@ -16,12 +16,12 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: 1-core-db-pg-cluster
+  name: 1-core-db-pg-clusters-default
   namespace: flux-system
 spec:
-  path: ./kube/3-deploy/1-core/09-db/pg/cluster
+  path: ./kube/3-deploy/1-core/db/pg/clusters/default
   dependsOn:
-    - 1-core-db-pg-app
+    - name: 1-core-db-pg-app
   healthChecks:
     - name: pg-default
       namespace: pg

@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- s3.yaml
+- superuser.sops.yaml
+- netpol.yaml
+- cluster.yaml
+- scheduledbackup.yaml
