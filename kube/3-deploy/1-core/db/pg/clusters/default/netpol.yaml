@@ -26,6 +26,14 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # CNPG webhook
+    - toServices:
+        - k8sService:
+            serviceName: cnpg-webhook-service
+            namespace: cnpg
+      toPorts:
+        - ports:
+            - port: "443"
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:

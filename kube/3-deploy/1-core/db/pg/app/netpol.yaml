@@ -11,10 +11,17 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # allow webhook
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9443"
   egress:
     # same namespace
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # allow access to apiserver
     - toEntities:
         - kube-apiserver
