@@ -26,16 +26,16 @@ spec:
       wal:
         compression: bzip2
         maxParallel: 8
-      destinationPath: s3://pg-default-v1/
+      destinationPath: s3://pg-default/
       endpointURL: http://rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc:6953
       serverName: pg-default-v1
       s3Credentials:
         accessKeyId:
           name: pg-default-s3
-          key: AccessKey
+          key: AWS_ACCESS_KEY_ID
         secretAccessKey:
           name: pg-default-s3
-          key: SecretKey
+          key: AWS_SECRET_ACCESS_KEY
 
 #  # RECOVERY
 #  bootstrap:
