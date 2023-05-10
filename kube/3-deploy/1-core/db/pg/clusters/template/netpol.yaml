@@ -20,9 +20,10 @@ spec:
             app.kubernetes.io/instance: cloudnative-pg
             app.kubernetes.io/name: cloudnative-pg
   egress:
-    # # allow access to apiserver
-    # - toEntities:
-    #     - kube-apiserver
+    # allow access to apiserver
+    # this is needed for initdb and calling back to operator
+    - toEntities:
+        - kube-apiserver
     # same namespace
     - toEndpoints:
         - matchLabels:
