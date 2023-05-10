@@ -24,6 +24,8 @@ spec:
         - matchExpressions:
             - key: cnpg.io/cluster
               operator: Exists
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
     # allow access to apiserver
     - toEntities:
         - kube-apiserver
