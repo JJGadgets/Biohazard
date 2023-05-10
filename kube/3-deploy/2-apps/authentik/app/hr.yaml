@@ -62,16 +62,16 @@ spec:
     envValueFrom:
       AUTHENTIK_POSTGRESQL__NAME:
         secretKeyRef:
-          key: pg-authentik-app
-          name: username
+          name: pg-authentik-app
+          key: username
       AUTHENTIK_POSTGRESQL__USER:
         secretKeyRef:
-          key: pg-authentik-app
-          name: username
+          name: pg-authentik-app
+          key: username
       AUTHENTIK_POSTGRESQL__PASSWORD:
         secretKeyRef:
-          key: pg-authentik-app
-          name: password
+          name: pg-authentik-app
+          key: password
     redis:
       # TODO: change to non-Shitnami Redis
       enabled: true
