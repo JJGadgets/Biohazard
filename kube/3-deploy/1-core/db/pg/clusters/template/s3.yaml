@@ -1,0 +1,9 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: "pg-${PG_APP_NAME}-s3"
+  namespace: "${PG_APP_NS}"
+spec:
+  bucketName: "pg-${PG_APP_NAME}"
+  storageClassName: "rgw-${CLUSTER_NAME_LOWER}"

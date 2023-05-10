@@ -1,0 +1,60 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: "pg-${PG_APP_NAME}"
+  namespace: "${PG_APP_NS}"
+spec:
+  instances: 3
+  imageName: "ghcr.io/cloudnative-pg/postgresql:${PG_CONFIG_VERSION}"
+  primaryUpdateStrategy: unsupervised # let k8s handle upgrades
+  primaryUpdateMethod: restart # prefer downtime of image download from registry instead of switching primary instance (promote a standby instance to primary) when current primary pod is updated
+  storage:
+    size: "${PG_CONFIG_SIZE}"
+    storageClass: block
+  superuserSecret:
+    name: "pg-${PG_APP_NAME}-superuser"
+  postgresql:
+    parameters:
+      max_connections: "600"
+      shared_buffers: 256MB # amount of RAM to use for data caching, https://postgresqlco.nf/doc/en/param/shared_buffers/
+  monitoring:
+    enablePodMonitor: true
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        compression: bzip2
+        maxParallel: 8
+      destinationPath: "s3://pg-${PG_APP_NAME}/"
+      endpointURL: "http://rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc:6953"
+      serverName: "pg-${PG_APP_NAME}-v${PG_DB_REBUILD}"
+      s3Credentials:
+        accessKeyId:
+          name: "pg-${PG_APP_NAME}-s3"
+          key: AWS_ACCESS_KEY_ID
+        secretAccessKey:
+          name: "pg-${PG_APP_NAME}-s3"
+          key: AWS_SECRET_ACCESS_KEY
+
+#  # RECOVERY
+#  bootstrap:
+#    recovery:
+#      source: &previous-cluster postgres-v0
+#  ## Note: externalClusters is needed when recovering from an existing cnpg cluster
+#  externalClusters:
+#    - name: *previous-cluster
+#      barmanObjectStore:
+#        wal:
+#          compression: bzip2
+#          maxParallel: 8
+#        destinationPath: s3://pg-default-v1/
+#        endpointURL: http://rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc:6953
+#        serverName: pg-default-v1
+#        s3Credentials:
+#          accessKeyId:
+#            name: s3-ceph-pg-default
+#            key: AccessKey
+#          secretAccessKey:
+#            name: s3-ceph-pg-default
+#            key: SecretKey
