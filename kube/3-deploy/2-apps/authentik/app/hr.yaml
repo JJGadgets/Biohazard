@@ -1,0 +1,81 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app authentik
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: *app
+      version: 2023.4.1
+      sourceRef:
+        name: *app
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    replicas: 1
+    worker:
+      replicas: 1
+    image:
+      repository: ghcr.io/goauthentik/server
+      tag: 2023.4.1
+      digest: "sha256:96c9f29247a270524056aff59f1bcb7118ef51d14b334b67ab2b75e8df30e829"
+      pullPolicy: IfNotPresent
+    ingress:
+      enabled: true
+      ingressClassName: "nginx"
+      annotations:
+        external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
+        external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      hosts:
+        - host: &host "${APP_DNS_AUTH}"
+          paths:
+            - path: "/"
+              pathType: Prefix
+      tls:
+        - hosts:
+            - *host
+    authentik:
+      log_level: debug
+      secret_key: "${SECRET_AUTHENTIK_SECRET_KEY}"
+      email:
+        host: "${SECRET_AUTHENTIK_SMTP_HOST}"
+        port: 587
+        username: "${SECRET_AUTHENTIK_SMTP_USERNAME}"
+        password: "${SECRET_AUTHENTIK_SMTP_PASSWORD}"
+        use_tls: true
+        from: "${SECRET_AUTHENTIK_SMTP_FROM}"
+      outposts:
+        container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
+      error_reporting:
+        enabled: false
+        send_pii: false
+      postgresql:
+        host: 'pg-authentik-rw'
+        port: 5432
+        name: ""
+        user: ""
+        password: ""
+      redis:
+        host: '{{ .Release.Name }}-redis-master'
+    envValueFrom:
+      AUTHENTIK_POSTGRESQL__NAME:
+        secretKeyRef:
+          key: pg-authentik-app
+          name: username
+      AUTHENTIK_POSTGRESQL__USER:
+        secretKeyRef:
+          key: pg-authentik-app
+          name: username
+      AUTHENTIK_POSTGRESQL__PASSWORD:
+        secretKeyRef:
+          key: pg-authentik-app
+          name: password
+    redis:
+      # TODO: change to non-Shitnami Redis
+      enabled: true
+      architecture: standalone
+      image:
+        tag: 6.2.10-debian-11-r13
+    blueprints: []
