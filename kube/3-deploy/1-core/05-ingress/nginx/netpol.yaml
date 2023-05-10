@@ -20,7 +20,22 @@ spec:
       toPorts:
         - ports:
             - port: "80"
+          rules:
+            http:
+              - {}
+        - ports:
             - port: "443"
+          terminatingTLS:
+            secret:
+              namespace: "ingress"
+              name: "short-domain-tls"
+          originatingTLS:
+            secret:
+              namespace: "ingress"
+              name: "short-domain-tls"
+          rules:
+            http:
+              - {}
     # allow traffic from external-proxy-x
     - fromEndpoints:
         - matchLabels:
@@ -66,6 +81,37 @@ spec:
                 - kube-system
                 - flux-system
                 - rook-ceph
+    # connect to Rook-Ceph RGW/S3 object store in-cluster
+    - toServices:
+        - k8sServiceSelector:
+            selector:
+              matchLabels:
+                rook_object_store: "${CLUSTER_NAME_LOWER}"
+            namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            rook_object_store: "${CLUSTER_NAME_LOWER}"
+            io.kubernetes.pod.namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
     # allow egress to hubble-ui (2023-05-07: no kube-system netpols planned)
     - toServices:
         - k8sService:
@@ -75,3 +121,27 @@ spec:
         - matchLabels:
             k8s-app: hubble-ui
             io.kubernetes.pod.namespace: kube-system
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "ingress-nginx-webhook"
+spec:
+  endpointSelector: {}
+  egress:
+    # ingress controller webhook admission
+    - toServices:
+        - k8sService:
+            serviceName: ingress-nginx-controller-admission
+            namespace: ingress
+      toPorts:
+        - ports:
+            - port: "443"
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
+      toPorts:
+        - ports:
+            - port: "8443"
