@@ -14,9 +14,6 @@ spec:
     # allow webhook
     - fromEntities:
         - cluster
-      toPorts:
-        - ports:
-            - port: "9443"
   egress:
     # same namespace
     - toEndpoints:

@@ -28,6 +28,9 @@ spec:
             app.kubernetes.io/instance: cloudnative-pg
             app.kubernetes.io/name: cloudnative-pg
   egress:
+    # allow access to apiserver
+    - toEntities:
+        - kube-apiserver
     # same namespace
     - toEndpoints:
         - matchLabels:
@@ -40,6 +43,12 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+    # connect to operator
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: cnpg
+            app.kubernetes.io/instance: cloudnative-pg
+            app.kubernetes.io/name: cloudnative-pg
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:
@@ -50,6 +59,13 @@ spec:
       toPorts:
         - ports:
             - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
     - toEndpoints:
         - matchLabels:
             rook_object_store: "${CLUSTER_NAME_LOWER}"
@@ -57,5 +73,10 @@ spec:
       toPorts:
         - ports:
             - port: "6953"
-    - toEntities:
-        - kube-apiserver
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
