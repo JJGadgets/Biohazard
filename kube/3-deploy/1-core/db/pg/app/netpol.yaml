@@ -22,6 +22,11 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # allow access to all CNPG cluster pods
+    - toEndpoints:
+        - matchExpressions:
+            - key: cnpg.io/cluster
+              operator: Exists
     # allow access to apiserver
     - toEntities:
         - kube-apiserver

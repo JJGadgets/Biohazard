@@ -21,6 +21,12 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
+    # allow operator to connect
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: cnpg
+            app.kubernetes.io/instance: cloudnative-pg
+            app.kubernetes.io/name: cloudnative-pg
   egress:
     # same namespace
     - toEndpoints:
