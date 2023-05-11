@@ -1,0 +1,19 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &app authentik
+  namespace: *app
+spec:
+  secretName: authentik-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+  commonName: ${DNS_MAIN}
+  dnsNames:
+    - ${DNS_MAIN}
+    - '*.${DNS_MAIN}'
+    - '*.tinfoil.${DNS_MAIN}'

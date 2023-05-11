@@ -22,6 +22,8 @@ spec:
       tag: 2023.4.1
       digest: "sha256:96c9f29247a270524056aff59f1bcb7118ef51d14b334b67ab2b75e8df30e829"
       pullPolicy: IfNotPresent
+    service:
+      port: 9000
     ingress:
       enabled: true
       ingressClassName: "nginx"
@@ -36,6 +38,7 @@ spec:
       tls:
         - hosts:
             - *host
+          secretName: authentik-tls
     authentik:
       log_level: debug
       secret_key: "${SECRET_AUTHENTIK_SECRET_KEY}"
