@@ -37,6 +37,10 @@ spec:
       PG_DB_LCOLLATE: "en_US.utf8"
       PG_DB_LCTYPE: "en_US.utf8"
   healthChecks:
+    - name: pg-authentik-s3
+      namespace: authentik
+      kind: ObjectBucketClaim
+      apiVersion: objectbucket.io/v1alpha1
     - name: pg-authentik
       namespace: authentik
       kind: Cluster
