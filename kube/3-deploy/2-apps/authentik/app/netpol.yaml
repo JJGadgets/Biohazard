@@ -21,12 +21,16 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-            - port: "80"
-              protocol: UDP
-            - port: "9100"
+            - port: "443"
               protocol: TCP
             - port: "9100"
-              protocol: UDP
+              protocol: TCP
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+            - port: "9300"
+              protocol: TCP
           rules:
             http:
               - {}
@@ -35,3 +39,28 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # proxy DNS requests
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*"
+    # allow Duo
+    - toFQDNs:
+        - matchPattern: api-*.duosecurity.com
+      toPorts:
+        - ports:
+            - port: "443"
+    # allow AWS SES
+    - toFQDNs:
+        - matchPattern: email-smtp.*.amazonaws.com
+      toPorts:
+        - ports:
+            - port: "587"
+
