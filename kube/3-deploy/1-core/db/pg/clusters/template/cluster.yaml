@@ -20,6 +20,16 @@ spec:
       shared_buffers: 256MB # amount of RAM to use for data caching, https://postgresqlco.nf/doc/en/param/shared_buffers/
   monitoring:
     enablePodMonitor: true
+  # configured according to below link to allow customizing of initdb via Flux
+  # https://cloudnative-pg.io/documentation/1.20/bootstrap/#configure-the-application-database
+  bootstrap:
+    initdb:
+      dataChecksums: true
+      database: "${PG_DB_NAME:=app}"
+      owner: "${PG_DB_USER:=app}"
+      encoding: "${PG_DB_ENCODING:=UTF8}"
+      localeCollate: "${PG_DB_LCOLLATE:=C}"
+      localeCType: "${PG_DB_LCTYPE:=C}"
   backup:
     retentionPolicy: 30d
     barmanObjectStore:

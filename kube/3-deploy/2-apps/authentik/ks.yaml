@@ -27,11 +27,15 @@ spec:
     - name: 1-core-db-pg-app
   postBuild:
     substitute:
-      PG_APP_NAME: "authentik"
-      PG_APP_NS: "authentik"
-      PG_DB_REBUILD: "v1"
-      PG_CONFIG_VERSION: "12.14-12"
+      PG_APP_NAME: &app "authentik"
+      PG_APP_NS: *app
+      PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"
+      PG_DB_REBUILD: "v1"
+      PG_DB_NAME: *app
+      PG_DB_USER: *app
+      PG_DB_LCOLLATE: "en_US.utf8"
+      PG_DB_LCTYPE: "en_US.utf8"
   healthChecks:
     - name: pg-authentik
       namespace: authentik
