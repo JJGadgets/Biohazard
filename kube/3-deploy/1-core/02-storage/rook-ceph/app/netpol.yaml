@@ -35,6 +35,7 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: *app
+      rook_object_store: "${CLUSTER_NAME_LOWER}"
   ingress:
     # ingress controller
     - fromEndpoints:
@@ -45,10 +46,19 @@ spec:
       toPorts:
         - ports:
             - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
     # allow CNPG to connect
     - fromEndpoints:
         - matchExpressions:
             - key: cnpg.io/cluster
+              operator: Exists
+            - key: io.kubernetes.pod.namespace
               operator: Exists
       toPorts:
         - ports:
