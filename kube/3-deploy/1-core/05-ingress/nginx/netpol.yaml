@@ -27,17 +27,9 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
-          terminatingTLS:
-            secret:
-              namespace: "ingress"
-              name: "short-domain-tls"
-          originatingTLS:
-            secret:
-              namespace: "ingress"
-              name: "short-domain-tls"
-          rules:
-            http:
-              - {}
+            - port: "443"
+              protocol: UDP
+
     # allow traffic from external-proxy-x
     - fromEndpoints:
         - matchLabels:
