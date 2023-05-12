@@ -20,11 +20,13 @@ spec:
       toPorts:
         - ports:
             - port: "80"
+              protocol: TCP
           rules:
             http:
               - {}
         - ports:
             - port: "443"
+              protocol: TCP
           terminatingTLS:
             secret:
               namespace: "ingress"
@@ -55,6 +57,9 @@ spec:
         - ports:
             - port: "443"
   egress:
+    # allow access to kube-apiserver to get Ingress/etc resources and push updates
+    - toEntities:
+        - kube-apiserver
     # allow egress to all owned/controlled resources outside cluster
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"
@@ -121,6 +126,17 @@ spec:
         - matchLabels:
             k8s-app: hubble-ui
             io.kubernetes.pod.namespace: kube-system
+    # DNS proxy to kube-dns, DNS L7 visibility
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+          rules:
+            dns:
+              - matchPattern: "*"
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
