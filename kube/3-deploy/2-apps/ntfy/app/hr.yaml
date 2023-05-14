@@ -19,22 +19,23 @@ spec:
     image:
       repository: docker.io/binwiederhier/ntfy
       tag: v2.4.0@sha256:be59d51a83e265d5945bf8b1e2286b0ab4de6d61f0348e057155533995bbcc40
-    args: ["serve"]
+    command: ["ntfy", "serve"]
     env:
       TZ: "${CONFIG_TZ}"
       NTFY_BASE_URL: "https://${APP_DNS_NTFY}"
+      NTFY_LISTEN_HTTP: ":8080"
       NTFY_BEHIND_PROXY: "true"
       NTFY_UPSTREAM_BASE_URL: "https://ntfy.sh"
       NTFY_AUTH_FILE: "/authfile/user.db"
       NTFY_AUTH_DEFAULT_ACCESS: "write-only"
-      NTFY_SMTP_SERVER_LISTEN: ":25"
+      NTFY_SMTP_SERVER_LISTEN: ":2525"
       NTFY_SMTP_SERVER_DOMAIN: "${APP_DNS_NTFY_MX}"
       NTFY_SMTP_SERVER_ADDR_PREFIX: "pushme-"
     service:
       main:
         ports:
           http:
-            port: 80
+            port: 8080
       smtp:
         enabled: true
         type: LoadBalancer
@@ -45,6 +46,7 @@ spec:
         ports:
           smtp:
             port: 25
+            targetPort: 2525
             protocol: TCP
     ingress:
       main:
