@@ -47,6 +47,7 @@ spec:
         ingressClassName: nginx
         annotations:
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: *host
             paths:
