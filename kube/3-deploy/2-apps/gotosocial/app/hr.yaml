@@ -1,0 +1,82 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app gotosocial
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    controller:
+      type: statefulset
+    image:
+      repository: docker.io/superseriousbusiness/gotosocial
+      tag: 0.8.1-amd64@sha256:69c995a8c3551142c7ff34082bd439f39f02c1240d032f83ef740750de9e44d9
+    env:
+      TZ: "${CONFIG_TZ}"
+      GTS_APPLICATION_NAME: "The JJGadgets Hut"
+      GTS_HOST: &host "social.jjgadgets.tech"
+      GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
+      GTS_PROTOCOL: "https"
+      GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+      GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+    envFrom:
+      - secretRef:
+          name: gotosocial-pg
+      - secretRef:
+          name: gotosocial-oidc
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid 568
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: OnRootMismatch
+    persistence:
+      config:
+        enabled: false
+      media:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/gotosocial"
+        mountPath: *media
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: gotosocial-pg
