@@ -60,13 +60,20 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: OnRootMismatch
+    volumeClaimTemplates:
+      - name: media
+        mountPath: *media
+        accessMode: ReadWriteOnce
+        size: 50Gi
+        storageClass: block
     persistence:
       config:
         enabled: false
-      media:
-        enabled: true
-        existingClaim: gotosocial-nas-media
-        mountPath: *media
+      # TODO: https://github.com/superseriousbusiness/gotosocial/issues/950
+      # media:
+      #   enabled: true
+      #   existingClaim: gotosocial-nas-media
+      #   mountPath: *media
     resources:
       requests:
         cpu: 10m
