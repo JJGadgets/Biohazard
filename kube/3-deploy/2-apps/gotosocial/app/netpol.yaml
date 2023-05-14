@@ -37,3 +37,21 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app gotosocial
+  namespace: pg
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: pg-default
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: *app
+            io.kubernetes.pod.namespace: *app
+      toPorts:
+        - ports:
+            - port: "5432"

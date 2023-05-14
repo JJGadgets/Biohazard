@@ -33,6 +33,8 @@ spec:
           name: gotosocial-pg
       - secretRef:
           name: gotosocial-oidc
+    podLabels:
+      db: pg-default
     service:
       main:
         ports:
@@ -63,9 +65,7 @@ spec:
         enabled: false
       media:
         enabled: true
-        type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/gotosocial"
+        existingClaim: gotosocial-nas-media
         mountPath: *media
     resources:
       requests:

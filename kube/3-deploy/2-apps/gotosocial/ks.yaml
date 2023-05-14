@@ -2,11 +2,21 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
+  name: gotosocial-deps
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/gotosocial/deps
+  dependsOn: []
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
   name: gotosocial-app
   namespace: flux-system
 spec:
   path: ./kube/3-deploy/2-apps/gotosocial/app
   dependsOn:
+    - name: gotosocial-deps
     - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-internal
     - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
     - name: cloudflare-tunnel

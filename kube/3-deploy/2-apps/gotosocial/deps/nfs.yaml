@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gotosocial-nas-media
+spec:
+  storageClassName: gotosocial-nas-media
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_PERSIST_K8S}/gotosocial"
+  mountOptions:
+    - nfsvers=4.2
+    - tcp
+    - intr
+    - soft
+    - noatime
+    - nodiratime
+    - nocto
+    - nconnect=8
+    - rsize=131072
+    - wsize=131072
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gotosocial-nas-media
+  namespace: gotosocial
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: gotosocial-nas-media
+  resources:
+    requests:
+      storage: 1Mi
