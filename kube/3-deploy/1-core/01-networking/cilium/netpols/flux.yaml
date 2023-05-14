@@ -1,0 +1,41 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app flux-system
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - {}
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # allow all to public Internet
+    - toEntities:
+        - world
+    # TODO: confirm if these are the only ports Flux uses, as well as what FQDNs Flux talks to (GitHub only? then why 443?)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "22"
+        - ports:
+            - port: "443"
+    # k8s apiserver
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            component: apiserver
+            provider: kubernetes
+    # ingress controller webhook admission
+    - toServices:
+        - k8sService:
+            serviceName: ingress-nginx-controller-admission
+            namespace: ingress
+      toPorts:
+        - ports:
+            - port: "443"
