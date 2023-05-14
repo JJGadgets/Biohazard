@@ -55,6 +55,7 @@ spec:
         tls:
           - hosts:
               - *host
+            secretName: gotosocial-tls
     podSecurityContext:
       runAsUser: &uid 568
       runAsGroup: *uid
@@ -87,3 +88,5 @@ spec:
         envFrom:
           - secretRef:
               name: gotosocial-pg
+          - secretRef:
+              name: gotosocial-pg-superuser
