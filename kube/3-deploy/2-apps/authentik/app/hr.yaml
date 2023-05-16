@@ -31,8 +31,8 @@ spec:
         external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
         external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         # WebSockets (used for frontend to backend connection)
-        nginx.ingress.kubernetes.io/proxy-read-timeout: 3600
-        nginx.ingress.kubernetes.io/proxy-send-timeout: 3600
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
       hosts:
         - host: &host "${APP_DNS_AUTH}"
           paths:
