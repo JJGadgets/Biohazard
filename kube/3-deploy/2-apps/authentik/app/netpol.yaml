@@ -31,9 +31,6 @@ spec:
               protocol: TCP
             - port: "9300"
               protocol: TCP
-          rules:
-            http:
-              - {}
   egress:
     # same namespace
     - toEndpoints:

@@ -21,9 +21,6 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-          rules:
-            http:
-              - {}
     # allow SMTP to Ntfy notification
     - fromEndpoints:
         - matchLabels:

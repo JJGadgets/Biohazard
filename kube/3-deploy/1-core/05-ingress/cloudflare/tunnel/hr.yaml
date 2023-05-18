@@ -51,6 +51,10 @@ spec:
             ingress:
               - hostname: "cftest.${DNS_SHORT}"
                 service: hello_world
+              - hostname: "social.jjgadgets.tech"
+                service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
+                originRequest:
+                  originServerName: "social.jjgadgets.tech"
               - hostname: "*.${DNS_SHORT}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
