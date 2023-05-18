@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: 1-flux-webhook
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/flux-system/webhook
+  dependsOn:
+    - name: cloudflare-tunnel
+    - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-external
+    - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx

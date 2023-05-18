@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webhook-receiver
+  namespace: flux-system
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: &host "${APP_DNS_FLUX_WEBHOOK}"
+    http:
+      paths:
+      - pathType: Prefix
+        path: /hook/
+        backend:
+          service:
+            name: webhook-receiver
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - *host
