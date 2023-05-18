@@ -69,6 +69,20 @@ spec:
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: ingress-nginx
+    # allow Flux notification-controller ingress
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: flux-system
+            app: notification-controller
+      toPorts:
+        - ports:
+            - port: "9292"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - {}
     # allow egress to all pods, except pods in core namespaces that don't need ingress controllers
     - toEndpoints:
         - matchExpressions:
