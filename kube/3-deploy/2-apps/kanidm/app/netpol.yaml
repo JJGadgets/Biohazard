@@ -20,9 +20,25 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
             - port: "8443"
+              protocol: TCP
+          # terminatingTLS:
+          #   secret:
+          #     name: "kanidm-tls"
+          #     namespace: *app
+          # originatingTLS:
+          #   secret:
+          #     name: "kanidm-tls"
+          #     namespace: *app
+          # rules:
+          #   http:
+          #     - {}
+        - ports:
             - port: "636"
+              protocol: TCP
             - port: "3636"
+              protocol: TCP
     - fromCIDRSet:
         - cidr: "${IP_ROUTER_LAN_CIDR}"
         - cidr: "${IP_WG_USER_1_V4}"
@@ -30,9 +46,25 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
             - port: "8443"
+              protocol: TCP
+          # terminatingTLS:
+          #   secret:
+          #     name: "kanidm-tls"
+          #     namespace: *app
+          # originatingTLS:
+          #   secret:
+          #     name: "kanidm-tls"
+          #     namespace: *app
+          # rules:
+          #   http:
+          #     - {}
+        - ports:
             - port: "636"
+              protocol: TCP
             - port: "3636"
+              protocol: TCP
   egress:
     # same namespace
     - toEndpoints:
