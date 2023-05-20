@@ -33,6 +33,7 @@ spec:
         enabled: true
       extraArgs:
         default-ssl-certificate: ingress/short-domain-tls
+        default-backend-service: default-backend
       ingressClassByName: true
       nodeSelector:
         node-restriction.kubernetes.io/nodeType: main
@@ -43,6 +44,7 @@ spec:
         disable-access-log: "false"
         log-format-escape-json: "true"
         # hardening
+        custom-http-errors: 400,401,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510
         hsts-max-age: "31449600"
         hsts-preload: "true"
         ssl-protocols: TLSv1.3 TLSv1.2
