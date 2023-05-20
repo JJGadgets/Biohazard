@@ -20,7 +20,7 @@ spec:
       repository: public.ecr.aws/docker/library/busybox
       tag: 1.36.1-glibc
     command: ["busybox", "sh", "-c"]
-    args: ["wget 'https://jjgadgets.tech/error' -O /dev/shm/error.html && httpd -f -v -p 8080 -h /dev/shm"]
+    args: ["wget 'https://jjgadgets.tech/error.zstd' -O /dev/shm/index.html && httpd -f -v -p 8080 -h /dev/shm"]
     service:
       main:
         ports:
