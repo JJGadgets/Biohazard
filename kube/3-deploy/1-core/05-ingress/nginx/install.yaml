@@ -33,7 +33,7 @@ spec:
         enabled: true
       extraArgs:
         default-ssl-certificate: ingress/short-domain-tls
-        default-backend-service: default-backend
+        default-backend-service: ingress/default-backend
       ingressClassByName: true
       nodeSelector:
         node-restriction.kubernetes.io/nodeType: main
