@@ -1,0 +1,40 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: default-backend
+  namespace: ingress
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controller:
+      type: daemonset
+    image:
+      repository: public.ecr.aws/docker/library/busybox
+      tag: 1.36.1-glibc
+    command: ["busybox", "sh", "-c"]
+    args: ["wget 'https://jjgadgets.tech/error.zstd' -O /dev/shm/index.html && httpd -f -v -p 8080 -h /dev/shm"]
+    service:
+      main:
+        ports:
+          http:
+            port: 80
+            targetPort: 8080
+    podSecurityContext:
+      runAsUser: &uid 404200
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 256Mi

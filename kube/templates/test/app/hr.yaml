@@ -8,10 +8,10 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.4.0
+      version: 1.5.0
       sourceRef:
-        kind: HelmRepository
         name: bjw-s
+        kind: HelmRepository
         namespace: flux-system
   values:
     controller:
@@ -25,12 +25,11 @@ spec:
       main:
         enabled: true
         type: LoadBalancer
-        externalTrafficPolicy: Local
+        # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
+        externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_${APPNAME}}"
           "io.cilium/lb-ipam-ips": "${APP_IP_${APPNAME}}"
-        externalIPs:
-          - "${APP_IP_${APPNAME}}"
         ports:
           http:
             enabled: true
@@ -153,3 +152,11 @@ spec:
           name: data
         - mountPath: /config
           name: config
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: gotosocial-pg
+          - secretRef:
+              name: gotosocial-pg-superuser
