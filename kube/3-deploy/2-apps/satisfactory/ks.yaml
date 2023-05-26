@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: satisfactory-app
+  namespace: flux-system
+spec:
+  path: ./kube/3-deploy/2-apps/satisfactory/app
+  dependsOn:
+    - name: ${CLUSTER_NAME_LOWER}-1-core-02-storage-rook-ceph
+    - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-internal
+    #- name: ${CLUSTER_NAME_LOWER}-2-apps-volsync
+  healthChecks:
+    - name: satisfactory
+      namespace: satisfactory
+      kind: HelmRelease
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1
