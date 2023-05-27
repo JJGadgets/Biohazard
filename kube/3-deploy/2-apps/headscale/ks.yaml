@@ -7,10 +7,9 @@ metadata:
 spec:
   path: ./kube/3-deploy/2-apps/headscale/app
   dependsOn:
-    - name: ${CLUSTER_NAME_LOWER}-1-core-02-storage-rook-ceph
     - name: ${CLUSTER_NAME_LOWER}-1-core-04-dns-internal
     - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
-    #- name: ${CLUSTER_NAME_LOWER}-2-apps-volsync
+    - name: 1-core-db-pg-clusters-default
   healthChecks:
     - name: headscale
       namespace: headscale
