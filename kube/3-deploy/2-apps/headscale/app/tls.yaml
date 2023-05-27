@@ -1,0 +1,19 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &app headscale
+  namespace: *app
+spec:
+  secretName: "headscale-tls"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
+  commonName: "${DNS_VPN}"
+  dnsNames:
+    - "${DNS_VPN}"
+    - "*.${DNS_VPN}"

@@ -1,0 +1,174 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app headscale
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controller:
+      replicas: 1
+    image:
+      repository: ghcr.io/juanfont/headscale
+      tag: 0.22.3@sha256:aadf29a875bb2ffdf6579869e5759935f7a64b9fd19fcea9d5385c5d7220dc7b
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_HEADSCALE}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_HEADSCALE}"
+        ports:
+          http:
+            port: &http 8080
+          relay:
+            enabled: true
+            port: 3478
+            protocol: UDP
+          metrics:
+            enabled: true
+            port: &metrics 9090
+            protocol: TCP
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          # https://github.com/kubernetes/ingress-nginx/issues/6728
+          nginx.ingress.kubernetes.io/server-snippet: |
+            proxy_ssl_name ${APP_DNS_HEADSCALE};
+            proxy_ssl_server_name on;
+        hosts:
+          - host: &host "${APP_DNS_HEADSCALE}"
+            paths:
+              - path: /metrics
+                pathType: Prefix
+                service:
+                  port: *metrics
+              - path: /
+                pathType: Prefix
+                service:
+                  port: *http
+        tls:
+          - hosts:
+              - *host
+            secretName: headscale-tls
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_HEADSCALE}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: headscale-config
+        subPath: config.yaml
+        mountPath: /etc/headscale/config.yaml
+        readOnly: true
+      headscale-privkey:
+        enabled: true
+        type: secret
+        name: headscale-privkey
+        subPath: private.key
+        mountPath: /etc/headscale/private.key
+        readOnly: true
+      headscale-noisekey:
+        enabled: true
+        type: secret
+        name: headscale-noisekey
+        subPath: noise_private.key
+        mountPath: /etc/headscale/noise_private.key
+        readOnly: true
+      tls-fullchain:
+        enabled: true
+        type: secret
+        name: headscale-tls
+        subPath: tls.crt
+        mountPath: /tls/fullchain.pem
+        readOnly: true
+      tls-privkey:
+        enabled: true
+        type: secret
+        name: headscale-tls
+        subPath: tls.key
+        mountPath: /tls/privkey.pem
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.yaml: |-
+            server_url: https://${APP_DNS_HEADSCALE}:443
+            listen_addr: 0.0.0.0:8080
+            metrics_listen_addr: 0.0.0.0:9090
+            grpc_listen_addr: 127.0.0.1:50443
+            grpc_allow_insecure: false
+            private_key_path: /etc/headscale/private.key
+            noise:
+              private_key_path: /etc/headscale/noise_private.key
+            db_type: postgres
+            db_host: pg-default-rw.pg.svc.cluster.local.
+            db_port: 5432
+            db_name: ${SECRET_HEADSCALE_PG_DBNAME}
+            db_user: ${SECRET_HEADSCALE_PG_USER}
+            db_pass: ${SECRET_HEADSCALE_PG_PASS}
+            db_ssl: true
+            tls_cert_path: "/tls/fullchain.pem"
+            tls_key_path: "/tls/privkey.pem"
+            log:
+              format: json
+              level: info
+            logtail:
+              enabled: false
+            #acl_policy_path: "/etc/headscale/acl.hujson"
+            ip_prefixes:
+              - ${CONFIG_HEADSCALE_IPV4}
+            dns_config:
+              magic_dns: true
+              base_domain: jj
+              override_local_dns: true
+              nameservers:
+                - ${IP_HOME_DNS}
+              domains:
+                - jj
+            randomize_client_port: false
+            oidc:
+              only_start_if_oidc_is_available: true
+              issuer: "${SECRET_HEADSCALE_OIDC_URL}"
+              client_id: "${SECRET_HEADSCALE_OIDC_ID}"
+              client_secret: "${SECRET_HEADSCALE_OIDC_SECRET}"
+              scope: ["openid", "profile", "email"]
+              extra_params:
+                domain_hint: ${DNS_MAIN}
+              allowed_domains:
+                - ${APP_DNS_AUTH}
+                - ${DNS_MAIN}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: headscale-pg-superuser

@@ -1,0 +1,91 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app headscale
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # ingress controller
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+            - port: "9090"
+              protocol: TCP
+            - port: "9090"
+              protocol: UDP
+    # allow ingress
+    - fromEntities:
+        - world
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+            - port: "3478"
+              protocol: UDP
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # TODO: temporary to study egress traffic
+    - toEntities:
+        - world
+    # L7 DNS inspection & proxy
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+    - toCIDRSet:
+        - cidr: "${IP_HOME_DNS}/32"
+      toPorts:
+        - ports:
+            - port: "53"
+          rules:
+            dns:
+              - matchPattern: "*"
+    # allow Postgres default cluster
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: pg-default
+            io.kubernetes.pod.namespace: pg
+      toPorts:
+        - ports:
+            - port: "5432"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app headscale
+  namespace: pg
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: pg-default
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: *app
+            io.kubernetes.pod.namespace: *app
+      toPorts:
+        - ports:
+            - port: "5432"
