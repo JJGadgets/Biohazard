@@ -71,6 +71,15 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
+    # OIDC
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "443"
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
