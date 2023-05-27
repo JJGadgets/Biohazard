@@ -10,6 +10,17 @@ spec:
       app.kubernetes.io/instance: ingress-nginx
       app.kubernetes.io/name: ingress-nginx
   ingress:
+    # allow kube-apiserver for webhooks
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
     # all ingress-nginx traffic
     - fromEndpoints:
         - matchLabels:
