@@ -27,6 +27,22 @@ spec:
               protocol: TCP
             - port: "9090"
               protocol: UDP
+    # Cloudflare tunnel
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: cloudflare
+            app.kubernetes.io/instance: cloudflared
+            app.kubernetes.io/name: cloudflared
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+            - port: "9090"
+              protocol: TCP
+            - port: "9090"
+              protocol: UDP
     # allow ingress
     - fromEntities:
         - world
