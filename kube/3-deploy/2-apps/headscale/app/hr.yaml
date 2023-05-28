@@ -145,6 +145,7 @@ spec:
             #acl_policy_path: "/etc/headscale/acl.hujson"
             ip_prefixes:
               - ${CONFIG_HEADSCALE_IPV4}
+            randomize_client_port: false
             dns_config:
               magic_dns: true
               base_domain: jj
@@ -153,13 +154,28 @@ spec:
                 - ${IP_HOME_DNS}
               domains:
                 - jj
-            randomize_client_port: false
+            derp:
+              server:
+                enabled: true
+                region_id: 999
+                region_code: "Biohazard"
+                region_name: "Home-Relay"
+                stun_listen_addr: "0.0.0.0:3478"
+                urls: []
+              paths: []
+              auto_update_enabled: false
+              update_frequency: 24000h
+            disable_check_updates: true
+            ephemeral_node_inactivity_timeout: 30m
+            node_update_check_interval: 10s
             oidc:
-              only_start_if_oidc_is_available: true
+              only_start_if_oidc_is_available: false
               issuer: "${SECRET_HEADSCALE_OIDC_URL}"
               client_id: "${SECRET_HEADSCALE_OIDC_ID}"
               client_secret: "${SECRET_HEADSCALE_OIDC_SECRET}"
               scope: ["openid", "profile", "email"]
+              expiry: 30d
+              use_expiry_from_token: false
               extra_params:
                 domain_hint: ${DNS_MAIN}
               allowed_domains:
