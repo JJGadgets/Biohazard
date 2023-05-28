@@ -73,7 +73,7 @@ spec:
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
-            proxy_ssl_name ${APP_DNS_${APPNAME}};
+            proxy_ssl_name social.jjgadgets.tech;
             proxy_ssl_server_name on;
         hosts:
           - host: *host
