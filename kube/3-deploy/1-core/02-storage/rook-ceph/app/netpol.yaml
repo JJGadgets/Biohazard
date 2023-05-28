@@ -55,9 +55,28 @@ spec:
               protocol: UDP
     # allow CNPG to connect
     - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
         - matchExpressions:
             - key: cnpg.io/cluster
               operator: Exists
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # allow pods with rgw label to connect
+    - fromEndpoints:
+        - matchLabels:
+            s3/bucket: rgw-${CLUSTER_NAME_LOWER}
+        - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
       toPorts:
