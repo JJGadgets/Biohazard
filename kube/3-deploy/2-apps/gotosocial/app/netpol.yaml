@@ -37,6 +37,37 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
+    # connect to Rook-Ceph RGW/S3 object store in-cluster
+    - toServices:
+        - k8sServiceSelector:
+            selector:
+              matchLabels:
+                rook_object_store: "${CLUSTER_NAME_LOWER}"
+            namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            rook_object_store: "${CLUSTER_NAME_LOWER}"
+            io.kubernetes.pod.namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

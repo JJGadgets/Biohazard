@@ -14,8 +14,12 @@ spec:
         name: bjw-s
         namespace: flux-system
   values:
+    global:
+      fullnameOverride: *app
+      labels:
+        s3/bucket: rgw-${CLUSTER_NAME_LOWER}
     controller:
-      type: statefulset
+      replicas: 1
     image:
       repository: docker.io/superseriousbusiness/gotosocial
       tag: 0.8.1-amd64@sha256:69c995a8c3551142c7ff34082bd439f39f02c1240d032f83ef740750de9e44d9
@@ -27,7 +31,21 @@ spec:
       GTS_PROTOCOL: "https"
       GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
       GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
-      GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+      #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+      GTS_STORAGE_BACKEND: "s3"
+      GTS_STORAGE_S3_PROXY: "true"
+      GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc.cluster.local.:6953"
+      GTS_STORAGE_S3_BUCKET: "gotosocial-media"
+      GTS_STORAGE_S3_ACCESS_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: gotosocial-media-s3
+            key: AWS_ACCESS_KEY_ID
+      GTS_STORAGE_S3_SECRET_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: gotosocial-media-s3
+            key: AWS_SECRET_ACCESS_KEY
     envFrom:
       - secretRef:
           name: gotosocial-pg
@@ -62,12 +80,12 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: OnRootMismatch
-    volumeClaimTemplates:
-      - name: media
-        mountPath: *media
-        accessMode: ReadWriteOnce
-        size: 50Gi
-        storageClass: block
+    # volumeClaimTemplates:
+    #   - name: media
+    #     mountPath: *media
+    #     accessMode: ReadWriteOnce
+    #     size: 50Gi
+    #     storageClass: block
     persistence:
       config:
         enabled: false
