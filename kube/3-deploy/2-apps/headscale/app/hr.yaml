@@ -110,6 +110,11 @@ spec:
         subPath: tls.key
         mountPath: /tls/privkey.pem
         readOnly: true
+      socket:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        mountPath: /var/run/headscale
     configMaps:
       config:
         enabled: true
