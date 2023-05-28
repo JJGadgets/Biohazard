@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.4.0
+      version: 1.5.0
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -18,7 +18,7 @@ spec:
       type: daemonset
     image:
       repository: cloudflare/cloudflared
-      tag: 2023.4.2
+      tag: 2023.5.1
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
@@ -55,6 +55,10 @@ spec:
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "social.jjgadgets.tech"
+              - hostname: "${APP_DNS_HEADSCALE}"
+                service: https://headscale.headscale.svc.cluster.local.:8080
+                originRequest:
+                  originServerName: "${APP_DNS_HEADSCALE}"
               - hostname: "*.${DNS_SHORT}"
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
