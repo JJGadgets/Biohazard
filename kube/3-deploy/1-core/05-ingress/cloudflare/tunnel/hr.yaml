@@ -52,7 +52,7 @@ spec:
               - hostname: "cftest.${DNS_SHORT}"
                 service: hello_world
               - hostname: "social.jjgadgets.tech"
-                service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
+                service: https://gotosocial.gotosocial.svc.cluster.local.:8080
                 originRequest:
                   originServerName: "social.jjgadgets.tech"
               - hostname: "${APP_DNS_HEADSCALE}"

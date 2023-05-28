@@ -1,0 +1,66 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cloudflare-tunnel
+  namespace: &app cloudflare
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: cloudflared
+      app.kubernetes.io/name: cloudflared
+  egress:
+    # ingress controller
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+    # Headscale
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: &hs headscale
+            app.kubernetes.io/instance: *hs
+            app.kubernetes.io/name: *hs
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # GoToSocial
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: &gts gotosocial
+            app.kubernetes.io/instance: *gts
+            app.kubernetes.io/name: *gts
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # allow egress to connect to Cloudflare network
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "7844"
+              protocol: UDP
+    # L7 DNS inspection & proxy
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+          rules:
+            dns:
+              - matchPattern: "*"
