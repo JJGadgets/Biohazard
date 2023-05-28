@@ -29,8 +29,11 @@ spec:
       GTS_HOST: &host "social.jjgadgets.tech"
       GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
       GTS_PROTOCOL: "https"
+      GTS_PORT: "8080"
       GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
       GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
+      GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
       #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
       GTS_STORAGE_BACKEND: "s3"
       GTS_STORAGE_S3_PROXY: "true"
@@ -67,6 +70,11 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          # https://github.com/kubernetes/ingress-nginx/issues/6728
+          nginx.ingress.kubernetes.io/server-snippet: |
+            proxy_ssl_name ${APP_DNS_${APPNAME}};
+            proxy_ssl_server_name on;
         hosts:
           - host: *host
             paths:
@@ -95,6 +103,20 @@ spec:
       #   enabled: true
       #   existingClaim: gotosocial-nas-media
       #   mountPath: *media
+      tls-fullchain:
+        enabled: true
+        type: secret
+        name: gotosocial-tls
+        subPath: tls.crt
+        mountPath: /tls/fullchain.pem
+        readOnly: true
+      tls-privkey:
+        enabled: true
+        type: secret
+        name: gotosocial-tls
+        subPath: tls.key
+        mountPath: /tls/privkey.pem
+        readOnly: true
     resources:
       requests:
         cpu: 10m
