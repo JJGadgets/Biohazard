@@ -21,9 +21,16 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-          rules:
-            http:
-              - {}
+    # Cloudflare Tunnel
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: cloudflare
+            app.kubernetes.io/instance: cloudflared
+            app.kubernetes.io/name: cloudflared
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
   egress:
     # same namespace
     - toEndpoints:
