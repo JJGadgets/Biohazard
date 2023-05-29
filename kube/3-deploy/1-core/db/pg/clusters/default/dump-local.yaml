@@ -46,6 +46,9 @@ spec:
                 # backup all databases with `pg_dumpall` rather than specifying which databases to backup
                 - name: "POSTGRES_CLUSTER"
                   value: "TRUE"
+                # for `pg_dumpall -l <db>`, used to "connect to for dumping global objects and discovering what other databases should be dumped. If not specified, the postgres database will be used" (https://www.postgresql.org/docs/15/app-pg-dumpall.html)
+                - name: "POSTGRES_DB"
+                  value: "postgres"
                 # disable default -Z6 since not `pg_dumpall` compatible
                 # DROP backed_up_databases IF EXISTS
                 - name: "POSTGRES_EXTRA_OPTS"
