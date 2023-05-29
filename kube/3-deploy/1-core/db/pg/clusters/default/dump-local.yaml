@@ -1,0 +1,61 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-default-dump-local
+  namespace: pg
+  labels:
+    postgresql: &pg pg-default
+    app.kubernetes.io/instance: *pg
+    app.kubernetes.io/name: pg-dump-local
+spec:
+  schedule: '0 17 * * *'
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      timeZone: "Asia/Singapore"
+      template:
+        spec:
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: &uid ${UID_NAS_BACKUPS_K8S}
+            runAsGroup: *uid
+            fsGroup: *uid
+          volumes:
+            - name: nas-backups
+              nfs:
+                server: "${IP_TRUENAS}"
+                path: "${PATH_NAS_BACKUPS_K8S}/pg/default"
+          containers:
+            - name: postgres-backup
+              image: docker.io/prodrigestivill/postgres-backup-local:15@sha256:b3905c58ab8c1fb7596e2f90f059c65d61c2a813232e6eca4a3f5ce019bfbd61
+              imagePullPolicy: IfNotPresent
+              command:
+                - "/backup.sh"
+              volumeMounts:
+                - name: nas-backups
+                  mountPath: /backups
+              env:
+                # backup all databases with `pg_dumpall` rather than specifying which databases to backup
+                - name: "POSTGRES_CLUSTER"
+                  value: "TRUE"
+                # disable default -Z6 since not `pg_dumpall` compatible
+                # DROP backed_up_databases IF EXISTS
+                - name: "POSTGRES_EXTRA_OPTS"
+                  value: "--clean --if-exists"
+                # use read-only service since backups don't require writes
+                - name: "POSTGRES_HOST"
+                  value: "pg-default-ro.pg.svc.cluster.local"
+                # use superuser credentials
+                - name: "POSTGRES_USER"
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-default-superuser
+                      key: username
+                - name: "POSTGRES_PASSWORD"
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-default-superuser
+                      key: password

@@ -6,36 +6,5 @@ metadata:
 type: Opaque
 stringData:
     # username MUST BE 'postgres'!
-    username: postgres
-    password: ENC[AES256_GCM,data:pcKmrRBS7YZNgLRCT5bJobWTGdfkyd5Hi8daCFP+fi1vRib9YuiYauZk3FwJ6kAfqXfLAZLU+KrorTBLAxHdqTMqG3TLyi9SqCLTfkD8A39RhobcwGG+onUDVhC3VSXtggrEhW3MsEIzWGTZb6JNXFnB7xzB504I+DYhXLk26cFo/enZGjQKldRIVbPdmpsmfv4ORjgd81KaN6+6l044Mq1LXxI3B0wLplsYNOfMG0Oe5ECicWkDpS/kTrMxc8FhebZYxiLJGglQ1f1jT4BKq4NMn3Q+/rHN5VCdFAz+XXFCL9wIT1gtabKfA1bCV1xvhEgC3vv/gCZNUCcEWSMrEh9RKpD1elUgTAGIIQ==,iv:e53in0Fbsk8pO+wGnxRZ6a6OjtYFcjrgH9ZqCAy58ks=,tag:QIEiS8dP0gdJOnFck1/wlw==,type:str]
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1u57l4s400gqstc0p485j4646cemntufr0pcyp32yudklsp90xpmszxvnkj
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUWUpNeTJZOC8wMU5TbXhM
-            VGoyVk02MVMzNUFzOWlLWXlsY0wwM1NxRkZNCkFLQTF1eUU2ZE5YZTI3V0M2V1JJ
-            MG5hT0ZiRGoyY0FpSTdwZ1NIcXhENlUKLS0tIE9zVHgwTjFyWjJBcklSNkZ6SUlv
-            bHAybVhCTmptcmdsbnNMeVBXS3RGMlkKFEPZplt/5Wo05vOh5LU9uZB2BF9bc5bC
-            c9GkfyatWtRy9yTw61VRdj0dIAjoqIbrQ9RpjJHvG6Srb1gRYqEcpA==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-05-10T01:08:28Z"
-    mac: ENC[AES256_GCM,data:jT0+5bybB1A8ucGD3lFgENZNbMLq92v0VWL30hBtKjHUL51KqkoLluHCCZ5ZhVR3JeGDL8KHEHALUM5s3UMGe8CxJUNYCyPnmCTA6gt8S6HjHPLk/DRFVc4GSc0jlNyHEYLx8O1CUDW1i2I1F6EVVGhHmKLiVW/VVZKSq6eNYE4=,iv:p0gr2UAad/t4pGo0noove6Bzc+mtv+NmJN3R4V8Ueag=,tag:BimHk8X24NmAyb9i73DgDA==,type:str]
-    pgp:
-        - created_at: "2023-05-10T01:07:51Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DAAAAAAAAAAASAQdAl4ztZsofuElxlOTlNjUufG0H5TYPBQpk7CFZHS0tzlcw
-            UZe8nDhu+wL0O7sG6m3mUojDGr78eZKGIMByqNjM/bZPGUSfZh/6UdIIA2hh/cHA
-            0l4Bx7DhuISd0fnkfYszKURURuCN9P+JH7tuQSjPbU3kE1ZusCyzQUXRxUVseHol
-            1oGiV0dyt/BBdFdHC5JXBiWFDlGfSsJyexJ5gojKxPN5BeoUhGXY8D+XYZPb+BoW
-            =7HMB
-            -----END PGP MESSAGE-----
-          fp: 31E70E5BC80C58AFF5DD649921AC5A1AC6E5B7F2
-    encrypted_regex: ^(password)$
-    version: 3.7.3
+    username: "postgres"
+    password: "${SECRET_PG_DEFAULT_SUPER_PASS}"

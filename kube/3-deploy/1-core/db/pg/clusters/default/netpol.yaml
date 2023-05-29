@@ -80,3 +80,46 @@ spec:
               protocol: TCP
             - port: "8080"
               protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pg-default-dump-local
+  namespace: pg
+spec:
+  endpointSelector:
+    matchLabels:
+      postgresql: &pg pg-default
+      app.kubernetes.io/instance: *pg
+      app.kubernetes.io/name: pg-dump-local
+  ingress:
+    - {}
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_TRUENAS}/32"
+      toPorts:
+        - ports:
+            - port: "2049"
+              protocol: TCP
+            - port: "2049"
+              protocol: UDP
+    - toServices:
+        - k8sServiceSelector:
+            selector:
+              matchLabels:
+                postgresql: *pg
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "5432"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            postgresql: *pg
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "5432"
+              protocol: UDP
