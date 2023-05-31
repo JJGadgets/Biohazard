@@ -34,45 +34,21 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_HEADSCALE}"
           "io.cilium/lb-ipam-ips": "${APP_IP_HEADSCALE}"
+          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         ports:
           http:
-            port: &http 8080
+            enabled: true
+            port: 443
+            targetPort: 8080
+            protocol: HTTPS
           relay:
             enabled: true
             port: 3478
             protocol: UDP
           metrics:
             enabled: true
-            port: &metrics 9090
+            port: 9090
             protocol: TCP
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: nginx
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-          # https://github.com/kubernetes/ingress-nginx/issues/6728
-          nginx.ingress.kubernetes.io/server-snippet: |
-            proxy_ssl_name ${APP_DNS_HEADSCALE};
-            proxy_ssl_server_name on;
-        hosts:
-          - host: &host "${APP_DNS_HEADSCALE}"
-            paths:
-              - path: /metrics
-                pathType: Prefix
-                service:
-                  port: *metrics
-              - path: /
-                pathType: Prefix
-                service:
-                  port: *http
-        tls:
-          - hosts:
-              - *host
-            secretName: headscale-tls
     podSecurityContext:
       runAsUser: &uid ${APP_UID_HEADSCALE}
       runAsGroup: *uid
@@ -152,28 +128,29 @@ spec:
             randomize_client_port: false
             dns_config:
               magic_dns: true
-              base_domain: jj
+              base_domain: ${DNS_SHORT}
               override_local_dns: true
               nameservers:
                 - ${IP_HOME_DNS}
               domains:
-                - jj
+                - ${DNS_SHORT}
             derp:
               server:
                 enabled: true
                 region_id: 999
                 region_code: "Biohazard"
-                region_name: "Home-Relay"
+                region_name: "Biohazard-Home-Relay"
                 stun_listen_addr: "0.0.0.0:3478"
-                urls: []
+                urls:
+                  - https://controlplane.tailscale.com/derpmap/default
               paths: []
-              auto_update_enabled: false
-              update_frequency: 24000h
+              auto_update_enabled: true
+              update_frequency: 24h
             disable_check_updates: true
             ephemeral_node_inactivity_timeout: 30m
             node_update_check_interval: 10s
             oidc:
-              only_start_if_oidc_is_available: false
+              only_start_if_oidc_is_available: true
               issuer: "${SECRET_HEADSCALE_OIDC_URL}"
               client_id: "${SECRET_HEADSCALE_OIDC_ID}"
               client_secret: "${SECRET_HEADSCALE_OIDC_SECRET}"
@@ -190,7 +167,7 @@ spec:
         cpu: 10m
         memory: 128Mi
       limits:
-        memory: 6000Mi
+        memory: 1024Mi
     initContainers:
       01-init-db:
         image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
