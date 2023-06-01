@@ -1,0 +1,8 @@
+---
+version: "3"
+
+tasks:
+  get-all-watch:
+    aliases: [ga, fga, getall]
+    cmds:
+      - viddy -n1 flux get all -A || watch -n1 flux get all -A

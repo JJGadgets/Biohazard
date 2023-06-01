@@ -1,0 +1,88 @@
+---
+version: "3"
+
+vars:
+  CLUSTER: '{{.CLUSTER | default "biohazard"}}'
+  APPLY: '{{.APPLY | default "0"}}'
+
+tasks:
+  cluster-init-config:
+    aliases: [initcfg]
+    cmds:
+      - task: cluster-init-config-sops-decrypt
+        vars:
+          FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/vars.sops.env"
+          RESOURCETYPE: configmap
+          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+      - task: cluster-init-config-sops-decrypt
+        vars:
+          FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/secrets.sops.env"
+          RESOURCETYPE: secret
+          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+
+  cluster-init-config-sops-decrypt:
+    desc: Decrypt encrypted vars.sops.env and `k apply` to cluster as ConfigMap.
+    dir: '{{.ROOT_DIR}}'
+    vars:
+      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      FILE: '{{ or .FILE (fail "Missing FILE environment variable!") }}'
+      RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
+      KUSTOMIZATIONFILE: '{{.ROOT_DIR}}/.taskfiles/cluster/cluster-init-sops-apply-{{.RESOURCETYPE}}-kustomization.tmpl.yaml'
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    cmds:
+      - echo {{.APPLY}}
+      - sops exec-file {{.FILE}} "SOPSFILE={} task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-cd CLUSTER={{.CLUSTER}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}}"
+
+  cluster-init-config-cd:
+    desc: Change to SOPS exec-file directory.
+    vars:
+      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
+      SOPSFILE: '{{ or .SOPSFILE (fail "Missing SOPSFILE environment variable!") }}'
+      KUSTOMIZATIONFILE: '{{ or .KUSTOMIZATIONFILE (fail "Missing KUSTOMIZATIONFILE environment variable!") }}'
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    cmds:
+      - echo {{.APPLY}}
+      - SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname) task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-generate-kustomization CLUSTER={{.CLUSTER}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} SOPSFILE={{.SOPSFILE}} SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname)
+
+  cluster-init-config-generate-kustomization:
+    desc: Generate ConfigMap from .env file.
+    vars:
+      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
+      SOPSFILE: '{{ or .SOPSFILE (fail "Missing SOPSFILE environment variable!") }}'
+      SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
+      KUSTOMIZATIONFILE: '{{ or .KUSTOMIZATIONFILE (fail "Missing KUSTOMIZATIONFILE environment variable!") }}'
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    dir: '{{.SOPSDIR}}'
+    cmds:
+      - CLUSTER={{.CLUSTER}} FILE=$(echo {{.SOPSFILE}} | xargs basename) envsubst < <(cat {{.KUSTOMIZATIONFILE}}) > {{.SOPSDIR}}/kustomization.yaml
+      - task: cluster-init-config-build
+        vars:
+          SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
+          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+      - task: cluster-init-config-apply
+        vars:
+          SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
+          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+
+  cluster-init-config-build:
+    desc: Build Kustomize
+    vars:
+      SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    status:
+      - '[ {{.APPLY}} = 1 ]'
+    cmds:
+      - kustomize build {{.SOPSDIR}}
+
+  cluster-init-config-apply:
+    desc: Apply Kustomize
+    vars:
+      SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    preconditions:
+      - sh: '[ {{.APPLY}} = 1 ]'
+        msg: "Apply isn't enabled, will not apply!"
+    cmds:
+      - kubectl apply -k {{.SOPSDIR}}

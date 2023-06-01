@@ -1,0 +1,43 @@
+---
+version: "3"
+
+includes:
+  cluster:
+    aliases: [c]
+    taskfile: .taskfiles/cluster/Taskfile.dist.yaml
+  flux:
+    aliases: [f]
+    taskfile: .taskfiles/flux/Taskfile.dist.yaml
+  k8s:
+    aliases: [k]
+    taskfile: .taskfiles/k8s/Taskfile.dist.yaml
+  pulumi:
+    aliases: [pl]
+    taskfile: .taskfiles/pulumi/Taskfile.dist.yaml
+  talos:
+    aliases: [t]
+    taskfile: .taskfiles/talos/Taskfile.dist.yaml
+  volsync:
+    aliases: [vs]
+    taskfile: .taskfiles/volsync/Taskfile.dist.yaml
+
+tasks:
+  default:
+    silent: true
+    cmds: ["task -l"]
+  n:
+    desc: Create new folder and file within new folder at the same time.
+    vars:
+      d: '{{ or .d (fail "Dirname is required!") }}'
+      f: '{{ or .f (fail "Filename is required!") }}'
+    cmds:
+      - mkdir -p {{.d}}
+      - touch {{.d}}/{{.f}}
+  ne:
+    desc: Same as `n` task, but edits file as well.
+    vars:
+      d: '{{ or .d (fail "Dirname is required!") }}'
+      f: '{{ or .f (fail "Filename is required!") }}'
+    cmds:
+      - task: new
+      - $EDITOR {{.d}}/{{.f}}
