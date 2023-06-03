@@ -121,6 +121,8 @@ spec:
             paths:
               - path: *upload
                 pathType: Prefix
+              - path: /view
+                pathType: Prefix
         tls:
           - hosts:
               - *host
