@@ -31,6 +31,8 @@ spec:
             io.kubernetes.pod.namespace: default
             component: apiserver
             provider: kubernetes
+    - toEntities:
+        - kube-apiserver
     # ingress controller webhook admission
     - toServices:
         - k8sService:

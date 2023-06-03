@@ -1,5 +1,25 @@
 ---
 apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &pg pg-default
+spec:
+  endpointSelector:
+    matchLabels:
+      db.home.arpa/pg: *pg
+  egress:
+    - icmps:
+        - {}
+    # allow pods marked with db label to connect
+    - toEndpoints:
+        - matchLabels:
+            postgresql: *pg
+            io.kubernetes.pod.namespace: pg
+      toPorts:
+        - ports:
+            - port: "5432"
+---
+apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: pg-default
@@ -15,6 +35,15 @@ spec:
     - fromEndpoints:
         - matchLabels:
             db: pg-default
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "5432"
+    - fromEndpoints:
+        - matchLabels:
+            db.home.arpa/pg: pg-default
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists

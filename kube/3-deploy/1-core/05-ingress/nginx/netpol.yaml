@@ -80,6 +80,22 @@ spec:
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: ingress-nginx
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchLabels:
+            ingress.home.arpa/nginx: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+    # allow egress to all pods, except pods in core namespaces that don't need ingress controllers
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: NotIn
+              values:
+                - kube-system
+                - flux-system
+                - rook-ceph
     # allow Flux notification-controller ingress
     - toEndpoints:
         - matchLabels:
@@ -94,15 +110,6 @@ spec:
           rules:
             http:
               - {}
-    # allow egress to all pods, except pods in core namespaces that don't need ingress controllers
-    - toEndpoints:
-        - matchExpressions:
-            - key: io.kubernetes.pod.namespace
-              operator: NotIn
-              values:
-                - kube-system
-                - flux-system
-                - rook-ceph
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:
@@ -154,6 +161,23 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "ingress-to-ingress-nginx"
+spec:
+  description: "Allow pods that require ingress to allow traffic from ingress-nginx, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/nginx: allow
+  ingress:
+    # ingress controller webhook admission
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy

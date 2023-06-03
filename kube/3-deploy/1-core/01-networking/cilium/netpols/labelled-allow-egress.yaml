@@ -1,0 +1,72 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: apiserver
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-apiserver
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/apiserver: allow
+  egress:
+    - toEnities:
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-world
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/world: allow
+  egress:
+    - toEntities:
+        - world
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-world-https
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/world-https: allow
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-home-dns
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/home-dns: allow
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_HOME_DNS}/32"
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"

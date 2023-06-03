@@ -11,7 +11,7 @@ spec:
       app.kubernetes.io/name: k8s-gateway
   ingress:
     - fromCIDRSet:
-        - cidr: ${IP_ROUTER_LAN_CIDR}
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
         - cidr: "${IP_WG_USER_1_V4}"
       toPorts:
         - ports:
@@ -25,9 +25,10 @@ spec:
             - port: "1053"
   egress:
     - toCIDRSet:
-        - cidr: ${IP_ROUTER_VLAN_K8S}/32
-        - cidr: 1.1.1.0/30
-        - cidr: 1.0.0.0/30
+        - cidr: "${IP_ROUTER_VLAN_K8S}/32"
+        - cidr: "${IP_ROUTER_LAN}/32"
+        - cidr: "1.1.1.0/30"
+        - cidr: "1.0.0.0/30"
       toPorts:
         - ports:
             - port: "53"

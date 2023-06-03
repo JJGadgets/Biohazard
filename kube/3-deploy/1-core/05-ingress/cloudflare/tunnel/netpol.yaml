@@ -64,3 +64,19 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "ingress-to-cloudflare-tunnel"
+spec:
+  description: "Allow pods that require ingress to allow traffic from cloudflare-tunnel, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/cloudflare: allow
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: cloudflare
+            app.kubernetes.io/instance: cloudflared
+            app.kubernetes.io/name: cloudflared
