@@ -11,6 +11,4 @@ secretGenerator:
     envs:
       - ./vars.sops.env
 generatorOptions:
-  disableNameSuffixHash: false
-configurations:
-  - ./kustomizeconfig.yaml
+  disableNameSuffixHash: true

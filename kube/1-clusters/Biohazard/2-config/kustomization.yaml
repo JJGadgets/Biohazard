@@ -2,11 +2,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - ../../../clusters/biohazard/flux/
   - 1-flux-install.yaml
   - 2-flux-repo.yaml
   # - 3-secrets.yaml
   # - 4-vars.yaml
-  - ../../../clusters/biohazard/flux/
   - 5-deploy.yaml
   - ceph-rgw-ext-users.yaml
   - ../../../3-deploy/1-core/05-ingress/cloudflare/

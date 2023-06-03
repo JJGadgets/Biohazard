@@ -106,7 +106,7 @@ spec:
         spec:
           postBuild:
             substituteFrom:
-              - kind: ConfigMap
+              - kind: Secret
                 name: biohazard-vars
                 optional: false
               - kind: Secret
