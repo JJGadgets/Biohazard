@@ -1,0 +1,26 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../config/
+  - secrets-age.sops.yaml
+  - secrets-ssh.sops.yaml
+  # - flux-install.yaml
+  # - flux-repo.yaml
+  # - ceph-rgw-ext-users.yaml
+  # - ../../../3-deploy/1-core/05-ingress/cloudflare/
+  # - ../../../3-deploy/1-core/05-ingress/external-proxy-x/
+  # - ../../../3-deploy/1-core/06-monitoring/1-deps/
+  # - ../../../3-deploy/1-core/06-monitoring/node-exporter/
+  # - ../../../3-deploy/1-core/db/pg/
+  # - ../../../3-deploy/2-apps/default/
+  # - ../../../3-deploy/2-apps/flux-system/
+  # - ../../../3-deploy/2-apps/authentik/
+  # - ../../../3-deploy/2-apps/kanidm/
+  # - ../../../3-deploy/2-apps/syncthing/
+  # - ../../../3-deploy/2-apps/excalidraw/
+  # - ../../../3-deploy/2-apps/velociraptor/
+  # - ../../../3-deploy/2-apps/gotosocial/
+  # - ../../../3-deploy/2-apps/ntfy/
+  # - ../../../3-deploy/2-apps/satisfactory/
+  # - ../../../3-deploy/2-apps/headscale/
