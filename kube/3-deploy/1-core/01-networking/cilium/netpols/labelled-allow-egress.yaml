@@ -19,7 +19,7 @@ spec:
     matchLabels:
       egress.home.arpa/apiserver: allow
   egress:
-    - toEnities:
+    - toEntities:
         - kube-apiserver
 ---
 apiVersion: cilium.io/v2
