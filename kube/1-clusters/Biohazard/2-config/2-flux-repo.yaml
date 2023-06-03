@@ -41,7 +41,7 @@ spec:
       name: biohazard-secrets-decrypt-sops-age
   postBuild:
     substituteFrom:
-      - kind: ConfigMap
+      - kind: Secret
         name: biohazard-vars
         optional: false
       - kind: Secret
