@@ -51,7 +51,7 @@ spec:
             key: AWS_SECRET_ACCESS_KEY
       DATASOURCE_TYPE: "s3"
       DATASOURCE_S3_BUCKET: "zipline-data"
-      DATASOURCE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc.cluster.local"
+      DATASOURCE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME_LOWER}.rook-ceph.svc.cluster.local."
       DATASOURCE_S3_PORT: "6953"
       DATASOURCE_S3_REGION: "us-west-1"
       DATASOURCE_S3_FORCE_S3_PATH: "true" # TODO: 2023-06-03 current in-cluster RGW doesn't use subdomain (VirtualHost) based S3 buckets yet, it uses path-based
@@ -73,20 +73,19 @@ spec:
       RATELIMIT_USER: "5"
       RATELIMIT_ADMIN: "1"
       UPLOADER_DEFAULT_FORMAT: "DATE"
-      UPLOADER_ROUTE: &upload "/u"
+      UPLOADER_ROUTE: &upload "/file"
       UPLOADER_ADMIN_LIMIT: "100gb"
       UPLOADER_USER_LIMIT: "500mb"
       UPLOADER_DISABLED_EXTENSIONS: "ps1,pdf,bat,exe,sh,fish"
       UPLOADER_FORMAT_DATE: "YYYY-MM-DD_HH-mm-ss"
       UPLOADER_DEFAULT_EXPIRATION: ""
-      URLS_ROUTE: &shorten "/l"
+      URLS_ROUTE: &shorten "/go"
       URLS_LENGTH: "6"
-      WEBSITE_TITLE: "JJGadgets Upload"
+      WEBSITE_TITLE: "JJGadgets"
       WEBSITE_SHOW_FILES_PER_USER: "false"
-      WEBSITE_EXTERNAL_LINKS: |
-        '[{"label":"Admin: JJGadgets","link":"https://jjgadgets.tech"},{"label":"Powered by Zipline","link":"https://github.com/diced/zipline"}]'
+      WEBSITE_EXTERNAL_LINKS: '[{"label":"Admin: JJGadgets","link":"https://jjgadgets.tech"},{"label":"Powered by Zipline","link":"https://github.com/diced/zipline"}]'
       WEBSITE_SHOW_VERSION: "false"
-      WEBSITE_DISABLE_MEDIA_PREVIEW: "true"
+      WEBSITE_DISABLE_MEDIA_PREVIEW: "false"
     service:
       main:
         ports:
@@ -98,33 +97,67 @@ spec:
         primary: true
         ingressClassName: nginx
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
           nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-        hosts:
-          - host: &host "${APP_DNS_ZIPLINE}"
-            paths:
-              - path: *upload
-                pathType: Prefix
-              - path: *shorten
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-      internal:
-        enabled: true
-        primary: false
-        ingressClassName: nginx
-        annotations:
-          nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+          nginx.ingress.kubernetes.io/custom-http-errors: "400,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510"
           nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8, 100.64.0.0/10"
         hosts:
-          - host: &host "${APP_DNS_ZIPLINE}"
+          - host: &host "${DNS_SHORT}"
             paths:
               - path: /
                 pathType: Prefix
         tls:
           - hosts:
               - *host
+      shorten:
+        enabled: true
+        primary: false
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/custom-http-errors: "400,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510"
+        hosts:
+          - host: *host
+            paths:
+              - path: *shorten
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+      shorten-rewrite:
+        enabled: true
+        primary: false
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/custom-http-errors: "400,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510"
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: /go/$1
+        hosts:
+          - host: *host
+            paths:
+              - path: /(.*)
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+      external-upload:
+        enabled: true
+        primary: false
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
+          nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+          nginx.ingress.kubernetes.io/custom-http-errors: "400,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510"
+        hosts:
+          - host: &uploadhost "${APP_DNS_ZIPLINE}"
+            paths:
+              - path: *upload
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *uploadhost
     podSecurityContext:
       runAsUser: &uid ${APP_UID_ZIPLINE}
       runAsGroup: *uid
