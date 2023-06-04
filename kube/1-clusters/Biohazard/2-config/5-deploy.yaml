@@ -345,26 +345,6 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: biohazard-2-apps-external-authentik
-  namespace: flux-system
-spec:
-  path: ./kube/3-deploy/2-apps/external/authentik
-  dependsOn:
-    - name: biohazard-1-core-05-ingress-nginx
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  name: biohazard-2-apps-external-matrix-synapse
-  namespace: flux-system
-spec:
-  path: ./kube/3-deploy/2-apps/external/matrix-synapse
-  dependsOn:
-    - name: biohazard-1-core-05-ingress-nginx
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
   name: biohazard-2-apps-dns-dnsdist
   namespace: flux-system
 spec:

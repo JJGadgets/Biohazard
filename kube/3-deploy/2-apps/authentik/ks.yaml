@@ -36,6 +36,7 @@ spec:
       PG_DB_USER: *app
       PG_DB_LCOLLATE: "en_US.utf8"
       PG_DB_LCTYPE: "en_US.utf8"
+      PG_SUPER_PASS: "${SECRET_AUTHENTIK_PG_SUPER_PASS}"
   healthChecks:
     - name: pg-authentik-s3
       namespace: authentik
