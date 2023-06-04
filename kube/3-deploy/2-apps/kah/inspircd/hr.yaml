@@ -31,7 +31,8 @@ spec:
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
-          external-dns.alpha.kubernetes.io/target: "irc.kah.jjgadgets.tech"
+          external-dns.alpha.kubernetes.io/hostname: "irc.kah.jjgadgets.tech"
+          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
           "io.cilium/lb-ipam-ips": "${APP_IP_KAHIRC}"
         ports:
           http:
