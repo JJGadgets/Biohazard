@@ -63,14 +63,14 @@ spec:
         type: secret
         name: kah-tls
         subPath: tls.crt
-        mountPath: /inspircd/ssl/tls.crt
+        mountPath: /inspircd/conf/cert.pem
         readOnly: true
       tls-privkey:
         enabled: true
         type: secret
         name: kah-tls
         subPath: tls.key
-        mountPath: /inspircd/ssl/tls.key
+        mountPath: /inspircd/conf/key.pem
         readOnly: true
     configMaps:
       config:
@@ -102,7 +102,7 @@ spec:
           motd.txt: |
               Welcome to the home of Tinfoil Hat Sensei.
 
-          core.conf: |
+          inspircd.conf: |
               <include file="/inspircd/conf/server.conf">
               <include file="/inspircd/conf/opers.conf">
               <include file="/inspircd/conf/links.conf">
@@ -127,11 +127,11 @@ spec:
               <sslprofile name="certmanager"
                     provider="gnutls"
                     cafile=""
-                    certfile="/inspircd/ssl/tls.crt"
+                    certfile="/inspircd/conf/cert.pem"
                     crlfile=""
                     dhfile=""
                     hash="sha256"
-                    keyfile="/inspircd/ssl/tls.key"
+                    keyfile="/inspircd/conf/key.pem"
                     mindhbits="1024"
                     outrecsize="2048"
                     priority="SECURE192"
@@ -188,7 +188,7 @@ spec:
                     serverpingfreq="1m"
                     splitwhois="no"
                     defaultmodes="not"
-                    xlinemessage="You're banned!"
+                    xlinemessage="Feel the wrath of the almighty Thor!"
                     modesinlist="no"
                     extbanformat="name"
                     exemptchanops="filter:o nickflood:o nonick:v regmoderated:o"
