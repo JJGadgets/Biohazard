@@ -122,8 +122,8 @@ spec:
               name="cni.eno1.dev"
               ipaddr="cni.mel1.eno1.dev"
               port="7001"
-              recvpass="incoming!${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
-              sendpass="outgoing!${SECRET_KAHIRC_ENO1DEV_SENDPASS}"
+              recvpass="${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
+              sendpass="${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
               sslprofile="certmanager"
               timeout="15s">
 
