@@ -3,7 +3,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: kah-irc
-  namespace: kah
+  namespace: &app kah
 spec:
   endpointSelector:
     matchLabels:
