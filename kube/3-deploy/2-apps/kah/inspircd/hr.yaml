@@ -41,6 +41,10 @@ spec:
             enabled: true
             port: 7001
             protocol: TCP
+          client:
+            enabled: true
+            port: 6697
+            protocol: TCP
     podSecurityContext:
       runAsUser: &uid 10000
       runAsGroup: *uid
