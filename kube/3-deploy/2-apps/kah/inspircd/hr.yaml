@@ -1,0 +1,292 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: inspircd
+  namespace: kah
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/inspircd/inspircd-docker
+      tag: 3.16.0@sha256:fb1c64278bf1bd74acbee221b51a4c464763d4baabf1587702093ecc4580860c
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "irc.kah.jjgadgets.tech"
+          "io.cilium/lb-ipam-ips": "${APP_IP_KAHIRC}"
+        ports:
+          http:
+            enabled: false
+          server:
+            enabled: true
+            port: 7001
+            protocol: TCP
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_KAHIRC}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: kah-irc-config
+        mountPath: "/inspircd/conf/"
+        readOnly: true
+      tls-fullchain:
+        enabled: true
+        type: secret
+        name: kah-tls
+        subPath: tls.crt
+        mountPath: /inspircd/ssl/tls.crt
+        readOnly: true
+      tls-privkey:
+        enabled: true
+        type: secret
+        name: kah-tls
+        subPath: tls.key
+        mountPath: /inspircd/ssl/tls.key
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          server.conf: |
+            <define name="opername" value="JJGadgets">
+            <define name="operdesc" value="The Tinfoil Hat Sensei.">
+            <define name="opermail" value="tinfoilhat@sensei">
+            <define name="operhash" value="${SECRET_KAHIRC_HASH}">
+            <define name="servername" value="kah.irc.jjgadgets.tech">
+            <define name="serverdesc" value="Home of the Tinfoil Hat Sensei.">
+
+          links.conf: |
+            <link allowmask="${SECRET_KAHIRC_ENO1DEV_IP}"
+              bind="0.0.0.0"
+              hidden="no"
+              name="cni.eno1.dev"
+              ipaddr="cni.mel1.eno1.dev"
+              port="7001"
+              recvpass="incoming!${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
+              sendpass="outgoing!${SECRET_KAHIRC_ENO1DEV_SENDPASS}"
+              sslprofile="certmanager"
+              timeout="15s">
+
+            <autoconnect period="2m"
+              server="irc.kah.jjgadgets.tech">
+
+          motd.txt: |
+              Welcome to the home of Tinfoil Hat Sensei.
+
+          core.conf: |
+              <include file="/inspircd/conf/server.conf">
+              <include file="/inspircd/conf/opers.conf">
+              <include file="/inspircd/conf/links.conf">
+
+              <server
+                    name="&servername;"
+                    description="&serverdesc;"
+
+                    # id: The SID to use for this server. This should not be uncommented
+                    # unless there is a SID conflict. This must be three characters long.
+                    # The first character must be a digit [0-9], the remaining two chars
+                    # may be letters [A-Z] or digits.
+                    #id="97K"
+                    network="cni">
+
+              <admin
+                    name="&opername;"
+                    nickname="&opername;"
+                    description="&operdesc;"
+                    email="&opermail;">
+
+              <sslprofile name="certmanager"
+                    provider="gnutls"
+                    cafile=""
+                    certfile="/inspircd/ssl/tls.crt"
+                    crlfile=""
+                    dhfile=""
+                    hash="sha256"
+                    keyfile="/inspircd/ssl/tls.key"
+                    mindhbits="1024"
+                    outrecsize="2048"
+                    priority="SECURE192"
+                    requestclientcert="yes"
+                    strictpriority="no">
+
+              <bind
+                    address=""
+                    port="6697"
+                    type="clients"
+                    sslprofile="certmanager"
+                    defer="0"
+                    free="no">
+
+              <bind address="" port="6667" type="clients">
+
+              <connect deny="3ffe::0/32" reason="The 6bone address space is deprecated">
+
+              <connect
+                    name="main"
+                    allow="*"
+                    maxchans="1000"
+                    timeout="20"
+                    pingfreq="2m"
+                    hardsendq="1M"
+                    softsendq="10240"
+                    recvq="10K"
+                    threshold="10"
+                    commandrate="1000"
+                    fakelag="yes"
+                    localmax="3"
+                    globalmax="3"
+                    resolvehostnames="yes"
+                    useident="no"
+                    limit="5000"
+                    modes="+x">
+
+              <files motd="/inspircd/conf/motd.txt">
+
+              <maxlist chan="*" limit="100">
+
+              <options
+                    prefixquit="Quit: "
+                    suffixquit=""
+                    prefixpart="&quot;"
+                    suffixpart="&quot;"
+                    syntaxhints="no"
+                    cyclehostsfromuser="no"
+                    announcets="yes"
+                    allowmismatch="no"
+                    defaultbind="auto"
+                    hostintopic="no"
+                    pingwarning="15"
+                    serverpingfreq="1m"
+                    splitwhois="no"
+                    defaultmodes="not"
+                    xlinemessage="You're banned!"
+                    modesinlist="no"
+                    extbanformat="name"
+                    exemptchanops="filter:o nickflood:o nonick:v regmoderated:o"
+                    invitebypassmodes="yes"
+                    nosnoticestack="no">
+
+              <performance
+                    netbuffersize="10240"
+                    somaxconn="128"
+                    softlimit="12800"
+                    clonesonconnect="yes"
+                    timeskipwarn="2s"
+                    quietbursts="yes">
+
+              <security
+                    announceinvites="dynamic"
+                    hideservices="no"
+                    flatlinks="no"
+                    hideservicekills="yes"
+                    hidesplits="no"
+                    maxtargets="20"
+                    restrictbannedusers="yes"
+                    genericoper="no"
+                    userstats="Pu">
+
+              <limits
+                    maxaway="200"
+                    maxchan="60"
+                    maxhost="64"
+                    maxident="10"
+                    maxkey="30"
+                    maxkick="300"
+                    maxmodes="20"
+                    maxnick="30"
+                    maxquit="300"
+                    maxreal="130"
+                    maxtopic="330">
+
+              <log method="stdout"
+                  level="debug"
+                  type="* -USERINPUT -USEROUTPUT">
+
+              <whowas
+                    groupsize="10"
+                    maxgroups="100000"
+                    maxkeep="3d">
+
+              <badhost host="root@*" reason="Don't IRC as root!">
+
+              <insane
+                    hostmasks="no"
+                    ipmasks="no"
+                    nickmasks="no"
+                    trigger="20">
+
+              <bind address="0.0.0.0"
+                    port="7001"
+                    type="servers"
+                    sslprofile="certmanager">
+
+              <hostname charmap="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_/0123456789">
+
+              <module name="bcrypt">
+              # <module name="sha2">
+              <module name="cap">
+              <module name="chghost">
+              <module name="chgname">
+              <module name="spanningtree">
+              <module name="ssl_gnutls">
+              <module name="password_hash">
+              <mkpasswd operonly="no">
+              <bcrypt rounds="10">
+
+          opers.conf: |
+              <class
+                    name="Shutdown"
+                    commands="DIE RESTART REHASH LOADMODULE UNLOADMODULE RELOADMODULE GLOADMODULE GUNLOADMODULE GRELOADMODULE"
+                    privs="users/auspex channels/auspex servers/auspex users/mass-message users/flood/no-throttle users/flood/increased-buffers"
+                    usermodes="*"
+                    chanmodes="*"
+                    snomasks="*">
+
+              <class name="SACommands" commands="SAJOIN SAPART SANICK SAQUIT SATOPIC SAKICK SAMODE OJOIN">
+              <class name="ServerLink" commands="CONNECT SQUIT RCONNECT RSQUIT MKPASSWD ALLTIME SWHOIS" usermodes="*" chanmodes="*" privs="servers/auspex" snomasks="Cc">
+              <class name="BanControl" commands="KILL GLINE KLINE ZLINE QLINE ELINE TLINE RLINE CHECK NICKLOCK NICKUNLOCK SHUN CBAN" usermodes="*" chanmodes="*" snomasks="Xx">
+              <class name="OperChat" commands="WALLOPS GLOBOPS" usermodes="*" chanmodes="*" privs="users/mass-message" snomasks="Gg">
+              <class name="HostCloak" commands="SETHOST SETIDENT SETIDLE CHGNAME CHGHOST CHGIDENT" usermodes="*" chanmodes="*" privs="users/auspex">
+
+              <type
+                    name="NetAdmin"
+                    classes="SACommands OperChat BanControl HostCloak Shutdown ServerLink"
+                    vhost="netadmin.&servername;"
+                    maxchans="1000"
+                    modes="+s +cCqQ">
+
+              <oper
+                    name="&opername;"
+                    hash="bcrypt"
+                    password="&operhash;"
+                    host="100.10*.*.*"
+                    type="NetAdmin">

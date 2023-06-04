@@ -1,0 +1,29 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kah-irc
+  namespace: kah
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: inspircd
+      io.kubernetes.pod.namespace: *app
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # connect to server
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "7001"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    - toEntities:
+        - world
