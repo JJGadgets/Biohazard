@@ -16,6 +16,7 @@ spec:
   values:
     global:
       fullnameOverride: *app
+    automountServiceAccountToken: false
     controller:
       type: deployment
       replicas: 1

@@ -71,7 +71,7 @@ spec:
                 service: https://ingress-nginx-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "ingress.${DNS_MAIN}"
-              - service: default-backend.ingress.svc.cluster.local:80
+              - service: http://default-backend.ingress.svc.cluster.local:80
 ---
 apiVersion: v1
 kind: Service
