@@ -41,7 +41,7 @@ spec:
             port: 7001
             protocol: TCP
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_KAHIRC}
+      runAsUser: &uid 10000
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
