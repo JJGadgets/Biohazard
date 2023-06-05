@@ -30,7 +30,17 @@ spec:
             key: api-key
     extraArgs:
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
+      - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+      - --crd-source-kind=DNSEndpoint
       #- --label-filter=ingress.home.arpa/type in (external, auth-external-only)
+    rbac:
+      additionalPermissions:
+        - apiGroups: ["externaldns.k8s.io"]
+          resources: ["dnsendpoints"]
+          verbs: ["get", "watch", "list"]
+        - apiGroups: ["externaldns.k8s.io"]
+          resources: ["dnsendpoints/status"]
+          verbs: ["*"]
     policy: sync
     sources:
       - ingress
@@ -41,3 +51,9 @@ spec:
       - "${DNS_SHORT}"
       - "${DNS_MAIN}"
       - "${DNS_VPN}"
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 25m
+      limits:
+        memory: 250Mi
