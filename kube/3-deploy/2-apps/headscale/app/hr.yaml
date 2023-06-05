@@ -34,6 +34,7 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_HEADSCALE}"
           "io.cilium/lb-ipam-ips": "${APP_IP_HEADSCALE}"
+          external-dns.alpha.kubernetes.io/hostname: "${APP_DNS_HEADSCALE}"
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         ports:
           http:
@@ -141,8 +142,8 @@ spec:
                 region_code: "Biohazard"
                 region_name: "Biohazard-Home-Relay"
                 stun_listen_addr: "0.0.0.0:3478"
-                urls:
-                  - https://controlplane.tailscale.com/derpmap/default
+              urls:
+                - https://controlplane.tailscale.com/derpmap/default
               paths: []
               auto_update_enabled: true
               update_frequency: 24h
