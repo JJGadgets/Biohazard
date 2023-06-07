@@ -26,6 +26,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-default"
+      egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       BASE_URL: "https://${APP_DNS_MINIFLUX}"
