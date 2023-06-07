@@ -50,6 +50,12 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        mountPath: /config
     resources:
       requests:
         cpu: 10m
