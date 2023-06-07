@@ -1,0 +1,63 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app atuin
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: ghcr.io/ellie/atuin
+      tag: 15.0.0@sha256:4e2ba8c5da7948245a25e7b0e522c5bf24567b11a4c0fe223cc4466770e3e011
+    command: ["atuin", "server", "start"]
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      db.home.arpa/pg: "pg-default"
+    env:
+      TZ: "${CONFIG_TZ}"
+      ATUIN_HOST: "0.0.0.0"
+      ATUIN_PORT: &port "8888"
+      ATUIN_OPEN_REGISTRATION: "true"
+      ATUIN_DB_URI: {valueFrom: {secretKeyRef: {name: atuin-secrets, key: ATUIN_DB_URI}}}
+    service: {main: {ports: {http: {port: *port}}}}
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_ATUIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls: [hosts: [*host]]
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_ATUIN}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom: [secretRef: {name: atuin-pg-superuser}]
