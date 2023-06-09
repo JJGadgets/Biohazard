@@ -20,10 +20,9 @@ spec:
     service:
       type: LoadBalancer
       port: 53
-      loadBalancerIP: "${APP_IP_K8S_GATEWAY}"
-      externalIPs:
-        - "${APP_IP_K8S_GATEWAY}"
-      externalTrafficPolicy: Local
+      externalTrafficPolicy: Cluster # Cilium DSR
+      annotations:
+        "io.cilium/lb-ipam-ips": "${APP_IP_K8S_GATEWAY}"
     extraZonePlugins:
       - name: log
       - name: errors
