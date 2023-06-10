@@ -79,7 +79,7 @@ spec:
         user: ""
         password: ""
       redis:
-        host: 'redis.authentik.svc.cluster.local'
+        host: "authentik-redis.authentik.svc.cluster.local"
         password: ""
     envValueFrom:
       AUTHENTIK_POSTGRESQL__NAME:
