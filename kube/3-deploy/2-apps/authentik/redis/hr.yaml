@@ -1,0 +1,49 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app authentik-redis
+  namespace: authentik
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: public.ecr.aws/docker/library/redis
+      tag: 7.0.11-bullseye
+    command:
+      - sh
+    args:
+      - -c
+      - >-
+        redis-server --requirepass $REDIS_PASSWORD
+    env:
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: authentik-redis
+            key: password
+    service:
+      main:
+        ports:
+          http:
+            port: 6379
+    resources:
+      requests:
+        cpu: 10m
+        memory: 204Mi
+      limits:
+        memory: 512Mi
