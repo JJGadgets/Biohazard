@@ -14,9 +14,11 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-    replicas: 3
+    # server is in active-active, 3 replicas seems to confuse authentik
+    replicas: 2
     worker:
-      replicas: 2
+      # workers don't need leader election, thus any size works
+      replicas: 3
     image:
       repository: ghcr.io/goauthentik/server
       tag: *vers
