@@ -8,21 +8,26 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
-        kind: HelmRepository
         name: bjw-s
+        kind: HelmRepository
         namespace: flux-system
   values:
     global:
       fullnameOverride: *app
-      labels:
-        s3/bucket: rgw-${CLUSTER_NAME_LOWER}
+    automountServiceAccountToken: false
     controller:
+      type: deployment
       replicas: 1
     image:
       repository: docker.io/superseriousbusiness/gotosocial
-      tag: 0.8.1-amd64@sha256:69c995a8c3551142c7ff34082bd439f39f02c1240d032f83ef740750de9e44d9
+      tag: 0.9.0
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/cloudflare: "allow"
+      db.home.arpa/pg: "pg-default"
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME_LOWER}"
     env:
       TZ: "${CONFIG_TZ}"
       GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -55,13 +60,12 @@ spec:
           name: gotosocial-pg
       - secretRef:
           name: gotosocial-oidc
-    podLabels:
-      db: pg-default
     service:
       main:
         ports:
           http:
-            port: 8080
+            port: &http 8080
+            protocol: HTTPS
     ingress:
       main:
         enabled: true
@@ -132,3 +136,38 @@ spec:
               name: gotosocial-pg
           - secretRef:
               name: gotosocial-pg-superuser
+    probes:
+      # this is mostly to get rid of the "TLS handshake error: EOF" logs, more than getting more precise healthchecks lol
+      readiness:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host
+      liveness:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host
+      startup:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host
