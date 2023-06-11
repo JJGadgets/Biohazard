@@ -1,0 +1,64 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app elk
+  namespace: default
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: ghcr.io/elk-zone/elk
+      tag: v0.9.7@sha256:923ee71ef83026c8c0a5cb82b9c6460455e92d7a27a2af1204f8711150889d70
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        ports:
+          http:
+            port: 5314
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "elk.${DNS_SHORT}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid 911
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: pvc
+        existingClaim: elk-config
+        mountPath: /elk/data
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
