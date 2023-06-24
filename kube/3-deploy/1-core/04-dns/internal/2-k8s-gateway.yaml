@@ -13,7 +13,7 @@ spec:
         name: k8s-gateway
   values:
     fullnameOverride: k8s-gateway
-    domain: "${DNS_SHORT} ${DNS_MAIN} ${DNS_VPN}"
+    domain: "${DNS_SHORT} ${DNS_MAIN} ${DNS_VPN} ${DNS_STREAM}"
     fallthrough:
       enabled: true
     ttl: 1
