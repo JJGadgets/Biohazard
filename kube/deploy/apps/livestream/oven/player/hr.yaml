@@ -55,6 +55,12 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        mountPath: /var/cache/nginx
     resources:
       requests:
         cpu: 10m
