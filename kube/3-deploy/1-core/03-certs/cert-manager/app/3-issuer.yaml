@@ -15,12 +15,6 @@ spec:
                     apiTokenSecretRef:
                         name: dns01-api
                         key: cloudflare
-              selector:
-                dnsZones:
-                    - ENC[AES256_GCM,data:xqqHasdg,iv:S88A0UU0MOJeDWuBy3pt1DDQ/+hbdqpVJaVW023CgEo=,tag:zg//nGnkbNKbkSpotXsotg==,type:str]
-                    - ENC[AES256_GCM,data:pqU9z0v/nL5fz6cIM70=,iv:hu64e7Qnv+1gXHskiZ737pWn3FOoD4vY9gmeHEQGd7M=,tag:Wke6nEiLDWKiwVX46/IDhg==,type:str]
-                    - ENC[AES256_GCM,data:D9vOTS2PNZV4Zvr0cQ==,iv:i7zvJHTGw+9qaAV6TcSI+Ej22rJUzVPl1Dg9gYNbpyI=,tag:Ik4p0607nyOWk8rhbdxrnQ==,type:str]
-                    - ENC[AES256_GCM,data:4MgoWDrdj//o,iv:Blc219HqI420Ul/hID6BTf3UWSuw39czAcRG3hVRkNg=,tag:JNf2kYGZt6v0rGXOOqiJDA==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -36,8 +30,8 @@ sops:
             Rzd0ZmYzbklBdUlBU01zd25PbzQxZG8Ke06LiBELBox5EPZXgqJX/6iSNQzcdwRO
             LbNEX3zn3RYcMkzLvCrHAphRjmIaMZYuc6dklzb2okZjod6HHsXHLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:24:50Z"
-    mac: ENC[AES256_GCM,data:LL1NjxWkw6/cl+H9Ot4B0fg+KlyhBDCgrz2z0DFwlfftIIGdPxAAvZYKbJeEa3TkT66dVCdAEANDfpS8WGHBquvhbfWvqFy/rzUdlXqXDsP3+oXd7DK8uDh8mrO7r9TG8NP31YCqoW8eX+SmzFyGaPrToJOrGYhKSlJ02cmysYM=,iv:Pt5XBhofthxph0ZYPQJ1Q0Lh1r2o62QtFGJnDNxiFfQ=,tag:UifL6NpDDYD1bF5c5UWjyQ==,type:str]
+    lastmodified: "2023-06-24T20:11:42Z"
+    mac: ENC[AES256_GCM,data:fb/lT/CyF6u1UloULCTM2NGfWxTwGqI3OzZkoDwpZLGQtlZN8FUgkOUcmAI1phh0xOK2pdZye01h9gE9ov65ukwZ2lf23iQg9+nKZipgEgvkyZc7Ql6TbDaddWJ0Awm0C4W7JLqNmMpef1ISyhU7IoTgIudDSApgW6ZfwbgqeEo=,iv:7W5gsJcazwT4Hec3csf1E8OmHZp4MdkCkqHlAgWiUgI=,tag:Up7bmAif3rmsAifxmSNROw==,type:str]
     pgp:
         - created_at: "2023-02-21T20:24:49Z"
           enc: |
@@ -75,8 +69,8 @@ sops:
             Rzd0ZmYzbklBdUlBU01zd25PbzQxZG8Ke06LiBELBox5EPZXgqJX/6iSNQzcdwRO
             LbNEX3zn3RYcMkzLvCrHAphRjmIaMZYuc6dklzb2okZjod6HHsXHLg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-02-21T20:24:50Z"
-    mac: ENC[AES256_GCM,data:LL1NjxWkw6/cl+H9Ot4B0fg+KlyhBDCgrz2z0DFwlfftIIGdPxAAvZYKbJeEa3TkT66dVCdAEANDfpS8WGHBquvhbfWvqFy/rzUdlXqXDsP3+oXd7DK8uDh8mrO7r9TG8NP31YCqoW8eX+SmzFyGaPrToJOrGYhKSlJ02cmysYM=,iv:Pt5XBhofthxph0ZYPQJ1Q0Lh1r2o62QtFGJnDNxiFfQ=,tag:UifL6NpDDYD1bF5c5UWjyQ==,type:str]
+    lastmodified: "2023-06-24T20:11:42Z"
+    mac: ENC[AES256_GCM,data:fb/lT/CyF6u1UloULCTM2NGfWxTwGqI3OzZkoDwpZLGQtlZN8FUgkOUcmAI1phh0xOK2pdZye01h9gE9ov65ukwZ2lf23iQg9+nKZipgEgvkyZc7Ql6TbDaddWJ0Awm0C4W7JLqNmMpef1ISyhU7IoTgIudDSApgW6ZfwbgqeEo=,iv:7W5gsJcazwT4Hec3csf1E8OmHZp4MdkCkqHlAgWiUgI=,tag:Up7bmAif3rmsAifxmSNROw==,type:str]
     pgp:
         - created_at: "2023-02-21T20:24:49Z"
           enc: |
