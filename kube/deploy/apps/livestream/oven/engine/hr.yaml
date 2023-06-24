@@ -136,13 +136,25 @@ spec:
         type: configMap
         name: ovenmediaengine-config
         subPath: Origin.xml
-        mountPath: /opt/ovenmediaengine/origin_conf/Origin.xml
+        mountPath: /opt/ovenmediaengine/bin/origin_conf/Server.xml
+        readOnly: true
+      config2:
+        enabled: true
+        type: configMap
+        name: ovenmediaengine-config
+        subPath: Origin.xml
+        mountPath: /opt/ovenmediaengine/origin_conf/Server.xml
         readOnly: true
       tls:
         enabled: true
+        type: emptyDir
+        medium: Memory
+        mountPath: /tls/
+      "${DNS_STREAM//./-}-tls":
+        enabled: true
         type: secret
         name: "${DNS_STREAM//./-}-tls"
-        mountPath: /tls/
+        mountPath: /ssl/
         readOnly: true
     configMaps:
       config:
@@ -171,6 +183,26 @@ spec:
                 	<MaxClientPeersPerHostPeer>2</MaxClientPeersPerHostPeer>
                 </P2P>
             	</Modules>
+
+            	<Managers>
+                <Host>
+                	<Names>
+                    <Name>*</Name>
+                	</Names>
+                  <TLS>
+                  	<CertPath>/tls/server.pem</CertPath>
+                  	<KeyPath>/ssl/tls.key</KeyPath>
+                    <ChainCertPath>/tls/ca.pem</ChainCertPath>
+                  </TLS>
+                </Host>
+                <API>
+                	<AccessToken>${SECRET_OVENMEDIAENGINE_ACCESSTOKEN}</AccessToken>
+                	<CrossDomains>
+                    <Url>${APP_DNS_OVENMEDIAENGINE}</Url>
+                    <Url>http?://${APP_DNS_OVENMEDIAENGINE}</Url>
+                	</CrossDomains>
+                </API>
+            	</Managers>
 
             	<Bind>
                 <Managers>
@@ -248,8 +280,9 @@ spec:
                     	<Name>${APP_IP_OVENMEDIAENGINE}</Name>
                     </Names>
                     <TLS>
-                    	<CertPath>/tls/tls.crt</CertPath>
-                    	<KeyPath>/tls/tls.key</KeyPath>
+                    	<CertPath>/tls/server.pem</CertPath>
+                    	<KeyPath>/ssl/tls.key</KeyPath>
+                      <ChainCertPath>/tls/ca.pem</ChainCertPath>
                     </TLS>
                 	</Host>
 
@@ -531,3 +564,18 @@ spec:
                 </VirtualHost>
             	</VirtualHosts>
             </Server>
+    initContainers:
+      01-init-tls-ca-extract:
+        image: public.ecr.aws/debian/debian:11.6-slim
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - name: tls
+            mountPath: /tls
+          - name: "${DNS_STREAM//./-}-tls"
+            mountPath: /ssl
+        command:
+          - /bin/sh
+          - -c
+          - awk -v cert_num=0 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/ca.pem
+          - awk -v cert_num=1 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt >> /tls/ca.pem
+          - awk -v cert_num=2 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/server.pem
