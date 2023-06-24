@@ -141,7 +141,7 @@ spec:
       tls:
         enabled: true
         type: secret
-        name: livestream-tls
+        name: "${DNS_STREAM//./-}-tls"
         mountPath: /tls/
         readOnly: true
     configMaps:
