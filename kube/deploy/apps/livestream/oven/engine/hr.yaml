@@ -253,16 +253,6 @@ spec:
                     </TLS>
                 	</Host>
 
-                	<SignedPolicy>
-                    <PolicyQueryKeyName>policy</PolicyQueryKeyName>
-                    <SignatureQueryKeyName>signature</SignatureQueryKeyName>
-                    <SecretKey>${SECRET_OVENMEDIAENGINE_SIGNEDPOLICY_SECRETKEY}</SecretKey>
-                    <Enables>
-                    	<Providers>rtmp,webrtc,srt</Providers>
-                    	<Publishers>webrtc,hls,llhls,dash,lldash</Publishers>
-                    </Enables>
-                	</SignedPolicy>
-
                 	<CrossDomains>
                     <Url>*</Url>
                 	</CrossDomains>
