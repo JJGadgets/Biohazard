@@ -1,0 +1,69 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ovenmediaengine
+  namespace: &app livestream
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # stream source
+    - fromCIDRSet:
+        - cidr: 10.0.0.0/8
+        - cidr: 100.64.0.0/10
+      toPorts:
+        - ports:
+            - port: "9000"
+            - port: "8081"
+            - port: "8082"
+            - port: "443"
+            - port: "3334"
+            - port: "3333"
+            - port: "1935"
+            - port: "9999"
+            - port: "3477"
+            - port: "3478"
+            - port: "4000"
+            - port: "4001"
+            - port: "4002"
+            - port: "4003"
+            - port: "4004"
+            - port: "4005"
+            - port: "10000"
+            - port: "10001"
+            - port: "10002"
+            - port: "10003"
+            - port: "10004"
+    # stream clients
+    - fromEntities:
+        - world
+      # TODO: restrict only to client ports
+      toPorts:
+        - ports:
+            - port: "443"
+            - port: "3334"
+            - port: "3477"
+            - port: "3478"
+            - port: "4000"
+            - port: "4001"
+            - port: "4002"
+            - port: "4003"
+            - port: "4004"
+            - port: "4005"
+            - port: "10000"
+            - port: "10001"
+            - port: "10002"
+            - port: "10003"
+            - port: "10004"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # P2P WebRTC to world
+    - toEntities:
+        - world
