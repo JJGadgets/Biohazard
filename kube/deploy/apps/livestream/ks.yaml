@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: livestream-deps
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/livestream/deps
+  dependsOn:
+    - name: ${CLUSTER_NAME_LOWER}-1-core-03-certs-cert-manager # change to shorter name

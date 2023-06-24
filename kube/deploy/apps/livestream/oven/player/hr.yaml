@@ -1,0 +1,63 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app ovenplayer
+  namespace: livestream
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/airensoft/ovenplayerdemo
+      tag: 1.0.0@sha256:f42bb15fe56e2ea2e65d12fd567be16d1b48c0d1ad3a609f2198beb70dec20c8
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        ports:
+          http:
+            port: 80
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_OVENPLAYER}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    dnsConfig:
+      options: [{name: ndots, value: "1"}]
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_OVENPLAYER}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi

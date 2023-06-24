@@ -1,0 +1,543 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app ovenmediaengine
+  namespace: livestream
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/airensoft/ovenmediaengine
+      tag: 0.15.13@sha256:8e3738fc0d6a01608d0e624e1a7c25ac5bc96385154cae1193db5f0842722cfc
+    env:
+      TZ: "${CONFIG_TZ}"
+      OME_HOST_IP: "*"
+      OME_ORIGIN_PORT: &origin "9000"
+      OME_API_TLS_PORT: &api "8082"
+      OME_RTMP_PROV_PORT: &rtmp "1935"
+      OME_SRT_PROV_PORT: &srt "9999"
+      OME_MPEGTS_PROV_PORT: "4000-4005/udp"
+      OME_LLHLS_STREAM_TLS_PORT: &https "3334"
+      OME_WEBRTC_SIGNALLING_TLS_PORT: *https
+      OME_WEBRTC_TCP_RELAY_PORT: &relay "3477"
+      OME_WEBRTC_CANDIDATE_PORT: "10000-10004/udp"
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_OVENMEDIAENGINE}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_OVENMEDIAENGINE}"
+        ports:
+          http:
+            enabled: true
+            port: *https
+            protocol: HTTPS
+          origin:
+            enabled: true
+            port: *origin
+            protocol: TCP
+          api:
+            enabled: true
+            port: *api
+            protocol: TCP
+          rtmp:
+            enabled: true
+            port: *rtmp
+            protocol: TCP
+          srt:
+            enabled: true
+            port: *srt
+            protocol: TCP
+          webrtc-relay:
+            enabled: true
+            port: *relay
+            protocol: TCP
+          webrtc-candidate-0:
+            enabled: true
+            port: 10000
+            protocol: UDP
+          webrtc-candidate-1:
+            enabled: true
+            port: 10001
+            protocol: UDP
+          webrtc-candidate-2:
+            enabled: true
+            port: 10002
+            protocol: UDP
+          webrtc-candidate-3:
+            enabled: true
+            port: 10003
+            protocol: UDP
+          webrtc-candidate-4:
+            enabled: true
+            port: 10004
+            protocol: UDP
+          mpegts-0:
+            enabled: true
+            port: 4000
+            protocol: UDP
+          mpegts-1:
+            enabled: true
+            port: 4001
+            protocol: UDP
+          mpegts-2:
+            enabled: true
+            port: 4002
+            protocol: UDP
+          mpegts-3:
+            enabled: true
+            port: 4003
+            protocol: UDP
+          mpegts-4:
+            enabled: true
+            port: 4004
+            protocol: UDP
+          mpegts-5:
+            enabled: true
+            port: 4005
+            protocol: UDP
+    dnsConfig:
+      options: [{name: ndots, value: "1"}]
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_OVENMEDIAENGINE}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    nodeSelector:
+      intel.feature.node.kubernetes.io/gpu: "true"
+    resources:
+      requests:
+        gpu.intel.com/i915: 1
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        gpu.intel.com/i915: 1
+        memory: 6000Mi
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: ovenmediaengine-config
+        subPath: Origin.xml
+        mountPath: /opt/ovenmediaengine/origin_conf/Origin.xml
+        readOnly: true
+      tls:
+        enabled: true
+        type: secret
+        name: livestream-tls
+        mountPath: /tls/
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          Origin.xml: |-
+            <?xml version="1.0" encoding="UTF-8" ?>
+
+            <Server version="8">
+            	<Name>${CONFIG_OVENMEDIAENGINE_NAME}</Name>
+            	<Type>origin</Type>
+            	<IP>*</IP>
+            	<PrivacyProtection>false</PrivacyProtection>
+            	<StunServer>stun.l.google.com:19302</StunServer>
+
+            	<Modules>
+                <HTTP2>
+                	<Enable>true</Enable>
+                </HTTP2>
+                <LLHLS>
+                	<Enable>true</Enable>
+                </LLHLS>
+                <P2P>
+                	<!-- disabled by default, experimental -->
+                	<Enable>false</Enable>
+                	<MaxClientPeersPerHostPeer>2</MaxClientPeersPerHostPeer>
+                </P2P>
+            	</Modules>
+
+            	<Bind>
+                <Managers>
+                	<API>
+                    <TLSPort>$${env:OME_API_TLS_PORT:8082}</TLSPort>
+                    <WorkerCount>1</WorkerCount>
+                	</API>
+                </Managers>
+
+                <Providers>
+                	<RTSPC>
+                    <WorkerCount>1</WorkerCount>
+                	</RTSPC>
+                	<OVT>
+                    <WorkerCount>1</WorkerCount>
+                	</OVT>
+                	<RTMP>
+                    <Port>$${env:OME_RTMP_PROV_PORT:1935}</Port>
+                    <WorkerCount>1</WorkerCount>
+                	</RTMP>
+                	<SRT>
+                    <Port>$${env:OME_SRT_PROV_PORT:9999}</Port>
+                    <WorkerCount>1</WorkerCount>
+                	</SRT>
+                	<MPEGTS>
+                    <Port>$${env:OME_MPEGTS_PROV_PORT:4000-4005/udp}</Port>
+                	</MPEGTS>
+                	<WebRTC>
+                    <Signalling>
+                    	<TLSPort>$${env:OME_WEBRTC_SIGNALLING_TLS_PORT:3334}</TLSPort>
+                    	<WorkerCount>1</WorkerCount>
+                    </Signalling>
+                    <IceCandidates>
+                    	<IceCandidate>$${env:OME_HOST_IP:*}:$${env:OME_WEBRTC_CANDIDATE_PORT:10000-10004/udp}</IceCandidate>
+                    	<TcpRelay>$${env:OME_HOST_IP:*}:$${env:OME_WEBRTC_TCP_RELAY_PORT:3477}</TcpRelay>
+                    	<TcpForce>true</TcpForce>
+                    	<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
+                    </IceCandidates>
+                	</WebRTC>
+                </Providers>
+
+                <Publishers>
+                	<OVT>
+                    <Port>$${env:OME_ORIGIN_PORT:9000}</Port>
+                    <WorkerCount>1</WorkerCount>
+                	</OVT>
+                	<LLHLS>
+                    <TLSPort>$${env:OME_LLHLS_STREAM_TLS_PORT:3334}</TLSPort>
+                    <WorkerCount>1</WorkerCount>
+                	</LLHLS>
+                	<WebRTC>
+                    <Signalling>
+                    	<TLSPort>$${env:OME_WEBRTC_SIGNALLING_TLS_PORT:3334}</TLSPort>
+                    	<WorkerCount>1</WorkerCount>
+                    </Signalling>
+                    <IceCandidates>
+                    	<IceCandidate>$${env:OME_WEBRTC_CANDIDATE_IP:*}:$${env:OME_WEBRTC_CANDIDATE_PORT:10000-10004/udp}</IceCandidate>
+                    	<TcpRelay>$${env:OME_WEBRTC_CANDIDATE_IP:*}:$${env:OME_WEBRTC_TCP_RELAY_PORT:3477}</TcpRelay>
+                    	<TcpForce>true</TcpForce>
+                    	<TcpRelayWorkerCount>1</TcpRelayWorkerCount>
+                    </IceCandidates>
+                	</WebRTC>
+                </Publishers>
+            	</Bind>
+
+            	<VirtualHosts>
+                <VirtualHost include="VHost*.xml" />
+                <VirtualHost>
+                	<Name>default</Name>
+                	<Distribution>${APP_DNS_OVENMEDIAENGINE}</Distribution>
+
+                	<Host>
+                    <Names>
+                    	<Name>${APP_DNS_OVENMEDIAENGINE}</Name>
+                    	<Name>${APP_IP_OVENMEDIAENGINE}</Name>
+                    </Names>
+                    <TLS>
+                    	<CertPath>/tls/tls.crt</CertPath>
+                    	<KeyPath>/tls/tls.key</KeyPath>
+                    </TLS>
+                	</Host>
+
+                	<SignedPolicy>
+                    <PolicyQueryKeyName>policy</PolicyQueryKeyName>
+                    <SignatureQueryKeyName>signature</SignatureQueryKeyName>
+                    <SecretKey>${SECRET_OVENMEDIAENGINE_SIGNEDPOLICY_SECRETKEY}</SecretKey>
+                    <Enables>
+                    	<Providers>rtmp,webrtc,srt</Providers>
+                    	<Publishers>webrtc,hls,llhls,dash,lldash</Publishers>
+                    </Enables>
+                	</SignedPolicy>
+
+                	<CrossDomains>
+                    <Url>*</Url>
+                	</CrossDomains>
+
+                	<Applications>
+                    <Application>
+                    	<Name>app</Name>
+                    	<Type>live</Type>
+                    	<OutputProfiles>
+                        <HardwareAcceleration>true</HardwareAcceleration>
+                        <OutputProfile>
+                        	<Name>stream</Name>
+                        	<OutputStreamName>$${OriginStreamName}</OutputStreamName>
+
+                        	<Playlist>
+                            <Name>watch</Name>
+                            <FileName>watch</FileName>
+                            <Options>
+                            	<WebRtcAutoAbr>true</WebRtcAutoAbr>
+                            </Options>
+                            <Rendition>
+                            	<Name>direct</Name>
+                            	<Video>bypass_video</Video>
+                            	<Audio>bypass_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_h264_1080p_60fps</Name>
+                            	<Video>video_h264_1080p_60fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_h264_1080p_5fps</Name>
+                            	<Video>video_h264_1080p_5fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_h264_720p_60fps</Name>
+                            	<Video>video_h264_720p_60fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_h264_720p_30fps</Name>
+                            	<Video>video_h264_720p_30fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_vp8_1080p_60fps</Name>
+                            	<Video>video_vp8_1080p_60fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_vp8_1080p_5fps</Name>
+                            	<Video>video_vp8_1080p_5fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_vp8_720p_60fps</Name>
+                            	<Video>video_vp8_720p_60fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>webrtc_vp8_720p_30fps</Name>
+                            	<Video>video_vp8_720p_30fps</Video>
+                            	<Audio>opus_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>llhls_h264_1080p_60fps</Name>
+                            	<Video>video_h264_1080p_60fps</Video>
+                            	<Audio>aac_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>llhls_h264_1080p_5fps</Name>
+                            	<Video>video_h264_1080p_5fps</Video>
+                            	<Audio>aac_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>llhls_h264_720p_60fps</Name>
+                            	<Video>video_h264_720p_60fps</Video>
+                            	<Audio>aac_audio</Audio>
+                            </Rendition>
+                            <Rendition>
+                            	<Name>llhls_h264_720p_30fps</Name>
+                            	<Video>video_h264_720p_30fps</Video>
+                            	<Audio>aac_audio</Audio>
+                            </Rendition>
+                        	</Playlist>
+
+                        	<Encodes>
+                            <Video>
+                            	<Name>bypass_video</Name>
+                            	<Bypass>true</Bypass>
+                            </Video>
+                            <Audio>
+                              <Name>bypass_audio</Name>
+                              <Bypass>true</Bypass>
+                            </Audio>
+                            <Audio>
+                            	<Name>aac_audio</Name>
+                            	<Codec>aac</Codec>
+                            	<Bitrate>256000</Bitrate>
+                            	<Samplerate>48000</Samplerate>
+                            	<Channel>2</Channel>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                            	</BypassIfMatch>
+                            </Audio>
+                            <Audio>
+                            	<Name>opus_audio</Name>
+                            	<Codec>opus</Codec>
+                            	<Bitrate>256000</Bitrate>
+                            	<Samplerate>48000</Samplerate>
+                            	<Channel>2</Channel>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                            	</BypassIfMatch>
+                            </Audio>
+                            <Video>
+                            	<Name>video_h264_1080p_60fps</Name>
+                            	<Codec>h264</Codec>
+                            	<Bitrate>10000000</Bitrate>
+                            	<Height>1080</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>fast</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_h264_1080p_5fps</Name>
+                            	<Codec>h264</Codec>
+                            	<Bitrate>75000000</Bitrate>
+                            	<Height>1080</Height>
+                            	<Framerate>5</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>slow</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_h264_720p_60fps</Name>
+                            	<Codec>h264</Codec>
+                            	<Bitrate>6000000</Bitrate>
+                            	<Height>720</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>fast</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_h264_720p_30fps</Name>
+                            	<Codec>h264</Codec>
+                            	<Bitrate>3000000</Bitrate>
+                            	<Height>720</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>faster</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_vp8_1080p_60fps</Name>
+                            	<Codec>vp8</Codec>
+                            	<Bitrate>10000000</Bitrate>
+                            	<Height>1080</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>fast</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_vp8_1080p_5fps</Name>
+                            	<Codec>vp8</Codec>
+                            	<Bitrate>75000000</Bitrate>
+                            	<Height>1080</Height>
+                            	<Framerate>5</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>slow</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_vp8_720p_60fps</Name>
+                            	<Codec>vp8</Codec>
+                            	<Bitrate>6000000</Bitrate>
+                            	<Height>720</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>fast</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                            <Video>
+                            	<Name>video_vp8_720p_30fps</Name>
+                            	<Codec>vp8</Codec>
+                            	<Bitrate>3000000</Bitrate>
+                            	<Height>720</Height>
+                            	<Framerate>60</Framerate>
+                              <KeyFrameInterval>2</KeyFrameInterval>
+                              <BFrames>0</BFrames>
+                            	<Preset>faster</Preset>
+                            	<BypassIfMatch>
+                                <Codec>eq</Codec>
+                                <Width>eq</Width>
+                            	</BypassIfMatch>
+                            </Video>
+                        	</Encodes>
+                        </OutputProfile>
+                    	</OutputProfiles>
+                    	<Providers>
+                        <OVT />
+                        <WebRTC>
+                        	<Timeout>30000</Timeout>
+                        	<CrossDomains>
+                            <Url>*</Url>
+                        	</CrossDomains>
+                        </WebRTC>
+                        <RTMP />
+                        <SRT />
+                        <RTSPPull />
+                        <MPEGTS>
+                        	<StreamMap>
+                            	<Stream>
+                                <Name>stream_$${Port}</Name>
+                                <Port>$${env:OME_MPEGTS_PROV_PORT:4000-4005/udp}</Port>
+                            	</Stream>
+                        	</StreamMap>
+                        </MPEGTS>
+                    	</Providers>
+                    	<Publishers>
+                        <AppWorkerCount>1</AppWorkerCount>
+                        <StreamWorkerCount>8</StreamWorkerCount>
+                        <OVT />
+                        <WebRTC>
+                        	<Timeout>30000</Timeout>
+                        	<Rtx>false</Rtx>
+                        	<Ulpfec>false</Ulpfec>
+                        	<JitterBuffer>false</JitterBuffer>
+                        </WebRTC>
+                        <LLHLS>
+                        	<OriginMode>true</OriginMode>
+                        	<ChunkDuration>0.5</ChunkDuration>
+                        	<!-- PartHoldBack SHOULD be at least three times the Part Target Duration -->
+                        	<PartHoldBack>1.5</PartHoldBack>
+                        	<SegmentDuration>6</SegmentDuration>
+                        	<SegmentCount>10</SegmentCount>
+                        	<CrossDomains>
+                            <Url>*</Url>
+                        	</CrossDomains>
+                        </LLHLS>
+                    	</Publishers>
+                    </Application>
+                	</Applications>
+                </VirtualHost>
+            	</VirtualHosts>
+            </Server>

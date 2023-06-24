@@ -1,0 +1,28 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: ovenmediaengine
+  namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/apps/livestream/oven/engine
+  dependsOn:
+    - name: livestream-deps
+  wait: false
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: ovenplayer
+  namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/apps/livestream/oven/player
+  dependsOn:
+    - name: livestream-deps
+    - name: ovenmediaengine
+    - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
+  wait: false
