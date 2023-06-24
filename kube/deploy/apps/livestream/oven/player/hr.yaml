@@ -51,7 +51,7 @@ spec:
     dnsConfig:
       options: [{name: ndots, value: "1"}]
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_OVENPLAYER}
+      runAsUser: &uid 0
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
