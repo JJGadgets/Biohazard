@@ -10,10 +10,11 @@ spec:
     name: letsencrypt-production
     kind: ClusterIssuer
   privateKey:
-    algorithm: ECDSA
-    size: 384
+    algorithm: RSA
+    size: 2048
     rotationPolicy: Always
   commonName: "${DNS_STREAM}"
   dnsNames:
     - "${DNS_STREAM}"
     - "*.${DNS_STREAM}"
+    - "*.prod.${DNS_STREAM}"

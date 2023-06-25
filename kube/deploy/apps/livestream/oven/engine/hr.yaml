@@ -556,4 +556,4 @@ spec:
         command:
           - /bin/sh
           - -c
-          - awk -v cert_num=0 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/ca.pem && awk -v cert_num=1 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt >> /tls/ca.pem && awk -v cert_num=2 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/server.pem
+          - awk -v cert_num=0 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/server.pem && awk -v cert_num=1 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt > /tls/ca.pem && awk -v cert_num=2 "split_after==1 {n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} n==cert_num {print}" /ssl/tls.crt >> /tls/ca.pem
