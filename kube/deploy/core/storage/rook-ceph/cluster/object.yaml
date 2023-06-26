@@ -1,0 +1,107 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectRealm
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: rook-ceph
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZoneGroup
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: rook-ceph
+spec:
+  realm: "${CLUSTER_NAME}"
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZone
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: rook-ceph
+spec:
+  zoneGroup: "${CLUSTER_NAME}"
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+    parameters:
+      compression_mode: aggressive
+      compression_algorithm: zstd
+  dataPool:
+    failureDomain: host
+    replicated:
+      size: 3
+    parameters:
+      compression_mode: aggressive
+      compression_algorithm: zstd
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: rook-ceph
+spec:
+  zone:
+    name: "${CLUSTER_NAME}"
+  preservePoolsOnDelete: true
+  gateway:
+    # sslCertificateRef: radosgw-tls
+    port: 6953
+    # securePort: 443
+    instances: 2
+    service:
+      annotations:
+        "coredns.io/hostname": "${APP_DNS_RADOSGW}"
+        "io.cilium/lb-ipam-ips": "${APP_IP_RADOSGW}"
+    resources:
+      limits:
+        memory: "2048Mi"
+      requests:
+        cpu: "100m"
+        memory: "1024Mi"
+    priorityClassName: system-cluster-critical
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: "rgw-${CLUSTER_NAME}"
+provisioner: rook-ceph.ceph.rook.io/bucket
+parameters:
+  objectStoreName: "${CLUSTER_NAME}"
+  objectStoreNamespace: rook-ceph
+  region: us-west-1
+reclaimPolicy: Delete
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: &app "rgw-${CLUSTER_NAME}"
+  namespace: rook-ceph
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/server-alias: '*.${APP_DNS_RGW_S3}'
+  labels:
+    app.kubernetes.io/component: cephobjectstores.ceph.rook.io
+    app.kubernetes.io/instance: biohazard
+    app.kubernetes.io/name: ceph-rgw
+    app.kubernetes.io/part-of: biohazard
+    ceph_daemon_id: biohazard
+    ceph_daemon_type: rgw
+    rgw: biohazard
+    rook_object_store: biohazard
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: &host ${APP_DNS_RGW_S3}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rook-ceph-rgw-biohazard
+                port:
+                  number: 6953
+  tls:
+    - hosts:
+        - *host

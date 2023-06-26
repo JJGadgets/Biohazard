@@ -1,0 +1,21 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-tls-cert-manager-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/tls/cert-manager/app
+  dependsOn:
+    - name: 1-core-tls-cert-manager-crds
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-tls-cert-manager-config
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/tls/cert-manager/config
+  dependsOn:
+    - name: 1-core-tls-cert-manager-crds
+    - name: 1-core-tls-cert-manager-app

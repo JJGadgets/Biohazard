@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app satisfactory
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controller:
+      type: statefulset
+    image:
+      repository: docker.io/wolveix/satisfactory-server
+      tag: v1.4.8@sha256:56ca73cb8a64e7bedfe0b72c9490ce1d32e547a16c753ffcb7e96c8364e8c348
+    podSecurityContext:
+      runAsUser: 0 # image uses PUID & PGID to fix permissions for Docker users, which requires starting as rootless :sadge: TODO: open issue to allow envvar to configure if rootless is allowed
+      runAsGroup: &uid ${APP_UID_SATISFACTORY}
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    env:
+      TZ: "${CONFIG_TZ}"
+      AUTOPAUSE: "true"
+      AUTOSAVEINTERVAL: "60"
+      AUTOSAVENUM: "60"
+      AUTOSAVEONDISCONNECT: "true"
+      CRASHREPORT: "false"
+      MAXPLAYERS: "4"
+      MAXTICKRATE: "120" # default is a low 30
+      NETWORKQUALITY: "3" # 0-3, 3 is Ultra (default)
+      PGID: *uid
+      PUID: *uid
+      TIMEOUT: "300"
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_SATISFACTORY}"
+        ports:
+          http:
+            enabled: false
+            primary: false
+          query:
+            enabled: true
+            port: 15777
+            protocol: UDP
+          beacon:
+            enabled: true
+            port: 15000
+            protocol: UDP
+          game:
+            enabled: true
+            primary: true
+            port: 7777
+            protocol: UDP
+    probes:
+      startup:
+        enabled: false
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+    volumeClaimTemplates:
+      - name: data
+        mountPath: /config
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: block
+      - name: runtime
+        mountPath: /config/gamefiles
+        accessMode: ReadWriteOnce
+        size: 50Gi
+        storageClass: block
+    resources:
+      requests:
+        cpu: 200m
+        memory: 11000Mi
+      limits:
+        memory: 20000Mi

@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-ingress-nginx-app
+  namespace: flux-system
+  labels:
+    prune.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/core/ingress/ingress-nginx/app
+  dependsOn:
+    - name: 1-core-ingress-deps

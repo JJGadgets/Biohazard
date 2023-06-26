@@ -1,0 +1,26 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: excalidraw-deps
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/excalidraw/deps
+  dependsOn:
+    - name: 1-core-tls-cert-manager-config
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: excalidraw-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/excalidraw/app
+  dependsOn:
+    - name: excalidraw-deps
+    - name: 1-core-ingress-nginx-app
+  healthChecks:
+    - name: excalidraw
+      namespace: excalidraw
+      kind: HelmRelease
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1

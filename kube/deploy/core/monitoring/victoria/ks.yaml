@@ -1,0 +1,37 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-victoria
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/monitoring/victoria/operator
+  dependsOn:
+    - name: 1-core-monitoring-deps
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-victoria-cluster
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/monitoring/victoria/cluster
+  dependsOn:
+    - name: 1-core-monitoring-deps
+    - name: 1-core-monitoring-victoria-crds
+    - name: 1-core-monitoring-victoria
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-victoria-agent
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/monitoring/victoria/agent
+  dependsOn:
+    - name: 1-core-monitoring-deps
+    - name: 1-core-monitoring-victoria-crds
+    - name: 1-core-monitoring-victoria
+    - name: 1-core-monitoring-victoria-cluster
+    - name: 1-core-monitoring-kube-state-metrics-app
+    - name: 1-core-monitoring-node-exporter-app

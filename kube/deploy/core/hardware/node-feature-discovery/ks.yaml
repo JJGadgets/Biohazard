@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-hardware-node-feature-discovery-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/hardware/node-feature-discovery/app
+  dependsOn: []

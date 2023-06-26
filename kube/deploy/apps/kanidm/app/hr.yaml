@@ -1,0 +1,157 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app kanidm
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    automountServiceAccountToken: false
+    controller:
+      type: statefulset
+    image:
+      repository: docker.io/kanidm/server
+      tag: latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+    env:
+      TZ: "${CONFIG_TZ}"
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        annotations:
+          coredns.io/hostname: "${APP_DNS_KANIDM}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_KANIDM}"
+        externalIPs:
+          - "${APP_IP_KANIDM}"
+        ports:
+          http:
+            enabled: true
+            port: 443
+            targetPort: 8443
+            protocol: HTTPS
+          ldap-tcp:
+            enabled: true
+            port: 636
+            targetPort: 3636
+            protocol: TCP
+          ldap-udp:
+            enabled: true
+            port: 636
+            targetPort: 3636
+            protocol: UDP
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          # https://github.com/kubernetes/ingress-nginx/issues/6728
+          nginx.ingress.kubernetes.io/server-snippet: |
+            proxy_ssl_name ${APP_DNS_KANIDM};
+            proxy_ssl_server_name on;
+            large_client_header_buffers 4 8k;
+            client_header_buffer_size 8k;
+          # without header buffer size, will get following errors due to hardening ingress-nginx number of header buffers to 2 and header buffer size to 1k:
+          # HTTP1.1 /v1/auth/valid: 400 Request Header Or Cookie Too Large
+          # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
+        hosts:
+          - host: &host "${APP_DNS_KANIDM}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+#     dnsConfig:
+#       options:
+#         - name: ndots
+#           value: "1"
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_KANIDM}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    volumeClaimTemplates:
+      - name: data
+        mountPath: /data
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        storageClass: block
+      - name: backup
+        mountPath: /backup
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        storageClass: block
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: kanidm-config
+        subPath: server.toml
+        mountPath: /data/server.toml
+        readOnly: true
+      tls-fullchain:
+        enabled: true
+        type: secret
+        name: kanidm-tls
+        subPath: tls.crt
+        mountPath: /tls/fullchain.pem
+        readOnly: true
+      tls-privkey:
+        enabled: true
+        type: secret
+        name: kanidm-tls
+        subPath: tls.key
+        mountPath: /tls/privkey.pem
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          server.toml: |-
+            domain = "${APP_DNS_KANIDM}"
+            origin = "https://${APP_DNS_KANIDM}"
+            tls_chain = "/tls/fullchain.pem"
+            tls_key = "/tls/privkey.pem"
+            role = "WriteReplica"
+            log_level = "verbose"
+            bindaddress = "[::]:8443"
+            ldapbindaddress = "[::]:3636"
+            trust_x_forward_for = true
+            db_path = "/data/kanidm.db"
+            db_fs_type = "other"
+            [online_backup]
+            path = "/backup/"
+            schedule = "0 0 22 * * * *"
+            versions = 7
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    initContainers:
+      01-init-kanidm-admin-password:
+        command:
+        - /bin/sh
+        - -c
+        - '[ -s /data/kanidm.db ] || /sbin/kanidmd recover_account -c /data/server.toml admin'
+        image: docker.io/kanidm/server:latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /config
+          name: config

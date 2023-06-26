@@ -1,5 +1,5 @@
 ---
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: ovenmediaengine
@@ -12,7 +12,7 @@ spec:
     - name: livestream-deps
   wait: false
 ---
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: ovenplayer
@@ -24,5 +24,5 @@ spec:
   dependsOn:
     - name: livestream-deps
     - name: ovenmediaengine
-    - name: ${CLUSTER_NAME_LOWER}-1-core-05-ingress-nginx
+    - name: 1-core-ingress-nginx-app
   wait: false

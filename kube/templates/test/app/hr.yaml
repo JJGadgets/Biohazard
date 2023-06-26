@@ -8,17 +8,26 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
     controller:
       type: statefulset
+      # type: deployment
+      # replicas: 1
     image:
       repository: docker.io/${APPNAME}/server
       tag: latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      db.home.arpa/pg: "pg-default"
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     env:
       TZ: "${CONFIG_TZ}"
     service:
@@ -28,8 +37,8 @@ spec:
         # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
         externalTrafficPolicy: Cluster
         annotations:
-          coredns.io/hostname: "${APP_DNS_${APPNAME}}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_${APPNAME}}"
+          coredns.io/hostname: "${APP_DNS_APPNAME}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_APPNAME}"
         ports:
           http:
             enabled: true
@@ -52,11 +61,12 @@ spec:
         primary: true
         ingressClassName: nginx
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
-            proxy_ssl_name ${APP_DNS_${APPNAME}};
+            proxy_ssl_name ${APP_DNS_APPNAME};
             proxy_ssl_server_name on;
             large_client_header_buffers 4 8k;
             client_header_buffer_size 8k;
@@ -64,7 +74,7 @@ spec:
           # HTTP1.1 /v1/auth/valid: 400 Request Header Or Cookie Too Large
           # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
         hosts:
-          - host: &host "${APP_DNS_${APPNAME}}"
+          - host: &host "${APP_DNS_APPNAME}"
             paths:
               - path: /
                 pathType: Prefix
@@ -76,7 +86,7 @@ spec:
 #         - name: ndots
 #           value: "1"
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_${APPNAME}}
+      runAsUser: &uid ${APP_UID_APPNAME}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
@@ -118,8 +128,8 @@ spec:
         enabled: true
         data:
           server.toml: |-
-            domain = "${APP_DNS_${APPNAME}}"
-            origin = "https://${APP_DNS_${APPNAME}}"
+            domain = "${APP_DNS_APPNAME}"
+            origin = "https://${APP_DNS_APPNAME}"
             tls_chain = "/tls/fullchain.pem"
             tls_key = "/tls/privkey.pem"
             role = "WriteReplica"

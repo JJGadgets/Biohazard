@@ -1,0 +1,173 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app gotosocial
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/superseriousbusiness/gotosocial
+      tag: 0.9.0
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/cloudflare: "allow"
+      db.home.arpa/pg: "pg-default"
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+    env:
+      TZ: "${CONFIG_TZ}"
+      GTS_APPLICATION_NAME: "The JJGadgets Hut"
+      GTS_HOST: &host "social.jjgadgets.tech"
+      GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
+      GTS_PROTOCOL: "https"
+      GTS_PORT: "8080"
+      GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+      GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
+      GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
+      #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+      GTS_STORAGE_BACKEND: "s3"
+      GTS_STORAGE_S3_PROXY: "true"
+      GTS_STORAGE_S3_USE_SSL: "false"
+      GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local.:6953"
+      GTS_STORAGE_S3_BUCKET: "gotosocial-media"
+      GTS_STORAGE_S3_ACCESS_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: gotosocial-media-s3
+            key: AWS_ACCESS_KEY_ID
+      GTS_STORAGE_S3_SECRET_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: gotosocial-media-s3
+            key: AWS_SECRET_ACCESS_KEY
+    envFrom:
+      - secretRef:
+          name: gotosocial-pg
+      - secretRef:
+          name: gotosocial-oidc
+    service:
+      main:
+        ports:
+          http:
+            port: &http 8080
+            protocol: HTTPS
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          # https://github.com/kubernetes/ingress-nginx/issues/6728
+          nginx.ingress.kubernetes.io/server-snippet: |
+            proxy_ssl_name social.jjgadgets.tech;
+            proxy_ssl_server_name on;
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+            secretName: gotosocial-tls
+    podSecurityContext:
+      runAsUser: &uid 568
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: OnRootMismatch
+    # volumeClaimTemplates:
+    #   - name: media
+    #     mountPath: *media
+    #     accessMode: ReadWriteOnce
+    #     size: 50Gi
+    #     storageClass: block
+    persistence:
+      config:
+        enabled: false
+      # TODO: https://github.com/superseriousbusiness/gotosocial/issues/950
+      # media:
+      #   enabled: true
+      #   existingClaim: gotosocial-nas-media
+      #   mountPath: *media
+      tls-fullchain:
+        enabled: true
+        type: secret
+        name: gotosocial-tls
+        subPath: tls.crt
+        mountPath: /tls/fullchain.pem
+        readOnly: true
+      tls-privkey:
+        enabled: true
+        type: secret
+        name: gotosocial-tls
+        subPath: tls.key
+        mountPath: /tls/privkey.pem
+        readOnly: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 1024Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef:
+              name: gotosocial-pg
+          - secretRef:
+              name: gotosocial-pg-superuser
+    probes:
+      # this is mostly to get rid of the "TLS handshake error: EOF" logs, more than getting more precise healthchecks lol
+      readiness:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host
+      liveness:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host
+      startup:
+        custom: true
+        spec:
+          periodSeconds: 60
+          httpGet:
+            path: /
+            port: *http
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: *host

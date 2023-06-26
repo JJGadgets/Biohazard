@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: syncthing-${USERS_1_ID}-restic
+  namespace: syncthing-${USERS_1_ID}
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/syncthing-${USERS_1_ID}
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
+  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
+  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: syncthing-${USERS_1_ID}-restic
+  namespace: syncthing-${USERS_1_ID}
+spec:
+  sourcePVC: user1-ceph-rbd-syncthing-${USERS_1_ID}-0
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: syncthing-${USERS_1_ID}-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: block
+    storageClassName: block
+    moverSecurityContext:
+      runAsUser: ${USERS_1_UID}
+      runAsGroup: ${USERS_1_UID}
+      fsGroup: ${USERS_1_UID}
+    retain:
+      daily: 14
+      within: 7d

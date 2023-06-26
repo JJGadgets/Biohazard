@@ -1,0 +1,79 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: minecraft
+  namespace: minecraft
+spec:
+  timeout: 15m0s
+  chart:
+    spec:
+      chart: minecraft
+      version: 4.5.0
+      sourceRef:
+        name: minecraft
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    replicaCount: 1
+    strategyType: Recreate
+    image:
+      repository: itzg/minecraft-server
+      tag: 2022.16.0-java17
+    serviceAnnotations:
+      coredns.io/hostname: "${APP_DNS_MINECRAFT}"
+      "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
+    minecraftServer:
+      serviceType: LoadBalancer
+      externalTrafficPolicy: Cluster
+      externalIPs:
+        - "${APP_IP_MINECRAFT}"
+      eula: "TRUE"
+      version: "1.19.3"
+      type: "FABRIC"
+      difficulty: normal
+      ops: "${CONFIG_MINECRAFT_OPS}"
+      icon: "${CONFIG_MINECRAFT_ICON}"
+      maxPlayers: 20
+      maxWorldSize: 60000000
+      allowNether: true
+      announcePlayerAchievements: true
+      enableCommandBlock: false
+      forcegameMode: true
+      generateStructures: true
+      hardcore: false
+      maxTickTime: -1
+      spawnProtection: 0
+      viewDistance: 10
+      gameMode: survival
+      pvp: true
+      motd: "Never waste your diamonds on a hoe! Now on Kubernetes!"
+      overrideServerProperties: true
+      memory: 2048M
+      query:
+        enabled: false
+    extraEnv:
+      FABRIC_LOADER_VERSION: "0.14.13"
+      USE_AIKAR_FLAGS: "true"
+      SYNC_CHUNK_WRITES: "false"
+      ENABLE_AUTOPAUSE: "TRUE"
+      AUTOPAUSE_TIMEOUT_EST: "300"
+      AUTOPAUSE_TIMEOUT_INIT: "120"
+      TZ: "${CONFIG_TZ}"
+      SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
+      OVERRIDE_ICON: "TRUE"
+      SNOOPER_ENABLED: "false"
+      MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,memoryleakfix,smoothboot-fabric,servercore,chunky"
+      RCON_CMDS_STARTUP:  |-
+        gamerule keepInventory false
+    securityContext:
+      runAsUser: "${APP_UID_MINECRAFT}"
+      fsGroup: "${APP_UID_MINECRAFT}"
+    persistence:
+      dataDir:
+        enabled: true
+        Size: 10Gi
+        storageClass: block
+    resources:
+      requests:
+        memory: 3072Mi

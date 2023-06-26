@@ -1,0 +1,50 @@
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy
+# MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
+# "CiliumBGPPeeringPolicy" Custom Resource will replace the old MetalLB BGP's "bgp-config" ConfigMap
+# "CiliumBGPPeeringPolicy" is used with `bgpControlPlane.enabled: true` which uses GoBGP, NOT the old `bgp.enabled: true` which uses MetalLB
+metadata:
+  name: bgp-loadbalancer-ip-main
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
+  virtualRouters:
+    - localASN: ${ASN_ROUTER} # ASNs are processed in uint32
+      exportPodCIDR: false
+      serviceSelector: # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
+        matchExpressions:
+          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
+      neighbors:
+        - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
+          peerASN: ${ASN_ROUTER}
+    - localASN: ${ASN_EC2_INGRESS}
+      exportPodCIDR: false
+      serviceSelector:
+        matchExpressions:
+          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
+      neighbors:
+        - peerAddress: "${IP_EC2_NON_K8S}/32"
+          peerASN: ${ASN_EC2_INGRESS}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bgp-config # this "bgp-config" ConfigMap is used for the old `bgp.enabled: true` which is the old MetalLB BGP, this will be deprecated in future releases
+  namespace: kube-system
+data:
+  config.yaml: |
+    peers:
+      - peer-address: "${IP_ROUTER_VLAN_K8S}"
+        peer-asn: ${ASN_ROUTER}
+        my-asn: ${ASN_ROUTER}
+      - peer-address: "${IP_EC2_NON_K8S}"
+        peer-asn: ${ASN_EC2_INGRESS}
+        my-asn: ${ASN_EC2_INGRESS}
+    address-pools:
+      - name: main-addr-pool
+        protocol: bgp
+        avoid-buggy-ips: true
+        addresses:
+          - "${IP_LB_CIDR}"

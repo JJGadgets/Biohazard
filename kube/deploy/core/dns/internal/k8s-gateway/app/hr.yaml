@@ -1,0 +1,49 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: k8s-gateway
+  namespace: dns
+spec:
+  chart:
+    spec:
+      chart: k8s-gateway
+      version: 2.0.1
+      sourceRef:
+        name: k8s-gateway
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    fullnameOverride: k8s-gateway
+    domain: "${DNS_SHORT} ${DNS_MAIN} ${DNS_VPN} ${DNS_STREAM}"
+    fallthrough:
+      enabled: true
+    ttl: 1
+    service:
+      type: LoadBalancer
+      port: 53
+      externalTrafficPolicy: Cluster # Cilium DSR
+      annotations:
+        "io.cilium/lb-ipam-ips": "${APP_IP_K8S_GATEWAY}"
+    extraZonePlugins:
+      - name: log
+      - name: errors
+      # Serves a /health endpoint on :8080, required for livenessProbe
+      - name: health
+        configBlock: lameduck 5s
+      # Serves a /ready endpoint on :8181, required for readinessProbe
+      - name: ready
+      # Serves a /metrics endpoint on :9153, required for serviceMonitor
+      - name: prometheus
+        parameters: 0.0.0.0:9153
+      - name: forward
+        parameters: ${DNS_SHORT} ${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3
+        configBlock: policy sequential
+      - name: forward
+        parameters: ${DNS_MAIN} ${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3
+        configBlock: policy sequential
+      - name: forward
+        parameters: . /etc/resolv.conf
+      - name: loop
+      - name: reload
+      - name: loadbalance

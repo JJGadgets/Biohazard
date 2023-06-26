@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: whoogle-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/whoogle/app
+  dependsOn:
+    - name: 1-core-ingress-nginx-app

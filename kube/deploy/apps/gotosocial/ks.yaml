@@ -1,0 +1,29 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gotosocial-deps
+  namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "false"
+    wait.flux.home.arpa/enabled: "true"
+spec:
+  path: ./kube/deploy/apps/gotosocial/deps
+  dependsOn: []
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gotosocial-app
+  namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/apps/gotosocial/app
+  dependsOn:
+    - name: gotosocial-deps
+    - name: 1-core-storage-rook-ceph-cluster
+    - name: 1-core-ingress-nginx-app
+    - name: 1-core-ingress-cloudflare-tunnel
+    - name: 1-core-db-pg-clusters-default

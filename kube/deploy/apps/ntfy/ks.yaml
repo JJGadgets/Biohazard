@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ntfy-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/ntfy/app
+  dependsOn:
+    - name: 1-core-storage-rook-ceph-cluster
+    - name: 1-core-ingress-nginx-app
+    #- name: 1-core-storage-volsync-app
+  healthChecks:
+    - name: ntfy
+      namespace: ntfy
+      kind: HelmRelease
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1

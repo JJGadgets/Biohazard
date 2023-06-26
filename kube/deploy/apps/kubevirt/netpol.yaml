@@ -1,0 +1,22 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app kubevirt
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEntities:
+        - world
+    - fromEndpoints:
+        - {}
+    - fromEntities:
+        - cluster
+  egress:
+    - toEntities:
+        - world
+    - toEndpoints:
+        - {}
+    - toEntities:
+        - cluster

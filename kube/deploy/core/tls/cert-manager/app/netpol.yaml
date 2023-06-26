@@ -1,0 +1,35 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app cert-manager
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    - toEntities:
+        - kube-apiserver
+        - world
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-webhook
+  namespace: cert-manager
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "10250"

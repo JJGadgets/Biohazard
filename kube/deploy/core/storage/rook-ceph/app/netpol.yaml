@@ -1,0 +1,169 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app rook-ceph
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # external Ceph cluster
+    - fromCIDRSet:
+        - cidr: "${IP_PVE_CEPH_CIDR}"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # external Ceph cluster
+    - toCIDRSet:
+        - cidr: "${IP_PVE_CEPH_CIDR}"
+    # k8s apiserver
+    - toEntities:
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: ceph-rgw-${CLUSTER_NAME}
+spec:
+  endpointSelector:
+    matchLabels:
+      s3.home.arpa/store: rgw-${CLUSTER_NAME}
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: ingress-nginx-controller-admission
+            namespace: ingress
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "80"
+              protocol: UDP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            rook_object_store: "${CLUSTER_NAME}"
+            io.kubernetes.pod.namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "80"
+              protocol: UDP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app ceph-rgw
+  namespace: &ns rook-ceph
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: *app
+      rook_object_store: "${CLUSTER_NAME}"
+  ingress:
+    # ingress controller
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "80"
+              protocol: UDP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # allow CNPG to connect
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+        - matchExpressions:
+            - key: cnpg.io/cluster
+              operator: Exists
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "80"
+              protocol: UDP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # allow pods with rgw label to connect
+    - fromEndpoints:
+        - matchLabels:
+            s3.home.arpa/store: rgw-${CLUSTER_NAME}
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "80"
+              protocol: UDP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP

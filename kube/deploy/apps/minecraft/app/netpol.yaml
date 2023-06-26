@@ -1,0 +1,35 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app minecraft
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # players
+    - fromCIDRSet:
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
+        - cidr: "${IP_WG_USER_1_V4}"
+        - cidr: "${IP_WG_GUEST_V4}"
+      toPorts:
+        - ports:
+            - port: "25565"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # internet access
+    - toEntities:
+        - world
+    # Fabric mods download
+    - toFQDNs:
+        - matchName: maven.fabricmc.net
+      toPorts:
+        - ports:
+            - port: "443"
