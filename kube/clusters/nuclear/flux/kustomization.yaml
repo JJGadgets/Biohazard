@@ -1,0 +1,56 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - secrets-age.sops.yaml
+  - secrets-ssh.sops.yaml
+  - ../config/
+  - flux-install.yaml
+  - flux-repo.yaml
+  - ../../../repos/helm/app-template/
+  - ../../../deploy/core/_networking/cilium/
+  - ../../../deploy/core/storage/_external-snapshotter/
+  # - ../../../deploy/core/storage/rook-ceph/
+  - ../../../deploy/core/storage/volsync/
+  - ../../../deploy/core/tls/cert-manager/
+  - ../../../deploy/core/dns/internal/
+  - ../../../deploy/core/dns/internal/k8s-gateway/
+  - ../../../deploy/core/dns/external-dns/
+  - ../../../deploy/core/ingress/
+  - ../../../deploy/core/ingress/ingress-nginx/
+  - ../../../deploy/core/ingress/cloudflare/
+  - ../../../deploy/core/ingress/external-proxy-x/
+  # - ../../../deploy/core/db/pg/
+  - ../../../deploy/core/monitoring/
+  - ../../../deploy/core/monitoring/metrics-server/
+  # - ../../../deploy/core/monitoring/kube-state-metrics/
+  # - ../../../deploy/core/monitoring/node-exporter/
+  # - ../../../deploy/core/monitoring/victoria/
+  - ../../../deploy/core/hardware/node-feature-discovery/
+  - ../../../deploy/core/hardware/intel-device-plugins/
+  - ../../../deploy/apps/flux-system/
+  - ../../../deploy/apps/tetragon/
+  - ../../../deploy/apps/kubevirt/
+  - ../../../deploy/apps/default/
+  - ../../../deploy/apps/whoogle/
+  # - ../../../deploy/apps/gokapi/
+  # - ../../../deploy/apps/minecraft/
+  # - ../../../deploy/apps/sandstorm/
+  # - ../../../deploy/apps/jellyfin/
+  # - ../../../deploy/apps/kavita/
+  # - ../../../deploy/apps/authentik/
+  # - ../../../deploy/apps/kanidm/
+  # - ../../../deploy/apps/syncthing/
+  # - ../../../deploy/apps/excalidraw/
+  # - ../../../deploy/apps/velociraptor/
+  # - ../../../deploy/apps/gotosocial/
+  # - ../../../deploy/apps/ntfy/
+  # - ../../../deploy/apps/satisfactory/
+  # - ../../../deploy/apps/headscale/
+  # - ../../../deploy/apps/zipline/
+  # - ../../../deploy/apps/kah/
+  # - ../../../deploy/apps/atuin/
+  # - ../../../deploy/apps/miniflux/
+  # - ../../../deploy/apps/elk/
+  # - ../../../deploy/apps/livestream/
+  # - ../../../deploy/apps/livestream/oven
