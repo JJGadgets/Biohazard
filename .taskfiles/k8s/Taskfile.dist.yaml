@@ -2,7 +2,7 @@
 version: "3"
 
 vars:
-  c: '{{ .c | default "biohazard" }}'
+  C: '{{ .C | default "biohazard" }}'
 
 tasks:
   get-public-ingresses:
@@ -19,8 +19,20 @@ tasks:
     aliases: [sa]
     desc: Decrypt cluster secrets and vars to envsubst local resource, then apply substituted resource.
     vars:
-      f: '{{ or .f (fail "Missing file (`f` var) to `envsubst && k apply`!") }}'
-      SECRETS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.c}}/config/secrets.sops.env"
-      VARS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.c}}/config/vars.sops.env"
+      F: '{{ or .F (fail "Missing file (`f` var) to `envsubst && k apply`!") }}'
+      SECRETS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/secrets.sops.env"
+      VARS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env"
+      FCMD: '{{ .FCMD | default "cat" }}'
     cmds:
-      - sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"envsubst < <(cat {{.f}}) | kubectl apply -f -\""
+      - sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"{{.FCMD}} {{.F}} | envsubst | kubectl apply -f -\""
+
+  newapp:
+    desc: Copy app folder structure template, substitute APPNAME, and (TODO) prompt user for variables values such as DNS, UID etc.
+    vars:
+      app: '{{ or .app (fail "Missing `app` variable!") }}'
+    cmds:
+      - cp -r ./kube/templates/test ./kube/3-deploy/2-apps/{{.app}}
+      # lowercase, used for resource names etc
+      - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/${APPNAME}/{{.app}}/g' %
+      # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
+      - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.app}}}/g;s/\(_{{.app}}}\)/\U\1/g' %

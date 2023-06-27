@@ -20,11 +20,15 @@ includes:
   volsync:
     aliases: [vs]
     taskfile: .taskfiles/volsync/Taskfile.dist.yaml
+  cnpg:
+    aliases: [pg]
+    taskfile: .taskfiles/cnpg/Taskfile.dist.yaml
 
 tasks:
   default:
     silent: true
     cmds: ["task -l"]
+
   n:
     desc: Create new folder and file within new folder at the same time.
     vars:
@@ -33,6 +37,7 @@ tasks:
     cmds:
       - mkdir -p {{.d}}
       - touch {{.d}}/{{.f}}
+
   ne:
     desc: Same as `n` task, but edits file as well.
     vars:
@@ -41,3 +46,31 @@ tasks:
     cmds:
       - task: new
       - $EDITOR {{.d}}/{{.f}}
+
+  pwgen:
+    vars:
+      B: '{{ .B | default "128" }}'
+      BCRYPT: '{{ .BCRYPT | default "n" }}'
+      SHA256: '{{ .SHA256 | default "n" }}'
+    cmds:
+      # - USERPW=$(head -c {{.B}} /dev/urandom | base64 -w 0) [[ $BCRYPT == "y" ]] && (echo $USERPW && task pw-bcrypt) || [[ $SHA256 == "y" ]] && (echo $USERPW && echo $USERPW | pw-sha256sum) || (echo $USERPW)
+      - |
+        export USERPW=$(head -c {{.B}} /dev/urandom | base64 -w 0)
+        echo "Your password is:"
+        echo "${USERPW}"
+        if [[ {{.BCRYPT}} == "y" ]]; then
+          echo "Your BCrypt hash is:"
+          echo "${USERPW}" | htpasswd -niBC 10 REMOVEME
+        fi
+        if [[ {{.SHA256}} == "y" ]]; then
+          echo "Your SHA256 hash is:"
+          echo "${USERPW}" | sha256sum
+        fi
+        unset USERPW
+
+  pw-bcrypt:
+    vars:
+      USERPW: '{{ or .USERPW (fail "Missing `USERPW` variable, this Task should be run from the `pwgen` Task!") }}'
+    cmds:
+      - htpasswd -bnBC 10 REMOVEME {{.USERPW}}
+

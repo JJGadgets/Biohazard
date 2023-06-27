@@ -1,2 +1,18 @@
 ---
 version: "3"
+
+tasks:
+  unlock:
+    desc: Unlock Restic repo using env vars from cluster secrets.
+    vars:
+      ns: '{{ or .ns (fail "Missing `ns` environment variable!") }}'
+      repo: '{{ or .repo (fail "Missing `repo` environment variable!") }}'
+    cmds:
+      - env $(kubectl get secrets -n {{.ns}} {{.repo}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic unlock
+  run:
+    desc: Unlock Restic repo using env vars from cluster secrets.
+    vars:
+      ns: '{{ or .ns (fail "Missing `ns` environment variable!") }}'
+      repo: '{{ or .repo (fail "Missing `repo` environment variable!") }}'
+    cmds:
+      - env $(kubectl get secrets -n {{.ns}} {{.repo}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}

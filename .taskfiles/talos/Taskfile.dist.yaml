@@ -1,2 +1,59 @@
 ---
 version: "3"
+
+includes:
+  k8s: ../k8s
+
+vars:
+  C: '{{.C | default "biohazard"}}'
+
+tasks:
+  genconfig:
+    desc: Decrypt cluster vars from .env to .yaml for talhelper to consume.
+    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+    cmds:
+      - pwd
+      #- talhelper genconfig -e '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env'
+      # alternative
+      # - |
+      #   export SOPS_PGP_PF=$(gpg --keyid-format long --list-secret-keys --with-colons | awk -F: '/::e::/{getline;sub(/fpr/,"");gsub(/:/,"");printf "%s%s", sep, $0; sep=","} END{print ""}') && echo $SOPS_PGP_PF
+      - sops --decrypt {{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env | sops --config {{.ROOT_DIR}}/.sops-stdin.yaml --encrypt --output-type yaml --output ./talenv.sops.yaml /dev/stdin
+      - talhelper genconfig -e ./talenv.sops.yaml
+      - defer: rm -rf ./talenv.sops.yaml
+
+  cilium-bootstrap-apply:
+    aliases: [cilium]
+    desc: Bootstrap Cilium onto new cluster, ready for Flux to take over managing Cilium.
+    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+    cmds:
+      - task: k8s:sops-apply
+        vars:
+          C: '{{.C | default "biohazard"}}'
+          F: '/{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install'
+          FCMD: 'kustomize build --enable-helm'
+
+  bootstrap:
+    aliases: [bs]
+    desc: Runs all bootstrap related tasks.
+    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      IP: '{{ or .IP (fail "Missing IP environment variable!") }}'
+      HOST: '{{ or .HOST (fail "Missing HOST environment variable!") }}'
+    cmds:
+      - task: genconfig
+        vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      - talosctl apply-config --insecure --endpoints {{.IP}} --nodes {{.IP}} --file /{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos/clusterconfig/{{.C}}-{{.HOST}}.yaml
+      - until talosctl bootstrap --talosconfig /{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos/clusterconfig/talosconfig --endpoints {{.IP}} --nodes {{.IP}} --context {{.C}} ; do sleep 1; done
+      - until talosctl kubeconfig --talosconfig /{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos/clusterconfig/talosconfig --endpoints {{.IP}} --nodes {{.IP}} --context {{.C}} ; do sleep 1; done
+      - |
+        sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config || true
+      - task: cilium-bootstrap-apply
+        vars:
+          C: '{{.C | default "biohazard"}}'
+
