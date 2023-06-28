@@ -1,0 +1,79 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: local-hostpath
+  namespace: democratic-csi
+spec:
+  chart:
+    spec:
+      chart: democratic-csi
+      version: 0.13.7
+      sourceRef:
+        name: democratic-csi
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    csiDriver:
+      name: "local-hostpath.democratic-csi.${CLUSTER_NAME}.home.arpa"
+      storageCapacity: true # With storage capacity tracking, the scheduler filters out nodes which do not have enough capacity.
+      fsGroupPolicy: File # fsGroupChangePolicy
+
+    storageClasses:
+      - name: local
+        defaultClass: false
+        reclaimPolicy: Retain
+        volumeBindingMode: WaitForFirstConsumer
+        # distributed support is not yet ready for expansion
+        allowVolumeExpansion: false
+
+    volumeSnapshotClasses:
+      - name: democratic-csi-local-hostpath
+        deletionPolicy: Delete
+
+    controller:
+      enabled: true
+      strategy: node
+      externalProvisioner:
+        extraArgs:
+          - --leader-election=false
+          - --node-deployment=true
+          - --node-deployment-immediate-binding=false
+          - --feature-gates=Topology=true
+          - --strict-topology=true
+          - --enable-capacity=true
+          - --capacity-ownerref-level=1
+
+      # distributed support is not yet ready
+      externalResizer:
+        enabled: false
+
+      externalSnapshotter:
+        enabled: true
+        extraArgs:
+          - --leader-election=false
+          - --node-deployment=true
+
+    node:
+      driver:
+        extraVolumeMounts:
+          - name: local-hostpath
+            mountPath: /var/lib/democratic-csi-local-hostpath
+            mountPropagation: Bidirectional
+
+      extraVolumes:
+        - name: local-hostpath
+          hostPath:
+            path: /var/lib/democratic-csi-local-hostpath
+            type: DirectoryOrCreate
+
+    driver:
+      config:
+        driver: local-hostpath
+        instance_id: ${CLUSTER_NAME}-local-hostpath
+        local-hostpath:
+          shareBasePath: "/var/lib/democratic-csi-local-hostpath"
+          controllerBasePath: "/var/lib/democratic-csi-local-hostpath"
+          dirPermissionsMode: "0770"
+          dirPermissionsUser: 0
+          dirPermissionsGroup: 0
