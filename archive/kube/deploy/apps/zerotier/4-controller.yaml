@@ -1,0 +1,85 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: zerotier-controller
+  namespace: zerotier
+  labels:
+    helm.flux.home.arpa/app-template: "true"
+spec:
+  values:
+    controller:
+      type: statefulset
+      strategy: RollingUpdate
+    fullNameOverride: zerotier-controller
+    image:
+      repository: docker.io/zyclonite/zerotier
+      tag: 1.10.2
+    env:
+      ZT_OVERRIDE_LOCAL_CONF: "true"
+      ZT_ALLOW_MANAGEMENT_FROM: 0.0.0.0/0
+    dnsPolicy: ClusterFirstWithHostNet
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    securityContext:
+      capabilities:
+        add:
+          - NET_ADMIN
+          - NET_RAW
+          - SYS_ADMIN
+    nodeSelector:
+      node-restriction.kubernetes.io/nodeType: main
+    service:
+      main:
+        enabled: true
+        primary: true
+      #   type: LoadBalancer
+      #   externalTrafficPolicy: Local
+      #   loadBalancerIP: "${APP_IP_ZEROTIER}"
+      #   externalIPs:
+      #     - "${APP_IP_ZEROTIER}"
+      #   ports:
+      #     http:
+      #       enabled: false
+      #     zerotier-udp:
+      #       enabled: true
+      #       protocol: UDP
+      #       port: 9993
+      #       targetPort: 9993
+      #     zerotier-tcp:
+      #       enabled: true
+      #       protocol: TCP
+      #       port: 9993
+      #       targetPort: 9993
+      # peers:
+      #   enabled: true
+        type: NodePort
+        externalTrafficPolicy: Local
+        ports:
+          http:
+            enabled: false
+          peers-udp:
+            enabled: true
+            protocol: UDP
+            port: 9993
+            targetPort: 9993
+            nodePort: 9993
+          peers-tcp:
+            enabled: true
+            protocol: TCP
+            port: 9993
+            targetPort: 9993
+            nodePort: 9993
+    persistence:
+      zerotier-one:
+        enabled: true
+        type: pvc
+        mountPath: /var/lib/zerotier-one
+        retain: true
+        existingClaim: zerotier-one
+      tun:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/net/tun
+        readOnly: true
