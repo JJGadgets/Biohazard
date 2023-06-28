@@ -3,6 +3,7 @@ version: "3"
 
 includes:
   k8s: ../k8s
+  cluster: ../cluster
 
 vars:
   C: '{{.C | default "biohazard"}}'
@@ -15,10 +16,6 @@ tasks:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
       - pwd
-      #- talhelper genconfig -e '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env'
-      # alternative
-      # - |
-      #   export SOPS_PGP_PF=$(gpg --keyid-format long --list-secret-keys --with-colons | awk -F: '/::e::/{getline;sub(/fpr/,"");gsub(/:/,"");printf "%s%s", sep, $0; sep=","} END{print ""}') && echo $SOPS_PGP_PF
       - sops --decrypt {{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env | sops --config {{.ROOT_DIR}}/.sops-stdin.yaml --encrypt --output-type yaml --output ./talenv.sops.yaml /dev/stdin
       - talhelper genconfig -e ./talenv.sops.yaml
       - defer: rm -rf ./talenv.sops.yaml
@@ -56,4 +53,7 @@ tasks:
       - task: cilium-bootstrap-apply
         vars:
           C: '{{.C | default "biohazard"}}'
-
+      - task: cluster:cluster-init-config
+        vars:
+          C: '{{.C | default "biohazard"}}'
+          APPLY: '1'

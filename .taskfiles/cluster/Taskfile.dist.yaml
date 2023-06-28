@@ -2,41 +2,45 @@
 version: "3"
 
 vars:
-  CLUSTER: '{{.CLUSTER | default "biohazard"}}'
+  C: '{{.C | default "biohazard"}}'
   APPLY: '{{.APPLY | default "0"}}'
 
 tasks:
-  cilium-init:
-    desc: Decrypt cluster secrets and vars to envsubst local resource, then apply substituted resource.
+  cluster-init-flux:
+    aliases: [initflux]
     vars:
-      f: '{{ .f | default "{{.ROOT_DIR}}/kube/3-deploy/1-core/01-networking/cilium/bootstrap-install" }}'
-      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
-      SECRETS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/secrets.sops.env"
-      VARS_FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/vars.sops.env"
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
-      - sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"kustomize build {{.f}} --enable-helm | envsubst\""
+      - |
+        sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config
+      - kubectl apply --server-side --kustomize ./kube/bootstrap/flux/
 
   cluster-init-config:
     aliases: [initcfg]
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
       - task: cluster-init-config-sops-decrypt
         vars:
-          FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/vars.sops.env"
+          FILE: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env"
           NAME: '{{ .NAME | default "vars" }}'
           RESOURCETYPE: configmap
           APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
       - task: cluster-init-config-sops-decrypt
         vars:
-          FILE: "{{.ROOT_DIR}}/kube/clusters/{{.CLUSTER}}/config/secrets.sops.env"
+          FILE: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/config/secrets.sops.env"
           NAME: '{{ .NAME | default "secrets" }}'
           RESOURCETYPE: secret
+          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+      - task: cluster-init-config-repo
+        vars:
           APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
 
   cluster-init-config-sops-decrypt:
     desc: Decrypt encrypted vars.sops.env and `k apply` to cluster as ConfigMap.
     dir: '{{.ROOT_DIR}}'
     vars:
-      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       FILE: '{{ or .FILE (fail "Missing FILE environment variable!") }}'
       NAME: '{{ or .NAME (fail "Missing NAME environment variable!") }}'
       RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
@@ -44,12 +48,12 @@ tasks:
       APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
     cmds:
       - echo {{.APPLY}}
-      - sops exec-file {{.FILE}} "SOPSFILE={} task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-cd CLUSTER={{.CLUSTER}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}}"
+      - sops exec-file {{.FILE}} "SOPSFILE={} task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-cd C={{.C}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}}"
 
   cluster-init-config-cd:
     desc: Change to SOPS exec-file directory.
     vars:
-      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       NAME: '{{ or .NAME (fail "Missing NAME environment variable!") }}'
       RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
       SOPSFILE: '{{ or .SOPSFILE (fail "Missing SOPSFILE environment variable!") }}'
@@ -57,12 +61,12 @@ tasks:
       APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
     cmds:
       - echo {{.APPLY}}
-      - SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname) task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-generate-kustomization CLUSTER={{.CLUSTER}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}} SOPSFILE={{.SOPSFILE}} SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname)
+      - SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname) task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-generate-kustomization C={{.C}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}} SOPSFILE={{.SOPSFILE}} SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname)
 
   cluster-init-config-generate-kustomization:
     desc: Generate ConfigMap from .env file.
     vars:
-      CLUSTER: '{{ or .CLUSTER (fail "Missing CLUSTER environment variable!") }}'
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       NAME: '{{ or .NAME (fail "Missing NAME environment variable!") }}'
       RESOURCETYPE: '{{ or .RESOURCETYPE (fail "Missing RESOURCETYPE environment variable!") }}'
       SOPSFILE: '{{ or .SOPSFILE (fail "Missing SOPSFILE environment variable!") }}'
@@ -71,7 +75,7 @@ tasks:
       APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
     dir: '{{.SOPSDIR}}'
     cmds:
-      - CLUSTER={{.CLUSTER}} NAME={{.NAME}} FILE=$(echo {{.SOPSFILE}} | xargs basename) envsubst < <(cat {{.KUSTOMIZATIONFILE}}) > {{.SOPSDIR}}/kustomization.yaml
+      - C={{.C}} NAME={{.NAME}} FILE=$(echo {{.SOPSFILE}} | xargs basename) envsubst < <(cat {{.KUSTOMIZATIONFILE}}) > {{.SOPSDIR}}/kustomization.yaml
       - task: cluster-init-config-build
         vars:
           SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
@@ -101,3 +105,15 @@ tasks:
         msg: "Apply isn't enabled, will not apply!"
     cmds:
       - kubectl apply -k {{.SOPSDIR}}
+
+  cluster-init-config-repo:
+    desc: Apply repository configs
+    vars:
+      APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
+    preconditions:
+      - sh: '[ {{.APPLY}} = 1 ]'
+        msg: "Apply isn't enabled, will not apply!"
+    cmds:
+      - sops --decrypt /{{.ROOT_DIR}}/kube/clusters/{{.C}}/flux/secrets-age.sops.yaml | kubectl apply -f -
+      - sops --decrypt /{{.ROOT_DIR}}/kube/clusters/{{.C}}/flux/secrets-ssh.sops.yaml | kubectl apply -f -
+      - kubectl apply --server-side -f /{{.ROOT_DIR}}/kube/clusters/{{.C}}/flux/flux-repo.yaml
