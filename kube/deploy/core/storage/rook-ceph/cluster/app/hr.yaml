@@ -41,7 +41,7 @@ spec:
         count: 3
         allowMultiplePerNode: false
       mgr:
-        count: 3
+        count: 2
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"
@@ -69,7 +69,7 @@ spec:
             # size: 3
             size: 2
           parameters:
-            min_size: 2
+            min_size: "2"
             compression_mode: "aggressive"
             compression_algorithm: "zstd"
         storageClass:
