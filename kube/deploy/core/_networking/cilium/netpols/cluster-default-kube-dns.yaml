@@ -15,12 +15,6 @@ spec:
       toPorts:
         - ports:
             - port: "53"
-          rules:
-            dns:
-              - {}
-          # rules:
-          #   dns:
-          #     - matchPattern: "*"
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -40,6 +34,3 @@ spec:
           rules:
             dns:
               - {}
-          # rules:
-          #   dns:
-          #     - matchPattern: "*"

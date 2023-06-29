@@ -15,6 +15,21 @@ tasks:
         sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config
       - kubectl apply --server-side --kustomize ./kube/bootstrap/flux/
 
+  cluster-init:
+    aliases: [init]
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      APPLY: '1'
+    cmds:
+      - task: cluster-init-config
+        vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+          APPLY: '1'
+      - task: cluster-init-config-repo
+        vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+          APPLY: '1'
+
   cluster-init-config:
     aliases: [initcfg]
     vars:
@@ -32,9 +47,6 @@ tasks:
           NAME: '{{ .NAME | default "secrets" }}'
           RESOURCETYPE: secret
           APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
-      - task: cluster-init-config-repo
-        vars:
-          APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
 
   cluster-init-config-sops-decrypt:
     desc: Decrypt encrypted vars.sops.env and `k apply` to cluster as ConfigMap.
@@ -47,7 +59,7 @@ tasks:
       KUSTOMIZATIONFILE: '{{.ROOT_DIR}}/.taskfiles/cluster/cluster-init-sops-apply-{{.RESOURCETYPE}}-kustomization.tmpl.yaml'
       APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
     cmds:
-      - echo {{.APPLY}}
+      # - echo {{.APPLY}}
       - sops exec-file {{.FILE}} "SOPSFILE={} task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-cd C={{.C}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}}"
 
   cluster-init-config-cd:
@@ -60,7 +72,7 @@ tasks:
       KUSTOMIZATIONFILE: '{{ or .KUSTOMIZATIONFILE (fail "Missing KUSTOMIZATIONFILE environment variable!") }}'
       APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
     cmds:
-      - echo {{.APPLY}}
+      # - echo {{.APPLY}}
       - SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname) task --taskfile {{.ROOT_DIR}}/Taskfile.dist.yaml cluster:cluster-init-config-generate-kustomization C={{.C}} RESOURCETYPE={{.RESOURCETYPE}} KUSTOMIZATIONFILE={{.KUSTOMIZATIONFILE}} APPLY={{.APPLY}} NAME={{.NAME}} SOPSFILE={{.SOPSFILE}} SOPSDIR=$(echo "{{.SOPSFILE}}" | xargs dirname)
 
   cluster-init-config-generate-kustomization:
@@ -78,10 +90,12 @@ tasks:
       - C={{.C}} NAME={{.NAME}} FILE=$(echo {{.SOPSFILE}} | xargs basename) envsubst < <(cat {{.KUSTOMIZATIONFILE}}) > {{.SOPSDIR}}/kustomization.yaml
       - task: cluster-init-config-build
         vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
           SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
           APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
       - task: cluster-init-config-apply
         vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
           SOPSDIR: '{{ or .SOPSDIR (fail "Missing SOPSDIR environment variable!") }}'
           APPLY: '{{ or .APPLY (fail "Missing APPLY environment variable!") }}'
 
@@ -105,6 +119,7 @@ tasks:
         msg: "Apply isn't enabled, will not apply!"
     cmds:
       - kubectl apply -k {{.SOPSDIR}}
+      # - kubectl annotate secrets -n flux-system {{.C}}-vars kubectl.kubernetes.io/last-applied-configuration-
 
   cluster-init-config-repo:
     desc: Apply repository configs

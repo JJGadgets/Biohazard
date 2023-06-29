@@ -2,9 +2,10 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 1-core-storage-rook-ceph-app
+  name: 1-core-storage-rook-ceph-pve-cluster
   namespace: flux-system
 spec:
-  path: ./kube/deploy/core/storage/rook-ceph/app
+  path: ./kube/deploy/core/storage/rook-ceph/pve/app
   dependsOn:
     - name: 0-${CLUSTER_NAME}-config
+    - name: 1-core-storage-rook-ceph-app

@@ -5,6 +5,6 @@ metadata:
   name: 1-core-ingress-deps
   namespace: flux-system
 spec:
-  path: ./kube/deploy/core/ingress/_deps
+  path: ./kube/deploy/core/ingress/_deps/app
   dependsOn:
     - name: 1-core-tls-cert-manager-config
