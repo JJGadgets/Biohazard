@@ -48,6 +48,9 @@ spec:
       - kind: Secret
         name: nuclear-secrets
         optional: false
+      - kind: ConfigMap
+        name: nuclear-versions
+        optional: false
   patches:
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -112,6 +115,9 @@ spec:
                 optional: false
               - kind: Secret
                 name: nuclear-secrets
+                optional: false
+              - kind: ConfigMap
+                name: nuclear-versions
                 optional: false
       target:
         group: kustomize.toolkit.fluxcd.io

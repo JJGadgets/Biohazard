@@ -48,6 +48,9 @@ spec:
       - kind: Secret
         name: biohazard-secrets
         optional: false
+      # - kind: ConfigMap
+      #   name: biohazard-versions
+      #   optional: false
   patches:
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1

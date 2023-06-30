@@ -10,5 +10,10 @@ secretGenerator:
     namespace: flux-system
     envs:
       - ./vars.sops.env
+configMapGenerator:
+  - name: nuclear-versions
+    namespace: flux-system
+    envs:
+      - ./versions.env
 generatorOptions:
   disableNameSuffixHash: true
