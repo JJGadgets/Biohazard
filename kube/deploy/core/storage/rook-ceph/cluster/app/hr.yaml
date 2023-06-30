@@ -24,8 +24,8 @@ spec:
       osd_class_update_on_start = false
       mon_data_avail_warn = 10
     cephClusterSpec:
-      cephVersion:
-        image: "quay.io/ceph/ceph:v17.2.3" # OSD prepare with encrypted OSDs fails on >v17.2.3: https://github.com/rook/rook/issues/11304#issuecomment-1321286046
+      # cephVersion:
+      #   image: "quay.io/ceph/ceph:v17.2.3" 
       network:
         # provider: host
         connections:
@@ -55,17 +55,21 @@ spec:
         useAllNodes: false
         useAllDevices: false
         config:
-          encryptedDevice: "true"
+          # encryptedDevice: "true" # TODO: temporarily commented, OSD prepare with encrypted OSDs fails on >v17.2.3: https://github.com/rook/rook/issues/11304#issuecomment-1321286046
           osdsPerDevice: "1"
         nodes:
           - name: "humming"
             devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           - name: "blackfish"
-            devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
+            devices:
+              - name: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN"
+                config:
+                  encryptedDevice: "true"
+            # devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           # - name: "strato"
           #   devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
     cephBlockPools:
-      - name: "${CLUSTER_NAME}-block-k8s-ssd"
+      - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
           failureDomain: "osd"
           deviceClass: "ssd"
@@ -93,8 +97,13 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+    cephBlockPoolsVolumeSnapshotClass:
+      enabled: true
+      name: *rbd
+      isDefault: true
+      deletionPolicy: Delete
     cephFileSystems:
-      - name: "${CLUSTER_NAME}-fs"
+      - name: &fs "${CLUSTER_NAME}-fs"
         spec:
           preserveFilesystemOnDelete: true
           metadataPool:
@@ -135,6 +144,41 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+    cephFileSystemVolumeSnapshotClass:
+      enabled: true
+      name: *fs
+      isDefault: false
+      deletionPolicy: Delete
+    cephObjectStores:
+      - name: rgw-${CLUSTER_NAME}
+        spec:
+          preservePoolsOnDelete: true
+          metadataPool:
+            failureDomain: host
+            replicated:
+              size: 3
+          dataPool:
+            failureDomain: host
+            replicated:
+              size: 3
+          gateway:
+            port: 80
+            resources:
+              requests:
+                cpu: 250m
+                memory: 1Gi
+              limits:
+                memory: 2Gi
+            instances: 2
+          healthCheck:
+            bucket:
+              interval: 60s
+        storageClass:
+          enabled: true
+          name: ceph-bucket
+          reclaimPolicy: Delete
+          parameters:
+            region: us-east-1
     monitoring:
       enabled: true
       createPrometheusRules: true
