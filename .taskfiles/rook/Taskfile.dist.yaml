@@ -1,0 +1,126 @@
+---
+version: "3"
+
+x-task-vars: &task-vars
+  NODE: "{{.NODE}}"
+  CEPH_DISK: "{{.CEPH_DISK}}"
+  TIME: "{{.TIME}}"
+  JOB_NAME: "{{.JOB_NAME}}"
+
+vars:
+  TIME: '{{now | date "150405"}}'
+
+includes:
+  k8s:
+    internal: true
+    taskfile: ../k8s
+  cluster:
+    internal: true
+    taskfile: ../cluster
+
+tasks:
+  zap-disk:
+    desc: Prepare a disk to be used as a Ceph OSD on specified node by zapping all data and partition data.
+    internal: true
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    cmds:
+      # TODO: mimic deviceFilter
+      - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
+      # - task: k8s:wait-job-pending
+      #   vars:
+      #     JOB_NAME: '{{.wipeCephDiskJobName}}'
+      #     NAMESPACE: kube-system
+      - |- 
+        until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=1m; do 
+          echo "Job {{.JOB_NAME}} is still running, logs:" && 
+          kubectl -n kube-system logs job/{{.JOB_NAME}} -f;
+        done
+      # - kubectl -n kube-system logs job/{{.JOB_NAME}}
+      - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
+    vars:
+      NODE: '{{ or .NODE (fail "`NODE` is required") }}'
+      CEPH_DISK: '{{ or .CEPH_DISK (fail "`CEPH_DISK` is required") }}'
+      JOB_NAME: 'zap-disk-{{- .NODE -}}-{{- .TIME -}}'
+      JOB_TEMPLATE: "zap-disk-job.tmpl.yaml"
+    env: *task-vars
+    preconditions:
+      - sh: test -f {{.JOB_TEMPLATE}}
+
+  wipe-state:
+    desc: Wipe all Ceph state on specified node.
+    internal: true
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    cmds:
+      - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
+      # - task: k8s:wait-job-pending
+      #   vars:
+      #     JOB_NAME: '{{.wipeCephDiskJobName}}'
+      #     NAMESPACE: kube-system
+      - until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=1m; do echo "Job {{.JOB_NAME}} is still running, logs:" && kubectl -n kube-system logs job/{{.JOB_NAME}} -f; done
+      # - kubectl -n kube-system logs job/{{.JOB_NAME}}
+      - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
+    vars:
+      NODE: '{{ or .NODE (fail "`NODE` is required") }}'
+      JOB_NAME: "wipe-rook-state-{{- .NODE -}}-{{- .TIME -}}"
+      JOB_TEMPLATE: "wipe-rook-state-job.tmpl.yaml"
+    env: *task-vars
+    preconditions:
+      - sh: test -f {{.JOB_TEMPLATE}}
+
+  wipe-node:
+    aliases: ["wn"]
+    desc: Trigger a wipe of all Rook-Ceph data on specified node.
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    vars:
+      NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
+      CEPH_DISK: '{{ or .CEPH_DISK (fail "Missing `CEPH_DISK` environment variable!") }}'
+    cmds:
+      - task: zap-disk
+        vars:
+          NODE: '{{.NODE}}'
+          CEPH_DISK: '{{ or .CEPH_DISK (fail "Missing `CEPH_DISK` environment variable!") }}'
+      - task: wipe-state
+        vars:
+          NODE: '{{.NODE}}'
+
+  wipe-nodes-nuclear:
+    desc: Wipe all nodes in cluster "nuclear"
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    cmds:
+      - task: wipe-node
+        vars:
+          NODE: "blackfish"
+          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN"
+
+  reinstall:
+    desc: |-
+      For when Rook refuses to create any OSDs at all
+      Assuming Flux and resource names, suspends master ks.yaml (Flux Kustomization), suspends ks.yaml for Rook-Ceph and cluster, suspends HelmReleases for Rook-Ceph and cluster, deletes cluster HelmRelease, patches Ceph CR and cm/secret finalizers, removes Rook-Ceph HR and namespace.
+      Then, reconcile master, Rook-Ceph and cluster ks.yaml.
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    vars:
+      C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
+    cmds:
+      - task: cluster:cluster-switch
+        vars:
+          C: '{{.C}}'
+      - flux suspend ks 0-{{.C}}-config
+      - flux suspend ks 1-core-storage-rook-ceph-app
+      - flux suspend ks 1-core-storage-rook-ceph-cluster
+      - helm uninstall -n rook-ceph rook-ceph-cluster && true || true
+      - flux delete hr -n rook-ceph rook-ceph-cluster --silent && true || true
+      - |-
+        for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
+            kubectl get -n rook-ceph "$CRD" -o name | \
+            xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+        done
+      - |-
+        kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+        kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+      - helm uninstall -n rook-ceph rook-ceph && true || true
+      - flux delete hr -n rook-ceph rook-ceph --silent && true || true
+      - kubectl get namespaces rook-ceph && until kubectl delete namespaces rook-ceph; do kubectl get namespaces rook-ceph -o jsonpath="{.status}"; done || true
+      - task: wipe-nodes-{{.C}}
+      - flux suspend ks 0-{{.C}}-config && flux resume ks 0-{{.C}}-config
+      - flux suspend ks 1-core-storage-rook-ceph-app && flux resume ks 1-core-storage-rook-ceph-app
+      - flux suspend ks 1-core-storage-rook-ceph-cluster && flux resume ks 1-core-storage-rook-ceph-cluster

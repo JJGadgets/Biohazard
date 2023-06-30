@@ -2,8 +2,12 @@
 version: "3"
 
 includes:
-  k8s: ../k8s
-  cluster: ../cluster
+  k8s:
+    internal: true
+    taskfile: ../k8s
+  cluster:
+    internal: true
+    taskfile: ../cluster
 
 vars:
   C: '{{.C | default "biohazard"}}'

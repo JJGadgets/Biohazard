@@ -6,13 +6,22 @@ vars:
   APPLY: '{{.APPLY | default "0"}}'
 
 tasks:
-  cluster-init-flux:
-    aliases: [initflux]
+  cluster-switch:
+    aliases: [ctx]
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
       - |
-        sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config
+        sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config || true
+
+  cluster-init-flux:
+    aliases: [initflux]
+    vars:
+      C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
+    cmds:
+      - task: cluster-switch
+        vars:
+          C: '{{.C}}'
       - kubectl apply --server-side --kustomize ./kube/bootstrap/flux/
 
   cluster-init:

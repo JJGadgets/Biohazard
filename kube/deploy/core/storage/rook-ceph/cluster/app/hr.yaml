@@ -32,16 +32,18 @@ spec:
           compression:
             enabled: true
       crashCollector:
-        disable: false
+        disable: true
       dashboard:
         enabled: true
         urlPrefix: "/"
         ssl: false
       mon:
-        count: 3
+        # count: 3
+        count: 1
         allowMultiplePerNode: false
       mgr:
-        count: 2
+        # count: 2
+        count: 1
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"

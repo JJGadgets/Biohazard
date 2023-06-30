@@ -1,0 +1,37 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "${JOB_NAME}"
+  namespace: "kube-system"
+  labels:
+    jobs.home.arpa/rook: "wipe-disk"
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      nodeName: ${NODE}
+      containers:
+        - name: disk-wipe
+          image: ghcr.io/onedr0p/alpine:3.17.3@sha256:999384960b6114496a5e4036e945141c205d064ce23b87326bd3f8d878c5a9d4
+          securityContext:
+            privileged: true
+          resources: {}
+          command: ["/bin/sh", "-c"]
+          args:
+            - apk add --no-cache sgdisk util-linux parted;
+              fdisk -l /mnt/disk;
+              echo "Running sgdisk..." && sgdisk --zap-all /mnt/disk && echo "Success!" || break;
+              echo "Running wipefs..." && wipefs --all --backup /mnt/disk && echo "Success!" || break;
+              echo "Running blkdiscard..." && blkdiscard /mnt/disk && echo "Success!" || break;
+              echo "Running partprobe..." && partprobe /mnt/disk && echo "Success!" || echo "Failed!"
+          #dd if=/dev/zero bs=1M count=10000 oflag=direct of=${CEPH_DISK};
+          volumeMounts:
+            - mountPath: /mnt/disk
+              name: host-disk
+      volumes:
+        - name: host-disk
+          hostPath:
+            path: "${CEPH_DISK}"
