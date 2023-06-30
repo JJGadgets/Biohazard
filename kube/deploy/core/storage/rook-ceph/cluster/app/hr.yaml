@@ -102,83 +102,83 @@ spec:
       name: *rbd
       isDefault: true
       deletionPolicy: Delete
-    cephFileSystems:
-      - name: &fs "${CLUSTER_NAME}-fs"
-        spec:
-          preserveFilesystemOnDelete: true
-          metadataPool:
-            replicated:
-              # size: 3
-              size: 2
-          dataPools:
-            - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
-              failureDomain: "osd"
-              replicated:
-                # size: 3
-                size: 2
-              parameters:
-                compression_mode: "aggressive"
-                compression_algorithm: "zstd"
-          metadataServer:
-            activeCount: 1
-            activeStandby: true
-            resources:
-              requests:
-                cpu: 1000m
-                memory: 4Gi
-              limits:
-                memory: 4Gi
-        storageClass:
-          enabled: true
-          isDefault: false
-          name: "file"
-          pool: *fsdata0
-          reclaimPolicy: "Delete"
-          allowVolumeExpansion: true
-          mountOptions: ["discard"]
-          parameters:
-            csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
-            csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
-            csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-cephfs-provisioner"
-            csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
-            csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
-            csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
-            csi.storage.k8s.io/fstype: "ext4"
+    cephFileSystems: []
+      # - name: &fs "${CLUSTER_NAME}-fs"
+      #   spec:
+      #     preserveFilesystemOnDelete: true
+      #     metadataPool:
+      #       replicated:
+      #         # size: 3
+      #         size: 2
+      #     dataPools:
+      #       - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
+      #         failureDomain: "osd"
+      #         replicated:
+      #           # size: 3
+      #           size: 2
+      #         parameters:
+      #           compression_mode: "aggressive"
+      #           compression_algorithm: "zstd"
+      #     metadataServer:
+      #       activeCount: 1
+      #       activeStandby: true
+      #       resources:
+      #         requests:
+      #           cpu: 1000m
+      #           memory: 4Gi
+      #         limits:
+      #           memory: 4Gi
+      #   storageClass:
+      #     enabled: true
+      #     isDefault: false
+      #     name: "file"
+      #     pool: *fsdata0
+      #     reclaimPolicy: "Delete"
+      #     allowVolumeExpansion: true
+      #     mountOptions: ["discard"]
+      #     parameters:
+      #       csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
+      #       csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-cephfs-provisioner"
+      #       csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
+      #       csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/fstype: "ext4"
     cephFileSystemVolumeSnapshotClass:
-      enabled: true
-      name: *fs
+      enabled: false
+      # name: *fs
       isDefault: false
       deletionPolicy: Delete
-    cephObjectStores:
-      - name: rgw-${CLUSTER_NAME}
-        spec:
-          preservePoolsOnDelete: true
-          metadataPool:
-            failureDomain: host
-            replicated:
-              size: 3
-          dataPool:
-            failureDomain: host
-            replicated:
-              size: 3
-          gateway:
-            port: 80
-            resources:
-              requests:
-                cpu: 250m
-                memory: 1Gi
-              limits:
-                memory: 2Gi
-            instances: 2
-          healthCheck:
-            bucket:
-              interval: 60s
-        storageClass:
-          enabled: true
-          name: ceph-bucket
-          reclaimPolicy: Delete
-          parameters:
-            region: us-east-1
+    cephObjectStores: []
+      # - name: rgw-${CLUSTER_NAME}
+      #   spec:
+      #     preservePoolsOnDelete: true
+      #     metadataPool:
+      #       failureDomain: host
+      #       replicated:
+      #         size: 3
+      #     dataPool:
+      #       failureDomain: host
+      #       replicated:
+      #         size: 3
+      #     gateway:
+      #       port: 80
+      #       resources:
+      #         requests:
+      #           cpu: 250m
+      #           memory: 1Gi
+      #         limits:
+      #           memory: 2Gi
+      #       instances: 2
+      #     healthCheck:
+      #       bucket:
+      #         interval: 60s
+      #   storageClass:
+      #     enabled: true
+      #     name: ceph-bucket
+      #     reclaimPolicy: Delete
+      #     parameters:
+      #       region: us-east-1
     monitoring:
       enabled: true
       createPrometheusRules: true
