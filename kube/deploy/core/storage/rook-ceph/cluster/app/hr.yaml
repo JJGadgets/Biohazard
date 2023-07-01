@@ -25,7 +25,7 @@ spec:
       mon_data_avail_warn = 10
     cephClusterSpec:
       # cephVersion:
-      #   image: "quay.io/ceph/ceph:v17.2.3" 
+      #   image: "quay.io/ceph/ceph:v17.2.3"
       network:
         # provider: host
         connections:
@@ -55,7 +55,8 @@ spec:
         useAllNodes: false
         useAllDevices: false
         config:
-          # encryptedDevice: "true" # TODO: temporarily commented, OSD prepare with encrypted OSDs fails on >v17.2.3: https://github.com/rook/rook/issues/11304#issuecomment-1321286046
+          storeType: "bluestore" # for encryptedDevice
+          encryptedDevice: "true" # TODO: temporarily commented, OSD prepare with encrypted OSDs fails on >v17.2.3: https://github.com/rook/rook/issues/11304#issuecomment-1321286046
           osdsPerDevice: "1"
         nodes:
           - name: "humming"
@@ -64,6 +65,7 @@ spec:
             devices:
               - name: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN"
                 config:
+                  storeType: "bluestore" # for encryptedDevice
                   encryptedDevice: "true"
             # devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           # - name: "strato"
@@ -102,7 +104,8 @@ spec:
       name: *rbd
       isDefault: true
       deletionPolicy: Delete
-    cephFileSystems: []
+    cephFileSystems:
+      []
       # - name: &fs "${CLUSTER_NAME}-fs"
       #   spec:
       #     preserveFilesystemOnDelete: true
@@ -149,7 +152,8 @@ spec:
       # name: *fs
       isDefault: false
       deletionPolicy: Delete
-    cephObjectStores: []
+    cephObjectStores:
+      []
       # - name: rgw-${CLUSTER_NAME}
       #   spec:
       #     preservePoolsOnDelete: true
