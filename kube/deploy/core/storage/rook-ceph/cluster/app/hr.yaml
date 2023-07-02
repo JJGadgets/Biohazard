@@ -5,6 +5,7 @@ metadata:
   name: rook-ceph-cluster
   namespace: rook-ceph
 spec:
+  interval: 5m
   timeout: 15m
   chart:
     spec:
@@ -22,10 +23,9 @@ spec:
       bdev_enable_discard = true
       bdev_async_discard = true
       osd_class_update_on_start = false
+      osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
     cephClusterSpec:
-      # cephVersion:
-      #   image: "quay.io/ceph/ceph:v17.2.3"
       network:
         # provider: host
         connections:
@@ -40,12 +40,10 @@ spec:
         urlPrefix: "/"
         ssl: false
       mon:
-        # count: 3
-        count: 1
+        count: 3
         allowMultiplePerNode: false
       mgr:
-        # count: 2
-        count: 1
+        count: 2
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"
@@ -55,23 +53,17 @@ spec:
         useAllNodes: false
         useAllDevices: false
         config:
-          storeType: "bluestore" # for encryptedDevice
-          encryptedDevice: "true" # TODO: temporarily commented, OSD prepare with encrypted OSDs fails on >v17.2.3: https://github.com/rook/rook/issues/11304#issuecomment-1321286046
+          encryptedDevice: "true"
           osdsPerDevice: "1"
         nodes:
           - name: "humming"
             devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           - name: "blackfish"
-            devices:
-              - name: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN"
-                config:
-                  storeType: "bluestore" # for encryptedDevice
-                  encryptedDevice: "true"
-            # devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
+            devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           # - name: "strato"
           #   devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
     cephBlockPools:
-      - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd"
+      - name: "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
           failureDomain: "osd"
           deviceClass: "ssd"
@@ -82,7 +74,7 @@ spec:
             min_size: "2"
             compression_mode: "aggressive"
             compression_algorithm: "zstd"
-        storageClass:
+        storageClass: &rbd-sc
           enabled: true
           name: "block"
           isDefault: true
@@ -99,100 +91,137 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+      # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "ssd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 1
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "zstd"
+      #   storageClass:
+      #     <<: *rbd-sc
+      #     name: "block-ssd-ec-2-1"
+      # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "hdd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 2
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "zstd"
+      #   storageClass:
+      #     <<: *rbd-sc
+      #     name: "block-hdd-ec-2-2"
     cephBlockPoolsVolumeSnapshotClass:
       enabled: true
-      name: *rbd
+      name: "ceph-block"
       isDefault: true
-      deletionPolicy: Delete
+      deletionPolicy: "Delete"
     cephFileSystems:
-      []
-      # - name: &fs "${CLUSTER_NAME}-fs"
-      #   spec:
-      #     preserveFilesystemOnDelete: true
-      #     metadataPool:
-      #       replicated:
-      #         # size: 3
-      #         size: 2
-      #     dataPools:
-      #       - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
-      #         failureDomain: "osd"
-      #         replicated:
-      #           # size: 3
-      #           size: 2
-      #         parameters:
-      #           compression_mode: "aggressive"
-      #           compression_algorithm: "zstd"
-      #     metadataServer:
-      #       activeCount: 1
-      #       activeStandby: true
-      #       resources:
-      #         requests:
-      #           cpu: 1000m
-      #           memory: 4Gi
-      #         limits:
-      #           memory: 4Gi
-      #   storageClass:
-      #     enabled: true
-      #     isDefault: false
-      #     name: "file"
-      #     pool: *fsdata0
-      #     reclaimPolicy: "Delete"
-      #     allowVolumeExpansion: true
-      #     mountOptions: ["discard"]
-      #     parameters:
-      #       csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
-      #       csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-cephfs-provisioner"
-      #       csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
-      #       csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/fstype: "ext4"
+      - name: &fs "${CLUSTER_NAME}-fs"
+        spec:
+          preserveFilesystemOnDelete: true
+          metadataPool:
+            replicated:
+              # size: 3
+              size: 2
+          dataPools:
+            - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
+              failureDomain: "osd"
+              replicated:
+                # size: 3
+                size: 2
+              parameters:
+                compression_mode: "aggressive"
+                compression_algorithm: "zstd"
+          metadataServer:
+            activeCount: 1
+            activeStandby: true
+            resources:
+              requests:
+                cpu: 1000m
+                memory: 4Gi
+              limits:
+                memory: 4Gi
+        storageClass:
+          enabled: true
+          isDefault: false
+          name: "file"
+          pool: *fsdata0
+          reclaimPolicy: "Delete"
+          allowVolumeExpansion: true
+          mountOptions: ["discard"]
+          parameters:
+            csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
+            csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-cephfs-provisioner"
+            csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
+            csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/fstype: "ext4"
     cephFileSystemVolumeSnapshotClass:
-      enabled: false
-      # name: *fs
+      enabled: true
+      name: "ceph-fs"
       isDefault: false
       deletionPolicy: Delete
     cephObjectStores:
-      []
-      # - name: rgw-${CLUSTER_NAME}
-      #   spec:
-      #     preservePoolsOnDelete: true
-      #     metadataPool:
-      #       failureDomain: host
-      #       replicated:
-      #         size: 3
-      #     dataPool:
-      #       failureDomain: host
-      #       replicated:
-      #         size: 3
-      #     gateway:
-      #       port: 80
-      #       resources:
-      #         requests:
-      #           cpu: 250m
-      #           memory: 1Gi
-      #         limits:
-      #           memory: 2Gi
-      #       instances: 2
-      #     healthCheck:
-      #       bucket:
-      #         interval: 60s
-      #   storageClass:
-      #     enabled: true
-      #     name: ceph-bucket
-      #     reclaimPolicy: Delete
-      #     parameters:
-      #       region: us-east-1
+      - name: &rgw "rgw-${CLUSTER_NAME}"
+        spec:
+          preservePoolsOnDelete: true
+          metadataPool:
+            failureDomain: "host"
+            replicated:
+              size: 2
+          dataPool:
+            failureDomain: "host"
+            replicated:
+              size: 2
+          healthCheck:
+            bucket:
+              interval: "60s"
+          gateway:
+            port: 6953
+            instances: 2
+            priorityClassName: "system-cluster-critical"
+            resources:
+              requests:
+                cpu: 100m
+                memory: 1Gi
+              limits:
+                memory: 2Gi
+        ingress:
+          enabled: true
+          ingressClassName: "nginx"
+          host:
+            name: &rgw-host "${APP_DNS_RGW_S3}"
+            path: "/"
+          tls:
+            - hosts:
+                - *rgw-host
+        storageClass:
+          enabled: true
+          name: *rgw
+          reclaimPolicy: "Delete"
+          volumeBindingMode: "Immediate"
+          parameters:
+            region: "us-east-1"
     monitoring:
       enabled: true
       createPrometheusRules: true
     ingress:
       dashboard:
-        ingressClassName: nginx
+        ingressClassName: "nginx"
         host:
-          name: &host "${APP_DNS_CEPH}"
-          path: /
+          name: &dashboard-host "${APP_DNS_CEPH}"
+          path: "/"
         tls:
           - hosts:
-              - *host
+              - *dashboard-host
     pspEnable: false
