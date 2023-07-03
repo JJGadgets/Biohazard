@@ -61,3 +61,10 @@ tasks:
         vars:
           C: '{{.C | default "biohazard"}}'
           APPLY: '1'
+
+  reboot:
+    desc: Reboot nodes based on Kubernetes InternalIP. Assumes only 1 IP in InternalIP, and the IP known to Kubernetes is the same used by `talosctl`.
+    vars:
+      NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
+    cmds:
+      - talosctl reboot --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address)'

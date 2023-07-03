@@ -17,24 +17,51 @@ includes:
   cluster:
     internal: true
     taskfile: ../cluster
+  talos:
+    internal: true
+    taskfile: ../talos
 
 tasks:
+  osd-prepare-logs:
+    aliases: [osdlogs]
+    desc: Stream all logs for the `osd-prepare` Job.
+    cmds:
+      - while true; do kubectl logs -n rook-ceph -l app=rook-ceph-osd-prepare -c provision --tail 999999999999999999 -f 2>&1 | grep -v "No resources found" | tee --append /tmp/rook-ceph-osd-prepare-{{- .TIME -}}.log; done
+      # - |-
+      #   JOBDONE=no
+      #   until $JOBDONE == "yes"; do
+      #     kubectl logs -n rook-ceph jobs/rook-ceph-osd-prepare-blackfish --tail 999999999999999999 -f &
+      #     PID1=$!
+      #     kubectl wait -n rook-ceph job -l app=rook-ceph-osd-prepare --for condition=complete --timeout=1m && kill $PID1 && JOBDONE=yes
+      #   done
+      # - |-
+      #   kubectl logs -n rook-ceph -l app=rook-ceph-osd-prepare --tail 999999999999999999 -f;
+      #   until kubectl wait -n rook-ceph job -l app=rook-ceph-osd-prepare --for condition=complete --timeout=1m; do
+      #     kubectl logs -n rook-ceph -l app=rook-ceph-osd-prepare --tail 999999999999999999 -f | tee /tmp/rook-ceph-osd-prepare.log;
+      #   done
+
+  osd-prepare-copy-job-debug:
+    aliases: [osdjobcp]
+    desc: Copy OSD-prepare job YAML, remove unnecessary fields, change command ran for user to manually shell and run commands. Used for debugging OSD-prepare job with its env and configurations remaining.
+    silent: true
+    vars:
+      NODE: '{{ or .NODE (fail "`NODE` is required") }}'
+    cmds:
+      - |-
+        kubectl get jobs -n rook-ceph rook-ceph-osd-prepare-{{.NODE}} -o yaml | yq 'del(.status, .metadata.annotations, .metadata.creationTimestamp, .metadata.generation, .metadata.ownerReferences, .metadata.resourceVersion, .metadata.uid, .spec.selector, .spec.template.metadata.labels.controller-uid) | .metadata.name = "test-rook-ceph-osd-prepare-{{.NODE}}" | .spec.template.metadata.labels.job-name = "test-rook-ceph-osd-prepare-{{.NODE}}" | .spec.template.spec.containers.0.command = ["/bin/sh", "-c"] | .spec.template.spec.containers.0.args = ["sleep 999999999"]' | kubectl apply -f -
+
   zap-disk:
     desc: Prepare a disk to be used as a Ceph OSD on specified node by zapping all data and partition data.
-    internal: true
     dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
     cmds:
       # TODO: mimic deviceFilter
       - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
-      # - task: k8s:wait-job-pending
-      #   vars:
-      #     JOB_NAME: '{{.wipeCephDiskJobName}}'
-      #     NAMESPACE: kube-system
       - |- 
-        until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=1m; do 
+        kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true;
+        until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do 
           echo "Job {{.JOB_NAME}} is still running, logs:" && 
           kubectl -n kube-system logs job/{{.JOB_NAME}} -f;
-        done
+        done;
       # - kubectl -n kube-system logs job/{{.JOB_NAME}}
       - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
     vars:
@@ -48,16 +75,10 @@ tasks:
 
   wipe-state:
     desc: Wipe all Ceph state on specified node.
-    internal: true
     dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
     cmds:
       - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
-      # - task: k8s:wait-job-pending
-      #   vars:
-      #     JOB_NAME: '{{.wipeCephDiskJobName}}'
-      #     NAMESPACE: kube-system
-      - until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=1m; do echo "Job {{.JOB_NAME}} is still running, logs:" && kubectl -n kube-system logs job/{{.JOB_NAME}} -f; done
-      # - kubectl -n kube-system logs job/{{.JOB_NAME}}
+      - until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do echo "Job {{.JOB_NAME}} is still running, logs:" && kubectl -n kube-system logs job/{{.JOB_NAME}} -f; done
       - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
     vars:
       NODE: '{{ or .NODE (fail "`NODE` is required") }}'
@@ -82,6 +103,9 @@ tasks:
       - task: wipe-state
         vars:
           NODE: '{{.NODE}}'
+      - task: talos:reboot
+        vars:
+          NODE: '{{.NODE}}'
 
   wipe-nodes-nuclear:
     desc: Wipe all nodes in cluster "nuclear"
@@ -90,7 +114,11 @@ tasks:
       - task: wipe-node
         vars:
           NODE: "blackfish"
-          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN"
+          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN" # I swear I'll forget to update this here when I have to change the disk
+      - task: wipe-node
+        vars:
+          NODE: "humming"
+          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202L91P6HGN"
 
   reinstall:
     desc: |-
@@ -121,6 +149,8 @@ tasks:
       - flux delete hr -n rook-ceph rook-ceph --silent && true || true
       - kubectl get namespaces rook-ceph && until kubectl delete namespaces rook-ceph; do kubectl get namespaces rook-ceph -o jsonpath="{.status}"; done || true
       - task: wipe-nodes-{{.C}}
+      - task: wipe-nodes-{{.C}} # run again in case wipe fails
       - flux suspend ks 0-{{.C}}-config && flux resume ks 0-{{.C}}-config
       - flux suspend ks 1-core-storage-rook-ceph-app && flux resume ks 1-core-storage-rook-ceph-app
       - flux suspend ks 1-core-storage-rook-ceph-cluster && flux resume ks 1-core-storage-rook-ceph-cluster
+      # - task: osd-prepare-logs # uncomment to debug OSD prepare errors with while true loop, since the job re-runs 6 times and overwrites the previous runs' logs

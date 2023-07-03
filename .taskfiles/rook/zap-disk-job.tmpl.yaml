@@ -25,8 +25,8 @@ spec:
               fdisk -l /mnt/disk;
               echo "Running sgdisk..." && sgdisk --zap-all /mnt/disk && echo "Success!" || break;
               echo "Running wipefs..." && wipefs --all --backup /mnt/disk && echo "Success!" || break;
-              echo "Running blkdiscard..." && blkdiscard /mnt/disk && echo "Success!" || break;
               echo "Running partprobe..." && partprobe /mnt/disk && echo "Success!" || echo "Failed!"
+          # echo "Running blkdiscard..." && blkdiscard /mnt/disk && echo "Success!" || break; # it goes above partprobe
           #dd if=/dev/zero bs=1M count=10000 oflag=direct of=${CEPH_DISK};
           volumeMounts:
             - mountPath: /mnt/disk

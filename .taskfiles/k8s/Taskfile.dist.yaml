@@ -3,17 +3,43 @@ version: "3"
 
 vars:
   C: '{{ .C | default "biohazard" }}'
+  TIMENOW:
+    sh: date +%Y%m%d-%H%M%S
 
 tasks:
-  wait-job-pending:
-    aliases: [waitjob]
+  wait-pod-pending:
+    aliases: [waitp]
     internal: true
     desc: Wait for a job's pod to change its status to pending
     vars:
-      NAMESPACE: '{{ or .NAMESPACE (fail "Missing `NAMESPACE` environment variable!") }}'
-      JOB_NAME: '{{ or .JOB_NAME (fail "Missing `JOB_NAME` environment variable!") }}'
+      NAME: '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
+      NS: '{{ .NS | default "default" }}'
     cmds:
-      - until [[ $(kubectl -n "${NAMESPACE}" get pod -l job-name="${JOB_NAME}" -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
+      - until [[ $(kubectl -n "{{.NS}}" get pod "{{.NAME}}" -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
+
+  wait-pod-running:
+    aliases: [waitp]
+    internal: true
+    desc: Wait for a job's pod to change its status to pending
+    vars:
+      NAME: '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
+      NS: '{{ .NS | default "default" }}'
+    cmds:
+      - until [[ $(kubectl -n "{{.NS}}" get pod "{{.NAME}}" -o jsonpath='{.items[*].status.phase}') == "Running" ]]; do sleep 1; done
+
+  wait-finish:
+    internal: true
+    desc: Wait for a job's pod to change its status to pending
+    vars:
+      NAME: '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
+      NS: '{{ .NS | default "default" }}'
+      # TYPE: '{{ .TYPE | default "job" }}'
+      # WAIT_ARGS: '{{.WAIT_ARGS | default "echo \"{{.NAME}} is still running, logs:\" && kubectl -n {{.NS}} logs {{.NAME}} --since 2s -f;"}}'
+    cmds:
+      - |-
+        until kubectl -n {{.NS}} wait {{.NAME}} --for condition=complete --timeout=2s; do 
+          echo "{{.NAME}} is still running, logs:" && kubectl -n {{.NS}} logs {{.NAME}} --since 2s -f || true;
+        done
 
   get-public-ingresses:
     aliases: [gpi]
@@ -46,3 +72,32 @@ tasks:
       - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/${APPNAME}/{{.app}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
       - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.app}}}/g;s/\(_{{.app}}}\)/\U\1/g' %
+
+  iperf2:
+    desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.
+    dir: "/{{.ROOT_DIR}}/.taskfiles/k8s/template/iperf2"
+    vars: &iperf2-vars
+      SERVER_NAME: &iperf2-server-name 'iperf2-server-{{- .TIMENOW -}}'
+      SERVER_NS: &iperf2-server-ns '{{ .SERVER_NS | default "default" }}'
+      CLIENT_NAME: &iperf2-client-name 'iperf2-client-{{- .TIMENOW -}}'
+      CLIENT_NS: &iperf2-client-ns '{{ .CLIENT_NS | default "default" }}'
+      CLUSTER_DOMAIN: '{{ .CLUSTER_DOMAIN | default "cluster.local" }}'
+      SERVER_PORT: '{{ .SERVER_PORT | default "5001" }}'
+      SERVER_NODE: '{{ or .SERVER_NODE (fail "Missing `SERVER_NODE` environment variable!") }}'
+      CLIENT_NODE: '{{ or .CLIENT_NODE (fail "Missing `CLIENT_NODE` environment variable!") }}'
+      SERVER_ARGS: '{{ .SERVER_ARGS | default "" }}'
+      CLIENT_ARGS: '{{ .CLIENT_ARGS | default "" }}'
+    env: *iperf2-vars
+    cmds:
+      - cat ./server.yaml | envsubst | kubectl apply -f -
+      - defer: cat ./server.yaml | envsubst | kubectl delete -f -
+      - task: wait-pod-running
+        vars:
+          NAME: '-l job-name={{.SERVER_NAME}}'
+          NS: '{{.SERVER_NS}}'
+      - cat ./client.yaml | envsubst | kubectl apply -f -
+      - defer: cat ./client.yaml | envsubst | kubectl delete -f -
+      - task: wait-finish
+        vars:
+          NAME: 'jobs/{{.CLIENT_NAME}}'
+          NS: '{{.CLIENT_NS}}'
