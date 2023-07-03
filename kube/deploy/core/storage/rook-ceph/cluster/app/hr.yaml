@@ -23,6 +23,7 @@ spec:
       bdev_enable_discard = true
       bdev_async_discard = true
       osd_class_update_on_start = false
+      osd_pool_default_size = 2
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
     cephClusterSpec:
@@ -30,18 +31,18 @@ spec:
         # provider: host
         connections:
           encryption:
-            enabled: true
+            enabled: false
           compression:
-            enabled: true
+            enabled: false
       crashCollector:
-        disable: true
+        disable: false
       dashboard:
         enabled: true
         urlPrefix: "/"
         ssl: false
       mon:
         count: 3
-        allowMultiplePerNode: false
+        allowMultiplePerNode: true
       mgr:
         count: 2
         allowMultiplePerNode: false
@@ -53,7 +54,7 @@ spec:
         useAllNodes: false
         useAllDevices: false
         config:
-          encryptedDevice: "true"
+          # encryptedDevice: "true"
           osdsPerDevice: "1"
         nodes:
           - name: "humming"
@@ -126,18 +127,19 @@ spec:
             size: 2
           parameters:
             min_size: "2"
-            compression_mode: "aggressive"
-            compression_algorithm: "zstd"
+            # compression_mode: "aggressive"
+            # compression_algorithm: "zstd"
         storageClass: &rbd-sc
           enabled: true
           name: "block"
           isDefault: true
-          reclaimPolicy: "Delete"
+          reclaimPolicy: "Retain"
           allowVolumeExpansion: true
-          mountOptions: ["discard"]
+          # mountOptions: ["discard"]
           parameters:
             imageFormat: "2"
-            imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
+            imageFeatures: "layering"
+            # imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
             csi.storage.k8s.io/provisioner-secret-name: "rook-csi-rbd-provisioner"
             csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-rbd-provisioner"
@@ -174,7 +176,7 @@ spec:
       #     <<: *rbd-sc
       #     name: "block-hdd-ec-2-2"
     cephBlockPoolsVolumeSnapshotClass:
-      enabled: true
+      enabled: false
       name: "ceph-block"
       isDefault: true
       deletionPolicy: "Delete"
@@ -209,9 +211,9 @@ spec:
           isDefault: false
           name: "file"
           pool: *fsdata0
-          reclaimPolicy: "Delete"
-          allowVolumeExpansion: true
-          mountOptions: ["discard"]
+          reclaimPolicy: "Retain"
+          # allowVolumeExpansion: true
+          # mountOptions: ["discard"]
           parameters:
             csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
             csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
@@ -221,12 +223,12 @@ spec:
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
     cephFileSystemVolumeSnapshotClass:
-      enabled: true
+      enabled: false
       name: "ceph-fs"
       isDefault: false
       deletionPolicy: Delete
     cephObjectStores:
-      - name: &rgw "rgw-${CLUSTER_NAME}"
+      - name: &rgw "${CLUSTER_NAME}"
         spec:
           preservePoolsOnDelete: true
           metadataPool:
@@ -262,7 +264,7 @@ spec:
         storageClass:
           enabled: true
           name: *rgw
-          reclaimPolicy: "Delete"
+          reclaimPolicy: "Retain"
           volumeBindingMode: "Immediate"
           parameters:
             region: "us-east-1"
