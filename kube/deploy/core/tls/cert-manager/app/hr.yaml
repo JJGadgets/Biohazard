@@ -5,35 +5,20 @@ metadata:
   name: cert-manager
   namespace: cert-manager
 spec:
-  interval: 15m
   chart:
     spec:
       chart: cert-manager
-      version: v1.11.0
+      version: v1.13.0-alpha.0
       sourceRef:
-        kind: HelmRepository
         name: jetstack
+        kind: HelmRepository
         namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   values:
     installCRDs: false
     extraArgs:
-      - --dns01-recursive-nameservers=1.0.0.1:53,1.0.0.2:53,1.0.0.3:53
+      - --dns01-recursive-nameservers="https://cloudflare-dns.com/dns-query","https://one.one.one.one/dns-query","https://1.1.1.1:443/dns-query","https://1.0.0.1:443/dns-query","https://security.cloudflare-dns.com/dns-query","https://1.1.1.2:443/dns-query","https://1.0.0.2:443/dns-query","https://family.cloudflare-dns.com/dns-query","https://1.1.1.3:443/dns-query","https://1.0.0.3:443/dns-query"
       - --dns01-recursive-nameservers-only
     featureGates: "AdditionalCertificateOutputFormats=true"
-    podDnsPolicy: None
-    podDnsConfig:
-      nameservers:
-        - "1.0.0.1"
-        - "1.0.0.2"
-        - "1.0.0.3"
+    webhook:
+      extraArgs:
+        - --feature-gates=AdditionalCertificateOutputFormats=true
