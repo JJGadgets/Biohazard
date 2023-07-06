@@ -33,11 +33,3 @@ spec:
             provider: kubernetes
     - toEntities:
         - kube-apiserver
-    # ingress controller webhook admission
-    - toServices:
-        - k8sService:
-            serviceName: ingress-nginx-controller-admission
-            namespace: ingress
-      toPorts:
-        - ports:
-            - port: "443"
