@@ -1,0 +1,85 @@
+---
+## NOTE: required for Talos
+securityContext:
+  privileged: true
+  capabilities:
+    ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
+    cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: "/sys/fs/cgroup"
+
+## NOTE: Cluster identification, mainly for ClusterMesh
+cluster:
+  name: "${CLUSTER_NAME}"
+  id: ${CONFIG_CILIUM_CLUSTER_ID}
+
+## NOTE: inter-nodes pod networking configuration
+### for native routing (all hosts in same VLAN or L2 domain), highest performance
+# tunnel: disabled
+# autoDirectNodeRoutes: true
+# ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
+### nodes are L3-only routed (different VLAN or L2 domains, or routed via OpenFabric/OSPF/BGP/etc, or nodes with WireGuard/VPN)
+### 2023-07-06: Currently setup for 3 nodes 10G star network, with 1G link to upstream router & internet
+MTU: 9000
+#### Cilium <1.14
+# tunnel: geneve
+# loadBalancer:
+#   algorithm: maglev
+#   mode: snat
+#### Cilium 1.14+
+tunnelProtocol: geneve
+routingMode: tunnel
+loadBalancer:
+  algorithm: maglev
+  mode: dsr
+  dsrDispatch: geneve
+
+## NOTE: Cilium's networking internals
+ipam:
+  mode: kubernetes
+kubeProxyReplacement: strict
+k8sServiceHost: ${IP_CLUSTER_VIP}
+k8sServicePort: 6443
+kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
+
+## NOTE: pods handling, e.g. upon ConfigMap update
+rollOutCiliumPods: true
+operator:
+  rollOutPods: true
+
+## NOTE: Cilium additional features and/or CRDs
+bpf:
+  masquerade: true
+  tproxy: true # L7 netpols stuff
+l7Proxy: true # enables L7 netpols
+bgpControlPlane:
+  enabled: true
+  ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
+  ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
+localRedirectPolicy: true
+nodePort:
+  enabled: true
+  range: 9993,32767
+bandwidthManager:
+  enabled: true
+  bbr: false # enable after Talos kernel updated to >= 5.18
+enableIPv6BIGTCP: false # enable after Talos kernel updated to >= 5.19
+### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy & CiliumEndpoints status (policy enforcement etc) with the below enabled
+enableCnpStatusUpdates: true
+endpointStatus:
+  enabled: true
+  status: "policy"
+
+## NOTE: Hubble observability
+hubble:
+  enabled: true
+  peerService:
+    clusterDomain: cluster.local
+  relay:
+    enabled: true
+    rollOutPods: true
+  ui:
+    enabled: true
+    rollOutPods: true

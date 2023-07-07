@@ -31,6 +31,9 @@ tasks:
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
+      - kubectl delete configmap -n kube-system cilium-config || true
+      - kubectl delete daemonset -n kube-system cilium || true
+      - kubectl delete deployment -n kube-system cilium-operator || true
       - task: k8s:sops-apply
         vars:
           C: '{{.C | default "biohazard"}}'

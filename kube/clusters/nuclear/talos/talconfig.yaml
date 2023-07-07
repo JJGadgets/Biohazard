@@ -24,30 +24,42 @@ additionalMachineCertSans:
   - "c.${DNS_CLUSTER}"
 
 nodes:
-
   - hostname: "blackfish.${DNS_CLUSTER}"
-    ipAddress: "${IP_K8S_BLACKFISH}"
+    ipAddress: "${IP_VLAN_BLACKFISH}1"
     controlPlane: true
     installDiskSelector:
       size: "<= 600GB"
       type: ssd
-    nodeLabels:
-      node-restriction.kubernetes.io/nodeType: main
-      nodes.home.arpa/type: stable
     nameservers:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
     networkInterfaces:
-      - interface: eth0
+      - interface: br0
         mtu: 1500
         dhcp: false
-        addresses:
-          - "${IP_K8S_BLACKFISH}/23"
-        routes:
-          - network: "${IP_ROUTER_LAN_CIDR}"
-            # metric: 1
-          - network: 0.0.0.0/0
-            gateway: "${IP_ROUTER_LAN}"
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - eth0
+            # - eth1
+            # - eth2
+        # deviceSelector:
+        #   - hardwareAddr: "*:6a"
+        #     driver: mlx4_en
+        vlans:
+          - vlanId: 883
+            mtu: 1500
+            dhcp: false
+            addresses: ["${IP_VLAN_BLACKFISH}1/30"]
+            routes:
+              - network: "${IP_VLAN_BLACKFISH}0/30"
+              - network: "0.0.0.0/0"
+                gateway: "${IP_VLAN_BLACKFISH}2"
+      # - deviceSelector: {driver: mlx4_en}
+      - interface: eth4
+        mtu: 9000
+        dhcp: false
     patches:
       # required for Talos to initialize i915 VFIO devices
       - |-
@@ -55,10 +67,155 @@ nodes:
           install:
             extensions:
               - image: ghcr.io/siderolabs/i915-ucode:20230310
+      # FRR routing
+      - |-
+        machine:
+          files:
+            - op: create
+              path: /var/etc/frr/frr.conf
+              permissions: 0o400
+              content: |
+                frr version 8.5.2_git
+                frr defaults traditional
+                hostname blackfish
+                log stdout
+                ip forwarding
+                no ipv6 forwarding
+                service integrated-vtysh-config
+                !
+                interface lo
+                  ip address ${IP_K8S_BLACKFISH}/32
+                  ip router openfabric 69
+                  openfabric passive
+                  ip ospf area ${IP_K8S_BLACKFISH}
+                exit
+                !
+                interface br0.883
+                  ip ospf area ${IP_K8S_BLACKFISH}
+                  ip ospf network broadcast
+                exit
+                !
+                interface eth4
+                  ip router openfabric 69
+                  openfabric csnp-interval 2
+                  openfabric hello-interval 1
+                  openfabric hello-multiplier 2
+                exit
+                !
+                router openfabric 69
+                  net 69.6969.3333.3333.3333.00
+                  lsp-gen-interval 1
+                  max-lsp-lifetime 600
+                  lsp-refresh-interval 180
+                exit
+                !
+                router ospf
+                  ospf router-id ${IP_K8S_BLACKFISH}
+                  log-adjacency-changes
+                exit
+                !
+
+  - hostname: "humming.${DNS_CLUSTER}"
+    ipAddress: "${IP_VLAN_HUMMING}1"
+    controlPlane: false
+    installDiskSelector:
+      size: "<= 600GB"
+      type: nvme
+    nameservers:
+      - "${IP_HOME_DNS}"
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: br0
+        mtu: 1500
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - eth0
+            # - eth1
+            # - eth2
+        vlans:
+          - vlanId: 882
+            mtu: 1500
+            dhcp: false
+            addresses: ["${IP_VLAN_HUMMING}1/30"]
+            routes:
+              - network: "${IP_VLAN_HUMMING}0/30"
+              - network: "0.0.0.0/0"
+                gateway: "${IP_VLAN_HUMMING}2"
+      # - deviceSelector: {driver: mlx4_en}
+      - interface: eth1
+        mtu: 9000
+        dhcp: false
+      - interface: eth2
+        mtu: 9000
+        dhcp: false
+    patches:
+      # required for Talos to initialize i915 VFIO devices
+      - |-
+        machine:
+          install:
+            extensions:
+              - image: ghcr.io/siderolabs/i915-ucode:20230310
+      # FRR routing
+      - |-
+        machine:
+          files:
+            - op: create
+              path: /var/etc/frr/frr.conf
+              permissions: 0o400
+              content: |
+                frr version 8.5.2_git
+                frr defaults traditional
+                hostname humming
+                log stdout
+                ip forwarding
+                no ipv6 forwarding
+                service integrated-vtysh-config
+                !
+                interface lo
+                  ip address ${IP_K8S_HUMMING}/32
+                  ip router openfabric 69
+                  openfabric passive
+                  ip ospf area ${IP_K8S_HUMMING}
+                exit
+                !
+                interface br0.882
+                  ip ospf area ${IP_K8S_HUMMING}
+                  ip ospf network broadcast
+                exit
+                !
+                interface eth1
+                  ip router openfabric 69
+                  openfabric csnp-interval 2
+                  openfabric hello-interval 1
+                  openfabric hello-multiplier 2
+                exit
+                !
+                interface eth2
+                  ip router openfabric 69
+                  openfabric csnp-interval 2
+                  openfabric hello-interval 1
+                  openfabric hello-multiplier 2
+                exit
+                !
+                router openfabric 69
+                  net 69.6969.2222.2222.2222.00
+                  lsp-gen-interval 1
+                  max-lsp-lifetime 600
+                  lsp-refresh-interval 180
+                exit
+                !
+                router ospf
+                  ospf router-id ${IP_K8S_HUMMING}
+                  log-adjacency-changes
+                exit
+                !
 
 controlPlane:
   patches:
-    - |-
+    - &kubeletExtraArgs |-
       - op: add
         path: /machine/kubelet/extraArgs
         value:
@@ -73,11 +230,11 @@ controlPlane:
     #     path: /cluster/controllerManager/extraArgs
     #     value:
     #       node-cidr-mask-size: 22
-    # - |-
+    # - &wipeWithZeros |-
     #   machine:
     #     install:
     #       wipe: true
-    - |-
+    - &machinePatch |-
       machine:
         network:
           extraHostEntries:
@@ -89,12 +246,76 @@ controlPlane:
           servers:
             - "${IP_ROUTER_LAN}"
           bootTimeout: 2m0s
+
+    - &kubeletNodeIP |-
+      machine:
         kubelet:
           nodeIP:
             validSubnets:
-              - "${IP_ROUTER_LAN_CIDR}"
+              - "${IP_ROUTER_VLAN_K8S_CIDR}"
 
     - |-
+      cluster:
+        etcd:
+          advertisedSubnets:
+            - "${IP_ROUTER_VLAN_K8S_CIDR}"
+
+    # FRR routing
+    - &frr-pod |-
+      machine:
+        kubelet:
+          extraMounts:
+            - source: /var/etc/frr
+              destination: /var/etc/frr
+              type: bind
+              options: ["bind", "rshared", "ro"]
+        files:
+          - op: create
+            path: /var/etc/frr/daemons
+            permissions: 0o400
+            content: |
+              fabricd=yes
+              bgpd=no
+              ospfd=yes
+              ospf6d=no
+              vtysh_enable=yes
+          - op: create
+            path: /var/etc/frr/vtysh.conf
+            permissions: 0o400
+            content: |
+              service integrated-vtysh-config
+        pods:
+          - apiVersion: v1
+            kind: Pod
+            metadata:
+              name: &name "frr-host"
+              namespace: "kube-system"
+            spec:
+              hostNetwork: true
+              containers:
+                - name: *name
+                  image: "quay.io/frrouting/frr:8.5.2@sha256:d4cb742ae97e43a4ea7cad3fc1e9663365761792d31213f3752668d05cab3e1c"
+                  command: ["/usr/lib/frr/docker-start"]
+                  securityContext:
+                    privileged: true
+                  resources:
+                    requests:
+                      cpu: "100m"
+                      memory: "100Mi"
+                    limits:
+                      cpu: "500m"
+                      memory: "350Mi"
+                  volumeMounts:
+                    - name: frr-config
+                      mountPath: /etc/frr
+              volumes:
+                - name: frr-config
+                  hostPath:
+                    path: /var/etc/frr
+                    type: Directory
+                    readOnly: true
+
+    - &clusterPatch |-
       cluster:
         allowSchedulingOnMasters: true
         discovery:
@@ -106,45 +327,33 @@ controlPlane:
               disabled: true
         proxy:
           disabled: true
-        etcd:
-          advertisedSubnets:
-            - "${IP_ROUTER_LAN_CIDR}"
+
+    # Rook Ceph encrypted OSDs
+    # TODO: https://github.com/siderolabs/talos/issues/3129
+    - &encryptedOSD |-
+      machine:
+        files:
+          - op: overwrite
+            path: /etc/lvm/lvm.conf
+            permissions: 0o644
+            content: |
+              backup {
+                      backup = 0
+                      archive = 0
+              }
 
 worker:
   patches:
-    - |-
-      - op: add
-        path: /machine/kubelet/extraArgs
-        value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
-    # - |-
-    #   - op: add
-    #     path: /cluster/controllerManager/extraArgs
-    #     value:
-    #       node-cidr-mask-size: 22
-    - |-
-      machine:
-        install:
-          wipe: true
-        network:
-          extraHostEntries:
-            - ip: "${IP_K8S_BLACKFISH}"
-              aliases:
-                - "c.${DNS_CLUSTER}"
-        time:
-          disabled: false
-          servers:
-            - "${IP_ROUTER_LAN}"
-          bootTimeout: 2m0s
-    - |-
-      cluster:
-        allowSchedulingOnMasters: true
-        discovery:
-          enabled: true
-          registries:
-            kubernetes:
-              disabled: false
-            service:
-              disabled: true
-        proxy:
-          disabled: true
+    - *kubeletExtraArgs
+
+    - *machinePatch
+
+    - *clusterPatch
+
+    - *kubeletNodeIP
+
+    - *frr-pod
+
+    # Rook Ceph encrypted OSDs
+    # TODO: https://github.com/siderolabs/talos/issues/3129
+    - *encryptedOSD

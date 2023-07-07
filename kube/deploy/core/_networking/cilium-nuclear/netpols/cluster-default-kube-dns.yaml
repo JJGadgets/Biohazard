@@ -1,0 +1,38 @@
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "cluster-default-kube-dns-ingress"
+spec:
+  description: "Policy for ingress allow to kube-dns from all Cilium managed endpoints in the cluster"
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: kube-system
+      k8s-app: kube-dns
+  ingress:
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "53"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "cluster-default-kube-dns-egress"
+spec:
+  description: "Policy for egress allow to kube-dns from all Cilium managed endpoints in the cluster"
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+          # TODO: broken on <1.13.3 and >1.14.0-snapshot.1 to 1.14.0-rc.0 with 10G L3-routed podCIDR interface and 1G L2 default route interface
+          # TODO: which also means FQDN egress netpols are broken, issue to be opened (tested 2023-07-06)
+          # rules:
+          #   dns:
+          #     - {}
