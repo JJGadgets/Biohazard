@@ -23,6 +23,9 @@ cluster:
 ### nodes are L3-only routed (different VLAN or L2 domains, or routed via OpenFabric/OSPF/BGP/etc, or nodes with WireGuard/VPN)
 ### 2023-07-06: Currently setup for 3 nodes 10G star network, with 1G link to upstream router & internet
 MTU: 9000
+bpf:
+  masquerade: false
+  tproxy: true # L7 netpols stuff
 #### Cilium <1.14
 # tunnel: geneve
 # loadBalancer:
@@ -50,9 +53,6 @@ operator:
   rollOutPods: true
 
 ## NOTE: Cilium additional features and/or CRDs
-bpf:
-  masquerade: true
-  tproxy: true # L7 netpols stuff
 l7Proxy: true # enables L7 netpols
 bgpControlPlane:
   enabled: true
