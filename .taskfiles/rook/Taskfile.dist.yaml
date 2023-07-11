@@ -22,6 +22,21 @@ includes:
     taskfile: ../talos
 
 tasks:
+  toolbox:
+    aliases: ["tb"]
+    desc: Launches shell or runs specified command of a Rook Ceph Toolbox pod deployed using upstream's manifest after patching command, then cleans up.
+    vars:
+      CMD: '{{ .CMD | default "/bin/bash -c " }}'
+    cmds:
+      - kubectl delete -n rook-ceph jobs/rook-ceph-toolbox-job || true
+      - curl -sL https://raw.githubusercontent.com/rook/rook/v1.11.9/deploy/examples/toolbox-job.yaml | yq '.spec.template.spec.containers.0.command = ["/bin/bash", "-c"] | .spec.template.spec.containers.0.args = ["sleep 2147483647"]' | kubectl apply -f -
+      - defer: curl -sL https://raw.githubusercontent.com/rook/rook/v1.11.9/deploy/examples/toolbox-job.yaml | yq '.spec.template.spec.containers.0.command = ["/bin/bash", "-c"] | .spec.template.spec.containers.0.args = ["sleep 2147483647"]' | kubectl delete -f -
+      - task: k8s:wait-pod-running
+        vars:
+          NS: rook-ceph
+          NAME: -l job-name=rook-ceph-toolbox-job
+      - kubectl exec -n rook-ceph jobs/rook-ceph-toolbox-job -it -- /bin/bash
+
   osd-prepare-logs:
     aliases: [osdlogs]
     desc: Stream all logs for the `osd-prepare` Job.

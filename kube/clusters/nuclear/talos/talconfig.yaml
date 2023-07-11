@@ -117,7 +117,7 @@ nodes:
 
   - hostname: "humming.${DNS_CLUSTER}"
     ipAddress: "${IP_VLAN_HUMMING}1"
-    controlPlane: false
+    controlPlane: true
     installDiskSelector:
       size: "<= 600GB"
       type: nvme
@@ -282,7 +282,7 @@ controlPlane:
           - op: create
             path: /var/etc/frr/vtysh.conf
             permissions: 0o400
-            content: |
+            content: |-
               service integrated-vtysh-config
         pods:
           - apiVersion: v1

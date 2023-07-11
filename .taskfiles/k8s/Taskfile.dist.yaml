@@ -33,12 +33,12 @@ tasks:
     vars:
       NAME: '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
       NS: '{{ .NS | default "default" }}'
-      # TYPE: '{{ .TYPE | default "job" }}'
+      TYPE: '{{ .TYPE | default "job" }}'
       # WAIT_ARGS: '{{.WAIT_ARGS | default "echo \"{{.NAME}} is still running, logs:\" && kubectl -n {{.NS}} logs {{.NAME}} --since 2s -f;"}}'
     cmds:
       - |-
-        until kubectl -n {{.NS}} wait {{.NAME}} --for condition=complete --timeout=2s; do 
-          echo "{{.NAME}} is still running, logs:" && kubectl -n {{.NS}} logs {{.NAME}} --since 2s -f || true;
+        until kubectl -n {{.NS}} wait {{.TYPE}}/{{.NAME}} --for condition=complete --timeout=2s; do 
+          echo "{{.NAME}} is still running, logs:" && kubectl -n {{.NS}} logs {{.TYPE}}/{{.NAME}} --since 2s -f || true;
         done
 
   get-public-ingresses:
@@ -99,5 +99,30 @@ tasks:
       - defer: cat ./client.yaml | envsubst | kubectl delete -f -
       - task: wait-finish
         vars:
-          NAME: 'jobs/{{.CLIENT_NAME}}'
+          NAME: '{{.CLIENT_NAME}}'
           NS: '{{.CLIENT_NS}}'
+
+  kbench:
+    vars: &kbench-vars
+      # SC: '{{ or .SC (fail "Missing `SC` environment variable!") }}'
+      SC: '{{.SC}}'
+      NODE: '{{.NODE}}'
+      NS: '{{ .NS | default "default" }}'
+    env: *kbench-vars
+    cmds:
+      - &kbench-delete |-
+        export KBENCH=$(curl -sL https://raw.githubusercontent.com/yasker/kbench/main/deploy/fio.yaml)
+        [[ ! -z "{{.SC}}" ]] && export KBENCH=$(printf '%s\n' "${KBENCH}" | yq '. | select(.kind == "PersistentVolumeClaim").spec.storageClassName = "{{.SC}}"')
+        [[ ! -z "{{.NODE}}" ]] && export KBENCH=$(printf '%s\n' "${KBENCH}" | yq '. | select(.kind == "Job").spec.template.spec.nodeSelector."kubernetes.io/hostname" = "{{.NODE}}"')
+        printf '%s\n' "${KBENCH}" | kubectl delete -n {{.NS}} -f - || true
+      - |-
+        export KBENCH=$(curl -sL https://raw.githubusercontent.com/yasker/kbench/main/deploy/fio.yaml)
+        [[ ! -z "{{.SC}}" ]] && export KBENCH=$(printf '%s\n' "${KBENCH}" | yq '. | select(.kind == "PersistentVolumeClaim").spec.storageClassName = "{{.SC}}"')
+        [[ ! -z "{{.NODE}}" ]] && export KBENCH=$(printf '%s\n' "${KBENCH}" | yq '. | select(.kind == "Job").spec.template.spec.nodeSelector."kubernetes.io/hostname" = "{{.NODE}}"')
+        printf '%s\n' "${KBENCH}" | kubectl apply -n {{.NS}} -f -
+      - defer: *kbench-delete
+      - task: wait-finish
+        vars:
+          NS: '{{ .NS | default "default" }}'
+          NAME: "kbench"
+          TYPE: "job"
