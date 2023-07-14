@@ -41,10 +41,12 @@ spec:
         urlPrefix: "/"
         ssl: false
       mon:
-        count: 3
-        allowMultiplePerNode: true
+        # count: 3
+        count: 1
+        allowMultiplePerNode: false
       mgr:
-        count: 2
+        # count: 2
+        count: 1
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"

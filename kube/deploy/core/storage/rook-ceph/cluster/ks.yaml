@@ -5,7 +5,13 @@ metadata:
   name: 1-core-storage-rook-ceph-cluster
   namespace: flux-system
 spec:
+  wait: true
   path: ./kube/deploy/core/storage/rook-ceph/cluster/app
   dependsOn:
     - name: 0-${CLUSTER_NAME}-config
     - name: 1-core-storage-rook-ceph-app
+  healthChecks:
+    - apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      name: "${CLUSTER_NAME}"
+      namespace: rook-ceph
