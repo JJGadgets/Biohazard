@@ -1,0 +1,127 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app firefly
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/fireflyiii/core
+      tag: version-6.0.17
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    env:
+      TZ: "${CONFIG_TZ}"
+      APP_ENV: "production"
+      APP_DEBUG: "false"
+      LOG_CHANNEL: "stdout"
+      APP_LOG_LEVEL: "notice"
+      AUDIT_LOG_LEVEL: "info"
+      DEFAULT_LANGUAGE: "en_US"
+      DEFAULT_LOCALE: "equal"
+      SITE_OWNER: "${ADMIN_EMAIL}"
+      APP_KEY_FILE: &file-app-key "/secretkey"
+      APP_URL: "https://${APP_DNS_FIREFLY}"
+      TRUSTED_PROXIES: "*"
+      COOKIE_PATH: "/"
+      COOKIE_DOMAIN: "${APP_DNS_FIREFLY}"
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: "lax"
+      DISABLE_FRAME_HEADER: "false" # just to be sure
+      DISABLE_CSP_HEADER: "false" # just to be sure
+      TRACKER_SITE_ID: "" # just to be sure
+      TRACKER_URL: "" # just to be sure
+      AUTHENTICATION_GUARD: "remote_user_guard"
+      AUTHENTICATION_GUARD_HEADER: "X-authentik-uid"
+      AUTHENTICATION_GUARD_EMAIL: "X-authentik-email"
+      DB_CONNECTION: "pgsql"
+      DB_HOST: "pg-firefly-rw.firefly.svc.cluster.local"
+      DB_PORT: "5432"
+      DB_DATABASE_FILE: &file-db-name "/db/database"
+      DB_USERNAME_FILE: &file-db-user "/db/username"
+      DB_PASSWORD_FILE: &file-db-pass "/db/password"
+      PGSQL_SSL_MODE: "prefer"
+      PGSQL_SCHEMA: "public"
+      CACHE_DRIVER: "file"
+      SESSION_DRIVER: "file"
+      SEND_ERROR_MESSAGE: "true"
+      SEND_REPORT_JOURNALS: "false"
+      ENABLE_EXTERNAL_RATES: "true"
+      ALLOW_WEBHOOKS: "false"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_FIREFLY}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_FIREFLY}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      data:
+        enabled: true
+        existingClaim: firefly-uploads
+        mountPath: "/var/www/html/firefly-iii/storage/upload"
+      app-key:
+        enabled: true
+        type: secret
+        name: firefly-secrets
+        subPath: app-key
+        mountPath: *file-app-key
+        readOnly: true
+      db-database:
+        enabled: true
+        type: secret
+        name: firefly-secrets
+        subPath: db-name
+        mountPath: *file-db-name
+        readOnly: true
+      db-username:
+        enabled: true
+        type: secret
+        name: pg-firefly-app
+        subPath: username
+        mountPath: *file-db-user
+        readOnly: true
+      db-password:
+        enabled: true
+        type: secret
+        name: pg-firefly-app
+        subPath: password
+        mountPath: *file-db-pass
+        readOnly: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 200Mi
+      limits:
+        memory: 500Mi
