@@ -28,6 +28,8 @@ spec:
       ingress.home.arpa/cloudflare: "allow"
       db.home.arpa/pg: "pg-default"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       GTS_APPLICATION_NAME: "The JJGadgets Hut"

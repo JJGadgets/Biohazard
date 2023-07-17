@@ -59,6 +59,10 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+    # allow traffic from pods with egress label
+    - fromEndpoints:
+        - matchLabels:
+            egress.home.arpa/ingress-nginx: allow
   egress:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
@@ -174,6 +178,23 @@ spec:
   ingress:
     # ingress controller webhook admission
     - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "egress-to-ingress-nginx"
+spec:
+  description: "Allow pods that require ingress to allow traffic from ingress-nginx, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/ingress-nginx: allow
+  egress:
+    # ingress controller webhook admission
+    - toEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: ingress-nginx
             app.kubernetes.io/name: ingress-nginx
