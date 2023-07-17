@@ -3,6 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: firefly-uploads
+  namespace: firefly
   labels:
     app.kubernetes.io/name: firefly
     app.kubernetes.io/instance: firefly
