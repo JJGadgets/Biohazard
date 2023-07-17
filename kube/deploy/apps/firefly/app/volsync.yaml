@@ -28,9 +28,9 @@ spec:
     volumeSnapshotClassName: file
     storageClassName: file
     moverSecurityContext:
-      runAsUser: ${UID}
-      runAsGroup: ${UID}
-      fsGroup: ${UID}
+      runAsUser: ${APP_UID_FIREFLY}
+      runAsGroup: ${APP_UID_FIREFLY}
+      fsGroup: ${APP_UID_FIREFLY}
     retain:
       daily: 14
       within: 7d
