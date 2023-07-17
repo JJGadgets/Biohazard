@@ -40,7 +40,6 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: UDP
-
     # allow traffic from external-proxy-x
     - fromEndpoints:
         - matchLabels:
@@ -67,6 +66,14 @@ spec:
             - key: egress.home.arpa/ingress-nginx
               operator: In
               values: ["allow"]
+    # allow authentik-managed components to connect to main authentik server
+    - fromEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: app.kubernetes.io/managed-by
+              operator: In
+              values: ["goauthentik.io"]
   egress:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
