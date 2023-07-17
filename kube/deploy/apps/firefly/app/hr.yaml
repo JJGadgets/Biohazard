@@ -87,7 +87,7 @@ spec:
           - hosts:
               - *host
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_FIREFLY}
+      runAsUser: &uid 33 # image chowns to www-data which is 33
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
