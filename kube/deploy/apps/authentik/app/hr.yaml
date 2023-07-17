@@ -8,17 +8,17 @@ spec:
   chart:
     spec:
       chart: *app
-      version: &vers 2023.5.3
+      version: &vers 2023.6.1
       sourceRef:
         name: *app
         kind: HelmRepository
         namespace: flux-system
   values:
     # server is in active-active, 3 replicas seems to confuse authentik
-    replicas: 2
+    replicas: 1
     worker:
       # workers don't need leader election, thus any size works
-      replicas: 3
+      replicas: 1
     image:
       repository: ghcr.io/goauthentik/server
       tag: *vers
