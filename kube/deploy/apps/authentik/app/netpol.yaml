@@ -48,6 +48,13 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+    # allow ingress-nginx
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/component: controller
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
     # allow Duo
     - toFQDNs:
         - matchPattern: api-*.duosecurity.com
