@@ -5,7 +5,7 @@ metadata:
   name: &app firefly
   namespace: *app
   labels:
-    nginx.ingress.home.arpa/type: auth-external-only
+    nginx.ingress.home.arpa/type: auth
 spec:
   chart:
     spec:
