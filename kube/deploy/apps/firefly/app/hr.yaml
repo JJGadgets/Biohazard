@@ -86,16 +86,16 @@ spec:
         tls:
           - hosts:
               - *host
-    podSecurityContext:
-      runAsUser: &uid 33 # image chowns to www-data which is 33
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
+    #podSecurityContext:
+    #  runAsUser: &uid 33 # image chowns to www-data which is 33
+    #  runAsGroup: *uid
+    #  fsGroup: *uid
+    #  fsGroupChangePolicy: Always
     persistence:
       data:
         enabled: true
         existingClaim: firefly-uploads
-        mountPath: "/var/www/html/firefly-iii/storage/upload"
+        mountPath: "/var/www/html/storage/upload"
       app-key:
         enabled: true
         type: secret
