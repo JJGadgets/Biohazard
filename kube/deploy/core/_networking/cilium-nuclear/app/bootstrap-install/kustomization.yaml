@@ -4,23 +4,23 @@ kind: Kustomization
 helmCharts:
   - name: cilium
     repo: https://helm.cilium.io/
-    version: 1.14.0-rc.0
+    version: 1.14.0-rc.1
     # version: 1.13.4
     releaseName: cilium
     namespace: kube-system
     valuesFile: base-values.yaml
     valuesMerge: override
-    valuesInline:
-      hubble:
-        enabled: false
-        relay:
-          enabled: false
-        ui:
-          enabled: false
-        tls:
-          enabled: false
-          auto:
-            enabled: false
+    # valuesInline:
+    #   hubble:
+    #     enabled: false
+    #     relay:
+    #       enabled: false
+    #     ui:
+    #       enabled: false
+    #     tls:
+    #       enabled: false
+    #       auto:
+    #         enabled: false
 commonAnnotations:
   meta.helm.sh/release-name: cilium
   meta.helm.sh/release-namespace: kube-system
