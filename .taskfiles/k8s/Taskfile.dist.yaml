@@ -7,6 +7,15 @@ vars:
     sh: date +%Y%m%d-%H%M%S
 
 tasks:
+  race-ns-pod-security:
+    aliases: [nsps]
+    desc: While true loop labelling a given namespace with Pod Security labels, if external source creates namespace (e.g. Azure Arc's Helm apply with `--create-namespace`)
+    vars:
+      NS: '{{ or .NS (fail "Missing `NS` environment variable!") }}'
+      PS: '{{ or .PS (fail "Missing `PS` environment variable!") }}'
+    cmds:
+      - while true; do kubectl label namespaces {{.NS}} "pod-security.kubernetes.io/enforce={{.PS}}" >/dev/null 2>/dev/null || true; kubectl label namespaces {{.NS}} "pod-security.kubernetes.io/enforce-version=latest" >/dev/null 2>/dev/null || true; done
+
   wait-pod-pending:
     aliases: [waitp]
     internal: true
@@ -67,11 +76,11 @@ tasks:
     vars:
       app: '{{ or .app (fail "Missing `app` variable!") }}'
     cmds:
-      - cp -r ./kube/templates/test ./kube/3-deploy/2-apps/{{.app}}
+      - cp -r ./kube/templates/test ./kube/deploy/apps/{{.app}}
       # lowercase, used for resource names etc
-      - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/${APPNAME}/{{.app}}/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.app}}/ | xargs -I% sed -i 's/${APPNAME}/{{.app}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
-      - grep -lR 'APPNAME' ./kube/3-deploy/2-apps/{{.app}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.app}}}/g;s/\(_{{.app}}}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.app}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.app}}}/g;s/\(_{{.app}}}\)/\U\1/g' %
 
   iperf2:
     desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.

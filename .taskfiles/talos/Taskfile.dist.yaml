@@ -15,7 +15,7 @@ vars:
 tasks:
   genconfig:
     desc: Decrypt cluster vars from .env to .yaml for talhelper to consume.
-    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
@@ -27,7 +27,7 @@ tasks:
   cilium-bootstrap-apply:
     aliases: [cilium]
     desc: Bootstrap Cilium onto new cluster, ready for Flux to take over managing Cilium.
-    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    # dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
     cmds:
@@ -37,13 +37,13 @@ tasks:
       - task: k8s:sops-apply
         vars:
           C: '{{.C | default "biohazard"}}'
-          F: '/{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install'
-          FCMD: 'kustomize build --enable-helm'
+          F: "/{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install"
+          FCMD: "kustomize build --enable-helm"
 
   bootstrap:
     aliases: [bs]
     desc: Runs all bootstrap related tasks.
-    dir: '/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos'
+    dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       IP: '{{ or .IP (fail "Missing IP environment variable!") }}'
@@ -63,11 +63,11 @@ tasks:
       - task: cluster:cluster-init-config
         vars:
           C: '{{.C | default "biohazard"}}'
-          APPLY: '1'
+          APPLY: "1"
 
   reboot:
     desc: Reboot nodes based on Kubernetes InternalIP. Assumes only 1 IP in InternalIP, and the IP known to Kubernetes is the same used by `talosctl`.
     vars:
       NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
     cmds:
-      - talosctl reboot --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address)'
+      - talosctl reboot --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address')

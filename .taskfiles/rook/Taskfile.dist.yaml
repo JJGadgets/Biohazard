@@ -75,7 +75,7 @@ tasks:
         kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true;
         until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do 
           echo "Job {{.JOB_NAME}} is still running, logs:" && 
-          kubectl -n kube-system logs job/{{.JOB_NAME}} -f;
+          kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true;
         done;
       # - kubectl -n kube-system logs job/{{.JOB_NAME}}
       - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
@@ -93,7 +93,7 @@ tasks:
     dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
     cmds:
       - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
-      - until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do echo "Job {{.JOB_NAME}} is still running, logs:" && kubectl -n kube-system logs job/{{.JOB_NAME}} -f; done
+      - until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do echo "Job {{.JOB_NAME}} is still running, logs:" && kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true; done
       - defer: kubectl -n kube-system delete job {{.JOB_NAME}}
     vars:
       NODE: '{{ or .NODE (fail "`NODE` is required") }}'

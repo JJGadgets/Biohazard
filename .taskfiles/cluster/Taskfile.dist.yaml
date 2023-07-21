@@ -1,6 +1,11 @@
 ---
 version: "3"
 
+includes:
+  flux:
+    internal: true
+    taskfile: ../flux
+
 vars:
   C: '{{.C | default "biohazard"}}'
   APPLY: '{{.APPLY | default "0"}}'
@@ -14,22 +19,18 @@ tasks:
       - |
         sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config || true
 
-  cluster-init-flux:
-    aliases: [initflux]
-    vars:
-      C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
-    cmds:
-      - task: cluster-switch
-        vars:
-          C: '{{.C}}'
-      - kubectl apply --server-side --kustomize ./kube/bootstrap/flux/
-
   cluster-init:
     aliases: [init]
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       APPLY: '1'
     cmds:
+      - task: cluster-switch
+        vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      - task: flux:install
+        vars:
+          C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
       - task: cluster-init-config
         vars:
           C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'

@@ -2,6 +2,9 @@
 version: "3"
 
 tasks:
+  install:
+    cmds:
+      - kubectl apply --server-side --kustomize /{{.ROOT_DIR}}/kube/bootstrap/flux/
 
   get-all-watch:
     aliases: [ga, fga, getall]
