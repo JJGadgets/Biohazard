@@ -18,9 +18,9 @@ spec:
       fullnameOverride: *app
     automountServiceAccountToken: false
     controller:
-      type: statefulset
-      # type: deployment
-      # replicas: 1
+      # type: statefulset
+      type: deployment
+      replicas: 1
     image:
       repository: docker.io/${APPNAME}/server
       tag: latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c

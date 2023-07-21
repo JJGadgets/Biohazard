@@ -1,0 +1,32 @@
+---
+version: "3"
+
+# includes: {}
+  # k8s:
+  #   internal: true
+  #   taskfile: ../k8s
+  # cluster:
+  #   internal: true
+  #   taskfile: ../cluster
+
+# vars:
+#   IP: '{{ or .IP (fail "Missing `IP` environment variable for cluster!") }}'
+
+tasks:
+  k3s-init:
+    desc: After initializing k3s in TrueNAS SCALE GUI, run this task to manage k3s outside TrueNAS.
+    vars:
+      IP: '{{ or .IP (fail "Missing `IP` environment variable for TrueNAS host IP!") }}'
+      PORT: '{{ .PORT | default "22" }}'
+      C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
+    cmds:
+      - |
+        ssh root@{{.IP}} -p {{.PORT}} \
+        'iptables -D INPUT -p tcp -m tcp --dport 6443 -m comment --comment "iX Custom Rule to drop connection requests to k8s cluster from external sources" -j DROP;
+        iptables -A INPUT -p tcp -m tcp --dport 6443 -m comment --comment "CUSTOM: Expose k3s kube-apiserver access" -j ACCEPT;
+        cat /etc/rancher/k3s/k3s.yaml' | yq '.clusters.0.cluster.server = "https://{{.IP}}:6443" | .clusters.0.name = "{{.C}}" | .users.0.name = "{{.C}}" | .contexts.0.name = "{{.C}}" | .contexts.0.context.cluster = "{{.C}}" | .contexts.0.context.user = "{{.C}}" | .current-context = "{{.C}}"' > ~/.kube/k3s-{{.C}}.yaml
+      - cat ~/.kube/k3s-{{.C}}.yaml; printf "%s " "Press enter to continue"; read ans
+      - cp ~/.kube/config ~/.kube/config.bak || true
+      - |
+        KUBECONFIG="$HOME/.kube/config.bak:$HOME/.kube/k3s-{{.C}}.yaml" kubectl config view --flatten &&
+        KUBECONFIG="$HOME/.kube/config.bak:$HOME/.kube/k3s-{{.C}}.yaml" kubectl config view --flatten > $HOME/.kube/config
