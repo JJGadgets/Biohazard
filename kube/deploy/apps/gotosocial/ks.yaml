@@ -23,7 +23,6 @@ spec:
   path: ./kube/deploy/apps/gotosocial/app
   dependsOn:
     - name: gotosocial-deps
-    - name: 1-core-storage-rook-ceph-cluster
     - name: 1-core-ingress-nginx-app
     - name: 1-core-ingress-cloudflare-tunnel
     - name: 1-core-db-pg-clusters-default
