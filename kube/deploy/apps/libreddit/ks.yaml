@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: libreddit-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/libreddit/app
+  dependsOn:
+    - name: 1-core-ingress-nginx-app
