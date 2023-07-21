@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: docker.io/superseriousbusiness/gotosocial
-      tag: 0.9.0
+      tag: 0.10.0
     podLabels:
       ingress.home.arpa/nginx: "allow"
       ingress.home.arpa/cloudflare: "allow"
@@ -41,6 +41,7 @@ spec:
       GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
       GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
       GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
+      GTS_DB_TLS_MODE: "enable"
       #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
       GTS_STORAGE_BACKEND: "s3"
       GTS_STORAGE_S3_PROXY: "true"
@@ -57,6 +58,8 @@ spec:
           secretKeyRef:
             name: gotosocial-media-s3
             key: AWS_SECRET_ACCESS_KEY
+      GTS_LANDING_PAGE_USER: "@jj"
+
     envFrom:
       - secretRef:
           name: gotosocial-pg
