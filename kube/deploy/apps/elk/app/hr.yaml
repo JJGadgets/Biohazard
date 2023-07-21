@@ -25,6 +25,7 @@ spec:
       tag: v0.9.7@sha256:923ee71ef83026c8c0a5cb82b9c6460455e92d7a27a2af1204f8711150889d70
     podLabels:
       ingress.home.arpa/nginx: "allow"
+      egress.home.arpa/ingress-nginx: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       NUXT_PUBLIC_DEFAULT_SERVER: "social.jjgadgets.tech"
