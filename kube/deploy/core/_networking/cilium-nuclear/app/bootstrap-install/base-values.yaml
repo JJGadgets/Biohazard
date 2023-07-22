@@ -32,8 +32,10 @@ bpf:
 #   algorithm: maglev
 #   mode: snat
 #### Cilium 1.14+
-tunnelProtocol: geneve
-routingMode: tunnel
+# TODO: lol they broke this in Cilium 1.14.0-rc.1
+# tunnelProtocol: geneve
+# routingMode: tunnel
+tunnel: geneve
 loadBalancer:
   algorithm: maglev
   mode: dsr
