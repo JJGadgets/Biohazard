@@ -19,13 +19,13 @@ spec:
     automountServiceAccountToken: false
     controller:
       type: deployment
-      replicas: 1
+      replicas: 3
     image:
       repository: ghcr.io/goauthentik/ldap
       tag: "2023.5.3"
     env:
       TZ: "${CONFIG_TZ}"
-      AUTHENTIK_HOST: "${APP_DNS_AUTH}"
+      AUTHENTIK_HOST: "https://${APP_DNS_AUTH}"
       AUTHENTIK_TOKEN:
         valueFrom:
           secretKeyRef:
@@ -73,3 +73,14 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values: ["authentik-ldap"]
