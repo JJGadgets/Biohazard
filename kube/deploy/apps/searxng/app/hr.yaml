@@ -76,6 +76,11 @@ spec:
         subPath: settings.yml
         mountPath: /etc/searxng/settings.yml
         readOnly: true
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        mouthPath: /etc/searxng
     configMaps:
       config:
         enabled: true
