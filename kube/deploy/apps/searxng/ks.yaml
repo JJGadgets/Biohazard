@@ -8,3 +8,33 @@ spec:
   path: ./kube/deploy/apps/searxng/app
   dependsOn:
     - name: 1-core-ingress-nginx-app
+    - name: searxng-redis
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: searxng-redis
+  namespace: flux-system
+  labels:
+    substitution.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/core/db/redis/template/standalone-mem
+  postBuild:
+    substitute:
+      REDIS_APP_NAME: &app "searxng"
+      REDIS_APP_NS: *app
+    substituteFrom:
+      - kind: Secret
+        name: "searxng-redis"
+        optional: false
+      - kind: Secret
+        name: "${CLUSTER_NAME}-vars"
+        optional: false
+      - kind: Secret
+        name: "${CLUSTER_NAME}-secrets"
+        optional: false
+  healthChecks:
+    - name: searxng-redis
+      namespace: searxng
+      kind: Deployment
+      apiVersion: apps/v1
