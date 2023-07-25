@@ -19,6 +19,7 @@ metadata:
     substitution.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/deploy/core/db/redis/template/standalone-mem
+  dependsOn: []
   postBuild:
     substitute:
       REDIS_APP_NAME: &app "searxng"
