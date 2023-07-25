@@ -1,0 +1,222 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app searxng
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/searxng/searxng
+      tag: 2023.7.22-65d8b1a31
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      egress.home.arpa/world: "allow"
+    env:
+      TZ: "${CONFIG_TZ}"
+      SEARXNG_BASE_URL: "https://{APP_DNS_SEARXNG}"
+      SEARXNG_URL: "https://{APP_DNS_SEARXNG}" # TODO: which env var to use?
+      SEARXNG_PORT: &http "8080"
+      SEARXNG_SECRET:
+        valueFrom:
+          secretKeyRef:
+            name: searxng-secrets
+            key: secret_key
+    service:
+      main:
+        ports:
+          http:
+            port: *http
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_SEARXNG}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_SEARXNG}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: searxng-config
+        subPath: settings.yml
+        mountPath: /etc/searxng/settings.yml
+        readOnly: true
+    configMaps:
+      config:
+        enabled: true
+        data:
+          settings.yml: |-
+            use_default_settings:
+              engines:
+                keep_only:
+                  - arch linux wiki
+                  - google
+                  - google images
+                  - google news
+                  - google videos
+                  - google scholar
+                  - google play apps
+                  - duckduckgo
+                  - brave
+                  - startpage
+                  - qwant
+                  - qwant news
+                  - qwant images
+                  - qwant videos
+                  - gitlab
+                  - github
+                  - codeberg
+                  - sourcehut
+                  - bitbucket
+                  - archive is
+                  - apple app store
+                  - wikipedia
+                  - currency
+                  - docker hub
+                  - ddg definitions
+                  - duckduckgo_images
+                  - bandcamp
+                  - deviantart
+                  - tineye
+                  - apple maps
+                  - fdroid
+                  - flickr
+                  - free software directory
+                  - z-library
+                  - lobste.rs
+                  - azlyrics
+                  - openstreetmap
+                  - npm
+                  - pypi
+                  - lib.rs
+                  - nyaa
+                  - reddit
+                  - sepiasearch
+                  - soundcloud
+                  - stackoverflow
+                  - askubuntu
+                  - superuser
+                  - searchcode code
+                  - unsplash
+                  - youtube
+                  - wolframalpha
+                  - mojeek
+            engines:
+              - name: brave
+                disabled: false
+              - name: startpage
+                disabled: false
+              - name: archive is
+                disabled: false 
+              - name: apple app store
+                disabled: false
+              - name: ddg definitions
+                disabled: false
+              - name: tineye
+                disabled: false
+              - name: apple maps
+                disabled: false
+              - name: duckduckgo_images
+                disabled: false
+              - name: fdroid
+                disabled: false
+              - name: free software directory
+                disabled: false
+              - name: bitbucket
+                disabled: false
+              - name: gitlab
+                disabled: false
+              - name: codeberg
+                disabled: false
+              - name: google play apps
+                disabled: false
+              - name: lobste.rs
+                disabled: false
+              - name: azlyrics
+                disabled: false
+              - name: npm
+                disabled: false
+              - name: nyaa
+                disabled: false
+                categories: videos
+              - name: searchcode code
+                disabled: false
+              - name: mojeek
+                disabled: false
+              - name: lib.rs
+                disabled: false
+              - name: sourcehut
+                disabled: false
+            general:
+              instance_name: "JJGadgets Search"
+              enable_metrics: false
+            brand:
+              new_issue_url: false
+              docs_url: false
+              public_instances: false
+              wiki_url: false
+              issue_url: false
+            search:
+              safe_search: 0
+              autocomplete: "duckduckgo"
+              autocomplete_min: 2
+            server:
+              image_proxy: true
+              http_protocol_version: "1.1"
+              method: "GET"
+            ui:
+              static_use_hash: true
+              infinite_scroll: true
+              default_theme: "simple"
+              theme_args:
+                simple_style: "dark"
+            preferences:
+              lock:
+                - method
+                - query_in_title
+            enabled_plugins:
+              - 'Hash plugin'
+              - 'Search on category select'
+              - 'Self Information'
+              - 'Tracker URL remover'
+              - 'Hostname replace'
+              - 'Open Access DOI rewrite'
+              - 'Vim-like hotkeys'
+            hostname_replace:
+              '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
