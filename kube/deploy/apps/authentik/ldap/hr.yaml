@@ -1,0 +1,75 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app authentik-ldap
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: ghcr.io/goauthentik/ldap
+      tag: "2023.5.3"
+    env:
+      TZ: "${CONFIG_TZ}"
+      AUTHENTIK_HOST: "${APP_DNS_AUTH}"
+      AUTHENTIK_TOKEN:
+        valueFrom:
+          secretKeyRef:
+            name: authentik-ldap
+            key: token
+    service:
+      main:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_AUTHENTIK_LDAP}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_AUTHENTIK_LDAP}"
+        ports:
+          http:
+            enabled: false
+          ldap-tcp:
+            enabled: true
+            port: 389
+            targetPort: 3389
+            protocol: TCP
+          ldap-udp:
+            enabled: true
+            port: 389
+            targetPort: 3389
+            protocol: UDP
+          ldaps-tcp:
+            enabled: true
+            port: 636
+            targetPort: 6636
+            protocol: TCP
+          ldaps-udp:
+            enabled: true
+            port: 636
+            targetPort: 6636
+            protocol: UDP
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_AUTHENTIK_LDAP}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
