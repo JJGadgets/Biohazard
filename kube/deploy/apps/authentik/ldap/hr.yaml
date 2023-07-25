@@ -23,6 +23,8 @@ spec:
     image:
       repository: ghcr.io/goauthentik/ldap
       tag: "2023.5.3"
+    podLabels:
+      egress.home.arpa/ingress-nginx: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       AUTHENTIK_HOST: "https://${APP_DNS_AUTH}"
