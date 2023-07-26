@@ -63,7 +63,7 @@ spec:
       options:
         - name: ndots
           value: "1"
-    # podSecurityContext:
+    # podSecurityContext: # TODO: maybe build rootless container or Kyverno/patch entrypoint?
     #   runAsUser: &uid ${APP_UID_SEARXNG}
     #   runAsGroup: *uid
     #   fsGroup: *uid
@@ -210,10 +210,6 @@ spec:
               default_theme: "simple"
               theme_args:
                 simple_style: "dark"
-            preferences:
-              lock:
-                - method
-                - query_in_title
             enabled_plugins:
               - 'Hash plugin'
               - 'Search on category select'
@@ -223,7 +219,7 @@ spec:
               - 'Vim-like hotkeys'
     resources:
       requests:
-        cpu: 10m
-        memory: 128Mi
+        cpu: 50m
+        memory: 850Mi
       limits:
-        memory: 512Mi
+        memory: 2048Mi
