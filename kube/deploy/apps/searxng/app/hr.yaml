@@ -108,7 +108,6 @@ spec:
                   - codeberg
                   - sourcehut
                   - bitbucket
-                  - archive is
                   - apple app store
                   - wikipedia
                   - currency
@@ -146,8 +145,6 @@ spec:
                 disabled: false
               - name: startpage
                 disabled: false
-              - name: archive is
-                disabled: false 
               - name: apple app store
                 disabled: false
               - name: ddg definitions
@@ -217,6 +214,8 @@ spec:
               - 'Tracker URL remover'
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
+    # NOTE: Search engines disabled: 
+    # - archive.is (too many requests)
     resources:
       requests:
         cpu: 50m
