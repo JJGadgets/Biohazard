@@ -63,11 +63,11 @@ spec:
       options:
         - name: ndots
           value: "1"
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_SEARXNG}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
+    # podSecurityContext:
+    #   runAsUser: &uid ${APP_UID_SEARXNG}
+    #   runAsGroup: *uid
+    #   fsGroup: *uid
+    #   fsGroupChangePolicy: Always
     persistence:
       config:
         enabled: true
