@@ -22,6 +22,7 @@ spec:
       replicas: 1
     podLabels:
       ingress.home.arpa/nginx: "allow"
+      authentik.home.arpa/ldap: "allow"
     image:
       repository: ghcr.io/thelounge/thelounge
       tag: 4.4.1
