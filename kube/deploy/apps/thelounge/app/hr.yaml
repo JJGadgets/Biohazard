@@ -1,0 +1,144 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app thelounge
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    image:
+      repository: ghcr.io/thelounge/thelounge
+      tag: 4.4.1
+    command: ["thelounge"]
+    args: ["start", "--config", "ldap.searchDN.rootDN=\"$LDAP_USERNAME\"", "--config", "ldap.searchDN.rootPassword=\"$LDAP_PASSWORD\""]
+    env:
+      TZ: "${CONFIG_TZ}"
+      LDAP_USERNAME:
+        valueFrom:
+          secretKeyRef:
+            name: "thelounge-secrets"
+            key: "LDAP_USERNAME"
+      LDAP_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: "thelounge-secrets"
+            key: "LDAP_PASSWORD"
+    service:
+      main:
+        ports:
+          http:
+            port: 9000
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_THELOUNGE}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_THELOUNGE}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: thelounge-config
+        subPath: server.toml
+        mountPath: /var/opt/thelounge/config.js
+        readOnly: true
+      data:
+        enabled: true
+        existingClaim: thelounge-data
+        mountPath: /var/opt/thelounge
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.js: |
+            "use strict";
+            module.exports = {
+              public: false,
+              host: undefined,
+              port: 9000,
+              bind: undefined,
+              reverseProxy: true,
+              maxHistory: 10000,
+              https: {
+                enable: false,
+              },
+              theme: "default",
+              prefetch: false,
+              disableMediaPreview: false,
+              prefetchStorage: false,
+              fileUpload: {
+                enable: false,
+                maxFileSize: 10240,
+                baseUrl: null,
+              },
+              transports: ["polling", "websocket"],
+              leaveMessage: "kthxbye",
+              defaults: {
+                name: "${APP_DNS_KAHIRC}",
+                host: "${APP_DNS_KAHIRC}",
+                port: 6697,
+                password: "",
+                tls: true,
+                rejectUnauthorized: true,
+                nick: "${CONFIG_THELOUNGE_USERNAME}",
+                username: "${CONFIG_THELOUNGE_USERNAME}",
+                realname: "${CONFIG_THELOUNGE_USERNAME}",
+                join: "#${CONFIG_THELOUNGE_JOIN}",
+                leaveMessage: "",
+              },
+              lockNetwork: false,
+              messageStorage: ["sqlite", "text"],
+              useHexIp: false,
+              webirc: null,
+              identd: {
+                enable: false,
+              },
+              oidentd: null,
+              ldap: {
+                enable: true,
+                url: "ldaps://authentik-ldap.authentik.svc.cluster.local:636",
+                tlsOptions: {
+                  servername: '${APP_DNS_AUTHENTIK_LDAP}'
+                },
+                primaryKey: "uid",
+                searchDN: {
+                  filter: "(memberOf=CN=Role-TheLounge-Access,OU=groups,DC=ldap,DC=goauthentik,DC=io)",
+                  base: "DC=ldap,DC=goauthentik,DC=io",
+                  scope: "sub",
+                },
+              },
+            };
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi

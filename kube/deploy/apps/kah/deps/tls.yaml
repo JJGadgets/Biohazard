@@ -9,8 +9,5 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: jjgadgets.tech
   dnsNames:
-    - jjgadgets.tech
-    - '*.jjgadgets.tech'
-    - '*.kah.jjgadgets.tech'
+    - '*.${DNS_KAH}'

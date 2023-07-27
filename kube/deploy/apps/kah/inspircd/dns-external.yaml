@@ -1,0 +1,11 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: inspircd
+  namespace: kah
+spec:
+  endpoints:
+    - dnsName: "${APP_DNS_KAHIRC}"
+      recordType: A
+      targets: ["${APP_IP_EXT_KAHIRC}"]

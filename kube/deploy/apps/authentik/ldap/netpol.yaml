@@ -18,6 +18,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             authentik.home.arpa/ldap: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: "6636"

@@ -21,6 +21,12 @@ spec:
       toPorts:
         - ports:
             - port: "7001"
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: thelounge
+            app.kubernetes.io/name: thelounge
+      toPorts:
+        - ports:
             - port: "6697"
   egress:
     # same namespace

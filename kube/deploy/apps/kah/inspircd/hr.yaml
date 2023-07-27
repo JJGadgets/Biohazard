@@ -31,8 +31,6 @@ spec:
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: "irc.kah.jjgadgets.tech"
-          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
           "io.cilium/lb-ipam-ips": "${APP_IP_KAHIRC}"
         ports:
           http:
@@ -113,27 +111,27 @@ spec:
         enabled: true
         data:
           server.conf: |
-            <define name="opername" value="JJGadgets">
+            <define name="opername" value="${SECRET_KAHIRC_OPERNAME}">
             <define name="operdesc" value="The Tinfoil Hat Sensei.">
-            <define name="opermail" value="tinfoilhat@sensei">
-            <define name="operhash" value="${SECRET_KAHIRC_HASH}">
-            <define name="servername" value="irc.kah.jjgadgets.tech">
+            <define name="opermail" value="${SECRET_KAHIRC_OPERMAIL}">
+            <define name="operhash" value="${SECRET_KAHIRC_OPERHASH}">
+            <define name="servername" value="${APP_DNS_KAHIRC}">
             <define name="serverdesc" value="Home of the Tinfoil Hat Sensei.">
 
           links.conf: |
-            <link allowmask="${SECRET_KAHIRC_ENO1DEV_IP}"
+            <link allowmask="0.0.0.0/0"
               bind="0.0.0.0"
-              hidden="no"
-              name="cni.eno1.dev"
-              ipaddr="cni.mel1.eno1.dev"
+              hidden="yes"
+              name="${SECRET_KAHIRC_PEER1_NAME}"
+              ipaddr="${SECRET_KAHIRC_PEER1_DNS}"
               port="7001"
-              recvpass="${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
-              sendpass="${SECRET_KAHIRC_ENO1DEV_RECVPASS}"
+              recvpass="${SECRET_KAHIRC_PEER1_RECVPASS}"
+              sendpass="${SECRET_KAHIRC_PEER1_RECVPASS}"
               sslprofile="certmanager"
               timeout="15s">
 
             <autoconnect period="2m"
-              server="cni.eno1.dev">
+              server="${SECRET_KAHIRC_PEER1_NAME}">
 
           motd.txt: |
             Welcome to the home of Tinfoil Hat Sensei.

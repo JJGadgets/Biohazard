@@ -1,0 +1,11 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: thelounge-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/thelounge/app
+  dependsOn:
+    # - name: 1-core-storage-rook-ceph-cluster # TODO: re-add after fixing Rook ks.yaml, which needs Rook PVE ks.yaml name to be patched by master ks.yaml
+    - name: 1-core-ingress-nginx-app
