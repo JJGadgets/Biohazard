@@ -67,8 +67,8 @@ spec:
         enabled: true
         type: configMap
         name: thelounge-config
-        subPath: server.toml
-        mountPath: /var/opt/thelounge/config.js
+        mountPath: /var/opt/thelounge
+        subPath: config.js
         readOnly: true
       data:
         enabled: true
