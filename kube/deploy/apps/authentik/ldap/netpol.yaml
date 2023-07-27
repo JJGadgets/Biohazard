@@ -20,7 +20,7 @@ spec:
             authentik.home.arpa/ldap: allow
       toPorts:
         - ports:
-            - port: "636"
+            - port: "6636"
   egress:
     # same namespace
     - toEndpoints:
@@ -48,3 +48,6 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: authentik
             app.kubernetes.io/name: *app
+      toPorts:
+        - ports:
+            - port: "6636"
