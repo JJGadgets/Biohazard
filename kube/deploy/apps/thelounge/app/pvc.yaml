@@ -10,8 +10,8 @@ metadata:
     snapshot.home.arpa/enabled: "true"
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
-  storageClassName: file
+  storageClassName: block

@@ -67,8 +67,8 @@ spec:
         enabled: true
         type: configMap
         name: thelounge-config
-        mountPath: /var/opt/thelounge
         subPath: config.js
+        mountPath: /var/opt/thelounge/config.js
         readOnly: true
       data:
         enabled: true
