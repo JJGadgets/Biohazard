@@ -35,8 +35,10 @@ spec:
         ports:
           http:
             enabled: false
+            primary: false
           server:
             enabled: true
+            primary: true
             port: 7001
             protocol: TCP
           client:
@@ -66,15 +68,15 @@ spec:
         readOnly: true
       config-server:
         enabled: true
-        type: configMap
-        name: inspircd-config
+        type: secret
+        name: inspircd-secrets
         subPath: server.conf
         mountPath: /inspircd/conf/server.conf
         readOnly: true
       config-links:
         enabled: true
-        type: configMap
-        name: inspircd-config
+        type: secret
+        name: inspircd-secrets
         subPath: links.conf
         mountPath: /inspircd/conf/links.conf
         readOnly: true
@@ -91,6 +93,13 @@ spec:
         name: inspircd-config
         subPath: motd.txt
         mountPath: /inspircd/conf/motd.txt
+        readOnly: true
+      config-cloak:
+        enabled: true
+        type: secret
+        name: inspircd-secrets
+        subPath: cloak.conf
+        mountPath: /inspircd/conf/cloak.conf
         readOnly: true
       tls-fullchain:
         enabled: true
@@ -110,29 +119,6 @@ spec:
       config:
         enabled: true
         data:
-          server.conf: |
-            <define name="opername" value="${SECRET_KAHIRC_OPERNAME}">
-            <define name="operdesc" value="The Tinfoil Hat Sensei.">
-            <define name="opermail" value="${SECRET_KAHIRC_OPERMAIL}">
-            <define name="operhash" value="${SECRET_KAHIRC_OPERHASH}">
-            <define name="servername" value="${APP_DNS_KAHIRC}">
-            <define name="serverdesc" value="Home of the Tinfoil Hat Sensei.">
-
-          links.conf: |
-            <link allowmask="0.0.0.0/0"
-              bind="0.0.0.0"
-              hidden="yes"
-              name="${SECRET_KAHIRC_PEER1_NAME}"
-              ipaddr="${SECRET_KAHIRC_PEER1_DNS}"
-              port="7001"
-              recvpass="${SECRET_KAHIRC_PEER1_RECVPASS}"
-              sendpass="${SECRET_KAHIRC_PEER1_RECVPASS}"
-              sslprofile="certmanager"
-              timeout="15s">
-
-            <autoconnect period="2m"
-              server="${SECRET_KAHIRC_PEER1_NAME}">
-
           motd.txt: |
             Welcome to the home of Tinfoil Hat Sensei.
 
@@ -140,148 +126,150 @@ spec:
             <include file="/inspircd/conf/server.conf">
             <include file="/inspircd/conf/opers.conf">
             <include file="/inspircd/conf/links.conf">
+            <include file="/inspircd/conf/cloak.conf">
 
             <server
-                  name="&servername;"
-                  description="&serverdesc;"
+                name="&servername;"
+                description="&serverdesc;"
 
-                  # id: The SID to use for this server. This should not be uncommented
-                  # unless there is a SID conflict. This must be three characters long.
-                  # The first character must be a digit [0-9], the remaining two chars
-                  # may be letters [A-Z] or digits.
-                  #id="97K"
-                  network="cni">
+                # id: The SID to use for this server. This should not be uncommented
+                # unless there is a SID conflict. This must be three characters long.
+                # The first character must be a digit [0-9], the remaining two chars
+                # may be letters [A-Z] or digits.
+                #id="97K"
+                network="cni">
 
             <admin
-                  name="&opername;"
-                  nickname="&opername;"
-                  description="&operdesc;"
-                  email="&opermail;">
+                name="&opername;"
+                nickname="&opername;"
+                description="&operdesc;"
+                email="&opermail;">
 
+            <gnutls onrehash="yes">
             <sslprofile name="certmanager"
-                  provider="gnutls"
-                  cafile=""
-                  certfile="/inspircd/tls/tls.crt"
-                  crlfile=""
-                  dhfile=""
-                  hash="sha256"
-                  keyfile="/inspircd/tls/tls.key"
-                  mindhbits="1024"
-                  outrecsize="2048"
-                  priority="SECURE192"
-                  requestclientcert="yes"
-                  strictpriority="no">
+                provider="gnutls"
+                cafile=""
+                certfile="/inspircd/tls/tls.crt"
+                crlfile=""
+                dhfile=""
+                hash="sha256"
+                keyfile="/inspircd/tls/tls.key"
+                mindhbits="1024"
+                outrecsize="2048"
+                priority="SECURE256:-CIPHER-ALL:+AES-256-GCM:+CHACHA20-POLY1305:-KX-ALL:+ECDHE-RSA:+ECDHE-ECDSA:-COMP-ALL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3"
+                requestclientcert="no"
+                strictpriority="yes">
 
             <bind
-                  address="0.0.0.0"
-                  port="6697"
-                  type="clients"
-                  sslprofile="certmanager"
-                  defer="0"
-                  free="no">
+                address="0.0.0.0"
+                port="6697"
+                type="clients"
+                sslprofile="certmanager"
+                defer="0"
+                free="no">
 
             <bind address="" port="6667" type="clients">
 
             <connect deny="3ffe::0/32" reason="The 6bone address space is deprecated">
 
             <connect
-                  name="main"
-                  allow="*"
-                  maxchans="1000"
-                  timeout="20"
-                  pingfreq="2m"
-                  hardsendq="1M"
-                  softsendq="10240"
-                  recvq="10K"
-                  threshold="10"
-                  commandrate="1000"
-                  fakelag="yes"
-                  localmax="3"
-                  globalmax="3"
-                  resolvehostnames="yes"
-                  useident="no"
-                  limit="5000"
-                  modes="+x">
+                name="main"
+                allow="*"
+                maxchans="1000"
+                timeout="20"
+                pingfreq="2m"
+                hardsendq="1M"
+                softsendq="10240"
+                recvq="10K"
+                threshold="10"
+                commandrate="1000"
+                fakelag="yes"
+                localmax="3"
+                globalmax="3"
+                resolvehostnames="yes"
+                useident="no"
+                limit="5000"
+                modes="+x">
 
             <files motd="/inspircd/conf/motd.txt">
 
             <maxlist chan="*" limit="100">
 
             <options
-                  prefixquit="Quit: "
-                  suffixquit=""
-                  prefixpart="&quot;"
-                  suffixpart="&quot;"
-                  syntaxhints="no"
-                  cyclehostsfromuser="no"
-                  announcets="yes"
-                  allowmismatch="no"
-                  defaultbind="auto"
-                  hostintopic="no"
-                  pingwarning="15"
-                  serverpingfreq="1m"
-                  splitwhois="no"
-                  defaultmodes="not"
-                  xlinemessage="Feel the wrath of the almighty Thor!"
-                  modesinlist="no"
-                  extbanformat="name"
-                  exemptchanops="filter:o nickflood:o nonick:v regmoderated:o"
-                  invitebypassmodes="yes"
-                  nosnoticestack="no">
+                prefixquit="Quit: "
+                suffixquit=""
+                prefixpart="&quot;"
+                suffixpart="&quot;"
+                syntaxhints="no"
+                cyclehostsfromuser="no"
+                announcets="yes"
+                allowmismatch="no"
+                defaultbind="auto"
+                hostintopic="no"
+                pingwarning="15"
+                serverpingfreq="1m"
+                splitwhois="no"
+                defaultmodes="not"
+                xlinemessage="Feel the wrath of the almighty Thor!"
+                modesinlist="no"
+                extbanformat="name"
+                exemptchanops="filter:o nickflood:o nonick:v regmoderated:o"
+                invitebypassmodes="yes"
+                nosnoticestack="no">
 
             <performance
-                  netbuffersize="10240"
-                  somaxconn="128"
-                  softlimit="12800"
-                  clonesonconnect="yes"
-                  timeskipwarn="2s"
-                  quietbursts="yes">
+                netbuffersize="10240"
+                somaxconn="128"
+                softlimit="12800"
+                clonesonconnect="yes"
+                timeskipwarn="2s"
+                quietbursts="yes">
 
             <security
-                  announceinvites="dynamic"
-                  hideservices="no"
-                  flatlinks="no"
-                  hideservicekills="yes"
-                  hidesplits="no"
-                  maxtargets="20"
-                  restrictbannedusers="yes"
-                  genericoper="no"
-                  userstats="Pu">
+                announceinvites="dynamic"
+                hideservices="no"
+                flatlinks="no"
+                hideservicekills="yes"
+                hidesplits="no"
+                maxtargets="20"
+                restrictbannedusers="yes"
+                genericoper="no"
+                userstats="Pu">
 
             <limits
-                  maxaway="200"
-                  maxchan="60"
-                  maxhost="64"
-                  maxident="10"
-                  maxkey="30"
-                  maxkick="300"
-                  maxmodes="20"
-                  maxnick="30"
-                  maxquit="300"
-                  maxreal="130"
-                  maxtopic="330">
+                maxaway="200"
+                maxchan="60"
+                maxhost="64"
+                maxident="10"
+                maxkey="30"
+                maxkick="300"
+                maxmodes="20"
+                maxnick="30"
+                maxquit="300"
+                maxreal="130"
+                maxtopic="330">
 
             <log method="stdout"
                 level="debug"
                 type="* -USERINPUT -USEROUTPUT">
 
             <whowas
-                  groupsize="10"
-                  maxgroups="100000"
-                  maxkeep="3d">
+                groupsize="10"
+                maxgroups="100000"
+                maxkeep="3d">
 
             <badhost host="root@*" reason="Don't IRC as root!">
 
             <insane
-                  hostmasks="no"
-                  ipmasks="no"
-                  nickmasks="no"
-                  trigger="20">
+                hostmasks="no"
+                ipmasks="no"
+                nickmasks="no"
+                trigger="20">
 
             <bind address="0.0.0.0"
-                  port="7001"
-                  type="servers"
-                  sslprofile="certmanager">
+                port="7001"
+                type="servers"
+                sslprofile="certmanager">
 
             <hostname charmap="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_/0123456789">
 
@@ -298,12 +286,12 @@ spec:
 
           opers.conf: |
             <class
-                  name="Shutdown"
-                  commands="DIE RESTART REHASH LOADMODULE UNLOADMODULE RELOADMODULE GLOADMODULE GUNLOADMODULE GRELOADMODULE"
-                  privs="users/auspex channels/auspex servers/auspex users/mass-message users/flood/no-throttle users/flood/increased-buffers"
-                  usermodes="*"
-                  chanmodes="*"
-                  snomasks="*">
+                name="Shutdown"
+                commands="DIE RESTART REHASH LOADMODULE UNLOADMODULE RELOADMODULE GLOADMODULE GUNLOADMODULE GRELOADMODULE"
+                privs="users/auspex channels/auspex servers/auspex users/mass-message users/flood/no-throttle users/flood/increased-buffers"
+                usermodes="*"
+                chanmodes="*"
+                snomasks="*">
 
             <class name="SACommands" commands="SAJOIN SAPART SANICK SAQUIT SATOPIC SAKICK SAMODE OJOIN">
             <class name="ServerLink" commands="CONNECT SQUIT RCONNECT RSQUIT MKPASSWD ALLTIME SWHOIS" usermodes="*" chanmodes="*" privs="servers/auspex" snomasks="Cc">
@@ -312,15 +300,15 @@ spec:
             <class name="HostCloak" commands="SETHOST SETIDENT SETIDLE CHGNAME CHGHOST CHGIDENT" usermodes="*" chanmodes="*" privs="users/auspex">
 
             <type
-                  name="NetAdmin"
-                  classes="SACommands OperChat BanControl HostCloak Shutdown ServerLink"
-                  vhost="netadmin.&servername;"
-                  maxchans="1000"
-                  modes="+s +cCqQ">
+                name="NetAdmin"
+                classes="SACommands OperChat BanControl HostCloak Shutdown ServerLink"
+                vhost="netadmin.&servername;"
+                maxchans="1000"
+                modes="+s +cCqQ">
 
             <oper
-                  name="&opername;"
-                  hash="bcrypt"
-                  password="&operhash;"
-                  host="100.10*.*.*"
-                  type="NetAdmin">
+                name="&opername;"
+                hash="bcrypt"
+                password="&operhash;"
+                host="100.10*.*.*"
+                type="NetAdmin">

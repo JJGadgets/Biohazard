@@ -6,6 +6,10 @@ metadata:
   namespace: kah
 spec:
   secretName: kah-tls
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
