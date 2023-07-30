@@ -35,3 +35,8 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: kah
             app.kubernetes.io/name: inspircd
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "6697"
