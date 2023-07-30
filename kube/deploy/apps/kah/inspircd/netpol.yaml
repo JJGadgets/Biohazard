@@ -21,10 +21,20 @@ spec:
       toPorts:
         - ports:
             - port: "7001"
+    - fromCIDRSet:
+        - cidr: "${IP_EC2_INGRESS}/32"
+      toPorts:
+        - ports:
+            - port: "7001"
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: thelounge
             app.kubernetes.io/name: thelounge
+      toPorts:
+        - ports:
+            - port: "6697"
+    - fromCIDRSet:
+        - cidr: "${IP_ADMIN_CIDR}"
       toPorts:
         - ports:
             - port: "6697"
