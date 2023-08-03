@@ -249,7 +249,8 @@ spec:
                 maxreal="130"
                 maxtopic="330">
 
-            <log method="stdout"
+            <log method="file"
+                target="/dev/stdout"
                 level="debug"
                 type="* -USERINPUT -USEROUTPUT">
 
