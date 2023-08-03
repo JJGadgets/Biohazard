@@ -131,12 +131,6 @@ spec:
             <server
                 name="&servername;"
                 description="&serverdesc;"
-
-                # id: The SID to use for this server. This should not be uncommented
-                # unless there is a SID conflict. This must be three characters long.
-                # The first character must be a digit [0-9], the remaining two chars
-                # may be letters [A-Z] or digits.
-                #id="97K"
                 network="cni">
 
             <admin
@@ -156,7 +150,7 @@ spec:
                 keyfile="/inspircd/tls/tls.key"
                 mindhbits="1024"
                 outrecsize="2048"
-                priority="SECURE256:-CIPHER-ALL:+AES-256-GCM:+CHACHA20-POLY1305:-KX-ALL:+ECDHE-RSA:+ECDHE-ECDSA:-COMP-ALL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3"
+                priority="SECURE256:-CIPHER-ALL:+AES-256-GCM:+CHACHA20-POLY1305:-KX-ALL:+ECDHE-RSA:+ECDHE-ECDSA:-COMP-ALL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP521R1:+GROUP-X25519:+GROUP-X448"
                 requestclientcert="no"
                 strictpriority="yes">
 
@@ -249,6 +243,7 @@ spec:
                 maxreal="130"
                 maxtopic="330">
 
+            # method="stdout" doesn't log properly
             <log method="file"
                 target="/dev/stdout"
                 level="debug"
@@ -274,15 +269,20 @@ spec:
 
             <hostname charmap="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_/0123456789">
 
+            <module name="alias">
             <module name="bcrypt">
-            # <module name="sha2">
             <module name="cap">
             <module name="chghost">
+            <module name="chgident">
             <module name="chgname">
+            <module name="conn_umodes">
+            <module name="hidechans">
+            <module name="operchans">
+            <module name="password_hash">
+            <module name="services_account">
             <module name="spanningtree">
             <module name="ssl_gnutls">
             <module name="svshold">
-            <module name="password_hash">
             <mkpasswd operonly="no">
             <bcrypt rounds="10">
 
