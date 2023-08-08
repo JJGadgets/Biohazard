@@ -38,7 +38,6 @@ spec:
       SOFT_SERVE_HTTP_LISTEN_ADDR: ":23232"
       SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE_HTTPS}"
       SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
-      SOFT_SERVE_DB_DRIVER: "postgres"
     envFrom:
       - secretRef:
           name: soft-serve-secrets
@@ -91,10 +90,20 @@ spec:
     persistence:
       data:
         enabled: true
+        existingClaim: soft-serve-data
+        mountPath: "/soft-serve"
+      repos:
+        enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/soft-serve"
-        mountPath: "/soft-serve"
+        path: "${PATH_NAS_PERSIST_K8S}/soft-serve/repos"
+        mountPath: "/soft-serve/repos"
+      hooks:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/soft-serve/hooks"
+        mountPath: "/soft-serve/hooks"
       ssh:
         enabled: true
         type: secret
@@ -107,8 +116,3 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom: [secretRef: {name: soft-serve-pg-superuser}]
