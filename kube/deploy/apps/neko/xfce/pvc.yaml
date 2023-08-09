@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neko-xfce-home
+  namespace: &app neko
+  labels:
+    app.kubernetes.io/name: *app
+    app.kubernetes.io/instance: *app
+    snapshot.home.arpa/enabled: "true"
+spec:
+  storageClassName: file
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi

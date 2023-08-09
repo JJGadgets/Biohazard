@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: neko-xfce-home-restic
+  namespace: neko
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/neko-xfce-home
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
+  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
+  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: neko-xfce-home-restic
+  namespace: neko
+spec:
+  sourcePVC: neko-xfce-home
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: neko-xfce-home-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: file
+    storageClassName: file
+    moverSecurityContext:
+      runAsUser: &uid ${APP_UID_NEKO_XFCE}
+      runAsGroup: *uid
+      fsGroup: *uid
+    retain:
+      daily: 14
+      within: 7d

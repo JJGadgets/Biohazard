@@ -1,0 +1,97 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app neko-xfce
+  namespace: neko
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: ghcr.io/m1k1o/neko/xfce
+      tag: 2.8.8@sha256:d44e5b7f8b4968841a86860c402c008816fdc0eabc7eff39f42bc6c50670f78f
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      egress.home.arpa/world: "allow"
+    env:
+      TZ: "${CONFIG_TZ}"
+      NEKO_SCREEN: "1920x1080@60"
+      NEKO_MAX_FPS: "60"
+      NEKO_UDPMUX: &rtc "13100"
+      NEKO_TCPMUX: *rtc
+      NEKO_NAT1TO1: &LB-IP "${APP_IP_NEKO_XFCE}"
+      NEKO_ICESERVERS: {valueFrom: {secretKeyRef: {name: neko-xfce-secrets, key: ice}}}
+      NEKO_PASSWORD: {valueFrom: {secretKeyRef: {name: neko-xfce-secrets, key: userPassword}}}
+      NEKO_PASSWORD_ADMIN: {valueFrom: {secretKeyRef: {name: neko-xfce-secrets, key: adminPassword}}}
+    service:
+      main:
+        ports:
+          http:
+            port: 443
+      webrtc:
+        enabled: true
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_NEKO_XFCE}"
+          "io.cilium/lb-ipam-ips": *LB-IP
+        ports:
+          webrtc-udp:
+            enabled: true
+            port: *rtc
+            protocol: UDP
+          webrtc-tcp:
+            enabled: true
+            port: *rtc
+            protocol: TCP
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_NEKO_XFCE}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_NEKO_XFCE}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      home:
+        enabled: true
+        existingClaim: "neko-xfce-home"
+        mountPath: "/home"
+      shm:
+        enabled: true
+        type: emptyDir
+        mountPath: /dev/shm
+        sizeLimit: 2Gi
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
