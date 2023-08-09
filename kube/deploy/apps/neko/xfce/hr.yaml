@@ -40,7 +40,7 @@ spec:
       main:
         ports:
           http:
-            port: 443
+            port: 8080
       webrtc:
         enabled: true
         type: LoadBalancer
@@ -75,8 +75,8 @@ spec:
         - name: ndots
           value: "1"
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_NEKO_XFCE}
-      runAsGroup: *uid
+      runAsUser: 0
+      runAsGroup: &uid ${APP_UID_NEKO_XFCE}
       fsGroup: *uid
       fsGroupChangePolicy: Always
     persistence:
