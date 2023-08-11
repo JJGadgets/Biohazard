@@ -14,6 +14,11 @@ spec:
         - world
     - toEntities:
         - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system

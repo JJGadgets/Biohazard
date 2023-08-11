@@ -14,6 +14,11 @@ spec:
     # allow kube-apiserver for webhooks
     - fromEntities:
         - kube-apiserver
+    - toEntities: 
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
       toPorts:
         - ports:
             - port: "80"
@@ -79,6 +84,11 @@ spec:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
         - kube-apiserver
+    - toEntities: 
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
     # allow egress to all owned/controlled resources outside cluster
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"

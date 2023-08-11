@@ -62,6 +62,11 @@ spec:
     # allow access to apiserver
     - toEntities:
         - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
     # same namespace
     - toEndpoints:
         - matchLabels:

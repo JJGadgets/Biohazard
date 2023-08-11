@@ -48,6 +48,11 @@ spec:
     # this is needed for initdb and calling back to operator
     - toEntities:
         - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
     # same namespace
     - toEndpoints:
         - matchLabels:
