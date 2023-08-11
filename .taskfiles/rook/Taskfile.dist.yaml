@@ -164,7 +164,7 @@ tasks:
       - flux delete hr -n rook-ceph rook-ceph --silent && true || true
       - kubectl get namespaces rook-ceph && until kubectl delete namespaces rook-ceph; do kubectl get namespaces rook-ceph -o jsonpath="{.status}"; done || true
       - task: wipe-nodes-{{.C}}
-      - task: wipe-nodes-{{.C}} # run again in case wipe fails
+      # - task: wipe-nodes-{{.C}} # run again in case wipe fails
       - flux suspend ks 0-{{.C}}-config && flux resume ks 0-{{.C}}-config
       - flux suspend ks 1-core-storage-rook-ceph-app && flux resume ks 1-core-storage-rook-ceph-app
       - flux suspend ks 1-core-storage-rook-ceph-cluster && flux resume ks 1-core-storage-rook-ceph-cluster
