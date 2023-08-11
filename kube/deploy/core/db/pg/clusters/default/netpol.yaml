@@ -14,7 +14,7 @@ spec:
     # allow pods marked with db label to connect
     - toEndpoints:
         - matchLabels:
-            postgresql: *pg
+            cnpg.io/cluster: *pg
             io.kubernetes.pod.namespace: pg
       toPorts:
         - ports:
