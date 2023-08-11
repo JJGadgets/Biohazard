@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-storage-democratic-csi-nas-zfs-local
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/storage/democratic-csi/nas-zfs-local/app
+  dependsOn: []

@@ -1,0 +1,76 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: nas-zfs-local-zvol
+  namespace: democratic-csi
+spec:
+  chart:
+    spec:
+      chart: democratic-csi
+      version: 0.13.7
+      sourceRef:
+        name: democratic-csi
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    csiDriver:
+      name: "nas-zfs-local-zvol.democratic-csi.${CLUSTER_NAME}.home.arpa"
+      attachRequired: false
+      storageCapacity: true
+      fsGroupPolicy: File
+
+    storageClasses:
+      - name: nas-zfs-local-zvol
+        defaultClass: false
+        reclaimPolicy: Retain
+        # distributed support is not yet ready for expansion
+        allowVolumeExpansion: false
+        parameters:
+          fsType: ext4
+        mountOptions: ["noatime"]
+        # below selects node(s) for this storageClass
+        volumeBindingMode: WaitForFirstConsumer
+        allowedTopologies:
+          - matchLabelExpressions:
+              - key: role.nodes.home.arpa/nas
+                values: ["true"]
+
+    volumeSnapshotClasses:
+      - name: nas-zfs-local-zvol
+        deletionPolicy: Delete
+
+    controller:
+      enabled: true
+      strategy: node
+      nodeSelector:
+        role.nodes.home.arpa/nas: "true"
+      externalProvisioner:
+        extraArgs: ["--leader-election=false", "--node-deployment=true", "--node-deployment-immediate-binding=false", "--feature-gates=Topology=true", "--strict-topology=true", "--enable-capacity=true", "--capacity-ownerref-level=1"]
+
+      externalAttacher:
+        enabled: false
+
+      # distributed support is not yet ready
+      externalResizer:
+        enabled: false
+
+      externalSnapshotter:
+        enabled: true
+        extraArgs: ["--leader-election=false", "--node-deployment=true"]
+
+    node:
+      nodeSelector:
+        role.nodes.home.arpa/nas: "true"
+
+    driver:
+      config:
+        driver: zfs-local-zvol
+        zfs:
+          datasetParentName: bigsmoke/vol
+          detachedSnapshotsDatasetParentName: bigsmoke/vol/s
+          datasetProperties:
+            atime: "off"
+          zvolCompression: "zstd-9"
+          zvolEnableReservation: false
+          zvolBlocksize: "32k"
