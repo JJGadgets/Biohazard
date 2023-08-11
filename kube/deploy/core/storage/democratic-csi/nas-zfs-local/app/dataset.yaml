@@ -68,7 +68,7 @@ spec:
         driver: zfs-local-dataset
         zfs:
           datasetParentName: bigsmoke/data
-          detachedSnapshotsDatasetParentName: bigsmoke/data/s
+          detachedSnapshotsDatasetParentName: bigsmoke/data-snap
           datasetProperties:
             recordsize: "1M"
             compression: "zstd-9"

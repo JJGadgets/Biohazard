@@ -67,8 +67,8 @@ spec:
       config:
         driver: zfs-local-zvol
         zfs:
-          datasetParentName: bigsmoke/vol
-          detachedSnapshotsDatasetParentName: bigsmoke/vol/s
+          datasetParentName: bigsmoke/zvol
+          detachedSnapshotsDatasetParentName: bigsmoke/zvol-snap
           datasetProperties:
             atime: "off"
           zvolCompression: "zstd-9"
