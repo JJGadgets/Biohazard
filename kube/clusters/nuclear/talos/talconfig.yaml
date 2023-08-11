@@ -1,6 +1,6 @@
 clusterName: nuclear
-talosVersion: v1.3.7
-kubernetesVersion: v1.26.3
+talosVersion: v1.5.0-beta.1
+kubernetesVersion: v1.27.4
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 dnsDomain: cluster.local
@@ -30,10 +30,14 @@ nodes:
     installDiskSelector:
       size: "<= 600GB"
       type: ssd
+    nodeLabels:
+      role.nodes.home.arpa/nas: "true"
     nameservers:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
     networkInterfaces:
+      - interface: lo
+        addresses: ["${IP_K8S_BLACKFISH}/32"]
       - interface: br0
         mtu: 1500
         dhcp: false
@@ -62,11 +66,17 @@ nodes:
         dhcp: false
     patches:
       # required for Talos to initialize i915 VFIO devices
-      - |-
+      - &i915 |-
         machine:
           install:
             extensions:
               - image: ghcr.io/siderolabs/i915-ucode:20230310
+      # ZFS support for NAS
+      - &zfs |-
+        machine:
+          install:
+            extensions:
+              - image: ghcr.io/siderolabs/zfs:2.1.12-v1.5.0-beta.1
       # FRR routing
       - |-
         machine:
@@ -117,7 +127,7 @@ nodes:
 
   - hostname: "humming.${DNS_CLUSTER}"
     ipAddress: "${IP_VLAN_HUMMING}1"
-    controlPlane: true
+    controlPlane: false
     installDiskSelector:
       size: "<= 600GB"
       type: nvme
@@ -125,6 +135,8 @@ nodes:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
     networkInterfaces:
+      - interface: lo
+        addresses: ["${IP_K8S_HUMMING}/32"]
       - interface: br0
         mtu: 1500
         dhcp: false
@@ -153,11 +165,7 @@ nodes:
         dhcp: false
     patches:
       # required for Talos to initialize i915 VFIO devices
-      - |-
-        machine:
-          install:
-            extensions:
-              - image: ghcr.io/siderolabs/i915-ucode:20230310
+      - *i915
       # FRR routing
       - |-
         machine:
@@ -219,12 +227,12 @@ controlPlane:
       - op: add
         path: /machine/kubelet/extraArgs
         value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
-    - |-
+          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,ServerSideApply=true
+    - &apiServerExtraArgs |-
       - op: add
         path: /cluster/apiServer/extraArgs
         value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
+          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,ServerSideApply=true
     # - |-
     #   - op: add
     #     path: /cluster/controllerManager/extraArgs
@@ -236,6 +244,8 @@ controlPlane:
     #       wipe: true
     - &machinePatch |-
       machine:
+        install:
+          bootloader: true
         network:
           extraHostEntries:
             - ip: "${IP_K8S_BLACKFISH}"
@@ -254,7 +264,7 @@ controlPlane:
             validSubnets:
               - "${IP_ROUTER_VLAN_K8S_CIDR}"
 
-    - |-
+    - &etcdSubnet |-
       cluster:
         etcd:
           advertisedSubnets:
