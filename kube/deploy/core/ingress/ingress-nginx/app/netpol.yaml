@@ -14,11 +14,6 @@ spec:
     # allow kube-apiserver for webhooks
     - fromEntities:
         - kube-apiserver
-    - toEntities: 
-        - host
-      toPorts:
-        - ports:
-            - port: "6443"
       toPorts:
         - ports:
             - port: "80"

@@ -3,52 +3,64 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-    name: &app monitoring
-    namespace: *app
+  name: &app monitoring
+  namespace: *app
 spec:
-    endpointSelector: {}
-    ingress:
-        # same namespace
-        - fromEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: *app
-        # node-exporter
-        - fromEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: node-exporter
-        # kube-system
-        - fromEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: kube-system
-        # ingress controller
-        - fromEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: ingress
-                    app.kubernetes.io/instance: ingress-nginx
-                    app.kubernetes.io/name: ingress-nginx
-        # home network
-        - fromCIDRSet:
-              - cidr: "10.0.0.0/8"
-              - cidr: "${IP_WG_USER_1_V4}"
-        # from kubernetes
-        - fromEntities:
-              - kube-apiserver
-              - host
-              - cluster # temporary
-    egress:
-        # same namespace
-        - toEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: *app
-        # node-exporter
-        - toEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: node-exporter
-        # kube-system
-        - toEndpoints:
-              - matchLabels:
-                    io.kubernetes.pod.namespace: kube-system
-        # internet access & cluster access
-        - toEntities:
-              - world # temporary
-              - cluster # temporary
+  endpointSelector: {}
+  ingress:
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # node-exporter
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: node-exporter
+    # kube-system
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+    # ingress controller
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ingress
+            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/name: ingress-nginx
+    # home network
+    - fromCIDRSet:
+        - cidr: "10.0.0.0/8"
+        - cidr: "${IP_WG_USER_1_V4}"
+    # from kubernetes
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - cluster # temporary
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+egress:
+  # same namespace
+  - toEndpoints:
+      - matchLabels:
+          io.kubernetes.pod.namespace: *app
+  # node-exporter
+  - toEndpoints:
+      - matchLabels:
+          io.kubernetes.pod.namespace: node-exporter
+  # kube-system
+  - toEndpoints:
+      - matchLabels:
+          io.kubernetes.pod.namespace: kube-system
+  # internet access & cluster access
+  - toEntities:
+      - world # temporary
+      - cluster # temporary
+  - toEntities:
+      - kube-apiserver
+  - toEntities:
+      - host
+    toPorts:
+      - ports:
+          - port: "6443"
