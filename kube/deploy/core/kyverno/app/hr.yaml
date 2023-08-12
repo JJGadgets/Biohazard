@@ -15,18 +15,13 @@ spec:
         namespace: flux-system
   values:
     crds:
-      install: true
+      install: false
     customLabels:
       # netpols
       ingress.home.arpa/host: "allow"
       ingress.home.arpa/apiserver: "allow"
       egress.home.arpa/apiserver: "allow"
     backgroundController:
-      podLabels:
-        # netpols
-        ingress.home.arpa/host: "allow"
-        ingress.home.arpa/apiserver: "allow"
-        egress.home.arpa/apiserver: "allow"
       rbac:
         clusterRole:
           extraResources:
@@ -38,11 +33,6 @@ spec:
               verbs: ["*"]
     admissionController:
       replicas: 3
-      podLabels:
-        # netpols
-        ingress.home.arpa/host: "allow"
-        ingress.home.arpa/apiserver: "allow"
-        egress.home.arpa/apiserver: "allow"
       rbac:
         clusterRole:
           extraResources:
@@ -60,28 +50,3 @@ spec:
             matchLabels:
               app.kubernetes.io/instance: "kyverno"
               app.kubernetes.io/component: "kyverno"
-    cleanupController:
-      podLabels:
-        # netpols
-        ingress.home.arpa/host: "allow"
-        ingress.home.arpa/apiserver: "allow"
-        egress.home.arpa/apiserver: "allow"
-    reportsController:
-      podLabels:
-        # netpols
-        ingress.home.arpa/host: "allow"
-        ingress.home.arpa/apiserver: "allow"
-        egress.home.arpa/apiserver: "allow"
-    cleanupJobs:
-      admissionReports:
-        podLabels:
-          # netpols
-          ingress.home.arpa/host: "allow"
-          ingress.home.arpa/apiserver: "allow"
-          egress.home.arpa/apiserver: "allow"
-      clusterAdmissionReports:
-        podLabels:
-          # netpols
-          ingress.home.arpa/host: "allow"
-          ingress.home.arpa/apiserver: "allow"
-          egress.home.arpa/apiserver: "allow"
