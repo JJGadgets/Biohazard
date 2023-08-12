@@ -40,27 +40,27 @@ spec:
       toPorts:
         - ports:
             - port: "6443"
-egress:
-  # same namespace
-  - toEndpoints:
-      - matchLabels:
-          io.kubernetes.pod.namespace: *app
-  # node-exporter
-  - toEndpoints:
-      - matchLabels:
-          io.kubernetes.pod.namespace: node-exporter
-  # kube-system
-  - toEndpoints:
-      - matchLabels:
-          io.kubernetes.pod.namespace: kube-system
-  # internet access & cluster access
-  - toEntities:
-      - world # temporary
-      - cluster # temporary
-  - toEntities:
-      - kube-apiserver
-  - toEntities:
-      - host
-    toPorts:
-      - ports:
-          - port: "6443"
+  egress:
+    # same namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # node-exporter
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: node-exporter
+    # kube-system
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+    # internet access & cluster access
+    - toEntities:
+        - world # temporary
+        - cluster # temporary
+    - toEntities:
+        - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
