@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-world
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/host: "allow"
+  ingress:
+    - fromEntities:
+        - "host"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-world
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/apiserver: "allow"
+  ingress:
+    - fromEntities:
+        - "kube-apiserver"

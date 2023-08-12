@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app "kyverno"
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: *app
+      version: "3.0.5"
+      sourceRef:
+        name: *app
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    crds:
+      install: true
+    customLabels:
+      # netpols
+      ingress.home.arpa/host: "allow"
+      ingress.home.arpa/apiserver: "allow"
+      egress.home.arpa/apiserver: "allow"
+    backgroundController:
+      podLabels:
+        # netpols
+        ingress.home.arpa/host: "allow"
+        ingress.home.arpa/apiserver: "allow"
+        egress.home.arpa/apiserver: "allow"
+      rbac:
+        clusterRole:
+          extraResources:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["create", "update", "patch", "delete", "get", "list"]
+            - apiGroups: ["*"]
+              resources: ["*"]
+              verbs: ["*"]
+    admissionController:
+      replicas: 3
+      podLabels:
+        # netpols
+        ingress.home.arpa/host: "allow"
+        ingress.home.arpa/apiserver: "allow"
+        egress.home.arpa/apiserver: "allow"
+      rbac:
+        clusterRole:
+          extraResources:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["create", "update", "delete"]
+            - apiGroups: ["*"]
+              resources: ["*"]
+              verbs: ["*"]
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "ScheduleAnyway"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: "kyverno"
+              app.kubernetes.io/component: "kyverno"
+    cleanupController:
+      podLabels:
+        # netpols
+        ingress.home.arpa/host: "allow"
+        ingress.home.arpa/apiserver: "allow"
+        egress.home.arpa/apiserver: "allow"
+    reportsController:
+      podLabels:
+        # netpols
+        ingress.home.arpa/host: "allow"
+        ingress.home.arpa/apiserver: "allow"
+        egress.home.arpa/apiserver: "allow"
+    cleanupJobs:
+      admissionReports:
+        podLabels:
+          # netpols
+          ingress.home.arpa/host: "allow"
+          ingress.home.arpa/apiserver: "allow"
+          egress.home.arpa/apiserver: "allow"
+      clusterAdmissionReports:
+        podLabels:
+          # netpols
+          ingress.home.arpa/host: "allow"
+          ingress.home.arpa/apiserver: "allow"
+          egress.home.arpa/apiserver: "allow"
