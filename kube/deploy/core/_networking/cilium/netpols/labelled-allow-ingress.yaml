@@ -3,7 +3,7 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: labelled-allow-egress-world
+  name: labelled-allow-ingress-world
 spec:
   endpointSelector:
     matchLabels:
@@ -16,7 +16,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: labelled-allow-egress-world
+  name: labelled-allow-ingress-world
 spec:
   endpointSelector:
     matchLabels:
