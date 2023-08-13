@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: ghcr.io/charmbracelet/soft-serve
-      tag: v0.5.5
+      tag: v0.5.5-devel@sha256:96b84fef416c1c5264b57c63f500ade37ba7b1203bec875890a2af933ebdce0b
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-default"
@@ -38,6 +38,7 @@ spec:
       SOFT_SERVE_HTTP_LISTEN_ADDR: ":23232"
       SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE_HTTPS}"
       SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
+      SOFT_SERVE_DB_DRIVER: "postgres"
     envFrom:
       - secretRef:
           name: soft-serve-secrets
@@ -116,3 +117,8 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom: [secretRef: {name: soft-serve-pg-superuser}]
