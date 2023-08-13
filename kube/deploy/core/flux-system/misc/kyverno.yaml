@@ -1,0 +1,77 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: &name "flux-block-user-delete-flux"
+  annotations:
+    policies.kyverno.io/title: "Block User Delete of Main Flux Components (ks.yaml)"
+    policies.kyverno.io/category: "Protection"
+    policies.kyverno.io/subject: "FluxCD"
+    policies.kyverno.io/description: "Prevent removal of master ks.yaml that manages all other ks.yaml in the cluster."
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: "flux-block-delete"
+      match:
+        any:
+          - resources: &delete
+              kinds: ["kustomize.toolkit.fluxcd.io/*/Kustomization"]
+              names: ["0-*-config", "zzz-flux"]
+              operations: ["DELETE"]
+              selector:
+                matchExpressions:
+                  - key: "kyverno.home.arpa/delete"
+                    operator: "NotIn"
+                    values: ["CONFIRM-DELETE"]
+          - resources:
+              <<: *delete
+              kinds: ["v1/Namespace"]
+              names: ["flux-system"]
+          - resources:
+              <<: *delete
+              kinds: ["apps/v1/Deployment"]
+              names: ["helm-controller", "image-automation-controller", "image-reflector-controller", "kustomize-controller", "notification-controller", "source-controller"]
+              namespaces: ["flux-system"]
+      validate:
+        deny: {}
+        message: |
+          This resource is used by Flux and cannot be deleted.
+          Add this label to confirm this resource's deletion:
+          `kyverno.home.arpa/delete=CONFIRM-DELETE`
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: "flux-block-ks-prune"
+  annotations:
+    policies.kyverno.io/title: "Block Flux Kustomization (ks.yaml) Pruning Resources"
+    policies.kyverno.io/category: "Protection"
+    policies.kyverno.io/subject: "FluxCD"
+    policies.kyverno.io/description: "Prevent removal of resources managed by any Flux Kustomizations, unless resource is labelled to confirm delete. This allows for auditing resources to be pruned before they are actually pruned."
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: "flux-block-ks-prune"
+      match:
+        any:
+          - resources:
+              kinds: ["*"] # TODO: evaluate if this should be changed to only stateful resources e.g. PVs, PVCs, CNPG clusters etc
+              operations: ["DELETE"]
+              selector:
+                matchExpressions:
+                  - key: "kustomize.toolkit.fluxcd.io/name"
+                    operator: "Exists"
+                  - key: "kyverno.home.arpa/delete"
+                    operator: "NotIn"
+                    values: ["CONFIRM-DELETE"]
+      # TODO: add check for Flux clusterRole/subject so user can still delete
+      validate:
+        deny: {}
+        message: |
+          Flux is trying to prune the {{ request.object.apiVersion }}/{{ request.object.kind }} resource {{ request.object.metadata.name }}
+          Add this label to confirm this resource's deletion:
+          `kyverno.home.arpa/delete=CONFIRM-DELETE`
