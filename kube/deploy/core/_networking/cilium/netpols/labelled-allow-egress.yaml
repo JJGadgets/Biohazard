@@ -80,3 +80,20 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-dlna
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/dlna: allow
+  egress:
+    - toCIDR:
+        - "239.255.255.250/32"
+      toPorts:
+        - ports:
+            - port: "1900"
+              protocol: "UDP"
