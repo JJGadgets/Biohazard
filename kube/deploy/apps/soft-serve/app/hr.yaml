@@ -89,10 +89,6 @@ spec:
       fsGroup: *uid
       fsGroupChangePolicy: Always
     persistence:
-      data:
-        enabled: true
-        existingClaim: soft-serve-data
-        mountPath: "/soft-serve"
       repos:
         enabled: true
         type: nfs
