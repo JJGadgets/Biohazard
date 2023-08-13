@@ -1,0 +1,72 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: "jellyfin-prefer-gpu"
+spec:
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - &label-rule
+      name: gpu-node-up
+      match:
+        any:
+          - resources:
+              kinds: ["deviceplugin.intel.com/v1/GpuDevicePlugin"]
+              names: ["intel-device-plugins-gpu"]
+      preconditions:
+        any:
+          - key: "{{ request.object.status.numberReady }}"
+            operator: GreaterThan
+            value: 0
+          - key: "{{ request.object.status.numberReady }}"
+            operator: GreaterThan
+            value: "0"
+      mutate:
+        targets: &targets
+          - apiVersion: apps/v1
+            kind: StatefulSet
+            name: &app "jellyfin"
+            namespace: *app
+          - apiVersion: apps/v1
+            kind: Deployment
+            name: *app
+            namespace: *app
+        patchStrategicMerge:
+          metadata:
+            labels:
+              gpu.kyverno.home.arpa/ready: "true"
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: jellyfin
+                    resources:
+                      requests:
+                        gpu.intel.com/i915: "1"
+                      limits:
+                        gpu.intel.com/i915: "1"
+    - <<: *label-rule
+      name: gpu-node-down
+      preconditions:
+        any:
+          - key: "{{ request.object.status.numberReady }}"
+            operator: AnyIn
+            value: [0, "0", !!int 0]
+      mutate:
+        targets: *targets
+        patchStrategicMerge:
+          metadata:
+            labels:
+              gpu.kyverno.home.arpa/ready: "false"
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: jellyfin
+                    resources:
+                      requests:
+                        gpu.intel.com/i915: "0"
+                      limits:
+                        gpu.intel.com/i915: "0"
