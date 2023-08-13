@@ -4,7 +4,10 @@ kind: Kustomization
 metadata:
   name: jellyfin-app
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
 spec:
+  prune: true
   path: ./kube/deploy/apps/jellyfin/app
   dependsOn:
     - name: 1-core-storage-rook-ceph-cluster
