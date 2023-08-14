@@ -4,6 +4,8 @@ kind: Kustomization
 metadata:
   name: 1-core-storage-rook-ceph-pve-cluster
   namespace: flux-system
+  labels:
+    rook.flux.home.arpa/pve: "patch"
 spec:
   path: ./kube/deploy/core/storage/rook-ceph/pve/app
   dependsOn:
