@@ -89,18 +89,12 @@ spec:
       fsGroup: *uid
       fsGroupChangePolicy: Always
     persistence:
-      repos:
+      data:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/soft-serve/repos"
-        mountPath: "/soft-serve/repos"
-      hooks:
-        enabled: true
-        type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/soft-serve/hooks"
-        mountPath: "/soft-serve/hooks"
+        path: "${PATH_NAS_PERSIST_K8S}/soft-serve"
+        mountPath: "/soft-serve"
       ssh:
         enabled: true
         type: secret
