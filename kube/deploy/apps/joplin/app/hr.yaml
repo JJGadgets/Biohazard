@@ -28,10 +28,20 @@ spec:
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world-ntp: "allow"
     env:
+      INSTANCE_NAME: "JJGadgets"
+      SUPPORT_NAME: "JJGadgets"
+      SUPPORT_EMAIL: "${ADMIN_EMAIL}"
+      BUSINESS_EMAIL: "${ADMIN_EMAIL}"
       TZ: "${CONFIG_TZ}"
       APP_PORT: "22300"
       APP_BASE_URL: "https://${APP_DNS_JOPLIN}"
       DB_CLIENT: "pg"
+      TERMS_ENABLED: "false"
+      COOKIES_SECURE: "true"
+      ERROR_STACK_TRACES: "false"
+      IS_ADMIN_INSTANCE: "false"
+      ACCOUNT_TYPES_ENABLED: "false"
+      USER_DATA_AUTO_DELETE_ENABLED: "false"
     envFrom:
       - secretRef:
           name: joplin-secrets
