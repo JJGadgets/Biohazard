@@ -26,6 +26,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-default"
+      egress.home.arpa/world-ntp: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       APP_PORT: "22300"
@@ -60,6 +61,15 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
+    persistence:
+      logs: &tmp
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        mountPath: "/home/joplin/packages/server/logs"
+      temp:
+        <<: *tmp
+        mountPath: "/home/joplin/packages/server/temp"
     resources:
       requests:
         cpu: 10m
