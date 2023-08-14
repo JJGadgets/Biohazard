@@ -4,7 +4,10 @@ kind: Kustomization
 metadata:
   name: soft-serve-app
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
 spec:
+  prune: true
   path: ./kube/deploy/apps/soft-serve/app
   dependsOn:
     # - name: 1-core-db-pg-clusters-default
