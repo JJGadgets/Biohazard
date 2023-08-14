@@ -1,0 +1,74 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app joplin
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: docker.io/joplin/server
+      tag: 2.12.1-beta@sha256:332cc8eacbb55aa5d5120039ed256332fa5a535ca3aac0657e5338015e34824c
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      db.home.arpa/pg: "pg-default"
+    env:
+      TZ: "${CONFIG_TZ}"
+      APP_PORT: "22300"
+      APP_BASE_URL: "https://${APP_DNS_JOPLIN}"
+      DB_CLIENT: "pg"
+    envFrom:
+      - secretRef:
+          name: joplin-secrets
+    service:
+      main:
+        ports:
+          http:
+            port: 22300
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_JOPLIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_JOPLIN}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - secretRef: {name: joplin-pg}
