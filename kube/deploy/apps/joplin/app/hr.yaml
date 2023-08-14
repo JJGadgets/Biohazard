@@ -71,4 +71,4 @@ spec:
         image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
         imagePullPolicy: IfNotPresent
         envFrom:
-          - secretRef: {name: joplin-pg}
+          - secretRef: {name: joplin-pg-superuser}
