@@ -19,6 +19,7 @@ spec:
       ingress.home.arpa/nginx: "allow"
       egress.home.arpa/world-https: "allow"
       egress.home.arpa/dlna: "allow"
+      authentik.home.arpa/ldap: "allow"
     controller:
       type: statefulset
     image:
