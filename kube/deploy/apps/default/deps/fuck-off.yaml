@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: &name "block-default-namespace"
+  annotations:
+    policies.kyverno.io/title: "Block All Activity in Default Namespace"
+    policies.kyverno.io/category: "Protection"
+    policies.kyverno.io/subject: "Namespace"
+    policies.kyverno.io/description: "@onedr0p tinfoiling for the win baby!"
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: *name
+      match:
+        any:
+          - resources:
+              kinds: ["*"]
+              namespaces: ["default"]
+      validate:
+        deny: {}
+        message: "You are not onedr0p. This incident will be reported."

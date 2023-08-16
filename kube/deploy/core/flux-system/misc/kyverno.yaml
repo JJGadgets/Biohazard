@@ -68,6 +68,11 @@ spec:
                   - key: "kyverno.home.arpa/delete"
                     operator: "NotIn"
                     values: ["CONFIRM-DELETE"]
+      exclude:
+        any:
+          - resources:
+              kinds: ["v1/Node"]
+              # without this exclusion, Talos boot will hang as the Kyverno webhook will race condition during the Talos node spec/status patching, before the CNI is initialized
       # TODO: add check for Flux clusterRole/subject so user can still delete
       validate:
         deny: {}
