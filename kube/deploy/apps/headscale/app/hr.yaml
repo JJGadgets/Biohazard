@@ -8,12 +8,17 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
+    automountServiceAccountToken: false
+    podLabels:
+      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/world: "allow"
+      db.home.arpa/pg: "pg-default"
     controller:
       replicas: 1
     image:
@@ -34,8 +39,6 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_HEADSCALE}"
           "io.cilium/lb-ipam-ips": "${APP_IP_HEADSCALE}"
-          external-dns.alpha.kubernetes.io/hostname: "${APP_DNS_HEADSCALE}"
-          external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         ports:
           http:
             enabled: true

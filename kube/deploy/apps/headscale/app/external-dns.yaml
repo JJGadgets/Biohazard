@@ -1,0 +1,11 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: &app headscale
+  namespace: *app
+spec:
+  endpoints:
+    - dnsName: "${APP_DNS_HEADSCALE}"
+      recordType: A
+      targets: ["${IP_EC2_INGRESS}"]
