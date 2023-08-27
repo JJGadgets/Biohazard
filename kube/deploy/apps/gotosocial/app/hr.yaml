@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: docker.io/superseriousbusiness/gotosocial
-      tag: 0.11.0
+      tag: 0.11.1
     podLabels:
       ingress.home.arpa/nginx: "allow"
       ingress.home.arpa/cloudflare: "allow"
@@ -42,24 +42,8 @@ spec:
       GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
       GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
       GTS_DB_TLS_MODE: "enable"
-      #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
-      GTS_STORAGE_BACKEND: "s3"
-      GTS_STORAGE_S3_PROXY: "true"
-      GTS_STORAGE_S3_USE_SSL: "false"
-      GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local.:6953"
-      GTS_STORAGE_S3_BUCKET: "gotosocial-media"
-      GTS_STORAGE_S3_ACCESS_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: gotosocial-media-s3
-            key: AWS_ACCESS_KEY_ID
-      GTS_STORAGE_S3_SECRET_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: gotosocial-media-s3
-            key: AWS_SECRET_ACCESS_KEY
-      GTS_LANDING_PAGE_USER: "@jj"
-
+      GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+      GTS_LANDING_PAGE_USER: "jj"
     envFrom:
       - secretRef:
           name: gotosocial-pg
@@ -97,21 +81,15 @@ spec:
       runAsUser: &uid 568
       runAsGroup: *uid
       fsGroup: *uid
-      fsGroupChangePolicy: OnRootMismatch
-    # volumeClaimTemplates:
-    #   - name: media
-    #     mountPath: *media
-    #     accessMode: ReadWriteOnce
-    #     size: 50Gi
-    #     storageClass: block
+      fsGroupChangePolicy: Always
     persistence:
       config:
         enabled: false
       # TODO: https://github.com/superseriousbusiness/gotosocial/issues/950
-      # media:
-      #   enabled: true
-      #   existingClaim: gotosocial-nas-media
-      #   mountPath: *media
+      media:
+        enabled: true
+        existingClaim: gotosocial-nas-media
+        mountPath: *media
       tls-fullchain:
         enabled: true
         type: secret

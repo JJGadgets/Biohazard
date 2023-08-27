@@ -12,7 +12,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: "${IP_TRUENAS}"
-    path: "${PATH_NAS_PERSIST_K8S}/gotosocial"
+    path: "${PATH_NAS_PERSIST_K8S}/gotosocial-media"
   mountOptions:
     - nfsvers=4.2
     - tcp
@@ -24,6 +24,7 @@ spec:
     - nconnect=8
     - rsize=131072
     - wsize=131072
+    - local_lock=posix
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
