@@ -101,10 +101,10 @@ spec:
       config:
         enabled: false
       # TODO: https://github.com/superseriousbusiness/gotosocial/issues/950
-      media:
-        enabled: true
-        existingClaim: gotosocial-nas-media
-        mountPath: *media
+      # media:
+      #   enabled: true
+      #   existingClaim: gotosocial-nas-media
+      #   mountPath: *media
       tls-fullchain:
         enabled: true
         type: secret
