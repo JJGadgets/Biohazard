@@ -53,7 +53,7 @@ spec:
           imagePullPolicy: "IfNotPresent"
           envFrom:
             - secretRef:
-                name: &secret "piped-pg-superuser"
+                name: "piped-pg-superuser"
       config:
         PORT: 8080
         HTTP_WORKERS: 2
@@ -63,7 +63,7 @@ spec:
         database:
           connection_url: "jdbc:postgresql://pg-default-rw.pg.svc.cluster.local:5432/piped"
           driver_class: "org.postgresql.Driver"
-          secret: *secret
+          secret: "piped-secrets"
       podSecurityContext: *psc
       resources:
         requests:
