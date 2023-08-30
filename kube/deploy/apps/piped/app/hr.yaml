@@ -1,0 +1,111 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app piped
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: piped
+      version: 3.0.3
+      sourceRef:
+        name: piped
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    automountServiceAccountToken: false
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      egress.home.arpa/ingress-nginx: "allow"
+      db.home.arpa/pg: "pg-default"
+      egress.home.arpa/world: "allow"
+    postgresql:
+      enabled: false
+    frontend:
+      image:
+        repository: "docker.io/1337kavin/piped-frontend"
+      args: ["-c", "sed -i s/pipedapi.kavin.rocks/$BACKEND_HOSTNAME/g /usr/share/nginx/html/assets/* && sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf && /docker-entrypoint.sh nginx -g 'daemon off;'"]
+      env:
+        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND}"
+      service:
+        main:
+          ports:
+            http:
+              port: 8080
+      podSecurityContext: &psc
+        runAsUser: &uid ${APP_UID_PIPED}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 256Mi
+    backend:
+      image:
+        repository: "docker.io/1337kavin/piped"
+      initContainers:
+        01-init-db:
+          image: "ghcr.io/onedr0p/postgres-init:14.9"
+          imagePullPolicy: "IfNotPresent"
+          envFrom:
+            - secretRef:
+                name: &secret "piped-pg-superuser"
+      config:
+        PORT: 8080
+        HTTP_WORKERS: 2
+        PROXY_PART: "https://${APP_DNS_PIPED_YTPROXY}"
+        COMPROMISED_PASSWORD_CHECK: true
+        DISABLE_REGISTRATION: false
+        database:
+          connection_url: "jdbc:postgresql://pg-default-rw.pg.svc.cluster.local:5432/piped"
+          driver_class: "org.postgresql.Driver"
+          secret: *secret
+      podSecurityContext: *psc
+      resources:
+        requests:
+          cpu: 10m
+          memory: 500Mi
+        limits:
+          memory: 200Mi
+    ytproxy:
+      image:
+        repository: "docker.io/1337kavin/piped-proxy"
+      podSecurityContext: *psc
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 500Mi
+    ingress:
+      main:
+        ingressClassName: nginx
+        hosts:
+          - host: &frontend "${APP_DNS_PIPED_FRONTEND}"
+            paths:
+              - path: "/"
+        tls:
+          - hosts:
+              - *frontend
+      backend:
+        ingressClassName: nginx
+        hosts:
+          - host: &backend "${APP_DNS_PIPED_BACKEND}"
+            paths:
+              - path: "/"
+        tls:
+          - hosts:
+              - *backend
+      ytproxy:
+        ingressClassName: nginx
+        hosts:
+          - host: &ytproxy "${APP_DNS_PIPED_YTPROXY}"
+            paths:
+              - path: "/"
+        tls:
+          - hosts:
+              - *ytproxy
