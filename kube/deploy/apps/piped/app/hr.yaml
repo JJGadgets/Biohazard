@@ -22,28 +22,6 @@ spec:
       egress.home.arpa/world: "allow"
     postgresql:
       enabled: false
-    frontend:
-      image:
-        repository: "docker.io/1337kavin/piped-frontend"
-      args: ["-c", "sed -i s/pipedapi.kavin.rocks/$BACKEND_HOSTNAME/g /usr/share/nginx/html/assets/* && sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf && /docker-entrypoint.sh nginx -g 'daemon off;'"]
-      env:
-        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND}"
-      service:
-        main:
-          ports:
-            http:
-              port: 8080
-      podSecurityContext: &psc
-        runAsUser: &uid ${APP_UID_PIPED}
-        runAsGroup: *uid
-        fsGroup: *uid
-        fsGroupChangePolicy: Always
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          memory: 256Mi
     backend:
       image:
         repository: "docker.io/1337kavin/piped"
@@ -61,16 +39,38 @@ spec:
         COMPROMISED_PASSWORD_CHECK: true
         DISABLE_REGISTRATION: false
         database:
-          connection_url: "jdbc:postgresql://pg-default-rw.pg.svc.cluster.local:5432/piped"
+          connection_url: "jdbc:postgresql://pg-default-rw.pg.svc.cluster.local:5432/${SECRET_PIPED_PG_DBNAME}"
           driver_class: "org.postgresql.Driver"
           secret: "piped-secrets"
-      podSecurityContext: *psc
+      podSecurityContext: &psc
+        runAsUser: &uid ${APP_UID_PIPED}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
       resources:
         requests:
           cpu: 10m
           memory: 500Mi
         limits:
-          memory: 200Mi
+          memory: 2000Mi
+    frontend:
+      image:
+        repository: "docker.io/1337kavin/piped-frontend"
+      args: ["-c", "sed -i s/pipedapi.kavin.rocks/$BACKEND_HOSTNAME/g /usr/share/nginx/html/assets/* && sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf && /docker-entrypoint.sh nginx -g 'daemon off;'"]
+      env:
+        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND}"
+      service:
+        main:
+          ports:
+            http:
+              port: 8080
+      # podSecurityContext: *psc # TODO: /etc/nginx and /usr/share/nginx isn't writable by root but entrypoint script requires write perms to them
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 256Mi
     ytproxy:
       image:
         repository: "docker.io/1337kavin/piped-proxy"
