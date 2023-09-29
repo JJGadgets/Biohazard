@@ -3,7 +3,7 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: &pg pg-default
+  name: &pg pg-enc
 spec:
   endpointSelector:
     matchLabels:
@@ -24,7 +24,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: pg-default
+  name: pg-enc
   namespace: &app pg
 spec:
   endpointSelector: {}
@@ -36,7 +36,7 @@ spec:
     # allow pods marked with db label to connect
     - fromEndpoints:
         - matchLabels:
-            db: pg-default
+            db: pg-enc
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
@@ -45,7 +45,7 @@ spec:
             - port: "5432"
     - fromEndpoints:
         - matchLabels:
-            db.home.arpa/pg: pg-default
+            db.home.arpa/pg: pg-enc
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
@@ -121,12 +121,12 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: pg-default-dump-local
+  name: pg-enc-dump-local
   namespace: pg
 spec:
   endpointSelector:
     matchLabels:
-      postgresql: &pg pg-default
+      postgresql: &pg pg-enc
       app.kubernetes.io/instance: *pg
       app.kubernetes.io/name: pg-dump-local
   ingress:

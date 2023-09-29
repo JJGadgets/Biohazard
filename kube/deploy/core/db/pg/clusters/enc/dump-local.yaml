@@ -1,0 +1,69 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-enc-dump-local
+  namespace: pg
+  labels:
+    postgresql: &pg pg-enc
+    app.kubernetes.io/instance: *pg
+    app.kubernetes.io/name: pg-dump-local
+spec:
+  schedule: "0 6 * * *"
+  timeZone: "Asia/Singapore"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            postgresql: *pg
+            app.kubernetes.io/instance: *pg
+            app.kubernetes.io/name: pg-dump-local
+        spec:
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: &uid ${UID_NAS_BACKUPS_K8S}
+            runAsGroup: *uid
+            fsGroup: *uid
+          volumes:
+            - name: nas-backups
+              nfs:
+                server: "${IP_TRUENAS}"
+                path: "${PATH_NAS_BACKUPS_K8S}/pg/enc"
+          containers:
+            - name: postgres-backup
+              image: docker.io/prodrigestivill/postgres-backup-local:15@sha256:b3905c58ab8c1fb7596e2f90f059c65d61c2a813232e6eca4a3f5ce019bfbd61
+              imagePullPolicy: IfNotPresent
+              command:
+                - "/backup.sh"
+              volumeMounts:
+                - name: nas-backups
+                  mountPath: /backups
+              env:
+                # backup all databases with `pg_dumpall` rather than specifying which databases to backup
+                - name: "POSTGRES_CLUSTER"
+                  value: "TRUE"
+                # for `pg_dumpall -l <db>`, used to "connect to for dumping global objects and discovering what other databases should be dumped. If not specified, the postgres database will be used" (https://www.postgresql.org/docs/15/app-pg-dumpall.html)
+                - name: "POSTGRES_DB"
+                  value: "postgres"
+                # disable default -Z6 since not `pg_dumpall` compatible
+                # DROP backed_up_databases IF EXISTS
+                - name: "POSTGRES_EXTRA_OPTS"
+                  value: "--clean --if-exists"
+                # use read-only service since backups don't require writes
+                - name: "POSTGRES_HOST"
+                  value: "pg-enc-ro.pg.svc.cluster.local"
+                # use superuser credentials
+                - name: "POSTGRES_USER"
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-enc-superuser
+                      key: username
+                - name: "POSTGRES_PASSWORD"
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-enc-superuser
+                      key: password

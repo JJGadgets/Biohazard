@@ -1,0 +1,63 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-enc
+  namespace: pg
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.0-4
+  primaryUpdateStrategy: unsupervised # let k8s handle upgrades
+  primaryUpdateMethod: restart # prefer downtime of image download from registry instead of switching primary instance (promote a standby instance to primary) when current primary pod is updated
+  storage:
+    size: 100Gi
+    storageClass: block
+  storage:
+    size: 100Gi
+    storageClass: cnpg-wal-nfs
+  superuserSecret:
+    name: pg-enc-superuser
+  postgresql:
+    parameters:
+      max_connections: "600"
+      shared_buffers: "512MB" # amount of RAM to use for data caching, https://postgresqlco.nf/doc/en/param/shared_buffers/
+  monitoring:
+    enablePodMonitor: true
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        compression: bzip2
+        maxParallel: 8
+      destinationPath: "s3://${SECRET_PG_ENC_WAL_R2_BUCKET}/"
+      endpointURL: "${SECRET_R2_ENDPOINT}"
+      serverName: pg-enc-v1
+      s3Credentials:
+        accessKeyId:
+          name: pg-enc-r2
+          key: id
+        secretAccessKey:
+          name: pg-enc-r2
+          key: key
+
+#  # RECOVERY
+#  bootstrap:
+#    recovery:
+#      source: &previous-cluster postgres-v0
+#  ## Note: externalClusters is needed when recovering from an existing cnpg cluster
+#  externalClusters:
+#    - name: *previous-cluster
+#      barmanObjectStore:
+#        wal:
+#          compression: bzip2
+#          maxParallel: 8
+#        destinationPath: s3://pg-enc-v1/
+#        endpointURL: http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc:6953
+#        serverName: pg-enc-v1
+#        s3Credentials:
+#          accessKeyId:
+#            name: s3-ceph-pg-enc
+#            key: AccessKey
+#          secretAccessKey:
+#            name: s3-ceph-pg-enc
+#            key: SecretKey

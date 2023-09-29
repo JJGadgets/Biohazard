@@ -1,0 +1,20 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: pg-enc-s3
+  namespace: pg
+spec:
+  bucketName: "pg-enc"
+  storageClassName: "rgw-${CLUSTER_NAME}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-enc-r2
+  namespace: pg
+type: Opaque
+stringData:
+  # username MUST BE 'postgres'!
+  id: "${SECRET_PG_ENC_WAL_R2_ID}"
+  key: "${SECRET_PG_ENC_WAL_R2_KEY}"
