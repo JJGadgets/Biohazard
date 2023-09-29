@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-storage-csi-driver-nfs-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/storage/csi-driver-nfs/app
+  dependsOn: []
