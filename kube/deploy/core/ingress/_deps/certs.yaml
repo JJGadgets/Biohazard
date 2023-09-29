@@ -2,8 +2,8 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-    name: short-domain
-    namespace: ingress
+  name: short-domain
+  namespace: ingress
 spec:
   secretName: "short-domain-tls"
   additionalOutputFormats:
@@ -42,3 +42,87 @@ spec:
   dnsNames:
     - "${DNS_MAIN}"
     - "*.${DNS_MAIN}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vpn
+  namespace: ingress
+spec:
+  secretName: "vpn-tls"
+  additionalOutputFormats:
+    - type: CombinedPEM
+    - type: DER
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
+  dnsNames:
+    - "${DNS_VPN}"
+    - "*.${DNS_VPN}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: stream
+  namespace: ingress
+spec:
+  secretName: "stream-tls"
+  additionalOutputFormats:
+    - type: CombinedPEM
+    - type: DER
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
+  dnsNames:
+    - "${DNS_STREAM}"
+    - "*.${DNS_STREAM}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: me
+  namespace: ingress
+spec:
+  secretName: "me-tls"
+  additionalOutputFormats:
+    - type: CombinedPEM
+    - type: DER
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
+  dnsNames:
+    - "${DNS_ME}"
+    - "*.${DNS_ME}"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: home
+  namespace: ingress
+spec:
+  secretName: "home-tls"
+  additionalOutputFormats:
+    - type: CombinedPEM
+    - type: DER
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    rotationPolicy: Always
+  dnsNames:
+    - "${DNS_HOME}"
+    - "*.${DNS_HOME}"
