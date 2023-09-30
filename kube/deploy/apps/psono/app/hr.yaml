@@ -26,6 +26,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-enc"
+      egress.home.arpa/ingress-nginx: "allow"
     env:
       UWSGI_PORT: "8080"
       TZ: "${CONFIG_TZ}"
@@ -63,9 +64,9 @@ spec:
       PSONO_DATABASES_DEFAULT_NAME_FILE: "/secrets/dbname"
       PSONO_DATABASES_DEFAULT_USER_FILE: "/secrets/dbuser"
       PSONO_DATABASES_DEFAULT_PASSWORD_FILE: "/secrets/dbpass"
-      # PSONO_LOGGING_AUDIT: "True"
-      # PSONO_LOGGING_AUDIT_FOLDER: "/var/log/psono"
-      # PSONO_LOGGING_AUDIT_TIME: "time_server"
+      PSONO_LOGGING_AUDIT: "True"
+      PSONO_LOGGING_AUDIT_FOLDER: "/var/log/psono"
+      PSONO_LOGGING_AUDIT_TIME: "time_server"
     envFrom:
       - secretRef:
           name: psono-secrets
@@ -107,6 +108,12 @@ spec:
         type: emptyDir
         medium: Memory
         mountPath: /root
+      logs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/psono-logs"
+        mountPath: "/var/log/psono"
     resources:
       requests:
         cpu: 10m
