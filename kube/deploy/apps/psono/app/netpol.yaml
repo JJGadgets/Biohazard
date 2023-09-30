@@ -17,8 +17,8 @@ spec:
               protocol: "UDP"
     # server-based MFA
     - toFQDNs:
-        - matchName: "api*.duosecurity.com"
-        - matchName: "api*.yubico.com"
+        - matchPattern: "api*.duosecurity.com"
+        - matchPattern: "api*.yubico.com"
       toPorts:
         - ports:
             - port: "443"
