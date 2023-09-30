@@ -122,7 +122,7 @@ spec:
         image: "registry.gitlab.com/psono/psono-server:v3.3.10"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && cp -rL /root/. /psono && find /psono -type f | xargs -I% sed -i "s/\/root/\/psono/g" %']
-        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && sed -i "s/user  nginx;//g" /etc/nginx/nginx.conf; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
         securityContext:
           runAsUser: 0 # run this as root so actual container can run without root, jank af lol
@@ -149,8 +149,11 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: "docker.io/psono/psono-client"
-      tag: "2.4.4"
+      # repository: "docker.io/psono/psono-client"
+      # tag: "2.4.4"
+      repository: public.ecr.aws/docker/library/caddy
+      tag: 2.7.4
+    command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
     service:
@@ -182,34 +185,35 @@ spec:
         type: configMap
         name: psono-client
         subPath: config.json
-        mountPath: /usr/share/nginx/html/config.json
+        # mountPath: /usr/share/nginx/html/config.json
+        mountPath: /psono/config.json
         readOnly: true
-      nginx:
-        enabled: true
-        type: configMap
-        name: psono-client-nginx
-        subPath: default.conf
-        mountPath: /etc/nginx/conf.d/default.conf
-        readOnly: true
+      # nginx:
+      #   enabled: true
+      #   type: configMap
+      #   name: psono-client-nginx
+      #   subPath: default.conf
+      #   mountPath: /etc/nginx/conf.d/default.conf
+      #   readOnly: true
       app:
         enabled: true
         type: emptyDir
         medium: Memory
-        mountPath: /root
-    configMaps:
-      nginx:
-        enabled: true
-        data:
-          # change nginx listening port to non-priv range (>1024)
-          default.conf: |-
-            server {
-                listen 8080;
-                server_name ${APP_DNS_PSONO};
-                location / {
-                    root   /usr/share/nginx/html;
-                    index  index.html index.htm;
-                }
-            }
+        mountPath: /psono
+    # configMaps:
+    #   nginx:
+    #     enabled: true
+    #     data:
+    #       # change nginx listening port to non-priv range (>1024)
+    #       default.conf: |-
+    #         server {
+    #             listen 8080;
+    #             server_name ${APP_DNS_PSONO};
+    #             location / {
+    #                 root   /usr/share/nginx/html;
+    #                 index  index.html index.htm;
+    #             }
+    #         }
     resources:
       requests:
         cpu: 1m
@@ -220,10 +224,10 @@ spec:
       02-un-root:
         image: "docker.io/psono/psono-client:2.4.4"
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R 69420:69420 /psono; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
-        securityContext:
-          runAsUser: 0 # run this as root so actual container can run without root, jank af lol
+        # securityContext:
+        #   runAsUser: 0 # run this as root so actual container can run without root, jank af lol
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -247,8 +251,11 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: "docker.io/psono/psono-admin-client"
-      tag: "1.6.11"
+      # repository: "docker.io/psono/psono-admin-client"
+      # tag: "1.6.11"
+      repository: public.ecr.aws/docker/library/caddy
+      tag: 2.7.4
+    command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
     service:
@@ -280,35 +287,36 @@ spec:
         type: configMap
         name: psono-client
         subPath: config.json
-        mountPath: /usr/share/nginx/html/config.json
+        # mountPath: /usr/share/nginx/html/config.json
+        mountPath: /psono/portal/config.json
         readOnly: true
-      nginx:
-        enabled: true
-        type: configMap
-        name: psono-admin-nginx
-        subPath: default.conf
-        mountPath: /etc/nginx/conf.d/default.conf
-        readOnly: true
+      # nginx:
+      #   enabled: true
+      #   type: configMap
+      #   name: psono-admin-nginx
+      #   subPath: default.conf
+      #   mountPath: /etc/nginx/conf.d/default.conf
+      #   readOnly: true
       app:
         enabled: true
         type: emptyDir
         medium: Memory
         mountPath: /root
-    configMaps:
-      nginx:
-        enabled: true
-        data:
-          # change nginx listening port to non-priv range (>1024)
-          default.conf: |-
-            server {
-                listen 8080;
-                server_name ${APP_DNS_PSONO};
-                location / {
-                    root   /usr/share/nginx/html;
-                    index  index.html index.htm;
-                    try_files $uri /portal/index.html;
-                }
-            }
+    # configMaps:
+    #   nginx:
+    #     enabled: true
+    #     data:
+    #       # change nginx listening port to non-priv range (>1024)
+    #       default.conf: |-
+    #         server {
+    #             listen 8080;
+    #             server_name ${APP_DNS_PSONO};
+    #             location / {
+    #                 root   /usr/share/nginx/html;
+    #                 index  index.html index.htm;
+    #                 try_files $uri /portal/index.html;
+    #             }
+    #         }
     resources:
       requests:
         cpu: 1m
@@ -319,7 +327,7 @@ spec:
       02-un-root:
         image: "docker.io/psono/psono-admin-client:1.6.11"
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R 69420:69420 /psono; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
-        securityContext:
-          runAsUser: 0 # run this as root so actual container can run without root, jank af lol
+        # securityContext:
+        #   runAsUser: 0 # run this as root so actual container can run without root, jank af lol
