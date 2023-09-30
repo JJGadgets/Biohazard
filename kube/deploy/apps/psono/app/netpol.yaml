@@ -10,7 +10,7 @@ spec:
   egress:
     # NTP
     - toCIDRSet:
-        - cidr: "${IP_ROUTER}/32"
+        - cidr: "${IP_ROUTER_LAN}/32"
       toPorts:
         - ports:
             - port: "123"
