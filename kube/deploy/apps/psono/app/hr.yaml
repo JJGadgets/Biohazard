@@ -122,7 +122,7 @@ spec:
         image: "registry.gitlab.com/psono/psono-server:v3.3.10"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && cp -rL /root/. /psono && find /psono -type f | xargs -I% sed -i "s/\/root/\/psono/g" %']
-        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && sed -i "s/user  nginx;//g" /etc/nginx/nginx.conf; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
         securityContext:
           runAsUser: 0 # run this as root so actual container can run without root, jank af lol
