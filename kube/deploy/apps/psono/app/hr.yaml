@@ -1,0 +1,286 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app psono
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: "registry.gitlab.com/psono/psono-server"
+      tag: "v3.3.10"
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+      db.home.arpa/pg: "pg-enc"
+    env:
+      UWSGI_PORT: "8080"
+      TZ: "${CONFIG_TZ}"
+      PSONO_TIME_SERVER: "${IP_ROUTER}"
+      PSONO_HOST_URL: "https://${APP_DNS_PSONO}/server"
+      PSONO_WEB_CLIENT_URL: "https://${APP_DNS_PSONO}"
+      PSONO_ALLOWED_HOSTS: "${APP_DNS_PSONO}"
+      PSONO_ALLOWED_DOMAINS: "${DNS_SHORT},${DNS_MAIN}"
+      PSONO_REGISTRATION_EMAIL_FILTER: "${DNS_SHORT},${DNS_MAIN}"
+      PSONO_AUTHENTICATION_METHODS: "OIDC"
+      #PSONO_MULTIFACTOR_ENABLED: "True" # forces solving of all configured MFA methods, not just one
+      PSONO_ALLOWED_SECOND_FACTORS: "yubikey_otp,webauthn,duo"
+      PSONO_DEBUG: "False"
+      PSONO_MANAGEMENT_ENABLED: "True"
+      PSONO_ALLOW_REGISTRATION: "False"
+      PSONO_ALLOW_LOST_PASSWORD: "False"
+      PSONO_ALLOW_MULTIPLE_SESSIONS: "True"
+      PSONO_ALLOW_USER_SEARCH_BY_EMAIL: "True"
+      PSONO_ALLOW_USER_SEARCH_BY_USERNAME_PARTIAL: "True"
+      PSONO_COMPLIANCE_DISABLE_EXPORT: "True"
+      PSONO_COMPLIANCE_DISABLE_OFFLINE_MODE: "False"
+      PSONO_DISABLE_CENTRAL_SECURITY_REPORTS: "False"
+      PSONO_ENFORCE_MATCHING_USERNAME_AND_EMAIL: "False"
+      PSONO_CACHE_ENABLE: "False"
+      PSONO_CACHE_REDIS: "False"
+      PSONO_SECRET_KEY_FILE: "/secrets/secretkey"
+      PSONO_PRIVATE_KEY_FILE: "/secrets/privatekey"
+      PSONO_PUBLIC_KEY_FILE: "/secrets/publickey"
+      PSONO_EMAIL_SECRET_SALT_FILE: "/secrets/email"
+      PSONO_ACTIVATION_LINK_SECRET_FILE: "/secrets/activationlink"
+      PSONO_DB_SECRET_FILE: "/secrets/dbsecret"
+      PSONO_DATABASES_DEFAULT_ENGINE: "django.db.backends.postgresql_psycopg2"
+      PSONO_DATABASES_DEFAULT_HOST: "pg-enc-rw.pg.svc.cluster.local."
+      PSONO_DATABASES_DEFAULT_PORT: "5432"
+      PSONO_DATABASES_DEFAULT_NAME_FILE: "/secrets/dbname"
+      PSONO_DATABASES_DEFAULT_USER_FILE: "/secrets/dbuser"
+      PSONO_DATABASES_DEFAULT_PASSWORD_FILE: "/secrets/dbpass"
+      # PSONO_LOGGING_AUDIT: "True"
+      # PSONO_LOGGING_AUDIT_FOLDER: "/var/log/psono"
+      # PSONO_LOGGING_AUDIT_TIME: "time_server"
+    envFrom:
+      - secretRef:
+          name: psono-secrets
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+        hosts:
+          - host: &host "${APP_DNS_PSONO}"
+            paths:
+              - path: /server(/|$)(.*)
+                pathType: ImplementationSpecific
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid ${APP_UID_PSONO}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        name: psono-secrets-file
+        mountPath: /secrets
+        readOnly: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 6000Mi
+    initContainers:
+      01-init-db:
+        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        imagePullPolicy: IfNotPresent
+        envFrom: [secretRef: {name: psono-pg-superuser}]
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app psono-client
+  namespace: psono
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: "docker.io/psono/psono-client"
+      tag: "2.4.4"
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_PSONO}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid 69420
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: psono-client
+        subPath: config.json
+        mountPath: /usr/share/nginx/html/config.json
+        readOnly: true
+      nginx:
+        enabled: true
+        type: configMap
+        name: psono-client-nginx
+        subPath: default.conf
+        mountPath: /etc/nginx/conf.d/default.conf
+        readOnly: true
+    configMaps:
+      nginx:
+        enabled: true
+        data:
+          # change nginx listening port to non-priv range (>1024)
+          default.conf: |-
+            server {
+                listen 8080;
+                server_name ${APP_DNS_PSONO};
+                location / {
+                    root   /usr/share/nginx/html;
+                    index  index.html index.htm;
+                }
+            }
+    resources:
+      requests:
+        cpu: 1m
+        memory: 16Mi
+      limits:
+        memory: 6000Mi
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app psono-admin
+  namespace: psono
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    global:
+      fullnameOverride: *app
+    automountServiceAccountToken: false
+    controller:
+      type: deployment
+      replicas: 1
+    image:
+      repository: "docker.io/psono/psono-client"
+      tag: "1.6.11"
+    podLabels:
+      ingress.home.arpa/nginx: "allow"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        ingressClassName: nginx
+        hosts:
+          - host: &host "${APP_DNS_PSONO}"
+            paths:
+              - path: /portal
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: &uid 69420
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: psono-client
+        subPath: config.json
+        mountPath: /usr/share/nginx/html/config.json
+        readOnly: true
+      nginx:
+        enabled: true
+        type: configMap
+        name: psono-admin-nginx
+        subPath: default.conf
+        mountPath: /etc/nginx/conf.d/default.conf
+        readOnly: true
+    configMaps:
+      nginx:
+        enabled: true
+        data:
+          # change nginx listening port to non-priv range (>1024)
+          default.conf: |-
+            server {
+                listen 8080;
+                server_name ${APP_DNS_PSONO};
+                location / {
+                    root   /usr/share/nginx/html;
+                    index  index.html index.htm;
+                    try_files $uri /portal/index.html;
+                }
+            }
+    resources:
+      requests:
+        cpu: 1m
+        memory: 16Mi
+      limits:
+        memory: 6000Mi

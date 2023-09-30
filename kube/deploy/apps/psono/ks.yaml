@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: psono-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/psono/app
+  dependsOn:
+    - name: 1-core-ingress-nginx-app

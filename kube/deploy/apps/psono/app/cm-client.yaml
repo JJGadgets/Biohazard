@@ -1,0 +1,34 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "psono-client"
+  namespace: "psono"
+data:
+  config.json: |
+    {
+      "backend_servers": [{
+        "title": "${CONFIG_PSONO_TITLE}",
+        "url": "https://${APP_DNS_PSONO}/server"
+      }],
+      "base_url": "https://${APP_DNS_PSONO}/",
+      "allow_custom_server": false,
+      "allow_registration": false,
+      "allow_lost_password": false,
+      "disable_download_bar": false,
+      "authentication_methods": ["OIDC"],
+      "oidc_provider": [{
+        "title": "JJGadgets Login",
+        "provider_id": 1,
+        "button_name": "Login via JJGadgets"
+      }],
+      "more_links": [{
+        "href": "https://doc.psono.com/",
+        "title": "DOCUMENTATION/HELP",
+        "class": "fa-book"
+      },{
+        "href": "https://jjgadgets.tech",
+        "title": "JJGadgets",
+        "class": "fa-info-circle"
+      }]
+    }
