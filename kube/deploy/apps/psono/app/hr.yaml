@@ -23,7 +23,6 @@ spec:
     image:
       repository: "registry.gitlab.com/psono/psono-server"
       tag: "v3.3.10"
-    command: ["/bin/sh", "/psono/configs/docker/cmd.sh"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-enc"
