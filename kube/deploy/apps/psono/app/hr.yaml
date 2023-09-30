@@ -224,7 +224,8 @@ spec:
       02-un-root:
         image: "docker.io/psono/psono-client:2.4.4"
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
+        # command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
         # securityContext:
         #   runAsUser: 0 # run this as root so actual container can run without root, jank af lol
@@ -327,7 +328,8 @@ spec:
       02-un-root:
         image: "docker.io/psono/psono-admin-client:1.6.11"
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
+        # command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
+        command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono; exit']
         volumeMounts: [{name: app, mountPath: /psono}]
         # securityContext:
         #   runAsUser: 0 # run this as root so actual container can run without root, jank af lol
