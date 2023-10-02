@@ -81,6 +81,7 @@ spec:
         primary: true
         ingressClassName: nginx
         annotations:
+          external-dns.alpha.kubernetes.io/target: "${APP_IP_NGINX}"
           nginx.ingress.kubernetes.io/use-regex: "true"
           nginx.ingress.kubernetes.io/rewrite-target: "/$2"
         hosts:
