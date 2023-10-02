@@ -13,3 +13,18 @@ parameters:
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
 mountOptions: ["nfsvers=4.2", "tcp", "intr", "hard", "noatime", "nodiratime", "nocto", "nconnect=8"]
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: crunchy-pgo-backups-nfs
+  labels:
+    disk.home.arpa/fs: zfs
+    disk.home.arpa/type: hdd
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: "${IP_TRUENAS}"
+  share: "${PATH_NAS_PERSIST_K8S}/pvc/crunchy-pgo-backups/"
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+mountOptions: ["nfsvers=4.2", "tcp", "intr", "hard", "noatime", "nodiratime", "nocto", "nconnect=8"]
