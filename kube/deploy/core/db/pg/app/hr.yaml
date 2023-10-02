@@ -25,12 +25,15 @@ metadata:
   name: &app crunchy-pgo
   namespace: *app
 spec:
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   chart:
     spec:
-      chart: app-template
-      version: 1.5.1
+      chart: pgo
+      version: 5.4.2
       sourceRef:
-        name: bjw-s
+        name: crunchydata
         kind: HelmRepository
         namespace: flux-system
-  values:

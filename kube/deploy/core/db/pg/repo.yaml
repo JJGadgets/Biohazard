@@ -5,6 +5,17 @@ metadata:
   name: cloudnative-pg
   namespace: flux-system
 spec:
-  interval: 10m0s
+  interval: 1h0s
   timeout: 3m0s
   url: https://cloudnative-pg.github.io/charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: crunchydata
+  namespace: flux-system
+spec:
+  interval: 1h0s
+  timeout: 3m0s
+  type: oci
+  url: oci://registry.developers.crunchydata.com/crunchydata
