@@ -87,9 +87,9 @@ spec:
                   initialDelaySeconds: 15
                   periodSeconds: 1
                   failureThreshold: 300
-            securityContext:
-              capabilities:
-                add: ["NET_RAW"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
+            # securityContext:
+            #   capabilities:
+            #     add: ["NET_RAW"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
         statefulset:
           volumeClaimTemplates:
             - name: data
