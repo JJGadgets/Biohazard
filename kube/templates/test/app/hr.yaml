@@ -8,31 +8,86 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      # type: statefulset
-      type: deployment
-      replicas: 1
-    image:
-      repository: docker.io/${APPNAME}/server
-      tag: latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
-    podLabels:
-      ingress.home.arpa/nginx: "allow"
-      db.home.arpa/pg: "pg-default"
-      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-    env:
-      TZ: "${CONFIG_TZ}"
+    controllers:
+      main:
+        # type: statefulset
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+            db.home.arpa/pg: "pg-default"
+            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+        containers:
+          main:
+            image:
+              repository: "docker.io/${APPNAME}/server"
+              tag: "v"
+            env:
+              TZ: "${CONFIG_TZ}"
+              GTS_STORAGE_S3_ACCESS_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "${APPNAME}-data-s3"
+                    key: "AWS_ACCESS_KEY_ID"
+              GTS_STORAGE_S3_SECRET_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "${APPNAME}-media-s3"
+                    key: "AWS_SECRET_ACCESS_KEY"
+            envFrom:
+              - secretRef:
+                  name: "${APPNAME}-secrets"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 6000Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              mountPath: "/data"
+              accessMode: ReadWriteOnce
+              size: 20Gi
+              storageClass: block
+            - name: backup
+              mountPath: "/backup"
+              accessMode: ReadWriteOnce
+              size: 20Gi
+              storageClass: block
+        initContainers:
+          01-init-${APPNAME}-admin-password:
+            command:
+            - /bin/sh
+            - -c
+            - '[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin'
+            image: docker.io/${APPNAME}/server:latest
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+            - mountPath: /data
+              name: data
+            - mountPath: /config
+              name: config
+          01-init-db:
+            image: "ghcr.io/onedr0p/postgres-init:14.8"
+            imagePullPolicy: IfNotPresent
+            envFrom: [secretRef: {name: "${APPNAME}-pg-superuser"}]
     service:
       main:
+        ports:
+          http:
+            port: 8080
+      ssh:
         enabled: true
+        primary: false
+        controller: main
         type: LoadBalancer
         # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
         externalTrafficPolicy: Cluster
@@ -59,7 +114,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        className: nginx
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -85,44 +140,47 @@ spec:
 #       options:
 #         - name: ndots
 #           value: "1"
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_APPNAME}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    volumeClaimTemplates:
-      - name: data
-        mountPath: /data
-        accessMode: ReadWriteOnce
-        size: 20Gi
-        storageClass: block
-      - name: backup
-        mountPath: /backup
-        accessMode: ReadWriteOnce
-        size: 20Gi
-        storageClass: block
     persistence:
       config:
         enabled: true
         type: configMap
-        name: ${APPNAME}-config
-        subPath: server.toml
-        mountPath: /data/server.toml
-        readOnly: true
-      tls-fullchain:
+        name: "${APPNAME}-config"
+        advancedMounts:
+          main:
+            main:
+              - subPath: "server.toml"
+                mountPath: "/data/server.toml"
+                readOnly: true
+      data:
+        enabled: true
+        existingClaim: "${APPNAME}-data"
+        advancedMounts:
+          main:
+            main:
+              - path: /data
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/${APPNAME}"
+        advancedMounts:
+          main:
+            main:
+              - path: /nfs
+      tls:
         enabled: true
         type: secret
-        name: ${APPNAME}-tls
-        subPath: tls.crt
-        mountPath: /tls/fullchain.pem
-        readOnly: true
-      tls-privkey:
-        enabled: true
-        type: secret
-        name: ${APPNAME}-tls
-        subPath: tls.key
-        mountPath: /tls/privkey.pem
-        readOnly: true
+        name: "${APPNAME}-tls"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "tls.crt"
+                path: "/tls/fullchain.pem"
+                readOnly: true
+              - subPath: "tls.key"
+                path: "/tls/privkey.pem"
+                readOnly: true
     configMaps:
       config:
         enabled: true
@@ -143,30 +201,10 @@ spec:
             path = "/backup/"
             schedule = "0 0 22 * * * *"
             versions = 7
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 6000Mi
-    initContainers:
-      01-init-${APPNAME}-admin-password:
-        command:
-        - /bin/sh
-        - -c
-        - '[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin'
-        image: docker.io/${APPNAME}/server:latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - mountPath: /data
-          name: data
-        - mountPath: /config
-          name: config
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: gotosocial-pg
-          - secretRef:
-              name: gotosocial-pg-superuser
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_APPNAME}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
