@@ -92,6 +92,8 @@ spec:
           coredns.io/hostname: "${APP_DNS_MINECRAFT}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
         ports:
+          http:
+            enabled: false
           minecraft:
             enabled: true
             primary: true
