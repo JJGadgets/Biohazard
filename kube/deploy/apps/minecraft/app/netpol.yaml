@@ -25,12 +25,3 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # internet access
-    - toEntities:
-        - world
-    # Fabric mods download
-    - toFQDNs:
-        - matchName: maven.fabricmc.net
-      toPorts:
-        - ports:
-            - port: "443"

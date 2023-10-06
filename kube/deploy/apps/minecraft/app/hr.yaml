@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: minecraft
-      version: 4.5.0
+      version: 4.10.0
       sourceRef:
         name: minecraft
         kind: HelmRepository
@@ -20,9 +20,9 @@ spec:
     image:
       repository: itzg/minecraft-server
       tag: 2022.16.0-java17
-    serviceAnnotations:
-      coredns.io/hostname: "${APP_DNS_MINECRAFT}"
-      "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
+    # serviceAnnotations:
+    #   coredns.io/hostname: "${APP_DNS_MINECRAFT}"
+    #   "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
     minecraftServer:
       serviceType: LoadBalancer
       externalTrafficPolicy: Cluster
@@ -77,3 +77,108 @@ spec:
     resources:
       requests:
         memory: 3072Mi
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app minecraft
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: statefulset
+        replicas: 1
+        pod:
+          labels:
+            egress.home.arpa/world: "true"
+        containers:
+          main:
+            image:
+              repository: "docker.io/itzg/minecraft-server"
+              tag: "2022.16.0-java17"
+            env:
+              TZ: "${CONFIG_TZ}"
+              MEMORY: "2048M"
+              EULA: "TRUE"
+              TYPE: "FABRIC"
+              VERSION: "1.19.3"
+              FABRIC_LOADER_VERSION: "0.14.13"
+              MODRINTH_ALLOWED_VERSION_TYPE: "release"
+              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,memoryleakfix,smoothboot-fabric,servercore,chunky"
+              SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
+              OPS: "${CONFIG_MINECRAFT_OPS}"
+              ICON: "${CONFIG_MINECRAFT_ICON}"
+              OVERRIDE_ICON: "TRUE"
+              MOTD: "Never waste your diamonds on a hoe! Now on Kubernetes!"
+              LEVEL_TYPE: "DEFAULT"
+              LEVEL: "world"
+              MODE: "survival"
+              DIFFICULTY: "normal"
+              MAX_WORLD_SIZE: "6e+07"
+              MAX_PLAYERS: "20"
+              PVP: "true"
+              ALLOW_NETHER: "true"
+              ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
+              ENABLE_COMMAND_BLOCK: "false"
+              FORCE_GAMEMODE: "true"
+              GENERATE_STRUCTURES: "true"
+              HARDCORE: "false"
+              MAX_BUILD_HEIGHT: "256"
+              MAX_TICK_TIME: "-1"
+              VIEW_DISTANCE: "10"
+              OVERRIDE_SERVER_PROPERTIES: "true"
+              ENABLE_RCON: "false"
+              ENABLE_AUTOPAUSE: "TRUE"
+              AUTOPAUSE_TIMEOUT_EST: "300"
+              AUTOPAUSE_TIMEOUT_INIT: "120"
+              RCON_CMDS_STARTUP: |-
+                gamerule keepInventory false
+              SNOOPER_ENABLED: "false"
+              SYNC_CHUNK_WRITES: "false"
+              USE_AIKAR_FLAGS: "true"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 3072Mi
+              limits:
+                memory: 6000Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              mountPath: "/data"
+              accessMode: ReadWriteOnce
+              size: 20Gi
+              storageClass: block
+    service:
+      main:
+        enabled: true
+        primary: true
+        controller: main
+        type: LoadBalancer
+        # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_MINECRAFT}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
+        ports:
+          minecraft:
+            enabled: true
+            primary: true
+            port: 25565
+            protocol: TCP
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_MINECRAFT}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
