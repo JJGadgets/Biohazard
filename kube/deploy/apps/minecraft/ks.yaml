@@ -4,8 +4,11 @@ kind: Kustomization
 metadata:
   name: minecraft-app
   namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/deploy/apps/minecraft/app
+  wait: false
   dependsOn:
     - name: 1-core-storage-rook-ceph-cluster
     - name: 1-core-storage-volsync-app
