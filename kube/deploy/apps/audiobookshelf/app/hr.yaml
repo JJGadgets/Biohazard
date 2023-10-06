@@ -1,0 +1,88 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app audiobookshelf
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: statefulset
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+            egress.home.arpa/world: "allow"
+        containers:
+          main:
+            image:
+              repository: "ghcr.io/advplyr/audiobookshelf"
+              tag: "2.4.4"
+            env:
+              TZ: "${CONFIG_TZ}"
+              PORT: &http "8080"
+              CONFIG_PATH: &config "/config"
+              METADATA_PATH: &meta "/metadata"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 6000Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: config
+              mountPath: *config
+              accessMode: ReadWriteOnce
+              size: 20Gi
+              storageClass: block
+        # initContainers:
+    service:
+      main:
+        ports:
+          http:
+            port: *http
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: nginx
+        hosts:
+          - host: &host "${APP_DNS_AUDIOBOOKSHELF}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    persistence:
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_MEDIA}"
+        advancedMounts:
+          main:
+            main:
+              - subPath: ".audiobookshelf-metadata"
+                path: *meta
+              - subPath: "Podcasts"
+                path: "/podcasts"
+              - subPath: "Audiobooks"
+                path: "/audiobooks"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
