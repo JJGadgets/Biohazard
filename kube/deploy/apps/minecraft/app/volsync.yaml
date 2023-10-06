@@ -17,7 +17,7 @@ metadata:
   name: minecraft-restic
   namespace: minecraft
 spec:
-  sourcePVC: minecraft-minecraft-datadir
+  sourcePVC: data-minecraft-0
   trigger:
     schedule: "0 6 * * *"
   restic:
