@@ -14,7 +14,6 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-
     controllers:
       main:
         type: statefulset
@@ -60,6 +59,7 @@ spec:
               OVERRIDE_SERVER_PROPERTIES: "true"
               ENABLE_RCON: "false"
               ENABLE_AUTOPAUSE: "TRUE"
+              AUTOPAUSE_KNOCK_INTERFACE: "eth0"
               AUTOPAUSE_TIMEOUT_EST: "300"
               AUTOPAUSE_TIMEOUT_INIT: "120"
               RCON_CMDS_STARTUP: |-
@@ -73,6 +73,23 @@ spec:
                 memory: 3072Mi
               limits:
                 memory: 6000Mi
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 60
+                  exec: {command: ["mc-health"]}
+              readiness: *probe
+              startup:
+                <<: *probe
+                spec:
+                  initialDelaySeconds: 15
+                  periodSeconds: 1
+                  failureThreshold: 300
+            securityContext:
+              capabilities:
+                add: ["NET_RAW"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
         statefulset:
           volumeClaimTemplates:
             - name: data
