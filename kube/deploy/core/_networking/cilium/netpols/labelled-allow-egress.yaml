@@ -85,6 +85,23 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-ntp
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/world-ntp: allow
+  egress:
+    - toEntities:
+        - "world"
+      toPorts:
+        - ports:
+            - port: "123"
+              protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-dlna
 spec:
   endpointSelector:
@@ -96,4 +113,23 @@ spec:
       toPorts:
         - ports:
             - port: "1900"
+              protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-cloudflare-r2
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/r2: allow
+  egress:
+    - toFQDNs:
+        - matchPattern: "*.r2.cloudflarestorage.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: "TCP"
+            - port: "443"
               protocol: "UDP"
