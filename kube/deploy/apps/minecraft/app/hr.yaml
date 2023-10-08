@@ -23,7 +23,8 @@ spec:
             egress.home.arpa/world: "true"
         containers:
           main:
-            image:
+            order: 1
+            image: &image
               repository: "docker.io/itzg/minecraft-server"
               tag: "2023.10.1-java17-graalvm"
             env:
@@ -84,26 +85,56 @@ spec:
               startup:
                 <<: *probe
                 spec:
-                  initialDelaySeconds: 15
+                  initialDelaySeconds: 30
                   periodSeconds: 1
                   failureThreshold: 300
-            # securityContext:
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
             #   capabilities:
-            #     add: ["NET_RAW"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
+            #     drop: ["ALL"]
+            #     add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
+          knockd:
+            order: 2
+            image: *image
+            command: ["/tmp/knockd", "-c", "/tmp/knockd-config.cfg", "-d", "-i", "eth0"]
+            securityContext:
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_RAW"]
+            resources:
+              requests:
+                cpu: 5m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
         statefulset:
           volumeClaimTemplates:
             - name: data
-              mountPath: "/data"
               accessMode: ReadWriteOnce
               size: 20Gi
               storageClass: block
+              globalMounts:
+                - path: "/data"
+                  readOnly: false
+        initContainers:
+          01-knockd-cp: &init
+            command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/tmp/knockd"]
+            image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
+            imagePullPolicy: IfNotPresent
+          02-knockd-add-caps:
+            <<: *init
+            command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/tmp/knockd"]
+            securityContext:
+              capabilities:
+                drop: ["ALL"]
+                add: ["SETFCAP"]
     service:
       main:
         enabled: true
         primary: true
         controller: main
         type: LoadBalancer
-        # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
         externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT}"
@@ -119,7 +150,18 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
+        # runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
         runAsUser: &uid ${APP_UID_MINECRAFT}
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: "Always"
+    persistence:
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: /tmp
+            readOnly: false
