@@ -23,7 +23,7 @@ spec:
             egress.home.arpa/world: "true"
         containers:
           main:
-            order: 1
+            # order: 1
             image: &image
               repository: "docker.io/itzg/minecraft-server"
               tag: "2023.10.1-java17-graalvm"
@@ -80,7 +80,7 @@ spec:
                 custom: true
                 spec:
                   periodSeconds: 60
-                  exec: {command: ["mc-health"]}
+                  exec: &probeexec {command: ["mc-health"]}
               readiness: *probe
               startup:
                 <<: *probe
@@ -88,26 +88,27 @@ spec:
                   initialDelaySeconds: 30
                   periodSeconds: 1
                   failureThreshold: 300
+                  exec: *probeexec
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
-            #   capabilities:
-            #     drop: ["ALL"]
-            #     add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
-          knockd:
-            order: 2
-            image: *image
-            command: ["/tmp/knockd", "-c", "/tmp/knockd-config.cfg", "-d", "-i", "eth0"]
-            securityContext:
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_RAW"]
-            resources:
-              requests:
-                cpu: 5m
-                memory: 32Mi
-              limits:
-                memory: 128Mi
+                add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
+          # knockd:
+          #   order: 2
+          #   image: *image
+          #   command: ["/tmp/knockd", "-c", "/tmp/knockd-config.cfg", "-d", "-i", "eth0"]
+          #   securityContext:
+          #     capabilities:
+          #       drop: ["ALL"]
+          #       add: ["NET_RAW"]
+          #   resources:
+          #     requests:
+          #       cpu: 5m
+          #       memory: 32Mi
+          #     limits:
+          #       memory: 128Mi
         statefulset:
           volumeClaimTemplates:
             - name: data
@@ -117,18 +118,17 @@ spec:
               globalMounts:
                 - path: "/data"
                   readOnly: false
-        initContainers:
-          01-knockd-cp: &init
-            command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/tmp/knockd"]
-            image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
-            imagePullPolicy: IfNotPresent
-          02-knockd-add-caps:
-            <<: *init
-            command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/tmp/knockd"]
-            securityContext:
-              capabilities:
-                drop: ["ALL"]
-                add: ["SETFCAP"]
+        # initContainers:
+        #   01-knockd-cp: &init
+        #     command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
+        #     # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
+        #     image: *image
+        #     imagePullPolicy: IfNotPresent
+        #   02-knockd-add-caps:
+        #     <<: *init
+        #     command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
+        #     securityContext:
+        #       runAsUser: 0
     service:
       main:
         enabled: true
@@ -150,8 +150,8 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
-        # runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
-        runAsUser: &uid ${APP_UID_MINECRAFT}
+        runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
+        # runAsUser: &uid ${APP_UID_MINECRAFT}
         runAsGroup: *uid
         fsGroup: *uid
         runAsNonRoot: true
@@ -165,3 +165,12 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
+      # knockd:
+      #   enabled: true
+      #   type: emptyDir
+      #   medium: Memory
+      #   advancedMounts:
+      #     main:
+      #       main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
+      #       01-knockd-cp: [{path: "/knockd"}]
+      #       02-knockd-add-caps: [{path: "/knockd"}]
