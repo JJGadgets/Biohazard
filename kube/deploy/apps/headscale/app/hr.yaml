@@ -248,15 +248,22 @@ spec:
             dbs:
               - path: /var/run/headscale/headscale.db
                 replicas:
-                  - type: "file"
+                  - name: "nas"
+                    type: "file"
                     path: "/nfs"
+                    retention: 168h
+                    validation-interval: 1h
                     age:
                       recipients:
                         - $${AGE_PUBKEY}
-                  - type: "s3"
+                  - name: "r2"
+                    type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
                     bucket: "$${R2_BUCKET}"
+                    path: "/headscale"
                     force-path-style: true
+                    retention: 168h
+                    validation-interval: 24h
                     age:
                       recipients:
                         - $${AGE_PUBKEY}
@@ -264,15 +271,22 @@ spec:
             dbs:
               - path: /var/run/headscale/headscale.db
                 replicas:
-                  - type: "file"
+                  - name: "nas"
+                    type: "file"
                     path: "/nfs"
+                    retention: 168h
+                    validation-interval: 1h
                     age:
                       identities:
                         - $${AGE_SECRET}
-                  - type: "s3"
+                  - name: "r2"
+                    type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
                     bucket: "$${R2_BUCKET}"
+                    path: "/headscale"
                     force-path-style: true
+                    retention: 168h
+                    validation-interval: 24h
                     age:
                       identities:
                         - $${AGE_SECRET}
