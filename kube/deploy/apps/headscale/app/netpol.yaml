@@ -12,22 +12,6 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # ingress controller
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ingress
-            app.kubernetes.io/instance: ingress-nginx
-            app.kubernetes.io/name: ingress-nginx
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-            - port: "8080"
-              protocol: UDP
-            - port: "9090"
-              protocol: TCP
-            - port: "9090"
-              protocol: UDP
     # Cloudflare tunnel
     - fromEndpoints:
         - matchLabels:
@@ -72,6 +56,9 @@ spec:
       toPorts:
         - ports:
             - port: "53"
+          rules:
+            dns:
+              - matchPattern: "*"
     - toCIDRSet:
         - cidr: "${IP_HOME_DNS}/32"
       toPorts:

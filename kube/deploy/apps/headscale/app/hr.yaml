@@ -8,32 +8,94 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    automountServiceAccountToken: false
-    podLabels:
-      egress.home.arpa/ingress-nginx: "allow"
-      egress.home.arpa/world: "allow"
-      db.home.arpa/pg: "pg-default"
-    controller:
-      replicas: 1
-    image:
-      repository: ghcr.io/juanfont/headscale
-      tag: 0.22.3@sha256:aadf29a875bb2ffdf6579869e5759935f7a64b9fd19fcea9d5385c5d7220dc7b
-    command: ["headscale", "serve"]
-    env:
-      TZ: "${CONFIG_TZ}"
-    dnsConfig:
-      options:
-        - name: ndots
-          value: "1"
+    controllers:
+      main:
+        type: statefulset
+        replicas: 1
+        pod:
+          labels:
+            egress.home.arpa/ingress-nginx: "allow"
+            egress.home.arpa/world: "allow"
+            egress.home.arpa/r2: "allow"
+        containers:
+          main:
+            image:
+              repository: "ghcr.io/juanfont/headscale"
+              tag: "0.22.3"
+            command: ["headscale", "serve"]
+            env:
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 1024Mi
+          litestream: &ls
+            imagePullPolicy: IfNotPresent
+            image:
+              repository: "docker.io/litestream/litestream"
+              tag: "0.3.11"
+            args: ["replicate"]
+            env: &lsenv
+              LITESTREAM_ACCESS_KEY_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-r2-id"
+              LITESTREAM_SECRET_ACCESS_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-r2-key"
+              R2_ENDPOINT:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-r2-endpoint"
+              R2_BUCKET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-r2-bucket"
+              AGE_PUBKEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-age-pubkey"
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 1024Mi
+        initContainers:
+          01-litestream-restore:
+            <<: *ls
+            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/var/run/headscale/headscale.db"]
+            env:
+              <<: *lsenv
+              AGE_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "headscale-secrets"
+                    key: "litestream-age-secret"
     service:
       main:
         enabled: true
+        controller: main
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
@@ -53,52 +115,73 @@ spec:
             enabled: true
             port: 9090
             protocol: TCP
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_HEADSCALE}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
     persistence:
       config:
         enabled: true
         type: configMap
-        name: headscale-config
-        subPath: config.yaml
-        mountPath: /etc/headscale/config.yaml
-        readOnly: true
-      headscale-privkey:
-        enabled: true
-        type: secret
-        name: headscale-privkey
-        subPath: private.key
-        mountPath: /etc/headscale/private.key
-        readOnly: true
-      headscale-noisekey:
-        enabled: true
-        type: secret
-        name: headscale-noisekey
-        subPath: noise_private.key
-        mountPath: /etc/headscale/noise_private.key
-        readOnly: true
-      tls-fullchain:
-        enabled: true
-        type: secret
-        name: headscale-tls
-        subPath: tls.crt
-        mountPath: /tls/fullchain.pem
-        readOnly: true
-      tls-privkey:
-        enabled: true
-        type: secret
-        name: headscale-tls
-        subPath: tls.key
-        mountPath: /tls/privkey.pem
-        readOnly: true
-      socket:
+        name: "headscale-config"
+        advancedMounts:
+          main:
+            main:
+              - subPath: "config.yaml"
+                mountPath: "/etc/headscale/config.yaml"
+                readOnly: true
+            litestream:
+              - &lsmnt
+                subPath: "litestream-replicate"
+                path: "/etc/litestream.yml"
+                readOnly: true
+            01-litestream-restore:
+              - <<: *lsmnt
+                subPath: "litestream-restore"
+      tmp:
         enabled: true
         type: emptyDir
         medium: Memory
-        mountPath: /var/run/headscale
+        globalMounts:
+          - path: /var/run/headscale # for both socket and Litestream-restored SQLite database
+            readOnly: false
+      secrets:
+        enabled: true
+        type: secret
+        name: "headscale-secrets"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "private.key"
+                path: "/etc/headscale/private.key"
+                readOnly: true
+              - subPath: "noise_private.key"
+                path: "/etc/headscale/noise_private.key"
+                readOnly: true
+              - subPath: "oidc_client_secret"
+                path: "/oidc/secret"
+                readOnly: true
+      tls:
+        enabled: true
+        type: secret
+        name: "headscale-tls"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "tls.crt"
+                path: "/tls/fullchain.pem"
+                readOnly: true
+              - subPath: "tls.key"
+                path: "/tls/privkey.pem"
+                readOnly: true
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/headscale"
+        advancedMounts:
+          main:
+            litestream:
+              - subPath: "litestream"
+                path: "/nfs"
     configMaps:
       config:
         enabled: true
@@ -112,13 +195,8 @@ spec:
             private_key_path: /etc/headscale/private.key
             noise:
               private_key_path: /etc/headscale/noise_private.key
-            db_type: postgres
-            db_host: pg-default-rw.pg.svc.cluster.local.
-            db_port: 5432
-            db_name: ${SECRET_HEADSCALE_PG_DBNAME}
-            db_user: ${SECRET_HEADSCALE_PG_USER}
-            db_pass: ${SECRET_HEADSCALE_PG_PASS}
-            db_ssl: true
+            db_type: sqlite3
+            db_path: /var/run/headscale/headscale.db
             tls_cert_path: "/tls/fullchain.pem"
             tls_key_path: "/tls/privkey.pem"
             log:
@@ -157,7 +235,7 @@ spec:
               only_start_if_oidc_is_available: true
               issuer: "${SECRET_HEADSCALE_OIDC_URL}"
               client_id: "${SECRET_HEADSCALE_OIDC_ID}"
-              client_secret: "${SECRET_HEADSCALE_OIDC_SECRET}"
+              client_secret: "/oidc/secret"
               scope: ["openid", "profile", "email"]
               expiry: 30d
               use_expiry_from_token: false
@@ -166,16 +244,46 @@ spec:
               allowed_domains:
                 - ${APP_DNS_AUTH}
                 - ${DNS_MAIN}
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 1024Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: headscale-pg-superuser
+          litestream-replicate: |
+            dbs:
+              - path: /var/run/headscale/headscale.db
+                replicas:
+                  - type: "file"
+                    path: "/nfs"
+                    age:
+                      recipients:
+                        - $${AGE_PUBKEY}
+                  - type: "s3"
+                    endpoint: "$${R2_ENDPOINT}"
+                    bucket: "$${R2_BUCKET}"
+                    force-path-style: true
+                    age:
+                      recipients:
+                        - $${AGE_PUBKEY}
+          litestream-restore: |
+            dbs:
+              - path: /var/run/headscale/headscale.db
+                replicas:
+                  - type: "file"
+                    path: "/nfs"
+                    age:
+                      identities:
+                        - $${AGE_SECRET}
+                  - type: "s3"
+                    endpoint: "$${R2_ENDPOINT}"
+                    bucket: "$${R2_BUCKET}"
+                    force-path-style: true
+                    age:
+                      identities:
+                        - $${AGE_SECRET}
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_HEADSCALE}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
