@@ -26,7 +26,7 @@ spec:
             # order: 1
             image: &image
               repository: "docker.io/itzg/minecraft-server"
-              tag: "2023.10.1-java17-graalvm"
+              tag: "test-2421-java17"
             env:
               TZ: "${CONFIG_TZ}"
               MEMORY: "2048M"
@@ -60,6 +60,7 @@ spec:
               OVERRIDE_SERVER_PROPERTIES: "true"
               ENABLE_RCON: "false"
               ENABLE_AUTOPAUSE: "TRUE"
+              AUTOPAUSE_SUDO: "false"
               AUTOPAUSE_KNOCK_INTERFACE: "eth0"
               AUTOPAUSE_TIMEOUT_EST: "300"
               AUTOPAUSE_TIMEOUT_INIT: "120"
@@ -91,10 +92,11 @@ spec:
                   exec: *probeexec
             securityContext:
               readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: true
+              allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
+                add: ["NET_RAW"]
+                # add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
           # knockd:
           #   order: 2
           #   image: *image
@@ -118,17 +120,17 @@ spec:
               globalMounts:
                 - path: "/data"
                   readOnly: false
-        initContainers:
-          01-knockd-cp: &init
-            command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
-            # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
-            image: *image
-            imagePullPolicy: IfNotPresent
-          02-knockd-add-caps:
-            <<: *init
-            command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
-            securityContext:
-              runAsUser: 0
+        # initContainers:
+        #   01-knockd-cp: &init
+        #     command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
+        #     # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
+        #     image: *image
+        #     imagePullPolicy: IfNotPresent
+        #   02-knockd-add-caps:
+        #     <<: *init
+        #     command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
+        #     securityContext:
+        #       runAsUser: 0
     service:
       main:
         enabled: true
@@ -154,7 +156,7 @@ spec:
         # runAsUser: &uid ${APP_UID_MINECRAFT}
         runAsGroup: *uid
         fsGroup: *uid
-        runAsNonRoot: false
+        runAsNonRoot: true
         seccompProfile: {type: "RuntimeDefault"}
         fsGroupChangePolicy: "Always"
     persistence:
@@ -165,12 +167,12 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
-      knockd:
-        enabled: true
-        type: emptyDir
-        medium: Memory
-        advancedMounts:
-          main:
-            main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
-            01-knockd-cp: [{path: "/knockd"}]
-            02-knockd-add-caps: [{path: "/knockd"}]
+      # knockd:
+      #   enabled: true
+      #   type: emptyDir
+      #   medium: Memory
+      #   advancedMounts:
+      #     main:
+      #       main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
+      #       01-knockd-cp: [{path: "/knockd"}]
+      #       02-knockd-add-caps: [{path: "/knockd"}]
