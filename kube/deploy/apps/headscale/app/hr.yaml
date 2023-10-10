@@ -235,7 +235,7 @@ spec:
               only_start_if_oidc_is_available: true
               issuer: "${SECRET_HEADSCALE_OIDC_URL}"
               client_id: "${SECRET_HEADSCALE_OIDC_ID}"
-              client_secret: "/oidc/secret"
+              client_secret_path: "/oidc/secret"
               scope: ["openid", "profile", "email"]
               expiry: 30d
               use_expiry_from_token: false
@@ -260,7 +260,7 @@ spec:
                     type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
                     bucket: "$${R2_BUCKET}"
-                    path: "/headscale"
+                    path: "headscale"
                     force-path-style: true
                     retention: 168h
                     validation-interval: 24h
@@ -283,7 +283,7 @@ spec:
                     type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
                     bucket: "$${R2_BUCKET}"
-                    path: "/headscale"
+                    path: "headscale"
                     force-path-style: true
                     retention: 168h
                     validation-interval: 24h
