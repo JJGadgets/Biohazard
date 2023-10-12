@@ -124,7 +124,7 @@ spec:
           main:
             main:
               - subPath: "config.yaml"
-                mountPath: "/etc/headscale/config.yaml"
+                path: "/etc/headscale/config.yaml"
                 readOnly: true
             litestream:
               - &lsmnt
