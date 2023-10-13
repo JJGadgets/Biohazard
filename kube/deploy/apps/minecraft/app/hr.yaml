@@ -35,7 +35,7 @@ spec:
               VERSION: "1.19.3"
               FABRIC_LOADER_VERSION: "0.14.13"
               MODRINTH_ALLOWED_VERSION_TYPE: "release"
-              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,smoothboot-fabric,servercore,chunky,fabric-language-kotlin:esSFbyFg,memoryleakfix:YtNQP5gX"
+              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,smoothboot-fabric,servercore,chunky,fabric-language-kotlin:esSFbyFg,memoryleakfix:YtNQP5gX,travelersbackpack:apja6Dhu"
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
               ICON: "${CONFIG_MINECRAFT_ICON}"
@@ -71,9 +71,10 @@ spec:
               USE_AIKAR_FLAGS: "true"
             resources:
               requests:
-                cpu: 10m
+                cpu: 100m
                 memory: 3072Mi
               limits:
+                cpu: 2500m
                 memory: 6000Mi
             probes:
               liveness: &probe
