@@ -1,0 +1,40 @@
+#cloud-config
+hostname: "hercules"
+users:
+  - name: "jj"
+    #passwd: "" # password hash or plaintext password
+    lock_passwd: true
+    groups: ["admin"]
+    shell: "/bin/bash"
+    ssh_authorized_keys:
+      - "github:JJGadgets"
+      - "github:jjgadgets"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPkuFpjTwHzP1cw9XDtJOKKROwkZycvAx++w1j/7g2Yr"
+install:
+  image: "quay.io/kairos/kairos-debian:v2.4.1-k3sv1.27.3-k3s1"
+  auto: true # for single node without P2P/VPN
+  #device: "/dev/sda"
+  reboot: true
+  poweroff: false
+  firmware: "bios"
+  part-table: "gpt"
+  system.size: 2048
+  passive.size: 2048
+  recovery-system.size: 3072
+  partitions:
+    oem:
+      size: 60
+      fs: "ext4"
+reset:
+  reboot: true
+  poweroff: false
+  reset-persistent: false
+upgrade:
+  reboot: true
+  poweroff: false
+kubevip:
+  enable: false
+k3s:
+  enabled: true
+  replace_args: true
+  args: ["--disable=traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.30.0.0/16", "--cluster-cidr 172.29.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644"]
