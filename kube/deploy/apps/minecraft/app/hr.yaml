@@ -44,10 +44,8 @@ spec:
                 carpet
                 ledger:pOxgWfwI
                 spark
-                servercore:exA4UxFq
                 chunky
                 servertick:IOYJbkmQ
-                tick-stasis
                 fabric-language-kotlin:48ri5y9r
                 memoryleakfix:dGlflhb6
                 cardinal-components-api:qW85eawp
@@ -59,6 +57,9 @@ spec:
                 playeranimator:yDqYTUaf
                 better-combat:Z6wHaEla
                 dual-swords:7KDebPb5
+              DISABLED_MODS: |- # this is for my reference
+                servercore:exA4UxFq
+                tick-stasis # disabled due to kube-probe never succeeding from paused server, have to check if timeout config exists
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
               ICON: "${CONFIG_MINECRAFT_ICON}"
