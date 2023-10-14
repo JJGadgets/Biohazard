@@ -25,8 +25,8 @@ spec:
           main:
             # order: 1
             image: &image
-              repository: "docker.io/itzg/minecraft-server"
-              tag: "test-2421-java17"
+              repository: "ghcr.io/jjgadgets/minecraft-server"
+              tag: "java17-graalvm"
             env:
               TZ: "${CONFIG_TZ}"
               MEMORY: "2048M"
@@ -35,7 +35,7 @@ spec:
               VERSION: "1.19.3"
               FABRIC_LOADER_VERSION: "0.14.13"
               MODRINTH_ALLOWED_VERSION_TYPE: "release"
-              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,smoothboot-fabric,servercore,chunky,fabric-language-kotlin:esSFbyFg,memoryleakfix:YtNQP5gX,travelersbackpack:rlloIFEV"
+              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,smoothboot-fabric,servercore,chunky,fabric-language-kotlin:esSFbyFg,memoryleakfix:YtNQP5gX,travelersbackpack:rlloIFEV,cardinal-components-api:h4Dd87o5,cloth-config:w2VZSLTf"
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
               ICON: "${CONFIG_MINECRAFT_ICON}"
