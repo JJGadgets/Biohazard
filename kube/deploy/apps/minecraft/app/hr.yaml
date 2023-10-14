@@ -23,7 +23,6 @@ spec:
             egress.home.arpa/world: "true"
         containers:
           main:
-            # order: 1
             image: &image
               repository: "ghcr.io/jjgadgets/minecraft-server"
               tag: "java17-graalvm"
@@ -32,10 +31,34 @@ spec:
               MEMORY: "2048M"
               EULA: "TRUE"
               TYPE: "FABRIC"
-              VERSION: "1.19.3"
-              FABRIC_LOADER_VERSION: "0.14.13"
+              VERSION: "1.20.2"
+              FABRIC_LOADER_VERSION: "0.14.23"
               MODRINTH_ALLOWED_VERSION_TYPE: "release"
-              MODRINTH_PROJECTS: "lithium,phosphor,lazydfu,fabric-api,ferrite-core,krypton,carpet,ledger,spark,smoothboot-fabric,servercore,chunky,fabric-language-kotlin:esSFbyFg,memoryleakfix:YtNQP5gX,travelersbackpack:rlloIFEV,cardinal-components-api:h4Dd87o5,cloth-config:w2VZSLTf"
+              MODRINTH_DOWNLOAD_DEPENDENCIES: "required"
+              MODRINTH_PROJECTS: |-
+                lithium
+                phosphor
+                lazydfu
+                fabric-api
+                ferrite-core
+                krypton
+                carpet
+                ledger
+                spark
+                smoothboot-fabric
+                servercore
+                chunky
+                servertick:DrJ7grH7
+                tick-stasis
+                fabric-language-kotlin:48ri5y9r
+                memoryleakfix:dGlflhb6
+                cardinal-components-api:IBZVrThp
+                cloth-config:LnfolBYb
+                travelersbackpack:nJSsJ36r
+                simply-swords:EvFZh7u0
+                knaves-needs:FH2xrVIB
+                better-combat:T8lEKADG
+                dual-swords:7KDebPb5
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
               ICON: "${CONFIG_MINECRAFT_ICON}"
@@ -93,25 +116,10 @@ spec:
                   exec: *probeexec
             securityContext:
               readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
+              allowPrivilegeEscalation: true
               capabilities:
                 drop: ["ALL"]
                 add: ["NET_RAW"]
-                # add: ["NET_RAW", "SETUID", "SETGID", "DAC_READ_SEARCH", "AUDIT_WRITE"] # used for autopause, Cilium claims it's safe to use without kube-proxy: https://cilium.io/blog/2020/12/11/kube-proxy-free-cve-mitigation/
-          # knockd:
-          #   order: 2
-          #   image: *image
-          #   command: ["/tmp/knockd", "-c", "/tmp/knockd-config.cfg", "-d", "-i", "eth0"]
-          #   securityContext:
-          #     capabilities:
-          #       drop: ["ALL"]
-          #       add: ["NET_RAW"]
-          #   resources:
-          #     requests:
-          #       cpu: 5m
-          #       memory: 32Mi
-          #     limits:
-          #       memory: 128Mi
         statefulset:
           volumeClaimTemplates:
             - name: data
@@ -121,17 +129,6 @@ spec:
               globalMounts:
                 - path: "/data"
                   readOnly: false
-        initContainers:
-          01-knockd-cp: &init
-            command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
-            # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
-            image: *image
-            imagePullPolicy: IfNotPresent
-          02-knockd-add-caps:
-            <<: *init
-            command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
-            securityContext:
-              runAsUser: 0
     service:
       main:
         enabled: true
@@ -157,7 +154,7 @@ spec:
         # runAsUser: &uid ${APP_UID_MINECRAFT}
         runAsGroup: *uid
         fsGroup: *uid
-        runAsNonRoot: false
+        runAsNonRoot: true
         seccompProfile: {type: "RuntimeDefault"}
         fsGroupChangePolicy: "Always"
     persistence:
@@ -168,12 +165,3 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
-      knockd:
-        enabled: true
-        type: emptyDir
-        medium: Memory
-        advancedMounts:
-          main:
-            main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
-            01-knockd-cp: [{path: "/knockd"}]
-            02-knockd-add-caps: [{path: "/knockd"}]
