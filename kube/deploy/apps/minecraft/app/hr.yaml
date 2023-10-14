@@ -121,17 +121,17 @@ spec:
               globalMounts:
                 - path: "/data"
                   readOnly: false
-        # initContainers:
-        #   01-knockd-cp: &init
-        #     command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
-        #     # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
-        #     image: *image
-        #     imagePullPolicy: IfNotPresent
-        #   02-knockd-add-caps:
-        #     <<: *init
-        #     command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
-        #     securityContext:
-        #       runAsUser: 0
+        initContainers:
+          01-knockd-cp: &init
+            command: ["/usr/bin/cp", "/usr/local/sbin/knockd", "/knockd/knockd"]
+            # image: "{{ .Values.controllers.main.containers.main.image.repository }}:{{ .Values.controllers.main.containers.main.image.tag }}"
+            image: *image
+            imagePullPolicy: IfNotPresent
+          02-knockd-add-caps:
+            <<: *init
+            command: ["/usr/sbin/setcap", "cap_net_raw=ep", "/knockd/knockd"]
+            securityContext:
+              runAsUser: 0
     service:
       main:
         enabled: true
@@ -157,7 +157,7 @@ spec:
         # runAsUser: &uid ${APP_UID_MINECRAFT}
         runAsGroup: *uid
         fsGroup: *uid
-        runAsNonRoot: true
+        runAsNonRoot: false
         seccompProfile: {type: "RuntimeDefault"}
         fsGroupChangePolicy: "Always"
     persistence:
@@ -168,12 +168,12 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
-      # knockd:
-      #   enabled: true
-      #   type: emptyDir
-      #   medium: Memory
-      #   advancedMounts:
-      #     main:
-      #       main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
-      #       01-knockd-cp: [{path: "/knockd"}]
-      #       02-knockd-add-caps: [{path: "/knockd"}]
+      knockd:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        advancedMounts:
+          main:
+            main: [{path: "/usr/local/sbin"}] # janky gamble, given that knockd is the only thing installed at this path as of 2023-10-08
+            01-knockd-cp: [{path: "/knockd"}]
+            02-knockd-add-caps: [{path: "/knockd"}]
