@@ -25,6 +25,8 @@ install:
     oem:
       size: 60
       fs: "ext4"
+  # bind_mounts:
+  #   - /etc/wireguard
 reset:
   reboot: true
   poweroff: false
@@ -37,4 +39,42 @@ kubevip:
 k3s:
   enabled: true
   replace_args: true
-  args: ["--disable=traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.30.0.0/16", "--cluster-cidr 172.29.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644"]
+  args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644"]
+stages:
+  after-install-chroot:
+    - name: "1. Install extra packages"
+      commands:
+        - apt update
+        - apt install -y wireguard-tools
+        # - apt install -y zfs-dkms
+        # - apt clean && rm -rf /var/lib/apt/lists/*
+    # - name: "2. Load WireGuard kernel module"
+    #   modules: ["wireguard"]
+    # - name: "4. Enable wg-quick@wg0.service"
+    #   commands:
+    #     - systemctl enable --now wg-quick@wg0.service
+  boot:
+    - name: "1. WireGuard"
+      modules: ["wireguard"]
+    - name: "2. WireGuard config"
+      files:
+        - path: "/etc/wireguard/wg0.conf"
+          permissions: "0400"
+          owner: "root"
+          content: |
+            [Interface]
+            PrivateKey = ${SECRET_HERCULES_WG_PRIVKEY}
+            Address = ${SECRET_HERCULES_WG_ADDRESS}
+            DNS = ${SECRET_HERCULES_WG_DNS}
+            ListenPort = ${SECRET_HERCULES_WG_LISTEN}
+            MTU = 1420
+            [Peer]
+            PublicKey = ${SECRET_HERCULES_WG_PEERKEY}
+            PresharedKey = ${SECRET_HERCULES_WG_PEERPSK}
+            AllowedIPs = ${SECRET_HERCULES_WG_ALLOWEDIPS}
+            PersistentKeepalive = 15
+    # - name: "ZFS"
+    #   modules: ["zfs"]
+    - name: "3. Enable wg0.conf"
+      systemctl:
+         enable: ["wg-quick@wg0.service"]
