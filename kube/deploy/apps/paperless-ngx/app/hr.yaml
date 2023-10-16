@@ -28,6 +28,7 @@ spec:
             image:
               repository: "ghcr.io/paperless-ngx/paperless-ngx"
               tag: "1.17.4"
+            args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port "8000"
@@ -98,7 +99,7 @@ spec:
         className: nginx
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
-            https://${APP_DNS_FIREFLY}/outpost.goauthentik.io/start?rd=$escaped_request_uri
+            https://${APP_DNS_PAPERLESS_NGX}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_PAPERLESS_NGX}"
             paths:
@@ -132,8 +133,6 @@ spec:
             main:
               - subPath: "apt"
                 path: "/var/lib/apt"
-              - subPath: "supervisord"
-                path: "/usr/src/paperless/src"
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
