@@ -127,10 +127,18 @@ spec:
         globalMounts:
           - path: "/tmp"
             readOnly: false
+      apt:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        advancedMounts:
+          main:
+            main:
+              - path: "/var/lib/apt"
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
-        runAsUser: &uid ${APP_UID_PAPERLESS_NGX}
+        runAsUser: &uid 1000 # `paperless` user
         runAsGroup: *uid
         fsGroup: *uid
         runAsNonRoot: false
