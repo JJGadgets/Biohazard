@@ -28,7 +28,7 @@ spec:
     volumeSnapshotClassName: block
     storageClassName: block
     moverSecurityContext:
-      runAsUser: &uid ${APP_UID_PAPERLESS-NGX}
+      runAsUser: &uid ${APP_UID_PAPERLESS_NGX}
       runAsGroup: *uid
       fsGroup: *uid
     retain:
