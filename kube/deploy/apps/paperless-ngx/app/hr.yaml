@@ -1,0 +1,131 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app paperless-ngx
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: statefulset
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+        containers:
+          main:
+            image:
+              repository: "ghcr.io/paperless-ngx/paperless-ngx"
+              tag: "1.17.4"
+            env:
+              PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
+              PAPERLESS_PORT: &port "8000"
+              PAPERLESS_TIME_ZONE: "${CONFIG_TZ}"
+              PAPERLESS_WEBSERVER_WORKERS: "2"
+              PAPERLESS_TASK_WORKERS: "2"
+              PAPERLESS_REDIS: "unix:///tmp/redis.sock"
+              PAPERLESS_CONSUMPTION_DIR: &consume "/nas/consume"
+              PAPERLESS_DATA_DIR: &pvc "/data"
+              PAPERLESS_EXPORT_DIR: &export "/nas/export"
+              PAPERLESS_MEDIA_ROOT: &media "/nas/media"
+              PAPERLESS_TRASH_DIR: &trash "/nas/trash"
+              PAPERLESS_ENABLE_HTTP_REMOTE_USER: "true"
+              PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME: "HTTP_X_AUTHENTIK_UID"
+              PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              PAPERLESS_OCR_LANGUAGES: "eng"
+              PAPERLESS_OCR_LANGUAGE: "eng"
+              PAPERLESS_CONSUMER_POLLING: "60"
+              PAPERLESS_CONSUMER_RECURSIVE: "true"
+              PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+            envFrom:
+              - secretRef:
+                  name: "paperless-ngx-secrets"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 1000Mi
+              limits:
+                memory: 2000Mi
+          redis:
+            image:
+              repository: "public.ecr.aws/docker/library/redis"
+              tag: "7.2.1-bookworm"
+            command: ["redis-server", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/tmp/redis.sock", "--unixsocketperm", "400"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 1000Mi
+              limits:
+                memory: 2000Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              accessMode: ReadWriteOnce
+              size: 20Gi
+              storageClass: block
+              advancedMounts:
+                main:
+                  main:
+                    - path: *pvc
+    service:
+      main:
+        ports:
+          http:
+            port: *port
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: nginx
+        hosts:
+          - host: &host "${APP_DNS_PAPERLESS_NGX}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+    persistence:
+      nas:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/paperless-ngx"
+        advancedMounts:
+          main:
+            main:
+              - path: "/nas"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/tmp"
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_PAPERLESS_NGX}
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: false
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: Always

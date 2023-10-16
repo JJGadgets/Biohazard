@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless-ngx-app
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/apps/paperless-ngx/app
+  dependsOn:
+    - name: 1-core-storage-rook-ceph-cluster
+    - name: 1-core-ingress-nginx-app
+    #- name: 1-core-storage-volsync-app
