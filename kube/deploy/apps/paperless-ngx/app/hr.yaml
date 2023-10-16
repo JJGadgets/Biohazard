@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app paperless-ngx
   namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth
 spec:
   chart:
     spec:
@@ -78,10 +80,12 @@ spec:
               accessMode: ReadWriteOnce
               size: 20Gi
               storageClass: block
-              advancedMounts:
-                main:
-                  main:
-                    - path: *pvc
+              globalMounts:
+                - path: *pvc
+              # advancedMounts:
+              #   main:
+              #     main:
+              #       - path: *pvc
     service:
       main:
         ports:
@@ -92,6 +96,9 @@ spec:
         enabled: true
         primary: true
         className: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_FIREFLY}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_PAPERLESS_NGX}"
             paths:
@@ -108,12 +115,11 @@ spec:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}"
+        path: "${PATH_NAS_PERSIST_K8S}/paperless-ngx"
         advancedMounts:
           main:
             main:
-              - subPath: "paperless-ngx"
-                path: "/nas"
+              - path: "/nas"
       tmp:
         enabled: true
         type: emptyDir
