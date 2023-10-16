@@ -124,11 +124,12 @@ spec:
         enabled: true
         type: emptyDir
         medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
         advancedMounts:
           main:
             main:
-              - subPath: "tmp"
-                path: "/tmp"
               - subPath: "apt"
                 path: "/var/lib/apt"
               - subPath: "supervisord"
