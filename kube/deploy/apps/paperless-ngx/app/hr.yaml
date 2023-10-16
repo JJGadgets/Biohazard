@@ -34,7 +34,7 @@ spec:
               PAPERLESS_TASK_WORKERS: "2"
               PAPERLESS_REDIS: "unix:///tmp/redis.sock"
               PAPERLESS_CONSUMPTION_DIR: &consume "/nas/consume"
-              PAPERLESS_DATA_DIR: &pvc "/data"
+              PAPERLESS_DATA_DIR: &pvc "/paperless-data"
               PAPERLESS_EXPORT_DIR: &export "/nas/export"
               PAPERLESS_MEDIA_ROOT: &media "/nas/media"
               PAPERLESS_TRASH_DIR: &trash "/nas/trash"
@@ -108,11 +108,12 @@ spec:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/paperless-ngx"
+        path: "${PATH_NAS_PERSIST_K8S}"
         advancedMounts:
           main:
             main:
-              - path: "/nas"
+              - subPath: "paperless-ngx"
+                path: "/nas"
       tmp:
         enabled: true
         type: emptyDir
