@@ -124,17 +124,15 @@ spec:
         enabled: true
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - path: "/tmp"
-            readOnly: false
-      apt:
-        enabled: true
-        type: emptyDir
-        medium: Memory
         advancedMounts:
           main:
             main:
-              - path: "/var/lib/apt"
+              - subPath: "tmp"
+                path: "/tmp"
+              - subPath: "apt"
+                path: "/var/lib/apt"
+              - subPath: "supervisord"
+                path: "/usr/src/paperless/src"
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
