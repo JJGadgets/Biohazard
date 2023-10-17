@@ -113,7 +113,7 @@ spec:
               - subPath: "viewcache"
                 path: "/var/www/data/viewcache"
             frontend:
-              - subPath: "/frontend"
+              - subPath: "frontend"
                 path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
