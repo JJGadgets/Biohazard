@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app grocy
   namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth
 spec:
   chart:
     spec:
@@ -84,7 +86,9 @@ spec:
         enabled: true
         primary: true
         className: nginx
-        # annotations: # TODO: forward auth
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_FIREFLY}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_GROCY}"
             paths:
@@ -104,16 +108,13 @@ spec:
         advancedMounts:
           main:
             main:
-              - subPath: "tmp"
+              - subPath: "backend"
                 path: "/tmp"
               - subPath: "viewcache"
                 path: "/var/www/data/viewcache"
-      frontend-tmp:
-        <<: *tmp
-        advancedMounts:
-          main:
             frontend:
-              - path: "/tmp"
+              - subPath: "/frontend"
+                path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
