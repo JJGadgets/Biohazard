@@ -97,7 +97,7 @@ spec:
           - hosts:
               - *host
     persistence:
-      tmp:
+      tmp: &tmp
         enabled: true
         type: emptyDir
         medium: Memory
@@ -108,6 +108,12 @@ spec:
                 path: "/tmp"
               - subPath: "viewcache"
                 path: "/var/www/data/viewcache"
+      frontend-tmp:
+        <<: *tmp
+        advancedMounts:
+          main:
+            frontend:
+              - path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
