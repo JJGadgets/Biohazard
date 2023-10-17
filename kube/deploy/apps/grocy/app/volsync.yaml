@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grocy-restic
+  namespace: grocy
+type: Opaque
+stringData:
+  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/grocy
+  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
+  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
+  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: grocy-restic
+  namespace: grocy
+spec:
+  sourcePVC: data-grocy-0
+  trigger:
+    schedule: "0 6 * * *"
+  restic:
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    repository: grocy-restic
+    cacheCapacity: 2Gi
+    volumeSnapshotClassName: block
+    storageClassName: block
+    moverSecurityContext:
+      runAsUser: &uid ${APP_UID_GROCY}
+      runAsGroup: *uid
+      fsGroup: *uid
+    retain:
+      daily: 14
+      within: 7d
