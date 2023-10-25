@@ -1,0 +1,39 @@
+---
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: ingress-nginx
+    hosts: &hostprom ["${APP_DNS_PROMETHEUS}"]
+    tls: [hosts: *hostprom]
+    paths: ["/"]
+    pathType: Prefix
+  prometheusSpec:
+    replicas: 2
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+    enableAdminAPI: true
+    walCompression: true
+    retentionSize: 15GB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: block
+          resources:
+            requests:
+              storage: 20Gi
+    resources:
+      requests:
+        cpu: 150m
+        memory: 2048M
+      limits:
+        memory: 8192M
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: prometheus
