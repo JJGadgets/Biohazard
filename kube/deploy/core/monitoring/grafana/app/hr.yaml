@@ -16,6 +16,8 @@ spec:
         namespace: flux-system
   values:
     replicas: 3
+    podLabels: 
+      egress.home.arpa/ingress-nginx: "allow"
     env:
       GF_EXPLORE_ENABLED: true
       GF_LOG_MODE: console
