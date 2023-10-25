@@ -172,7 +172,7 @@ spec:
       enabled: true
     ingress:
       enabled: true
-      ingressClassName: "ingress-nginx"
+      ingressClassName: "nginx"
       hosts:
         - &host "${APP_DNS_GRAFANA}"
       tls:

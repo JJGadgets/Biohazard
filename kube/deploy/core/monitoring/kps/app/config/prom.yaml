@@ -2,7 +2,7 @@
 prometheus:
   ingress:
     enabled: true
-    ingressClassName: ingress-nginx
+    ingressClassName: nginx
     hosts: &hostprom ["${APP_DNS_PROMETHEUS}"]
     tls: [hosts: *hostprom]
     paths: ["/"]
