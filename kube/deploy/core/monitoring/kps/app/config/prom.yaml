@@ -36,4 +36,5 @@ prometheus:
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
-            app: prometheus
+            app.kubernetes.io/instance: "kps"
+            app.kubernetes.io/name: "prometheus"
