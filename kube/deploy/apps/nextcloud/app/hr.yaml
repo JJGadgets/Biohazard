@@ -1,0 +1,319 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app nextcloud
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: statefulset
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+            egress.home.arpa/world: "allow" # TODO: tighten this
+            # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+        containers:
+          main:
+            image: &ncimg
+              repository: "public.ecr.aws/docker/library/nextcloud"
+              tag: "27.1.3-fpm"
+            env:
+              TZ: "${CONFIG_TZ}"
+              NC_DOMAIN: "${APP_DNS_NEXTCLOUD}"
+              NC_VERSION: "27.1.3"
+              # GTS_STORAGE_S3_ACCESS_KEY:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: "nextcloud-data-s3"
+              #       key: "AWS_ACCESS_KEY_ID"
+              # GTS_STORAGE_S3_SECRET_KEY:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: "nextcloud-media-s3"
+              #       key: "AWS_SECRET_ACCESS_KEY"
+            envFrom:
+              - secretRef:
+                  name: "nextcloud-secrets"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 6000Mi
+          web: # just a static web server
+            image:
+              repository: "public.ecr.aws/docker/library/caddy"
+              tag: "latest" # screw version controlling a static web server, always tinfoil with latest version!
+            command: ["/usr/bin/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+          redis:
+            image:
+              repository: "public.ecr.aws/docker/library/redis"
+              tag: "7.2.1-bookworm"
+            command: ["redis-server", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+          push:
+            image: *ncimg
+            command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
+            env:
+              NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
+              PORT: &push "7867"
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              accessMode: ReadWriteOnce
+              size: 100Gi
+              storageClass: block
+              advancedMounts:
+                main:
+                  - subPath: nextcloud
+                    path: /var/www/html
+                  - subPath: data
+                    path: /ceph
+                web:
+                  - subPath: nextcloud
+                    path: /var/www/html
+        # initContainers:
+        #   01-init-db:
+        #     image: "ghcr.io/onedr0p/postgres-init:14.8"
+        #     imagePullPolicy: IfNotPresent
+        #     envFrom: [secretRef: {name: "nextcloud-pg-superuser"}]
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+          fpm:
+            port: 9000
+          push:
+            port: *push
+    ingress:
+      main: &ingress
+        enabled: true
+        primary: false
+        className: nginx
+        hosts:
+          - host: &host "${APP_DNS_NEXTCLOUD}"
+            paths:
+              - &path path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      fpm: &fpm
+        <<: *ingress
+        primary: true
+        annotations: &fpm-anno
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "FCGI"
+          nginx.ingress.kubernetes.io/fastcgi-index: "index.php"
+          nginx.ingress.kubernetes.io/fastcgi-params-configmap: "nextcloud/nextcloud-ingress-nginx-fastcgi"
+        hosts:
+          - host: *host
+            paths:
+              - path: |-
+                  \.php(?:$|/)
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: fpm
+      fpm-legacy:
+        <<: *fpm
+        annotations:
+          <<: *fpm-anno
+          nginx.ingress.kubernetes.io/rewrite-target: "/index.php$request_uri"
+        hosts:
+          - host: *host
+            paths:
+              - path: |-
+                  ^/(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: fpm
+      push:
+        <<: *ingress
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+        hosts:
+          - host: &host "${APP_DNS_NEXTCLOUD}"
+            paths:
+              - path: "/push(/|$)(.*)"
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: push
+      dav:
+        <<: *ingress
+        annotations:
+          nginx.ingress.kubernetes.io/permanent-redirect: "/remote.php/dav/"
+          nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
+        hosts:
+          - host: &host "${APP_DNS_NEXTCLOUD}"
+            paths:
+              - <<: *path
+                path: "/.well-known/carddav"
+              - <<: *path
+                path: "/.well-known/caldav"
+      well-known:
+        <<: *ingress
+        annotations:
+          nginx.ingress.kubernetes.io/permanent-redirect: "/index.php$request_uri"
+          nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
+        hosts:
+          - host: &host "${APP_DNS_NEXTCLOUD}"
+            paths:
+              - <<: *path
+                path: "/.well-known"
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: "nextcloud-config"
+        advancedMounts:
+          main:
+            main:
+              - mountPath: "/var/www/html/config"
+                readOnly: true
+            push:
+              - mountPath: "/var/www/html/config"
+                readOnly: true
+      nas:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/nextcloud"
+        advancedMounts:
+          main:
+            main:
+              - path: "/nas"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        advancedMounts:
+          main:
+            main:
+              - subPath: "nextcloud"
+                path: "/tmp"
+              - &sockmnt
+                subPath: "sockets"
+                path: "/sockets"
+            push:
+              - subPath: "nextcloud"
+                path: "/tmp"
+            redis:
+              - subPath: "redis"
+                path: "/tmp"
+              - *sockmnt
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.php: |-
+            <?php
+            $CONFIG = array (
+              'memcache.local' => '\\OC\\Memcache\\APCu',
+              'apps_paths' =>
+              array (
+                0 =>
+                array (
+                  'path' => '/var/www/html/apps',
+                  'url' => '/apps',
+                  'writable' => false,
+                ),
+                1 =>
+                array (
+                  'path' => '/var/www/html/custom_apps',
+                  'url' => '/custom_apps',
+                  'writable' => true,
+                ),
+              ),
+              'memcache.distributed' => '\\OC\\Memcache\\Redis',
+              'memcache.locking' => '\\OC\\Memcache\\Redis',
+              'redis' =>
+              array (
+                'host' => '/sockets/redis.sock',
+                'port' => 0,
+              ),
+              'instanceid' => getenv('NC_INSTANCEID'),
+              'passwordsalt' => getenv('NC_PASSWORDSALT'),
+              'secret' => getenv('NC_SECRET'),
+              'trusted_domains' =>
+              array (
+                0 => getenv('NC_DOMAIN'),
+              ),
+              'trusted_proxies' =>
+              array (
+                0 => '${IP_POD_CIDR_V4}',
+                1 => '127.0.0.1',
+              ),
+              'datadirectory' => '/nas',
+              'version' => getenv('NC_VERSION'),
+              'overwrite.cli.url' => 'https://' . getenv('NC_DOMAIN'),
+              'overwriteprotocol' => 'https',
+              'installed' => true,
+              'default_phone_region' => 'SG',
+            );
+          # test with SQLite first, then try CrunchyData Postgres
+              # 'dbtype' => 'pgsql',
+              # 'dbname' => getenv('INIT_POSTGRES_DBNAME'),
+              # 'dbhost' => getenv('INIT_POSTGRES_HOST'),
+              # 'dbport' => '5432',
+              # 'dbtableprefix' => 'oc_',
+              # 'dbuser' => getenv('INIT_POSTGRES_USER'),
+              # 'dbpassword' => getenv('INIT_POSTGRES_PASS'),
+      ingress-nginx-fastcgi:
+        enabled: true
+        data:
+          SCRIPT_FILENAME: "/var/www/html/$fastcgi_script_name"
+          PATH_INFO: "$fastcgi_path_info"
+          modHeadersAvailable: "true"
+          front_controller_active: "true"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid 33
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: false
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: Always
