@@ -60,7 +60,7 @@ spec:
             image:
               repository: "gcr.io/distroless/static-debian12"
               tag: "latest" # screw version controlling a static web server, always tinfoil with latest version!
-            command: ["/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
+            command: ["/caddy/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
             securityContext: *sc
             resources:
               requests:
@@ -80,19 +80,19 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 256Mi
-          push:
-            image: *ncimg
-            command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
-            env:
-              NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
-              PORT: &push "7867"
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: 10m
-                memory: 32Mi
-              limits:
-                memory: 256Mi
+          # push:
+          #   image: *ncimg
+          #   command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
+          #   env:
+          #     NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
+          #     PORT: &push "7867"
+          #   securityContext: *sc
+          #   resources:
+          #     requests:
+          #       cpu: 10m
+          #       memory: 32Mi
+          #     limits:
+          #       memory: 256Mi
         statefulset:
           volumeClaimTemplates:
             - name: data
@@ -105,9 +105,9 @@ spec:
                     path: /var/www/html
                   - subPath: data
                     path: /ceph
-                push:
-                  - subPath: nextcloud
-                    path: /var/www/html
+                # push:
+                #   - subPath: nextcloud
+                #     path: /var/www/html
                 web:
                   - subPath: nextcloud
                     path: /var/www/html
@@ -116,7 +116,7 @@ spec:
             image:
               repository: "public.ecr.aws/docker/library/caddy"
               tag: "latest"
-            command: ["/bin/sh", "-c", "cp", "/usr/bin/caddy", "/caddy"]
+            command: ["/bin/sh", "-c", "cp /usr/bin/caddy /caddy/caddy"]
             securityContext: *sc
         #   01-init-db:
         #     image: "ghcr.io/onedr0p/postgres-init:14.8"
@@ -129,8 +129,8 @@ spec:
             port: 8080
           fpm:
             port: 9000
-          push:
-            port: *push
+          # push:
+          #   port: *push
     ingress:
       main: &ingress
         enabled: true
@@ -160,7 +160,7 @@ spec:
           - host: *host
             paths:
               - path: |-
-                  \.php(?:$|/)
+                  /*\.php(?:$|/)
                 pathType: ImplementationSpecific
                 service:
                   name: main
@@ -174,24 +174,24 @@ spec:
           - host: *host
             paths:
               - path: |-
-                  ^/(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
+                  /(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
                 pathType: ImplementationSpecific
                 service:
                   name: main
                   port: fpm
-      push:
-        <<: *ingress
-        annotations:
-          nginx.ingress.kubernetes.io/use-regex: "true"
-          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
-        hosts:
-          - host: *host
-            paths:
-              - path: "/push(/|$)(.*)"
-                pathType: ImplementationSpecific
-                service:
-                  name: main
-                  port: push
+      # push:
+      #   <<: *ingress
+      #   annotations:
+      #     nginx.ingress.kubernetes.io/use-regex: "true"
+      #     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+      #   hosts:
+      #     - host: *host
+      #       paths:
+      #         - path: "/push(/|$)(.*)"
+      #           pathType: ImplementationSpecific
+      #           service:
+      #             name: main
+      #             port: push
       dav:
         <<: *ingress
         annotations:
@@ -226,9 +226,9 @@ spec:
             main:
               - mountPath: "/var/www/html/config"
                 readOnly: true
-            push:
-              - mountPath: "/var/www/html/config"
-                readOnly: true
+            # push:
+            #   - mountPath: "/var/www/html/config"
+            #     readOnly: true
       nas:
         enabled: true
         type: nfs
@@ -250,9 +250,9 @@ spec:
               - &sockmnt
                 subPath: "sockets"
                 path: "/sockets"
-            push:
-              - subPath: "nextcloud"
-                path: "/tmp"
+            # push:
+            #   - subPath: "nextcloud"
+            #     path: "/tmp"
             redis:
               - subPath: "redis"
                 path: "/tmp"
