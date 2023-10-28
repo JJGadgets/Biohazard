@@ -130,14 +130,16 @@ spec:
         hosts:
           - host: &host "${APP_DNS_NEXTCLOUD}"
             paths:
-              - &path path: /
+              - &path
+                path: /
                 pathType: Prefix
                 service:
                   name: main
                   port: http
         tls:
-          - hosts: [*host]
-      fpm: &fpm
+          - hosts:
+              - *host
+      fpm:
         <<: *ingress
         primary: true
         annotations: &fpm-anno
@@ -155,7 +157,7 @@ spec:
                   name: main
                   port: fpm
       fpm-legacy:
-        <<: *fpm
+        <<: *ingress
         annotations:
           <<: *fpm-anno
           nginx.ingress.kubernetes.io/rewrite-target: "/index.php$request_uri"
@@ -174,7 +176,7 @@ spec:
           nginx.ingress.kubernetes.io/use-regex: "true"
           nginx.ingress.kubernetes.io/rewrite-target: "/$2"
         hosts:
-          - host: &host "${APP_DNS_NEXTCLOUD}"
+          - host: *host
             paths:
               - path: "/push(/|$)(.*)"
                 pathType: ImplementationSpecific
@@ -187,7 +189,7 @@ spec:
           nginx.ingress.kubernetes.io/permanent-redirect: "/remote.php/dav/"
           nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
         hosts:
-          - host: &host "${APP_DNS_NEXTCLOUD}"
+          - host: *host
             paths:
               - <<: *path
                 path: "/.well-known/carddav"
@@ -199,7 +201,7 @@ spec:
           nginx.ingress.kubernetes.io/permanent-redirect: "/index.php$request_uri"
           nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
         hosts:
-          - host: &host "${APP_DNS_NEXTCLOUD}"
+          - host: *host
             paths:
               - <<: *path
                 path: "/.well-known"
