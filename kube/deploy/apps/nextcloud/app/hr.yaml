@@ -159,26 +159,25 @@ spec:
         hosts:
           - host: *host
             paths:
-              - path: |-
-                  /*\.php(?:$|/)
+              - path: "/.*\\.php(/|$)(.*)"
                 pathType: ImplementationSpecific
                 service:
                   name: main
                   port: fpm
-      fpm-legacy:
-        <<: *ingress
-        annotations:
-          <<: *fpm-anno
-          nginx.ingress.kubernetes.io/rewrite-target: "/index.php$request_uri"
-        hosts:
-          - host: *host
-            paths:
-              - path: |-
-                  /(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
-                pathType: ImplementationSpecific
-                service:
-                  name: main
-                  port: fpm
+      # fpm-legacy:
+      #   <<: *ingress
+      #   annotations:
+      #     <<: *fpm-anno
+      #     nginx.ingress.kubernetes.io/rewrite-target: "/index.php$request_uri"
+      #   hosts:
+      #     - host: *host
+      #       paths:
+      #         - path: |-
+      #             /(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
+      #           pathType: ImplementationSpecific
+      #           service:
+      #             name: main
+      #             port: fpm
       # push:
       #   <<: *ingress
       #   annotations:
