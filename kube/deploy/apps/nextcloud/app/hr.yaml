@@ -58,9 +58,9 @@ spec:
                 memory: 6000Mi
           web: # just a static web server
             image:
-              repository: "public.ecr.aws/docker/library/caddy"
+              repository: "gcr.io/distroless/static-debian12"
               tag: "latest" # screw version controlling a static web server, always tinfoil with latest version!
-            command: ["/usr/bin/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
+            command: ["/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
             securityContext: *sc
             resources:
               requests:
@@ -105,10 +105,19 @@ spec:
                     path: /var/www/html
                   - subPath: data
                     path: /ceph
+                push:
+                  - subPath: nextcloud
+                    path: /var/www/html
                 web:
                   - subPath: nextcloud
                     path: /var/www/html
-        # initContainers:
+        initContainers:
+          02-caddy:
+            image:
+              repository: "public.ecr.aws/docker/library/caddy"
+              tag: "latest"
+            command: ["/bin/sh", "-c", "cp", "/usr/bin/caddy", "/caddy"]
+            securityContext: *sc
         #   01-init-db:
         #     image: "ghcr.io/onedr0p/postgres-init:14.8"
         #     imagePullPolicy: IfNotPresent
@@ -207,6 +216,8 @@ spec:
                 path: "/.well-known"
     persistence:
       config:
+        enabled: false
+      configs:
         enabled: true
         type: configMap
         name: "nextcloud-config"
@@ -246,6 +257,10 @@ spec:
               - subPath: "redis"
                 path: "/tmp"
               - *sockmnt
+            web: &caddymnt
+              - subPath: "caddy"
+                path: "/caddy"
+            02-caddy: *caddymnt
     configMaps:
       config:
         enabled: true
