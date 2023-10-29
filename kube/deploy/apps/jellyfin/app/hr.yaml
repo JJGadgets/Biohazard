@@ -64,7 +64,10 @@ spec:
     persistence:
       media:
         enabled: true
-        existingClaim: jellyfin-nas-media
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_MEDIA}"
+        # existingClaim: jellyfin-nas-media
         mountPath: /media
         readOnly: true
       transcode:
