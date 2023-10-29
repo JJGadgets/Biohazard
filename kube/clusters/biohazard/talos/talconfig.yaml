@@ -1,9 +1,13 @@
+---
 clusterName: biohazard
-talosVersion: v1.4.5
-kubernetesVersion: v1.27.3
+talosVersion: v1.5.4
+kubernetesVersion: v1.28.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 dnsDomain: cluster.local
+talosImageURL: "factory.talos.dev/installer/b585b09d94017b3086ee1bf52b422ca79abd60478fb7591bf21108f065769e7e"
+# image extensions: amd-ucode, intel-ucode, i915-ucode, iscsi-tools, zfs
+# install Tailscale later, service won't be considered up until Tailscale is enrolled (I think)
 
 cniConfig:
   name: none
@@ -25,13 +29,10 @@ additionalMachineCertSans:
 
 nodes:
 
-  - hostname: "thunderscreech.${DNS_CLUSTER}"
+  - hostname: "cp1.${DNS_CLUSTER}"
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
     controlPlane: true
     installDisk: /dev/vda
-    nodeLabels:
-      node-restriction.kubernetes.io/nodeType: main
-      nodes.home.arpa/type: stable
     nameservers:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
@@ -44,26 +45,23 @@ nodes:
         routes:
           - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
             metric: 1
-          - network: 0.0.0.0/0
+          - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
         vip:
           ip: "${IP_CLUSTER_VIP}"
       - interface: eth1
-        mtu: 9000
+        # mtu: 9000 # PVE can't apply MTU 9000 because bridge set to MTU 1500 even though Ceph VLAN set to MTU 9000 LOL
+        mtu: 1500
         dncp: false
-        addresses:
-          - "${IP_PVE_CEPH_PREFIX}4/29"
+        addresses: ["${IP_PVE_CEPH_PREFIX}4/28"]
         routes:
           - network: "${IP_PVE_CEPH_CIDR}"
             metric: 1
 
-  - hostname: "humming.${DNS_CLUSTER}"
+  - hostname: "cp2.${DNS_CLUSTER}"
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
-    controlPlane: true
+    controlPlane: false
     installDisk: /dev/vda
-    nodeLabels:
-      node-restriction.kubernetes.io/nodeType: main
-      nodes.home.arpa/type: stable
     nameservers:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
@@ -76,33 +74,30 @@ nodes:
         routes:
           - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
             metric: 1
-          - network: 0.0.0.0/0
+          - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
-        vip:
-          ip: "${IP_CLUSTER_VIP}"
+        # vip:
+        #   ip: "${IP_CLUSTER_VIP}"
       - interface: eth1
-        mtu: 9000
+        # mtu: 9000 # PVE can't apply MTU 9000 because bridge set to MTU 1500 even though Ceph VLAN set to MTU 9000 LOL
+        mtu: 1500
         dncp: false
-        addresses:
-          - "${IP_PVE_CEPH_PREFIX}5/29"
+        addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
         routes:
           - network: "${IP_PVE_CEPH_CIDR}"
             metric: 1
     patches:
       # required for Talos to initialize i915 VFIO devices
-      - |-
+      - &i915 |-
         machine:
           install:
             extensions:
               - image: ghcr.io/siderolabs/i915-ucode:20230310
 
-  - hostname: "strato.${DNS_CLUSTER}"
+  - hostname: "cp3.${DNS_CLUSTER}"
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     controlPlane: true
     installDisk: /dev/vda
-    nodeLabels:
-      node-restriction.kubernetes.io/nodeType: main
-      nodes.home.arpa/type: unstable
     nameservers:
       - "${IP_HOME_DNS}"
     disableSearchDomain: true
@@ -110,45 +105,83 @@ nodes:
       - interface: eth0
         mtu: 1500
         dhcp: false
-        addresses:
-          - "${IP_ROUTER_VLAN_K8S_PREFIX}3/28"
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
         routes:
           - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
             metric: 1
-          - network: 0.0.0.0/0
+          - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
         vip:
           ip: "${IP_CLUSTER_VIP}"
       - interface: eth1
-        mtu: 9000
+        # mtu: 9000 # PVE can't apply MTU 9000 because bridge set to MTU 1500 even though Ceph VLAN set to MTU 9000 LOL
+        mtu: 1500
         dncp: false
-        addresses:
-          - "${IP_PVE_CEPH_PREFIX}6/29"
+        addresses: ["${IP_PVE_CEPH_PREFIX}6/28"]
         routes:
           - network: "${IP_PVE_CEPH_CIDR}"
             metric: 1
 
+  - hostname: "blackfish.${DNS_CLUSTER}"
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
+    controlPlane: true
+    kernelModules:
+      - name: "zfs"
+    installDiskSelector:
+      size: "<= 600GB"
+      type: "ssd"
+    nodeLabels:
+      role.nodes.home.arpa/nas: "true"
+    nameservers:
+      - "${IP_HOME_DNS}"
+    disableSearchDomain: true
+    networkInterfaces:
+      - mtu: 9000
+        dhcp: false
+        deviceSelector:
+          driver: "mlx4_core"
+          hardwareAddr: "*:6a"
+        vlans:
+          - vlanId: 58
+            mtu: 1500
+            dhcp: false
+            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}4/28"]
+            routes:
+              - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
+                metric: 1
+              - network: "0.0.0.0/0"
+                gateway: "${IP_ROUTER_VLAN_K8S}"
+            vip:
+              ip: "${IP_CLUSTER_VIP}"
+          - vlanId: 678 # for PVE Ceph, still unsure if separate VLAN + Multus should be used for Rook-managed Ceph cluster, especially with netpols in question
+            mtu: 9000
+            dncp: false
+            addresses: ["${IP_PVE_CEPH_PREFIX}7/28"]
+            routes:
+              - network: "${IP_PVE_CEPH_CIDR}"
+                metric: 1
+
 controlPlane:
   patches:
-    - |-
+    - &kubeletExtraArgs |-
       - op: add
         path: /machine/kubelet/extraArgs
         value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
-    - |-
+          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
+    - &apiServerExtraArgs |-
       - op: add
         path: /cluster/apiServer/extraArgs
         value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
+          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
     # - |-
     #   - op: add
     #     path: /cluster/controllerManager/extraArgs
     #     value:
     #       node-cidr-mask-size: 22
-    - |-
+    - &machinePatch |-
       machine:
         install:
-          wipe: true
+          bootloader: true
         network:
           extraHostEntries:
             - ip: "${IP_CLUSTER_VIP}"
@@ -157,60 +190,26 @@ controlPlane:
         time:
           disabled: false
           servers:
-            - "${IP_ROUTER_VLAN_K8S}"
             - "${IP_ROUTER_LAN}"
           bootTimeout: 2m0s
+
+    - &kubeletSubnet |-
+      machine:
         kubelet:
           nodeIP:
             validSubnets:
               - "${IP_ROUTER_VLAN_K8S_CIDR}"
 
-    - |-
+    - &etcdSubnet |-
       cluster:
-        allowSchedulingOnMasters: true
-        discovery:
-          enabled: true
-          registries:
-            kubernetes:
-              disabled: false
-            service:
-              disabled: true
-        proxy:
-          disabled: true
         etcd:
           advertisedSubnets:
             - "${IP_ROUTER_VLAN_K8S_CIDR}"
 
-worker:
-  patches:
-    - |-
-      - op: add
-        path: /machine/kubelet/extraArgs
-        value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,MixedProtocolLBService=true,EphemeralContainers=true,ServerSideApply=true
-    # - |-
-    #   - op: add
-    #     path: /cluster/controllerManager/extraArgs
-    #     value:
-    #       node-cidr-mask-size: 22
-    - |-
-      machine:
-        install:
-          wipe: true
-        network:
-          extraHostEntries:
-            - ip: "${IP_CLUSTER_VIP}"
-              aliases:
-                - "c.${DNS_CLUSTER}"
-        time:
-          disabled: false
-          servers:
-            - "${IP_ROUTER_VLAN_K8S}"
-            - "${IP_ROUTER_LAN}"
-          bootTimeout: 2m0s
-    - |-
+    - &clusterPatch |-
       cluster:
         allowSchedulingOnMasters: true
+        allowSchedulingOnControlPlanes: true
         discovery:
           enabled: true
           registries:
@@ -220,3 +219,59 @@ worker:
               disabled: true
         proxy:
           disabled: true
+
+    # - &scheduler |-
+    #   cluster:
+    #     scheduler:
+    #       extraArgs:
+    #         config: "/custom/etc/kube-scheduler/config.yaml"
+    #       extraVolumes:
+    #         - hostPath: "/var/etc/kube-scheduler"
+    #           mountPath: "/custom/etc/kube-scheduler"
+    #           readonly: true
+    #   machine:
+    #     files:
+    #       - op: create
+    #         path: "/var/etc/kube-scheduler/config.yaml"
+    #         permissions: 0o400
+    #         content: |
+    #           apiVersion: kubescheduler.config.k8s.io/v1
+    #           kind: KubeSchedulerConfiguration
+    #           profiles:
+    #             - schedulerName: default-scheduler
+    #               pluginConfig:
+    #                 - name: PodTopologySpread
+    #                   args:
+    #                     defaultingType: List
+    #                     defaultConstraints:
+    #                       - maxSkew: 1
+    #                         topologyKey: "kubernetes.io/hostname"
+    #                         whenUnsatisfiable: ScheduleAnyway
+    #                       - maxSkew: 5
+    #                         topologyKey: "topology.kubernetes.io/zone"
+    #                         whenUnsatisfiable: ScheduleAnyway
+
+    # Rook Ceph encrypted OSDs
+    # TODO: https://github.com/siderolabs/talos/issues/3129
+    - &encryptedOSD |-
+      machine:
+        files:
+          - op: overwrite
+            path: /etc/lvm/lvm.conf
+            permissions: 0o644
+            content: |
+              backup {
+                      backup = 0
+                      archive = 0
+              }
+
+worker:
+  patches:
+    - *kubeletExtraArgs
+    - *machinePatch
+    - *clusterPatch
+    - *kubeletSubnet
+    # - *scheduler
+    # Rook Ceph encrypted OSDs
+    # TODO: https://github.com/siderolabs/talos/issues/3129
+    - *encryptedOSD
