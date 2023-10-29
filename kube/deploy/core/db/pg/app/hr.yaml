@@ -8,14 +8,14 @@ spec:
   chart:
     spec:
       chart: cloudnative-pg
-      version: 0.18.2
+      version: 0.19.0
       sourceRef:
         name: cloudnative-pg
         kind: HelmRepository
         namespace: flux-system
   values:
     image:
-      tag: "1.20.2"
+      tag: "1.21.0"
     crds:
       create: true
 ---
