@@ -8,12 +8,14 @@ spec:
   chart:
     spec:
       chart: *app
-      version: &vers 2023.8.4
+      version: &vers 2023.8.3
       sourceRef:
         name: *app
         kind: HelmRepository
         namespace: flux-system
   values:
+    image:
+      tag: 2023.8.4
     # server is in active-active, 3 replicas seems to confuse authentik
     replicas: 1
     worker:
