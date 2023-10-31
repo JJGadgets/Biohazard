@@ -158,9 +158,9 @@ spec:
     #           name: gotosocial-pg-superuser
     probes:
       # this is mostly to get rid of the "TLS handshake error: EOF" logs, more than getting more precise healthchecks lol
-      readiness: &probe
+      readiness:
         custom: true
-        spec:
+        spec: &probe
           periodSeconds: 60
           httpGet:
             path: "/api/v2/instance"
@@ -169,9 +169,12 @@ spec:
             httpHeaders:
               - name: Host
                 value: *host
-      liveness: *probe
+      liveness:
+        custom: true
+        spec: *probe
       startup:
-        <<: *probe
+        custom: true
         spec:
+          <<: *probe
           periodSeconds: 1
           failureThreshold: 300
