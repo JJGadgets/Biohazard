@@ -86,7 +86,7 @@ spec:
       AUTHENTIK_POSTGRESQL__USER:
         secretKeyRef:
           name: *pgsec
-          key: username
+          key: user
       AUTHENTIK_POSTGRESQL__PASSWORD:
         secretKeyRef:
           name: *pgsec

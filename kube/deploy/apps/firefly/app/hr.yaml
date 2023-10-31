@@ -114,7 +114,7 @@ spec:
         enabled: true
         type: secret
         name: *pgsec
-        subPath: username
+        subPath: user
         mountPath: *file-db-user
         readOnly: true
       db-password:
