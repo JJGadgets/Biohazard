@@ -27,9 +27,9 @@ spec:
         # distributed support is not yet ready for expansion
         allowVolumeExpansion: false
 
-    volumeSnapshotClasses:
-      - name: democratic-csi-local-hostpath
-        deletionPolicy: Delete
+    # volumeSnapshotClasses:
+    #   - name: democratic-csi-local-hostpath
+    #     deletionPolicy: Delete
 
     controller:
       enabled: true
