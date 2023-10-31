@@ -1,0 +1,82 @@
+---
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: "pg-${PG_APP_NAME}"
+  namespace: "${PG_APP_NS}"
+spec:
+  postgresVersion: 16
+  patroni: # turn on sync writes to at least 1 other replica
+    dynamicConfiguration:
+      synchronous_mode: true
+      postgresql:
+        synchronous_commit: "on"
+  instances:
+    - name: &instance "${PG_APP_NAME}"
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/r2: "allow"
+      replicas: ${PG_REPLICAS:=3}
+      dataVolumeClaimSpec:
+        storageClassName: "${PG_SC:=block}"
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: "${PG_CONFIG_SIZE:=20Gi}"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/instance-set: *instance
+  users:
+    - name: "${PG_DB_USER:=app}"
+      databases: ["${PG_DB_NAME:=app}"]
+  backups:
+    pgbackrest:
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/r2: "allow"
+      configuration: &brcfg [secret: {name: "pg-${PG_APP_NAME}-secrets"}]
+      global: &brflag
+        repo1-path: "/${PG_APP_NAME}"
+        repo1-s3-uri-style: "path"
+        archive-timeout: "60" # sends WAL archive every X seconds
+        repo1-retention-full: "30"
+        repo1-retention-full-type: time
+      manual:
+        repoName: repo1
+        options: [--type=full]
+      repos:
+        - name: repo1 # Cloudflare R2
+          s3: &r2
+            endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
+            bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
+            region: "us-east-1"
+          schedules:
+            full: "0 6 * * *"
+            differential: "0 * * * *"
+  # dataSource:
+  #   pgbackrest:
+  #     metadata: *netpols
+  #     stanza: db
+  #     configuration: *brcfg
+  #     global: *brflag
+  #     repo:
+  #       name: repo1
+  #       s3: *r2
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "pg-${PG_APP_NAME}-secrets"
+  namespace: "${PG_APP_NS}"
+type: Opaque
+stringData:
+  s3.conf: |
+    [global]
+    repo1-s3-key=${SECRET_PGBACKREST_WAL_R2_ID}
+    repo1-s3-key-secret=${SECRET_PGBACKREST_WAL_R2_KEY}

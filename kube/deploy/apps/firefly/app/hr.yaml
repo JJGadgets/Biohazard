@@ -52,7 +52,7 @@ spec:
       AUTHENTICATION_GUARD_HEADER: "X-authentik-uid"
       AUTHENTICATION_GUARD_EMAIL: "X-authentik-email"
       DB_CONNECTION: "pgsql"
-      DB_HOST: "pg-firefly-rw.firefly.svc.cluster.local"
+      DB_HOST: "pg-firefly-primary.firefly.svc.cluster.local"
       DB_PORT: "5432"
       DB_DATABASE_FILE: &file-db-name "/db/database"
       DB_USERNAME_FILE: &file-db-user "/db/username"
@@ -106,21 +106,21 @@ spec:
       db-database:
         enabled: true
         type: secret
-        name: firefly-secrets
-        subPath: db-name
+        name: &pgsec pg-firefly-pguser-firefly
+        subPath: dbname
         mountPath: *file-db-name
         readOnly: true
       db-username:
         enabled: true
         type: secret
-        name: pg-firefly-app
+        name: *pgsec
         subPath: username
         mountPath: *file-db-user
         readOnly: true
       db-password:
         enabled: true
         type: secret
-        name: pg-firefly-app
+        name: *pgsec
         subPath: password
         mountPath: *file-db-pass
         readOnly: true

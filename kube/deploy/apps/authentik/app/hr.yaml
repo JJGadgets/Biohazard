@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: *app
-      version: &vers 2023.6.1
+      version: &vers 2023.10.2
       sourceRef:
         name: *app
         kind: HelmRepository
@@ -18,12 +18,7 @@ spec:
     replicas: 1
     worker:
       # workers don't need leader election, thus any size works
-      replicas: 1
-    image:
-      repository: ghcr.io/goauthentik/server
-      tag: *vers
-      digest: "sha256:a7ccd464402a9cf9bd36df73dd1f85cd90df6dce2d5d721a7de7a55c6f72962a"
-      pullPolicy: IfNotPresent
+      replicas: 3
     service:
       port: 9000
     ingress:
@@ -75,7 +70,7 @@ spec:
         send_pii: false
       postgresql:
         enabled: false
-        host: 'pg-authentik-rw'
+        host: 'pg-authentik-primary.authentik.svc.cluster.local'
         port: 5432
         name: ""
         user: ""
@@ -86,15 +81,15 @@ spec:
     envValueFrom:
       AUTHENTIK_POSTGRESQL__NAME:
         secretKeyRef:
-          name: pg-authentik-app
-          key: username
+          name: &pgsec pg-authentik-pguser-authentik
+          key: dbname
       AUTHENTIK_POSTGRESQL__USER:
         secretKeyRef:
-          name: pg-authentik-app
+          name: *pgsec
           key: username
       AUTHENTIK_POSTGRESQL__PASSWORD:
         secretKeyRef:
-          name: pg-authentik-app
+          name: *pgsec
           key: password
       AUTHENTIK_REDIS__PASSWORD:
         secretKeyRef:

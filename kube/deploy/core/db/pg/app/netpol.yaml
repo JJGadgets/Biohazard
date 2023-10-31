@@ -49,9 +49,6 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # allow webhook
-    - fromEntities:
-        - cluster
   egress:
     # same namespace
     - toEndpoints:
@@ -60,7 +57,7 @@ spec:
     # allow access to all CNPG cluster pods
     - toEndpoints:
         - matchExpressions:
-            - key: cnpg.io/cluster
+            - key: postgres-operator.crunchydata.com/cluster
               operator: Exists
             - key: io.kubernetes.pod.namespace
               operator: Exists

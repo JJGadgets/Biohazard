@@ -18,15 +18,16 @@ spec:
       fullnameOverride: *app
     automountServiceAccountToken: false
     controller:
-      type: deployment
+      # type: statefulset
+      type: "deployment"
       replicas: 1
     image:
-      repository: docker.io/superseriousbusiness/gotosocial
-      tag: 0.11.1
+      repository: "docker.io/superseriousbusiness/gotosocial"
+      tag: "0.12.1"
     podLabels:
       ingress.home.arpa/nginx: "allow"
       ingress.home.arpa/cloudflare: "allow"
-      db.home.arpa/pg: "pg-default"
+      db.home.arpa/pg: "pg-gotosocial"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
       egress.home.arpa/ingress-nginx: "allow"
       egress.home.arpa/world: "allow"
@@ -41,7 +42,28 @@ spec:
       GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
       GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
       GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
+      GTS_DB_TYPE: "postgres"
       GTS_DB_TLS_MODE: "enable"
+      GTS_DB_ADDRESS:
+        valueFrom:
+          secretKeyRef:
+            name: &pgsec "pg-gotosocial-pguser-gotosocial"
+            key: "host"
+      GTS_DB_DATABASE:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "dbname"
+      GTS_DB_USER:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "user"
+      GTS_DB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "password"
       #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
       GTS_STORAGE_BACKEND: "s3"
       GTS_STORAGE_S3_PROXY: "true"
@@ -51,17 +73,17 @@ spec:
       GTS_STORAGE_S3_ACCESS_KEY:
         valueFrom:
           secretKeyRef:
-            name: gotosocial-media-s3
-            key: AWS_ACCESS_KEY_ID
+            name: "gotosocial-media-s3"
+            key: "AWS_ACCESS_KEY_ID"
       GTS_STORAGE_S3_SECRET_KEY:
         valueFrom:
           secretKeyRef:
-            name: gotosocial-media-s3
-            key: AWS_SECRET_ACCESS_KEY
+            name: "gotosocial-media-s3"
+            key: "AWS_SECRET_ACCESS_KEY"
       GTS_LANDING_PAGE_USER: "jj"
     envFrom:
-      - secretRef:
-          name: gotosocial-pg
+    #   - secretRef:
+    #       name: gotosocial-pg
       - secretRef:
           name: gotosocial-oidc
     service:
@@ -122,18 +144,18 @@ spec:
     resources:
       requests:
         cpu: 10m
-        memory: 128Mi
+        memory: 512Mi
       limits:
-        memory: 1024Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: gotosocial-pg
-          - secretRef:
-              name: gotosocial-pg-superuser
+        memory: 1536Mi
+    # initContainers:
+    #   01-init-db:
+    #     image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+    #     imagePullPolicy: IfNotPresent
+    #     envFrom:
+    #       - secretRef:
+    #           name: gotosocial-pg
+    #       - secretRef:
+    #           name: gotosocial-pg-superuser
     probes:
       # this is mostly to get rid of the "TLS handshake error: EOF" logs, more than getting more precise healthchecks lol
       readiness: &probe
@@ -148,4 +170,8 @@ spec:
               - name: Host
                 value: *host
       liveness: *probe
-      startup: *probe
+      startup:
+        <<: *probe
+        spec:
+          periodSeconds: 1
+          failureThreshold: 300
