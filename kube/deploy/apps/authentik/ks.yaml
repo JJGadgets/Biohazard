@@ -37,7 +37,7 @@ spec:
     - name: 1-core-db-pg-app
   postBuild:
     substitute:
-      PG_APP_NAME: &app "firefly"
+      PG_APP_NAME: &app "authentik"
       PG_APP_NS: *app
       PG_DB_NAME: *app
       PG_DB_USER: *app
