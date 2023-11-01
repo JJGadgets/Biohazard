@@ -21,11 +21,11 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: ghcr.io/diced/zipline
-      tag: 3.7.0@sha256:6ff84bd03bde7d1f108ed87b3f953027d5dace33e2c8238ca1fbe432a499f723
+      repository: "ghcr.io/diced/zipline"
+      tag: "3.7.4"
     podLabels:
       ingress.home.arpa/nginx: "allow"
-      db.home.arpa/pg: "pg-default"
+      db.home.arpa/pg: "pg-zipline"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     env:
       TZ: "${CONFIG_TZ}"
@@ -37,8 +37,8 @@ spec:
       CORE_DATABASE_URL:
         valueFrom:
           secretKeyRef:
-            name: zipline-secrets
-            key: CORE_DATABASE_URL
+            name: pg-zipline-pguser-zipline
+            key: uri
       # TODO: 2023-06-03 add OAuth when Authentik support is merged: https://github.com/diced/zipline/discussions/321 and https://github.com/diced/zipline/pull/372/
       DATASOURCE_S3_ACCESS_KEY_ID:
         valueFrom:
@@ -174,10 +174,10 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: zipline-pg-superuser
+    # initContainers:
+    #   01-init-db:
+    #     image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+    #     imagePullPolicy: IfNotPresent
+    #     envFrom:
+    #       - secretRef:
+    #           name: zipline-pg-superuser

@@ -21,18 +21,18 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: ghcr.io/ellie/atuin
-      tag: 15.0.0@sha256:4e2ba8c5da7948245a25e7b0e522c5bf24567b11a4c0fe223cc4466770e3e011
+      repository: "ghcr.io/ellie/atuin"
+      tag: "17.0.1"
     command: ["atuin", "server", "start"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
-      db.home.arpa/pg: "pg-default"
+      db.home.arpa/pg: "pg-atuin"
     env:
       TZ: "${CONFIG_TZ}"
       ATUIN_HOST: "0.0.0.0"
       ATUIN_PORT: &port "8888"
       ATUIN_OPEN_REGISTRATION: "true"
-      ATUIN_DB_URI: {valueFrom: {secretKeyRef: {name: atuin-secrets, key: ATUIN_DB_URI}}}
+      ATUIN_DB_URI: {valueFrom: {secretKeyRef: {name: pg-atuin-pguser-atuin, key: uri}}}
     service: {main: {ports: {http: {port: *port}}}}
     ingress:
       main:
@@ -65,8 +65,8 @@ spec:
         memory: 128Mi
       limits:
         memory: 512Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-        imagePullPolicy: IfNotPresent
-        envFrom: [secretRef: {name: atuin-pg-superuser}]
+    # initContainers:
+    #   01-init-db:
+    #     image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+    #     imagePullPolicy: IfNotPresent
+    #     envFrom: [secretRef: {name: atuin-pg-superuser}]

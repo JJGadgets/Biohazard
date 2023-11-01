@@ -35,6 +35,7 @@ spec:
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
     - name: 1-core-db-pg-app
+    - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
       PG_APP_NAME: &app "authentik"

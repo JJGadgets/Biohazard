@@ -8,10 +8,24 @@ spec:
   path: ./kube/deploy/apps/zipline/app
   dependsOn:
     - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-ingress-nginx-app
-    - name: 1-core-db-pg-clusters-default
-  healthChecks:
-    - name: zipline
-      namespace: zipline
-      kind: HelmRelease
-      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zipline-db
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/db/pg/clusters/template
+  dependsOn:
+    - name: 1-core-db-pg-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PG_APP_NAME: &app "zipline"
+      PG_APP_NS: *app
+      PG_DB_NAME: *app
+      PG_DB_USER: *app
+      PG_REPLICAS: "2"
+      PG_SC: "block"
+      PG_CONFIG_VERSION: "15.2-11"
+      PG_CONFIG_SIZE: "10Gi"
