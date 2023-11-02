@@ -2,7 +2,7 @@
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: "pg-${PG_APP_NAME}"
+  name: &name "pg-${PG_APP_NAME}"
   namespace: "${PG_APP_NS}"
 spec:
   postgresVersion: 16
@@ -24,12 +24,13 @@ spec:
         resources:
           requests:
             storage: "${PG_CONFIG_SIZE:=20Gi}"
-      topologySpreadConstraints:
+      topologySpreadConstraints: &tsc
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
           whenUnsatisfiable: "DoNotSchedule"
           labelSelector:
             matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
               postgres-operator.crunchydata.com/instance-set: *instance
   users:
     - name: "${PG_DB_USER:=app}"
@@ -42,16 +43,33 @@ spec:
           egress.home.arpa/r2: "allow"
       configuration: &brcfg [secret: {name: "pg-${PG_APP_NAME}-secrets"}]
       global: &brflag
-        repo1-path: "/${PG_APP_NAME}"
-        repo1-s3-uri-style: "path"
         archive-timeout: "60" # sends WAL archive every X seconds
         repo1-retention-full: "30"
-        repo1-retention-full-type: time
+        repo1-retention-full-type: "time"
+        repo2-bundle: "y"
+        repo2-block: "y"
+        repo2-path: "/${PG_APP_NAME}"
+        repo2-s3-uri-style: "path"
+        repo2-retention-full: "30"
+        repo2-retention-full-type: "time"
+        repo2-cipher-type: "aes-256-cbc"
       manual:
-        repoName: repo1
+        repoName: repo2
         options: [--type=full]
       repos:
-        - name: repo1 # Cloudflare R2
+        - name: "repo1" # NFS
+          volume: &nfs
+            volumeClaimSpec:
+              storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
+              volumeName: "pg-${PG_APP_NAME}-wal-nfs"
+              accessModes: [ReadWriteMany]
+              resources:
+                requests:
+                  storage: "1Mi" # doesn't matter with NFS
+          schedules:
+            full: "0 * * * *"
+            differential: "*/5 * * * *"
+        - name: "repo2" # Cloudflare R2
           s3: &r2
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
             bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
@@ -68,6 +86,11 @@ spec:
   #     repo:
   #       name: repo1
   #       s3: *r2
+  proxy:
+    pgBouncer:
+      port: 5432
+      replicas: 3
+      topologySpreadConstraints: *tsc
 ---
 apiVersion: v1
 kind: Secret
@@ -78,5 +101,8 @@ type: Opaque
 stringData:
   s3.conf: |
     [global]
-    repo1-s3-key=${SECRET_PGBACKREST_WAL_R2_ID}
-    repo1-s3-key-secret=${SECRET_PGBACKREST_WAL_R2_KEY}
+    repo2-s3-key=${SECRET_PGBACKREST_WAL_R2_ID}
+    repo2-s3-key-secret=${SECRET_PGBACKREST_WAL_R2_KEY}
+  encryption.conf: |
+    [global]
+    repo2-cipher-pass=${SECRET_PGBACKREST_WAL_ENCRYPT}
