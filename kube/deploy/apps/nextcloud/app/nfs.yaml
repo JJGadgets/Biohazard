@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "nextcloud-nas-data"
+spec:
+  storageClassName: "nextcloud-nas-data"
+  capacity:
+    storage: "1Mi"
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: "Retain"
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_PERSIST_K8S}/nextcloud"
+  mountOptions: ["nfsvers=4", "tcp", "hard", "noatime", "nodiratime", "nocto", "nconnect=8", "rsize=131072", "wsize=131072"]
+  claimRef:
+    apiVersion: "v1"
+    kind: "PersistentVolumeClaim"
+    name: "nextcloud-nas-data"
+    namespace: "nextcloud"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "nextcloud-nas-data"
+  namespace: "nextcloud"
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: "nextcloud-nas-data"
+  resources:
+    requests:
+      storage: "1Mi"
