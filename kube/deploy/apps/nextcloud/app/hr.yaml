@@ -5,6 +5,7 @@ metadata:
   name: &app nextcloud
   namespace: *app
 spec:
+  timeout: 1h
   chart:
     spec:
       chart: app-template
@@ -26,22 +27,34 @@ spec:
         containers:
           main:
             image: &ncimg
-              repository: "public.ecr.aws/docker/library/nextcloud"
+              repository: "ghcr.io/jjgadgets/nextcloud"
               tag: "27.1.3-fpm"
             env:
               TZ: "${CONFIG_TZ}"
-              NC_DOMAIN: "${APP_DNS_NEXTCLOUD}"
+              NC_DOMAIN: &host "${APP_DNS_NEXTCLOUD}"
               NC_VERSION: "27.1.3"
-              # GTS_STORAGE_S3_ACCESS_KEY:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: "nextcloud-data-s3"
-              #       key: "AWS_ACCESS_KEY_ID"
-              # GTS_STORAGE_S3_SECRET_KEY:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: "nextcloud-media-s3"
-              #       key: "AWS_SECRET_ACCESS_KEY"
+              NEXTCLOUD_DATA_DIR: "/ncdata"
+              NEXTCLOUD_TRUSTED_DOMAINS: *host
+              POSTGRES_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: &pgsec "pg-nextcloud-pguser-nextcloud"
+                    key: "host"
+              POSTGRES_DB:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "dbname"
+              POSTGRES_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "user"
+              POSTGRES_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "password"
             envFrom:
               - secretRef:
                   name: "nextcloud-secrets"
@@ -50,6 +63,15 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+            probes:
+              startup:
+                enabled: true
+                type: TCP
+                spec:
+                  initialDelaySeconds: 15
+                  timeoutSeconds: 1
+                  periodSeconds: 1
+                  failureThreshold: 7200 # 2 hours
             resources:
               requests:
                 cpu: 10m
@@ -80,22 +102,22 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 256Mi
-          # push:
-          #   image: *ncimg
-          #   command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
-          #   env:
-          #     NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
-          #     PORT: &push "7867"
-          #   securityContext: *sc
-          #   resources:
-          #     requests:
-          #       cpu: 10m
-          #       memory: 32Mi
-          #     limits:
-          #       memory: 256Mi
+          push:
+            image: *ncimg
+            command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
+            env:
+              NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
+              PORT: &push "7867"
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
         statefulset:
           volumeClaimTemplates:
-            - name: data
+            - name: "data"
               accessMode: ReadWriteOnce
               size: 100Gi
               storageClass: block
@@ -105,12 +127,14 @@ spec:
                     path: /var/www/html
                   - subPath: data
                     path: /ceph
-                # push:
-                #   - subPath: nextcloud
-                #     path: /var/www/html
+                push:
+                  - subPath: nextcloud
+                    path: /var/www/html
+                    readOnly: true
                 web:
                   - subPath: nextcloud
                     path: /var/www/html
+                    readOnly: true
         initContainers:
           02-caddy:
             image:
@@ -126,18 +150,20 @@ spec:
       main:
         ports:
           http:
+            primary: false
             port: 8080
           fpm:
+            primary: true
             port: 9000
-          # push:
-          #   port: *push
+          push:
+            port: *push
     ingress:
       main: &ingress
         enabled: true
         primary: false
         className: nginx
         hosts:
-          - host: &host "${APP_DNS_NEXTCLOUD}"
+          - host: *host
             paths:
               - &path
                 path: /
@@ -164,33 +190,19 @@ spec:
                 service:
                   name: main
                   port: fpm
-      # fpm-legacy:
-      #   <<: *ingress
-      #   annotations:
-      #     <<: *fpm-anno
-      #     nginx.ingress.kubernetes.io/rewrite-target: "/index.php$request_uri"
-      #   hosts:
-      #     - host: *host
-      #       paths:
-      #         - path: |-
-      #             /(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)
-      #           pathType: ImplementationSpecific
-      #           service:
-      #             name: main
-      #             port: fpm
-      # push:
-      #   <<: *ingress
-      #   annotations:
-      #     nginx.ingress.kubernetes.io/use-regex: "true"
-      #     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
-      #   hosts:
-      #     - host: *host
-      #       paths:
-      #         - path: "/push(/|$)(.*)"
-      #           pathType: ImplementationSpecific
-      #           service:
-      #             name: main
-      #             port: push
+      push:
+        <<: *ingress
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+        hosts:
+          - host: *host
+            paths:
+              - path: "/push(/|$)(.*)"
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: push
       dav:
         <<: *ingress
         annotations:
@@ -225,18 +237,16 @@ spec:
             main:
               - mountPath: "/var/www/html/config"
                 readOnly: true
-            # push:
-            #   - mountPath: "/var/www/html/config"
-            #     readOnly: true
+            push:
+              - mountPath: "/var/www/html/config"
+                readOnly: true
       nas:
         enabled: true
-        type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/nextcloud"
+        existingClaim: "nextcloud-nas-data"
         advancedMounts:
           main:
             main:
-              - path: "/nas"
+              - path: "/ncdata"
       tmp:
         enabled: true
         type: emptyDir
@@ -249,17 +259,22 @@ spec:
               - &sockmnt
                 subPath: "sockets"
                 path: "/sockets"
-            # push:
-            #   - subPath: "nextcloud"
-            #     path: "/tmp"
-            redis:
-              - subPath: "redis"
+            push:
+              - subPath: "nextcloud"
                 path: "/tmp"
+            redis:
+              - subPath: "redis-tmp"
+                path: "/tmp"
+              - subPath: "redis-data"
+                path: "/data" # for interval RDB saving
               - *sockmnt
-            web: &caddymnt
+            web:
               - subPath: "caddy"
                 path: "/caddy"
-            02-caddy: *caddymnt
+                readOnly: true
+            02-caddy:
+              - subPath: "caddy"
+                path: "/caddy"
     configMaps:
       config:
         enabled: true
@@ -267,7 +282,38 @@ spec:
           config.php: |-
             <?php
             $CONFIG = array (
+              'instanceid' => getenv('NC_INSTANCEID'),
+              'passwordsalt' => getenv('NC_PASSWORDSALT'),
+              'secret' => getenv('NC_SECRET'),
+              'datadirectory' => '/ncdata',
+              'version' => getenv('NC_VERSION'),
+              'overwrite.cli.url' => 'https://' . getenv('NC_DOMAIN'),
+              'overwriteprotocol' => 'https',
+              'default_phone_region' => 'SG',
+              'dbtype' => 'pgsql',
+              'dbhost' => getenv('POSTGRES_HOST'),
+              'dbport' => '5432',
+              'dbname' => getenv('POSTGRES_DB'),
+              'dbuser' => getenv('POSTGRES_USER'),
+              'dbpassword' => getenv('POSTGRES_PASSWORD'),
+              'dbtableprefix' => 'oc_',
               'memcache.local' => '\\OC\\Memcache\\APCu',
+              'memcache.distributed' => '\\OC\\Memcache\\Redis',
+              'memcache.locking' => '\\OC\\Memcache\\Redis',
+              'redis' =>
+              array (
+                'host' => '/sockets/redis.sock',
+                'port' => 0,
+              ),
+              'trusted_domains' =>
+              array (
+                0 => getenv('NC_DOMAIN'),
+              ),
+              'trusted_proxies' =>
+              array (
+                0 => '${IP_POD_CIDR_V4}',
+                1 => '127.0.0.1',
+              ),
               'apps_paths' =>
               array (
                 0 =>
@@ -283,40 +329,7 @@ spec:
                   'writable' => true,
                 ),
               ),
-              'memcache.distributed' => '\\OC\\Memcache\\Redis',
-              'memcache.locking' => '\\OC\\Memcache\\Redis',
-              'redis' =>
-              array (
-                'host' => '/sockets/redis.sock',
-                'port' => 0,
-              ),
-              'instanceid' => getenv('NC_INSTANCEID'),
-              'passwordsalt' => getenv('NC_PASSWORDSALT'),
-              'secret' => getenv('NC_SECRET'),
-              'trusted_domains' =>
-              array (
-                0 => getenv('NC_DOMAIN'),
-              ),
-              'trusted_proxies' =>
-              array (
-                0 => '${IP_POD_CIDR_V4}',
-                1 => '127.0.0.1',
-              ),
-              'datadirectory' => '/nas',
-              'version' => getenv('NC_VERSION'),
-              'overwrite.cli.url' => 'https://' . getenv('NC_DOMAIN'),
-              'overwriteprotocol' => 'https',
-              'installed' => true,
-              'default_phone_region' => 'SG',
             );
-          # test with SQLite first, then try CrunchyData Postgres
-              # 'dbtype' => 'pgsql',
-              # 'dbname' => getenv('INIT_POSTGRES_DBNAME'),
-              # 'dbhost' => getenv('INIT_POSTGRES_HOST'),
-              # 'dbport' => '5432',
-              # 'dbtableprefix' => 'oc_',
-              # 'dbuser' => getenv('INIT_POSTGRES_USER'),
-              # 'dbpassword' => getenv('INIT_POSTGRES_PASS'),
       ingress-nginx-fastcgi:
         enabled: true
         data:
@@ -332,4 +345,4 @@ spec:
         fsGroup: *uid
         runAsNonRoot: false
         seccompProfile: {type: "RuntimeDefault"}
-        fsGroupChangePolicy: Always
+        fsGroupChangePolicy: "Always"
