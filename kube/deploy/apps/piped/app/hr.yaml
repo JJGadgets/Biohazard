@@ -84,6 +84,9 @@ spec:
     ingress:
       main:
         ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
           - host: &frontend "${APP_DNS_PIPED_FRONTEND}"
             paths:
@@ -93,6 +96,9 @@ spec:
               - *frontend
       backend:
         ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
           - host: &backend "${APP_DNS_PIPED_BACKEND}"
             paths:
@@ -102,6 +108,9 @@ spec:
               - *backend
       ytproxy:
         ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
           - host: &ytproxy "${APP_DNS_PIPED_YTPROXY}"
             paths:
