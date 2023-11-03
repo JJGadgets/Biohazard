@@ -143,6 +143,10 @@ spec:
                     path: /var/www/html
                     readOnly: true
         initContainers:
+          01-cp-config:
+            image: *ncimg
+            command: ["/bin/sh", "-c", "cp /nc-config/config.php /var/www/html/config/config.php; chmod 0400 /var/www/html/config/config.php"]
+            securityContext: *sc
           02-caddy:
             image:
               repository: "public.ecr.aws/docker/library/caddy"
@@ -234,15 +238,13 @@ spec:
                 path: "/.well-known"
     persistence:
       config:
-        enabled: false
-      configs:
         enabled: true
         type: configMap
         name: "nextcloud-config"
         advancedMounts:
           main:
-            main:
-              - path: "/var/www/html/config"
+            01-cp-config:
+              - path: "/nc-config"
                 readOnly: true
             # push:
             #   - path: "/var/www/html/config"
@@ -270,9 +272,15 @@ spec:
         medium: Memory
         advancedMounts:
           main:
+            01-cp-config:
+              - &cfgmnt
+                subPath: "config"
+                path: "/var/www/html/config"
             main:
               - subPath: "nextcloud"
                 path: "/tmp"
+              - <<: *cfgmnt
+                readOnly: true
               - &sockmnt
                 subPath: "sockets"
                 path: "/sockets"
