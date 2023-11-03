@@ -238,10 +238,10 @@ spec:
         advancedMounts:
           main:
             main:
-              - mountPath: "/var/www/html/config"
+              - path: "/var/www/html/config"
                 readOnly: true
             push:
-              - mountPath: "/var/www/html/config"
+              - path: "/var/www/html/config"
                 readOnly: true
       caddy:
         enabled: true
