@@ -300,6 +300,7 @@ spec:
           config.php: |-
             <?php
             $CONFIG = array (
+              'config_is_read_only' => true,
               'instanceid' => getenv('NC_INSTANCEID'),
               'passwordsalt' => getenv('NC_PASSWORDSALT'),
               'secret' => getenv('NC_SECRET'),
