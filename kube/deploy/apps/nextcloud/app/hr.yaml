@@ -275,6 +275,7 @@ spec:
             push:
               - subPath: "nextcloud"
                 path: "/tmp"
+              - *sockmnt
             redis:
               - subPath: "redis-tmp"
                 path: "/tmp"
