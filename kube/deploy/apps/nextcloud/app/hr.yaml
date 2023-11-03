@@ -264,6 +264,16 @@ spec:
               - subPath: "Caddyfile"
                 path: "/Caddyfile"
                 readOnly: true
+      secrets:
+        enabled: true
+        type: secret
+        name: "nextcloud-secrets"
+        advancedMounts:
+          main:
+            main:
+              - subPath: "secrets.config.php"
+                path: "/var/www/html/config/secrets.config.php"
+                readOnly: true
       nas:
         enabled: true
         existingClaim: "nextcloud-nas-data"
@@ -319,14 +329,8 @@ spec:
           config.php: |-
             <?php
             $CONFIG = array (
-              'config_is_read_only' => true,
-              'installed' => true,
-              'instanceid' => getenv('NC_INSTANCEID'),
-              'passwordsalt' => getenv('NC_PASSWORDSALT'),
-              'secret' => getenv('NC_SECRET'),
               'datadirectory' => '/ncdata',
-              'version' => getenv('NC_VERSION'),
-              'overwrite.cli.url' => 'https://' . getenv('NC_DOMAIN'),
+              'overwrite.cli.url' => 'https://${APP_DNS_NEXTCLOUD}',
               'overwriteprotocol' => 'https',
               'default_phone_region' => 'SG',
               'dbtype' => 'pgsql',
@@ -346,7 +350,7 @@ spec:
               ),
               'trusted_domains' =>
               array (
-                0 => getenv('NC_DOMAIN'),
+                0 => '${APP_DNS_NEXTCLOUD}',
                 1 => 'localhost',
                 2 => '127.0.0.1',
               ),
