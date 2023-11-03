@@ -246,6 +246,9 @@ spec:
             01-cp-config:
               - path: "/nc-config"
                 readOnly: true
+            main:
+              - path: "/nc-config"
+                readOnly: true
             # push:
             #   - path: "/var/www/html/config"
             #     readOnly: true
@@ -264,23 +267,29 @@ spec:
         existingClaim: "nextcloud-nas-data"
         advancedMounts:
           main:
+            01-cp-config:
+              - subPath: "config"
+                path: "/var/www/html/confi"
             main:
-              - path: "/ncdata"
+              - subPath: "data"
+                path: "/ncdata"
+              - subPath: "config"
+                path: "/var/www/html/config"
       tmp:
         enabled: true
         type: emptyDir
         medium: Memory
         advancedMounts:
           main:
-            01-cp-config:
-              - &cfgmnt
-                subPath: "config"
-                path: "/var/www/html/config"
+            # 01-cp-config:
+            #   - &cfgmnt
+            #     subPath: "config"
+            #     path: "/var/www/html/config"
             main:
               - subPath: "nextcloud"
                 path: "/tmp"
-              - <<: *cfgmnt
-                readOnly: true
+              # - <<: *cfgmnt
+              #   readOnly: true
               - &sockmnt
                 subPath: "sockets"
                 path: "/sockets"
@@ -335,6 +344,8 @@ spec:
               'trusted_domains' =>
               array (
                 0 => getenv('NC_DOMAIN'),
+                1 => 'localhost',
+                2 => '127.0.0.1',
               ),
               'trusted_proxies' =>
               array (
