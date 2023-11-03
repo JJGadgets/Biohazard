@@ -105,11 +105,10 @@ spec:
                 memory: 256Mi
           push:
             image: *ncimg
-            command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push"]
+            command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/redis.php"]
             env:
               PORT: &push "7867"
               NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
-              REDIS_URL: "redis:///sockets/redis.sock"
               DATABASE_PREFIX: "oc"
               DATABASE_URL:
                 valueFrom:
@@ -349,6 +348,15 @@ spec:
                 ),
               ),
             );
+          redis.php: |
+              'memcache.local' => '\\OC\\Memcache\\APCu',
+              'memcache.distributed' => '\\OC\\Memcache\\Redis',
+              'memcache.locking' => '\\OC\\Memcache\\Redis',
+              'redis' =>
+              array (
+                'host' => '/sockets/redis.sock',
+                'port' => 0,
+              ),
       caddy:
         enabled: true
         data:
