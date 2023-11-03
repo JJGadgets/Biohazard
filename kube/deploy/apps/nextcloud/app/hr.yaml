@@ -29,7 +29,7 @@ spec:
             image: &ncimg
               repository: "ghcr.io/jjgadgets/nextcloud"
               tag: "27.1.3-fpm"
-            env:
+            env: &env
               TZ: "${CONFIG_TZ}"
               NC_DOMAIN: &host "${APP_DNS_NEXTCLOUD}"
               NC_VERSION: "27.1.3"
@@ -55,7 +55,7 @@ spec:
                   secretKeyRef:
                     name: *pgsec
                     key: "password"
-            envFrom:
+            envFrom: &envFrom
               - secretRef:
                   name: "nextcloud-secrets"
             securityContext: &sc
@@ -68,7 +68,7 @@ spec:
                 enabled: true
                 type: TCP
                 spec:
-                  initialDelaySeconds: 15
+                  initialDelaySeconds: 5
                   timeoutSeconds: 1
                   periodSeconds: 1
                   failureThreshold: 7200 # 2 hours
@@ -82,7 +82,8 @@ spec:
             image:
               repository: "gcr.io/distroless/static-debian12"
               tag: "latest" # screw version controlling a static web server, always tinfoil with latest version!
-            command: ["/caddy/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
+            # command: ["/caddy/caddy", "file-server", "--listen", ":8080", "--root", "/var/www/html"]
+            command: ["/caddy/caddy", "run", "--config", "/Caddyfile"]
             securityContext: *sc
             resources:
               requests:
@@ -106,8 +107,10 @@ spec:
             image: *ncimg
             command: ["/var/www/html/custom_apps/notify_push/bin/x86_64/notify_push", "/var/www/html/config/config.php"]
             env:
+              <<: *env
               NEXTCLOUD_URL: "https://${APP_DNS_NEXTCLOUD}"
               PORT: &push "7867"
+            envFrom: *envFrom
             securityContext: *sc
             resources:
               requests:
@@ -174,22 +177,22 @@ spec:
         tls:
           - hosts:
               - *host
-      fpm:
-        <<: *ingress
-        primary: true
-        annotations: &fpm-anno
-          nginx.ingress.kubernetes.io/use-regex: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: "FCGI"
-          nginx.ingress.kubernetes.io/fastcgi-index: "index.php"
-          nginx.ingress.kubernetes.io/fastcgi-params-configmap: "nextcloud/nextcloud-ingress-nginx-fastcgi"
-        hosts:
-          - host: *host
-            paths:
-              - path: "/.*\\.php(/|$)(.*)"
-                pathType: ImplementationSpecific
-                service:
-                  name: main
-                  port: fpm
+      # fpm:
+      #   <<: *ingress
+      #   primary: true
+      #   annotations: &fpm-anno
+      #     nginx.ingress.kubernetes.io/use-regex: "true"
+      #     nginx.ingress.kubernetes.io/backend-protocol: "FCGI"
+      #     nginx.ingress.kubernetes.io/fastcgi-index: "index.php"
+      #     nginx.ingress.kubernetes.io/fastcgi-params-configmap: "nextcloud/nextcloud-ingress-nginx-fastcgi"
+      #   hosts:
+      #     - host: *host
+      #       paths:
+      #         - path: "/.*\\.php(/|$)(.*)"
+      #           pathType: ImplementationSpecific
+      #           service:
+      #             name: main
+      #             port: fpm
       push:
         <<: *ingress
         annotations:
@@ -239,6 +242,16 @@ spec:
                 readOnly: true
             push:
               - mountPath: "/var/www/html/config"
+                readOnly: true
+      caddy:
+        enabled: true
+        type: configMap
+        name: "nextcloud-caddy"
+        advancedMounts:
+          main:
+            web:
+              - subPath: "Caddyfile"
+                path: "/Caddyfile"
                 readOnly: true
       nas:
         enabled: true
@@ -330,6 +343,27 @@ spec:
                 ),
               ),
             );
+      caddy:
+        enabled: true
+        data:
+          Caddyfile: |
+            {
+              http_port 8080
+              https_port 8443
+            }
+            ${APP_DNS_NEXTCLOUD}:8080 {
+              header Strict-Transport-Security "max-age=15768000;preload"
+              redir /.well-known/carddav /remote.php/dav 301
+              redir /.well-known/caldav /remote.php/dav 301
+              root * /var/www/html
+              encode zstd gzip
+              php_fastcgi 127.0.0.1:9000 {
+                root /var/www/html
+                env front_controller_active true
+                trusted_proxies ${IP_POD_CIDR_V4}
+              }
+              file_server
+            }
       ingress-nginx-fastcgi:
         enabled: true
         data:
