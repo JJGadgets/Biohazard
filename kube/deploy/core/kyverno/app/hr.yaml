@@ -22,18 +22,22 @@ spec:
       ingress.home.arpa/host: "allow"
       ingress.home.arpa/apiserver: "allow"
       egress.home.arpa/apiserver: "allow"
+    config:
+      excludeClusterRoles: ["cluster-admin"] # default kubeconfig cluster-admin role keeps getting locked out from `watch` operations like `k9s`
+      webhooks:
+        - objectSelector:
+            matchExpressions:
+              - key: "kubernetes.io/hostname"
+                operator: "DoesNotExist"
     admissionController:
       replicas: 3
       priorityClassName: "system-node-critical"
       apiPriorityAndFairness: true
       hostNetwork: true
       dnsPolicy: "ClusterFirstWithHostNet"
-      tolerations: [operator: Exists]
-      webhooks:
-        - objectSelector:
-            matchExpressions:
-              - key: "kubernetes.io/hostname"
-                operator: "DoesNotExist"
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
       rbac:
         clusterRole:
           extraResources:
@@ -51,6 +55,10 @@ spec:
             matchLabels:
               app.kubernetes.io/instance: "kyverno"
               app.kubernetes.io/component: "kyverno"
+      container:
+        resources:
+          limits:
+            memory: 1Gi
     backgroundController:
       replicas: 2
       rbac:
