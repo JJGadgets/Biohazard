@@ -5,6 +5,7 @@ metadata:
   name: &app "kyverno"
   namespace: *app
 spec:
+  timeout: "30m"
   chart:
     spec:
       chart: *app
@@ -61,9 +62,12 @@ spec:
             - apiGroups: ["*"]
               resources: ["*"]
               verbs: ["*"]
-      cleanupController:
-        replicas: 2
-      reportsController:
-        replicas: 2
+    cleanupController:
+      replicas: 2
+    reportsController:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512Mi
     grafana:
       enabled: false
