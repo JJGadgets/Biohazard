@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: *app
-      version: "3.0.5"
+      version: "3.0.6"
       sourceRef:
         name: *app
         kind: HelmRepository
@@ -21,18 +21,18 @@ spec:
       ingress.home.arpa/host: "allow"
       ingress.home.arpa/apiserver: "allow"
       egress.home.arpa/apiserver: "allow"
-    backgroundController:
-      rbac:
-        clusterRole:
-          extraResources:
-            - apiGroups: [""]
-              resources: ["pods"]
-              verbs: ["create", "update", "patch", "delete", "get", "list"]
-            - apiGroups: ["*"]
-              resources: ["*"]
-              verbs: ["*"]
     admissionController:
       replicas: 3
+      priorityClassName: "system-node-critical"
+      apiPriorityAndFairness: true
+      hostNetwork: true
+      dnsPolicy: "ClusterFirstWithHostNet"
+      tolerations: [operator: Exists]
+      webhooks:
+        - objectSelector:
+            matchExpressions:
+              - key: "kubernetes.io/hostname"
+                operator: "DoesNotExist"
       rbac:
         clusterRole:
           extraResources:
@@ -45,8 +45,25 @@ spec:
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "ScheduleAnyway"
+          whenUnsatisfiable: "DoNotSchedule"
           labelSelector:
             matchLabels:
               app.kubernetes.io/instance: "kyverno"
               app.kubernetes.io/component: "kyverno"
+    backgroundController:
+      replicas: 2
+      rbac:
+        clusterRole:
+          extraResources:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["create", "update", "patch", "delete", "get", "list"]
+            - apiGroups: ["*"]
+              resources: ["*"]
+              verbs: ["*"]
+      cleanupController:
+        replicas: 2
+      reportsController:
+        replicas: 2
+    grafana:
+      enabled: false

@@ -6,4 +6,14 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://kyverno.github.io/kyverno/
+  type: oci
+  url: oci://ghcr.io/kyverno/charts/kyverno
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: kyverno-policy-reporter
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://kyverno.github.io/policy-reporter/
