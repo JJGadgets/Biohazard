@@ -2,15 +2,27 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: rook-ceph-cluster
+  name: "rook-ceph-cluster-${CLUSTER_NAME}"
   namespace: rook-ceph
 spec:
   interval: 5m
-  timeout: 15m
+  timeout: 1h
+  install:
+    createNamespace: true
+    remediation:
+      retries: 5
+  maxHistory: 5
+  uninstall:
+    deletionPropagation: background
+    keepHistory: false
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 5
   chart:
     spec:
       chart: rook-ceph-cluster
-      version: "${VERSION_ROOK:=v1.10.10}"
+      version: "v1.12.7"
       sourceRef:
         name: rook-ceph
         kind: HelmRepository
@@ -27,15 +39,25 @@ spec:
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
     cephClusterSpec:
+      placement:
+        mon: &affinity
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: rook
+                      operator: In
+                      values: ["true"]
+        mgr: *affinity
       network:
-        provider: host
+        #provider: host
         connections:
           encryption:
-            enabled: false
+            enabled: true
           compression:
-            enabled: false
+            enabled: true
       crashCollector:
-        disable: false
+        disable: true
       dashboard:
         enabled: true
         urlPrefix: "/"
@@ -56,15 +78,13 @@ spec:
         useAllNodes: false
         useAllDevices: false
         config:
-          # encryptedDevice: "true"
+          encryptedDevice: "true"
           osdsPerDevice: "1"
         nodes:
-          - name: "humming"
-            devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
-          - name: "blackfish"
-            devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
-          # - name: "strato"
-          #   devicePathFilter: "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
+          - name: "ange"
+            devicePathFilter: &osd-s3500-1-6tb "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
+          - name: "charlotte"
+            devicePathFilter: *osd-s3500-1-6tb
       resources:
         mgr:
           requests:
@@ -129,19 +149,18 @@ spec:
             size: 2
           parameters:
             min_size: "2"
-            # compression_mode: "aggressive"
-            # compression_algorithm: "zstd"
+            compression_mode: "aggressive"
+            compression_algorithm: "zstd"
         storageClass: &rbd-sc
           enabled: true
           name: "block"
           isDefault: true
           reclaimPolicy: "Retain"
           allowVolumeExpansion: true
-          # mountOptions: ["discard"]
+          mountOptions: ["discard"]
           parameters:
             imageFormat: "2"
-            imageFeatures: "layering"
-            # imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
+            imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
             csi.storage.k8s.io/provisioner-secret-name: "rook-csi-rbd-provisioner"
             csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-rbd-provisioner"
@@ -149,6 +168,35 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+      # - name: "pvc-migrate"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "ssd"
+      #     replicated:
+      #       # size: 3
+      #       size: 2
+      #     parameters:
+      #       min_size: "2"
+      #       # compression_mode: "aggressive"
+      #       # compression_algorithm: "zstd"
+      #   storageClass: &rbd-sc
+      #     enabled: true
+      #     name: "pvc-migrate"
+      #     isDefault: false
+      #     reclaimPolicy: "Retain"
+      #     allowVolumeExpansion: true
+      #     mountOptions: ["discard"]
+      #     parameters:
+      #       imageFormat: "2"
+      #       imageFeatures: "layering"
+      #       # imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
+      #       csi.storage.k8s.io/provisioner-secret-name: "rook-csi-rbd-provisioner"
+      #       csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-rbd-provisioner"
+      #       csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
+      #       csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
+      #       csi.storage.k8s.io/fstype: "ext4"
       # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
       #   spec:
       #     failureDomain: "osd"
@@ -177,9 +225,22 @@ spec:
       #   storageClass:
       #     <<: *rbd-sc
       #     name: "block-hdd-ec-2-2"
+      # - name: "games-ec-2-1"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "ssd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 1
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "lz4"
+      #   storageClass:
+      #     enabled: false # only my gaming PC will be accessing this
     cephBlockPoolsVolumeSnapshotClass:
-      enabled: false
-      name: "ceph-block"
+      enabled: true
+      name: "block"
       isDefault: true
       deletionPolicy: "Delete"
     cephFileSystems:
@@ -202,6 +263,7 @@ spec:
           metadataServer:
             activeCount: 1
             activeStandby: true
+            placement: *affinity
             resources:
               requests:
                 cpu: 1000m
@@ -214,7 +276,7 @@ spec:
           name: "file"
           pool: *fsdata0
           reclaimPolicy: "Retain"
-          # allowVolumeExpansion: true
+          allowVolumeExpansion: true
           # mountOptions: ["discard"]
           parameters:
             csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
@@ -225,8 +287,8 @@ spec:
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
     cephFileSystemVolumeSnapshotClass:
-      enabled: false
-      name: "ceph-fs"
+      enabled: true
+      name: "file"
       isDefault: false
       deletionPolicy: Delete
     cephObjectStores:
