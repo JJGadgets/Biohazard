@@ -12,6 +12,10 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    - fromEntities:
+        - "host"
+        - "remote-node"
+        - "kube-apiserver"
   egress:
     # same namespace
     - toEndpoints:
@@ -19,8 +23,8 @@ spec:
             io.kubernetes.pod.namespace: *app
     # hostNet Ceph cluster
     - toEntities:
-      - host
-      - remote-node
+        - "host"
+        - "remote-node"
       toPorts:
         - ports:
             - port: "3300"

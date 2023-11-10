@@ -327,7 +327,7 @@ spec:
                 - *rgw-host
         storageClass:
           enabled: true
-          name: *rgw
+          name: "rgw-${CLUSTER_NAME}"
           reclaimPolicy: "Retain"
           volumeBindingMode: "Immediate"
           parameters:
