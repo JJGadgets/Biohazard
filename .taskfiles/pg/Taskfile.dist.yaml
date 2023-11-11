@@ -50,7 +50,9 @@ tasks:
       DBUSER:
         sh: |-
           [[ -n "{{.DBUSER}}" ]] && echo "{{.DBUSER}}" || [[ -n "{{.APP}}" ]] && echo "{{.APP}}" || ( echo "Missing `USER` environment variable for specifying user name!" && exit 1 )
-      ARGS: '{{ .ARGS | default "--verbose --verbose --format=c --clean --if-exists --no-owner --role $DBUSER" }}' # TODO: personal defaults, please check and change accordingly if copying this task before running it!
+      ARGS: # TODO: (for other users) these are my personal defaults, please check and change accordingly if copying this task before running it!
+        sh: |-
+          [[ -n "{{.ARGS}}" ]] && echo "{{.ARGS}}" || echo "--verbose --format=c --clean --if-exists --no-owner --role {{.DBUSER}}"
       CRUNCHY_PRIMARY:
         sh: |-
           kubectl get pods -n {{.NS}} -l postgres-operator.crunchydata.com/role=master,postgres-operator.crunchydata.com/cluster={{.PG}} -o jsonpath='{.items[0].metadata.name}'
