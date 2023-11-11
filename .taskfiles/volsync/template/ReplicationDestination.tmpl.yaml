@@ -1,0 +1,19 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: "${PVC}-${TIMENOW}"
+  namespace: "${NS}"
+spec:
+  trigger:
+    manual: "restore-once-${TIMENOW}"
+  restic:
+    repository: "${REPO}"
+    destinationPVC: "${PVC}"
+    copyMethod: Direct
+    storageClassName: "${SC}"
+    moverSecurityContext:
+      runAsUser: ${RUID}
+      runAsGroup: ${RGID}
+      fsGroup: ${RFSG}
+      

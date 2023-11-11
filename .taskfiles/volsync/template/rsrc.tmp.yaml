@@ -1,0 +1,27 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  labels:
+    kustomize.toolkit.fluxcd.io/name: minecraft-app
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: minecraft-restic
+  namespace: minecraft
+spec:
+  restic:
+    cacheCapacity: 2Gi
+    copyMethod: Snapshot
+    moverSecurityContext:
+      fsGroup: 25565
+      runAsGroup: 25565
+      runAsUser: 25565
+    pruneIntervalDays: 14
+    repository: minecraft-restic
+    retain:
+      daily: 14
+      within: 7d
+    storageClassName: block
+    volumeSnapshotClassName: block
+  sourcePVC: data-minecraft-0
+  trigger:
+    manual: before-move-to-bare-metal
+    schedule: 0 6 * * *

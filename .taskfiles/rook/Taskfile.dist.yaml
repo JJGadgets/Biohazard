@@ -71,10 +71,10 @@ tasks:
     cmds:
       # TODO: mimic deviceFilter
       - envsubst < <(cat {{.JOB_TEMPLATE}}) | kubectl apply -f -
-      - |- 
+      - |-
         kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true;
-        until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do 
-          echo "Job {{.JOB_NAME}} is still running, logs:" && 
+        until kubectl -n kube-system wait job/{{.JOB_NAME}} --for condition=complete --timeout=2s; do
+          echo "Job {{.JOB_NAME}} is still running, logs:" &&
           kubectl -n kube-system logs job/{{.JOB_NAME}} -f || true;
         done;
       # - kubectl -n kube-system logs job/{{.JOB_NAME}}
@@ -122,6 +122,19 @@ tasks:
         vars:
           NODE: '{{.NODE}}'
 
+  wipe-nodes-biohazard:
+    desc: Wipe all nodes in cluster "nuclear"
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    cmds:
+      - task: wipe-node
+        vars:
+          NODE: "ange"
+          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202L91P6HGN"
+      - task: wipe-node
+        vars:
+          NODE: "charlotte"
+          CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202JK1P6HGN" # I swear I'll forget to update this here when I have to change the disk
+
   wipe-nodes-nuclear:
     desc: Wipe all nodes in cluster "nuclear"
     dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
@@ -134,6 +147,23 @@ tasks:
         vars:
           NODE: "humming"
           CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202L91P6HGN"
+
+  force-delete-cluster:
+    desc: |-
+      Sometimes Rook seems to fail applying the cluster and want to delete it before it even gets anything set up, this Task will force delete all finalizers to delete all unready Ceph resources.
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    vars:
+      C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
+    cmds:
+      - helm uninstall -n rook-ceph rook-ceph-cluster-{{.C}} && true || true
+      - |-
+        for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
+            kubectl get -n rook-ceph "$CRD" -o name | \
+            xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+        done
+      - |-
+        kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+        kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}' && true || true
 
   reinstall:
     desc: |-
@@ -149,23 +179,17 @@ tasks:
           C: '{{.C}}'
       - flux suspend ks 0-{{.C}}-config
       - flux suspend ks 1-core-storage-rook-ceph-app
-      - flux suspend ks 1-core-storage-rook-ceph-cluster
-      - helm uninstall -n rook-ceph rook-ceph-cluster && true || true
-      - flux delete hr -n rook-ceph rook-ceph-cluster --silent && true || true
-      - |-
-        for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
-            kubectl get -n rook-ceph "$CRD" -o name | \
-            xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}' && true || true
-        done
-      - |-
-        kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}' && true || true
-        kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}' && true || true
+      - flux suspend ks 1-core-storage-rook-ceph-cluster-{{.C}}
+      - task: force-delete-cluster
+        vars:
+          C: '{{.C}}'
+      # - flux delete hr -n rook-ceph rook-ceph-cluster-{{.C}} --silent && true || true
       - helm uninstall -n rook-ceph rook-ceph && true || true
-      - flux delete hr -n rook-ceph rook-ceph --silent && true || true
+      # - flux delete hr -n rook-ceph rook-ceph --silent && true || true
       - kubectl get namespaces rook-ceph && until kubectl delete namespaces rook-ceph; do kubectl get namespaces rook-ceph -o jsonpath="{.status}"; done || true
       - task: wipe-nodes-{{.C}}
       # - task: wipe-nodes-{{.C}} # run again in case wipe fails
       - flux suspend ks 0-{{.C}}-config && flux resume ks 0-{{.C}}-config
       - flux suspend ks 1-core-storage-rook-ceph-app && flux resume ks 1-core-storage-rook-ceph-app
-      - flux suspend ks 1-core-storage-rook-ceph-cluster && flux resume ks 1-core-storage-rook-ceph-cluster
+      - flux suspend ks 1-core-storage-rook-ceph-cluster-{{.C}} && flux resume ks 1-core-storage-rook-ceph-cluster-{{.C}}
       # - task: osd-prepare-logs # uncomment to debug OSD prepare errors with while true loop, since the job re-runs 6 times and overwrites the previous runs' logs

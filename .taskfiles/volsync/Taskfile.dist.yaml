@@ -1,18 +1,127 @@
 ---
 version: "3"
 
+vars:
+  TIMENOW:
+    sh: date +%Y%m%d-%H%M%S
+
+includes:
+  k8s:
+    internal: true
+    taskfile: ../k8s
+
 tasks:
   unlock:
     desc: Unlock Restic repo using env vars from cluster secrets.
     vars:
-      ns: '{{ or .ns (fail "Missing `ns` environment variable!") }}'
-      repo: '{{ or .repo (fail "Missing `repo` environment variable!") }}'
+      NS: &ns-fail '{{ or .NS (fail "Missing `NS` environment variable!") }}'
+      REPO: &restic-repo '{{ or .REPO (fail "Missing `REPO` environment variable!") }}'
     cmds:
-      - env $(kubectl get secrets -n {{.ns}} {{.repo}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic unlock
+      - env $(kubectl get secrets -n {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic unlock --remove-all
   run:
     desc: Unlock Restic repo using env vars from cluster secrets.
     vars:
-      ns: '{{ or .ns (fail "Missing `ns` environment variable!") }}'
-      repo: '{{ or .repo (fail "Missing `repo` environment variable!") }}'
+      NS: *ns-fail
+      REPO: *restic-repo
     cmds:
-      - env $(kubectl get secrets -n {{.ns}} {{.repo}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}
+      - env $(kubectl get secrets -n {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic {{.CLI_ARGS}}
+  restore:
+    desc: Restore VolSync data into PVCs
+    dir: "/{{.ROOT_DIR}}/.taskfiles/volsync/template"
+    vars: &restore-vars
+      # APP: '{{ or .APP (fail "Missing `APP` environment variable!") }}'
+      NS:
+        sh: |-
+          [[ -n "{{.RSRC}}" ]] && echo "{{.RSRC}}" || [[ -n "{{.APP}}" ]] && echo "{{.APP}}" || ( echo "Missing NS or APP environment variable for Namespace!"; exit 1 )
+      # RSRC: '{{ or .RSRC (fail "Missing `RSRC` environment variable!") }}'
+      RSRC:
+        sh: |-
+          [[ -n "{{.RSRC}}" ]] && echo "{{.RSRC}}" || [[ -n "{{.APP}}" ]] && echo "{{.APP}}-restic" || ( echo "Missing RSRC or APP environment variable for VolSync ReplicationSource!"; exit 1 )
+      REPO:
+        sh: |-
+          [[ -n "{{.REPO}}" ]] && echo "{{.REPO}}" || kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.spec.restic.repository}'
+      KS:
+        sh: |-
+          [[ -n "{{.KS}}" ]] && echo "{{.KS}}" || kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.metadata.labels.kustomize\.toolkit\.fluxcd\.io/name}'
+      PVC:
+        sh: |-
+          [[ -n "{{.PVC}}" ]] && echo "{{.PVC}}" || kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.spec.sourcePVC}'
+      SC:
+        sh: |-
+          [[ -n "{{.SC}}" ]] && echo "{{.SC}}" || kubectl get pvc -n {{.NS}} {{.PVC}} -o jsonpath='{.spec.storageClassName}'
+      APP:
+        sh: |-
+          [[ -n "{{.APP}}" ]] && echo "{{.APP}}" || kubectl get pvc -n {{.NS}} {{.PVC}} -o jsonpath="{.metadata.labels.app\.kubernetes\.io/name}"
+      CTRL:
+        sh: |-
+          ( [[ -n "{{.CTRL}}" && -n "{{.APP}}" ]] && echo "{{.CTRL}}/{{.APP}}" ) || ( [[ -z "{{.CTRL}}" ]] && kubectl get -n {{.NS}} deployments.apps/{{.APP}} 2>&1 2>/dev/null && echo "deployments.apps/{{.APP}}" || echo "statefulsets.apps/{{.APP}}" )
+      RESTORE:
+        sh: |-
+          [[ -n "{{.PREV}}" ]] && echo "{{.PREV}}" || [[ -n "{{.ASOF}}" ]] && echo "{{.ASOF}}" || ( echo "Missing PREV or ASOF environment variable to select snapshot to restore!"; exit 1 )
+      RSRCDEL: '{{ .RSRCDEL | default "true" }}'
+      RUID:
+        sh: |-
+          kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.spec.restic.moverSecurityContext.runAsUser}'
+      RGID:
+        sh: |-
+          kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.spec.restic.moverSecurityContext.runAsGroup}'
+      RFSG:
+        sh: |-
+          kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o jsonpath='{.spec.restic.moverSecurityContext.fsGroup}'
+      RSRCYAML:
+        sh: |-
+          kubectl get replicationsource -n {{.NS}} {{.RSRC}} -o yaml | yq 'del(.metadata["uid", "resourceVersion", "creationTimestamp", "generation"],.status,.metadata.annotations."kubectl.kubernetes.io/last-applied-configuration")' | tee ./rsrc.tmp.yaml
+      STSDEL: '{{ .STSDEL | default "false" }}' # delete StatefulSet PVC before recreating
+      STSREC: '{{ .STSREC | default "false" }}' # scale up and down StatefulSet to create PVC
+    env: # pass Task vars as env vars, can't anchor vars to env as values will be duplicated
+      NS: '{{.NS}}'
+      RSRC: '{{.RSRC}}'
+      REPO: '{{.REPO}}'
+      KS: '{{.KS}}'
+      PVC: '{{.PVC}}'
+      SC: '{{.SC}}'
+      APP: '{{.APP}}'
+      CTRL: '{{.CTRL}}'
+      RESTORE: '{{.RESTORE}}'
+      TIMENOW: '{{.TIMENOW}}'
+      RUID: '{{.RUID}}'
+      RGID: '{{.RGID}}'
+      RFSG: '{{.RFSG}}'
+      STSDEL: '{{.STSDEL}}'
+      STSREC: '{{.STSREC}}' # StatefulSet recreate PVC by scaling up and down # TODO: currently assumes 1 replica and 1 VCT PVC
+      # RSRCYAML: '{{.RSRCYAML}}'
+    cmds:
+      # - echo ${RDESTYAML}
+      # - echo ${RSRCYAML}
+      - |- # if true, delete StatefulSet PVC
+        [[ "{{.STSDEL}}" == "true" ]] && kubectl delete pvc -n {{.NS}} {{.PVC}}
+      - |- # if not false, scale up and down StatefulSet to recreate PVC
+        [[ "{{.STSREC}}" != "false" ]] && kubectl patch -n {{.NS}} {{.CTRL}} --type merge -p '{"spec":{"template":{"spec":{"nodeSelector":{"recreate-sts-pvc.volsync.home.arpa":"$TIMENOW"}}}}}' && kubectl scale -n {{.NS}} {{.CTRL}} --replicas 1 && kubectl scale -n {{.NS}} {{.CTRL}} --replicas 0 && until kubectl wait --for=jsonpath='{.status.phase}'=Bound -n {{.NS}} pvc/{{.PVC}}; do sleep 1; done && kubectl patch -n {{.NS}} {{.CTRL}} --type=json -p='[{"op": "remove", "path": "/spec/template/spec/nodeSelector/recreate-sts-pvc.volsync.home.arpa"}]'
+      - echo "{{.RSRCYAML}}"
+      - echo ${RSRC} ${NS} ${REPO} ${KS} ${PVC} ${SC} ${APP} ${CTRL} ${RESTORE}
+      - |-
+        [[ "{{.RSRCDEL}}" != "false" ]] && echo "{{.RSRCYAML}}" | yq | kubectl delete -f -
+      #  [[ "{{.RSRCDEL}}" != "false" ]] && kubectl delete -f ./rsrc.tmp.yaml
+      - task: k8s:scale-to-0
+        vars:
+          <<: *restore-vars
+          REASON: 'volsync-restore-{{.RSRC}}-{{.PVC}}-{{.TIMENOW}}'
+      - cat ./wipe-pvc.tmpl.yaml | envsubst | kubectl apply -f -
+      - task: k8s:wait-finish
+        vars:
+          NAME: 'wipe-{{.PVC}}-{{.TIMENOW}}'
+          NS: '{{.NS}}'
+      - |-
+        cat ./ReplicationDestination.tmpl.yaml | envsubst | ( [[ -n "{{.PREV}}" ]] && yq '.spec.restic.previous = {{.PREV}}' || [[ -n "{{.ASOF}}" ]] && yq '.spec.restic.restoreAsOf = "{{.ASOF}}"' || exit 1 ) | kubectl apply -f -
+      - task: k8s:wait-finish
+        vars:
+          NAME: 'volsync-dst-{{.PVC}}-{{.TIMENOW}}'
+          NS: '{{.NS}}'
+      - cat ./ReplicationDestination.tmpl.yaml | envsubst | kubectl delete -f -
+      - task: k8s:scale-back-up
+        vars:
+          <<: *restore-vars
+      - defer: |-
+          [[ "{{.RSRCDEL}}" != "false" ]] && echo "{{.RSRCYAML}}" | yq | kubectl apply -f -
+        #  [[ "{{.RSRCDEL}}" != "false" ]] && kubectl apply -f ./rsrc.tmp.yaml
+      - defer: rm ./rsrc.tmp.yaml
