@@ -38,13 +38,13 @@ spec:
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationDestination
 metadata:
-  name: "jellyfin-bootstrap"
-  namespace: "jellyfin"
+  name: "audiobookshelf-bootstrap"
+  namespace: "audiobookshelf"
 spec:
   trigger:
     manual: "restore-once-bootstrap"
   restic:
-    repository: "jellyfin-restic"
+    repository: "audiobookshelf-restic"
     copyMethod: "Snapshot"
     volumeSnapshotClassName: "file"
     storageClassName: "file"
