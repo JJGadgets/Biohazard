@@ -2,31 +2,31 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: audiobookshelf-config-restic
-  namespace: audiobookshelf
+  name: "audiobookshelf-config-restic"
+  namespace: "audiobookshelf"
 type: Opaque
 stringData:
-  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/audiobookshelf/config
-  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
-  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
-  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+  RESTIC_REPOSITORY: "${SECRET_VOLSYNC_R2_REPO}/audiobookshelf/config"
+  RESTIC_PASSWORD: "${SECRET_VOLSYNC_PASSWORD}"
+  AWS_ACCESS_KEY_ID: "${SECRET_VOLSYNC_R2_ID}"
+  AWS_SECRET_ACCESS_KEY: "${SECRET_VOLSYNC_R2_KEY}"
 ---
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: audiobookshelf-config-restic
-  namespace: audiobookshelf
+  name: "audiobookshelf-config-restic"
+  namespace: "audiobookshelf"
 spec:
-  sourcePVC: config-audiobookshelf-0
+  sourcePVC: "audiobookshelf-config"
   trigger:
     schedule: "0 6 * * *"
   restic:
-    copyMethod: Snapshot
+    copyMethod: "Snapshot"
     pruneIntervalDays: 14
-    repository: audiobookshelf-config-restic
-    cacheCapacity: 2Gi
-    volumeSnapshotClassName: block
-    storageClassName: block
+    repository: "audiobookshelf-config-restic"
+    cacheCapacity: "2Gi"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
     moverSecurityContext:
       runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF}
       runAsGroup: *uid
@@ -34,3 +34,23 @@ spec:
     retain:
       daily: 14
       within: 7d
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: "jellyfin-bootstrap"
+  namespace: "jellyfin"
+spec:
+  trigger:
+    manual: "restore-once-bootstrap"
+  restic:
+    repository: "jellyfin-restic"
+    copyMethod: "Snapshot"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
+    capacity: "50Gi"
+    accessModes: ["ReadWriteMany"]
+    moverSecurityContext:
+      runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF}
+      runAsGroup: *uid
+      fsGroup: *uid

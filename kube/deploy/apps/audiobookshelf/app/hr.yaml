@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.0.2
+      version: 2.2.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -16,7 +16,7 @@ spec:
   values:
     controllers:
       main:
-        type: statefulset
+        type: deployment
         replicas: 1
         pod:
           labels:
@@ -38,14 +38,6 @@ spec:
                 memory: 128Mi
               limits:
                 memory: 6000Mi
-        statefulset:
-          volumeClaimTemplates:
-            - name: config
-              mountPath: *config
-              accessMode: ReadWriteOnce
-              size: 20Gi
-              storageClass: block
-        # initContainers:
     service:
       main:
         ports:
@@ -68,6 +60,13 @@ spec:
           - hosts:
               - *host
     persistence:
+      config:
+        enabled: true
+        existingClaim: "audiobookshelf-config"
+        advancedMounts:
+          main:
+            main:
+              - path: *config
       nfs:
         enabled: true
         type: nfs
