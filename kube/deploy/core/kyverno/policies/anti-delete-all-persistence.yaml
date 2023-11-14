@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: "anti-delete-all-persistence"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: "block-deletion"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Namespace", "v1/PersistentVolumeClaim", "v1/PersistentVolume", "postgresql.cnpg.io/*/Cluster", "postgres-operator.crunchydata.com/*/PostgresCluster"]
+              operations: ["DELETE"]
+      validate:
+        deny: {}
+        message: |
+          The {{ request.object.apiVersion }}/{{ request.object.kind }}
+          resource {{ request.object.metadata.name }}
+          in namespace {{ request.object.metadata.namespace }} cannot be deleted.
+          Add this label to confirm this resource's deletion:
+          `kyverno.home.arpa/delete=CONFIRM-DELETE`
