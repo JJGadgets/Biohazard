@@ -5,20 +5,7 @@ metadata:
   name: "rook-ceph-cluster-${CLUSTER_NAME}"
   namespace: rook-ceph
 spec:
-  interval: 5m
   timeout: 1h
-  install:
-    createNamespace: true
-    remediation:
-      retries: 5
-  maxHistory: 5
-  uninstall:
-    deletionPropagation: background
-    keepHistory: false
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 5
   chart:
     spec:
       chart: rook-ceph-cluster
@@ -35,20 +22,10 @@ spec:
       bdev_enable_discard = true
       bdev_async_discard = true
       osd_class_update_on_start = false
-      osd_pool_default_size = 2
+      osd_pool_default_size = 3
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
     cephClusterSpec:
-      placement:
-        mon: &affinity
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: rook
-                      operator: In
-                      values: ["true"]
-        mgr: *affinity
       network:
         #provider: host
         connections:
@@ -63,12 +40,10 @@ spec:
         urlPrefix: "/"
         ssl: false
       mon:
-        # count: 3
-        count: 1
+        count: 3
         allowMultiplePerNode: false
       mgr:
-        # count: 2
-        count: 1
+        count: 2
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"
@@ -84,6 +59,8 @@ spec:
           - name: "ange"
             devicePathFilter: &osd-s3500-1-6tb "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
           - name: "charlotte"
+            devicePathFilter: *osd-s3500-1-6tb
+          - name: "chise"
             devicePathFilter: *osd-s3500-1-6tb
       resources:
         mgr:
@@ -105,7 +82,7 @@ spec:
             cpu: "500m"
             memory: "3Gi"
           limits:
-            cpu: "999999m"
+            cpu: "999999m" 
             memory: "10Gi"
         mgr-sidecar:
           requests:
@@ -142,11 +119,10 @@ spec:
     cephBlockPools:
       - name: "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
-          failureDomain: "osd"
+          failureDomain: "host"
           deviceClass: "ssd"
           replicated:
-            # size: 3
-            size: 2
+            size: 3
           parameters:
             min_size: "2"
             compression_mode: "aggressive"
@@ -155,7 +131,7 @@ spec:
           enabled: true
           name: "block"
           isDefault: true
-          reclaimPolicy: "Retain"
+          reclaimPolicy: "Delete"
           allowVolumeExpansion: true
           mountOptions: ["discard"]
           parameters:
@@ -168,49 +144,20 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
-      # - name: "pvc-migrate"
-      #   spec:
-      #     failureDomain: "osd"
-      #     deviceClass: "ssd"
-      #     replicated:
-      #       # size: 3
-      #       size: 2
-      #     parameters:
-      #       min_size: "2"
-      #       # compression_mode: "aggressive"
-      #       # compression_algorithm: "zstd"
-      #   storageClass: &rbd-sc
-      #     enabled: true
-      #     name: "pvc-migrate"
-      #     isDefault: false
-      #     reclaimPolicy: "Retain"
-      #     allowVolumeExpansion: true
-      #     mountOptions: ["discard"]
-      #     parameters:
-      #       imageFormat: "2"
-      #       imageFeatures: "layering"
-      #       # imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
-      #       csi.storage.k8s.io/provisioner-secret-name: "rook-csi-rbd-provisioner"
-      #       csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-rbd-provisioner"
-      #       csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
-      #       csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
-      #       csi.storage.k8s.io/fstype: "ext4"
-      # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
-      #   spec:
-      #     failureDomain: "osd"
-      #     deviceClass: "ssd"
-      #     erasureCoded:
-      #       dataChunks: 2
-      #       codingChunks: 1
-      #     parameters:
-      #       min_size: "2"
-      #       compression_mode: "aggressive"
-      #       compression_algorithm: "zstd"
-      #   storageClass:
-      #     <<: *rbd-sc
-      #     name: "block-ssd-ec-2-1"
+      - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
+        spec:
+          failureDomain: "osd"
+          deviceClass: "ssd"
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            min_size: "2"
+            compression_mode: "aggressive"
+            compression_algorithm: "zstd"
+        storageClass:
+          <<: *rbd-sc
+          name: "block-ssd-ec-2-1"
       # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
       #   spec:
       #     failureDomain: "osd"
@@ -225,19 +172,19 @@ spec:
       #   storageClass:
       #     <<: *rbd-sc
       #     name: "block-hdd-ec-2-2"
-      # - name: "games-ec-2-1"
-      #   spec:
-      #     failureDomain: "osd"
-      #     deviceClass: "ssd"
-      #     erasureCoded:
-      #       dataChunks: 2
-      #       codingChunks: 1
-      #     parameters:
-      #       min_size: "2"
-      #       compression_mode: "aggressive"
-      #       compression_algorithm: "lz4"
-      #   storageClass:
-      #     enabled: false # only my gaming PC will be accessing this
+      - name: "games-ec-2-1"
+        spec:
+          failureDomain: "osd"
+          deviceClass: "ssd"
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            min_size: "2"
+            compression_mode: "aggressive"
+            compression_algorithm: "lz4"
+        storageClass:
+          enabled: false # only my gaming PC will be accessing this
     cephBlockPoolsVolumeSnapshotClass:
       enabled: true
       name: "block"
@@ -249,21 +196,18 @@ spec:
           preserveFilesystemOnDelete: true
           metadataPool:
             replicated:
-              # size: 3
-              size: 2
+              size: 3
           dataPools:
             - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
-              failureDomain: "osd"
+              failureDomain: "host"
               replicated:
-                # size: 3
-                size: 2
+                size: 3
               parameters:
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
           metadataServer:
-            activeCount: 1
+            activeCount: 2
             activeStandby: true
-            placement: *affinity
             resources:
               requests:
                 cpu: 1000m
@@ -275,7 +219,7 @@ spec:
           isDefault: false
           name: "file"
           pool: *fsdata0
-          reclaimPolicy: "Retain"
+          reclaimPolicy: "Delete"
           allowVolumeExpansion: true
           # mountOptions: ["discard"]
           parameters:
@@ -298,11 +242,11 @@ spec:
           metadataPool:
             failureDomain: "host"
             replicated:
-              size: 2
+              size: 3
           dataPool:
             failureDomain: "host"
             replicated:
-              size: 2
+              size: 3
           healthCheck:
             bucket:
               interval: "60s"
@@ -323,12 +267,11 @@ spec:
             name: &rgw-host "${APP_DNS_RGW_S3}"
             path: "/"
           tls:
-            - hosts:
-                - *rgw-host
+            - hosts: [*rgw-host]
         storageClass:
           enabled: true
           name: "rgw-${CLUSTER_NAME}"
-          reclaimPolicy: "Retain"
+          reclaimPolicy: "Delete"
           volumeBindingMode: "Immediate"
           parameters:
             region: "us-east-1"
