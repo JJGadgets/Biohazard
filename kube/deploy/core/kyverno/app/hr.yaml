@@ -33,7 +33,7 @@ spec:
                 operator: "DoesNotExist"
               - key: "kubernetes.io/bootstrapping"
                 operator: "NotIn"
-                value: "rbac-defaults"
+                values: ["rbac-defaults"]
     admissionController:
       replicas: 3
       priorityClassName: "system-node-critical"
