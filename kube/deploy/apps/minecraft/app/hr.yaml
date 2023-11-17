@@ -16,7 +16,7 @@ spec:
   values:
     controllers:
       main:
-        type: statefulset
+        type: "deployment"
         replicas: 1
         pod:
           labels:
@@ -58,7 +58,7 @@ spec:
                 better-combat:Z6wHaEla
                 dual-swords:7KDebPb5
               DISABLED_MODS: |- # this is for my reference
-                servercore:exA4UxFq
+                servercore:exA4UxFq # disabled due to the 1.20.1 Fabric version causing mixin launch errors
                 tick-stasis # disabled due to kube-probe never succeeding from paused server, have to check if timeout config exists
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
@@ -121,15 +121,6 @@ spec:
               capabilities:
                 drop: ["ALL"]
                 add: ["NET_RAW"]
-        statefulset:
-          volumeClaimTemplates:
-            - name: data
-              accessMode: ReadWriteOnce
-              size: 20Gi
-              storageClass: block
-              globalMounts:
-                - path: "/data"
-                  readOnly: false
     service:
       main:
         enabled: true
@@ -159,6 +150,12 @@ spec:
         seccompProfile: {type: "RuntimeDefault"}
         fsGroupChangePolicy: "Always"
     persistence:
+      data:
+        enabled: true
+        existingClaim: "minecraft-data"
+        globalMounts:
+          - path: "/data"
+            readOnly: false
       tmp:
         enabled: true
         type: emptyDir

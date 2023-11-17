@@ -2,31 +2,31 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: jellyfin-restic
-  namespace: jellyfin
+  name: "jellyfin-data-restic"
+  namespace: "jellyfin"
 type: Opaque
 stringData:
-  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/jellyfin
-  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
-  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
-  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+  RESTIC_REPOSITORY: "${SECRET_VOLSYNC_R2_REPO}/jellyfin"
+  RESTIC_PASSWORD: "${SECRET_VOLSYNC_PASSWORD}"
+  AWS_ACCESS_KEY_ID: "${SECRET_VOLSYNC_R2_ID}"
+  AWS_SECRET_ACCESS_KEY: "${SECRET_VOLSYNC_R2_KEY}"
 ---
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: jellyfin-restic
-  namespace: jellyfin
+  name: "jellyfin-data-restic"
+  namespace: "jellyfin"
 spec:
-  sourcePVC: config-jellyfin-0
+  sourcePVC: "jellyfin-data"
   trigger:
     schedule: "0 6 * * *"
   restic:
-    copyMethod: Snapshot
+    copyMethod: "Snapshot"
     pruneIntervalDays: 14
-    repository: jellyfin-restic
-    cacheCapacity: 2Gi
-    volumeSnapshotClassName: block
-    storageClassName: block
+    repository: "jellyfin-data-restic"
+    cacheCapacity: "2Gi"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
     moverSecurityContext:
       runAsUser: 568
       runAsGroup: 568
@@ -34,3 +34,23 @@ spec:
     retain:
       daily: 14
       within: 7d
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: "jellyfin-bootstrap"
+  namespace: "jellyfin"
+spec:
+  trigger:
+    manual: "restore-once-bootstrap"
+  restic:
+    repository: "jellyfin-data-restic"
+    copyMethod: "Snapshot"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
+    capacity: "50Gi"
+    accessModes: ["ReadWriteMany"]
+    moverSecurityContext:
+      runAsUser: 568
+      runAsGroup: 568
+      fsGroup: 568

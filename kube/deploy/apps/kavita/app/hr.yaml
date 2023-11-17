@@ -16,7 +16,8 @@ spec:
   values:
     automountServiceAccountToken: false
     controller:
-      type: statefulset
+      type: "deployment"
+      replicas: 1
     image:
       repository: kizaing/kavita
       tag: 0.7.1
@@ -40,23 +41,28 @@ spec:
         tls:
           - hosts:
               - *host
-    volumeClaimTemplates:
-      - name: config
-        mountPath: /kavita/config
-        accessMode: ReadWriteOnce
-        size: 50Gi
-        storageClass: block
     persistence:
+      config:
+        enabled: true
+        existingClaim: "kavita-config"
+        mountPath: "/kavita/config"
       media:
         enabled: true
-        existingClaim: kavita-nas-media
-        mountPath: /media
+        type: "nfs"
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_MEDIA}"
+        mountPath: "/media"
         readOnly: true
       backups:
         enabled: true
-        existingClaim: kavita-nas-backups
-        mountPath: /kavita/config/backups
+        type: "nfs"
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_BACKUPS_K8S}/kavita"
+        mountPath: "/kavita/config/backups"
     resources:
       requests:
-        cpu: 20m
-        memory: 100Mi
+        cpu: "20m"
+        memory: "250Mi"
+      limits:
+        cpu: "3000m"
+        memory: "1Gi"

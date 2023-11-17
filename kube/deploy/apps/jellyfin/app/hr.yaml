@@ -20,8 +20,10 @@ spec:
       egress.home.arpa/world-https: "allow"
       egress.home.arpa/dlna: "allow"
       authentik.home.arpa/ldap: "allow"
+      egress.home.arpa/r2: "allow"
     controller:
-      type: statefulset
+      type: "deployment"
+      replicas: 1
     image:
       repository: ghcr.io/onedr0p/jellyfin
       tag: 10.8.9@sha256:01a6497a1290b73f63251aebe6d01327c15b3413c3e1013c2a396ffe116ced4d
@@ -55,20 +57,17 @@ spec:
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
       supplementalGroups: [44, 104, 109, 6969]
-    volumeClaimTemplates:
-      - name: config
-        mountPath: /config
-        accessMode: ReadWriteOnce
-        size: 50Gi
-        storageClass: block
     persistence:
+      data:
+        enabled: true
+        existingClaim: "jellyfin-data"
+        mountPath: "/config"
       media:
         enabled: true
-        type: nfs
+        type: "nfs"
         server: "${IP_TRUENAS}"
         path: "${PATH_NAS_MEDIA}"
-        # existingClaim: jellyfin-nas-media
-        mountPath: /media
+        mountPath: "/media"
         readOnly: true
       transcode:
         enabled: true
@@ -80,4 +79,5 @@ spec:
         cpu: 100m
         memory: 1000Mi
       limits:
+        cpu: 3000m
         memory: 6000Mi

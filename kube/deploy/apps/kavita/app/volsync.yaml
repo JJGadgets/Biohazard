@@ -2,31 +2,31 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: kavita-restic
-  namespace: kavita
+  name: "kavita-config-restic"
+  namespace: "kavita"
 type: Opaque
 stringData:
-  RESTIC_REPOSITORY: ${SECRET_VOLSYNC_R2_REPO}/kavita
-  RESTIC_PASSWORD: ${SECRET_VOLSYNC_PASSWORD}
-  AWS_ACCESS_KEY_ID: ${SECRET_VOLSYNC_R2_ID}
-  AWS_SECRET_ACCESS_KEY: ${SECRET_VOLSYNC_R2_KEY}
+  RESTIC_REPOSITORY: "${SECRET_VOLSYNC_R2_REPO}/kavita"
+  RESTIC_PASSWORD: "${SECRET_VOLSYNC_PASSWORD}"
+  AWS_ACCESS_KEY_ID: "${SECRET_VOLSYNC_R2_ID}"
+  AWS_SECRET_ACCESS_KEY: "${SECRET_VOLSYNC_R2_KEY}"
 ---
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: kavita-restic
-  namespace: kavita
+  name: "kavita-config-restic"
+  namespace: "kavita"
 spec:
-  sourcePVC: config-kavita-0
+  sourcePVC: "kavita-config"
   trigger:
     schedule: "0 6 * * *"
   restic:
-    copyMethod: Snapshot
+    copyMethod: "Snapshot"
     pruneIntervalDays: 14
-    repository: kavita-restic
-    cacheCapacity: 2Gi
-    volumeSnapshotClassName: block
-    storageClassName: block
+    repository: "kavita-config-restic"
+    cacheCapacity: "2Gi"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
     moverSecurityContext:
       runAsUser: 0
       runAsGroup: 0
@@ -34,3 +34,23 @@ spec:
     retain:
       daily: 14
       within: 7d
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: "kavita-config-bootstrap"
+  namespace: "kavita"
+spec:
+  trigger:
+    manual: "restore-once-bootstrap"
+  restic:
+    repository: "kavita-config-restic"
+    copyMethod: "Snapshot"
+    volumeSnapshotClassName: "file"
+    storageClassName: "file"
+    capacity: "10Gi"
+    accessModes: ["ReadWriteMany"]
+    moverSecurityContext:
+      runAsUser: &uid 0
+      runAsGroup: *uid
+      fsGroup: *uid
