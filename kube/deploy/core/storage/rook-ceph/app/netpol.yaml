@@ -15,7 +15,7 @@ spec:
     # external Ceph cluster
     - fromCIDRSet:
         - cidr: "${IP_PVE_CEPH_CIDR}"
-    # csi-addons
+    # csi-addons # TODO: improve by matching more specifically on ingress rook-ceph/rbdplugin side
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: "csi-addons-system"

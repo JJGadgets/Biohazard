@@ -39,6 +39,9 @@ spec:
         enabled: true
         urlPrefix: "/"
         ssl: false
+      labels:
+        mgr:
+          ingress.home.arpa/nginx: "allow"
       mon:
         count: 3
         allowMultiplePerNode: false
@@ -208,6 +211,14 @@ spec:
           metadataServer:
             activeCount: 1 # runs 2, which is min_size of 3 node cluster anyway
             activeStandby: true
+            placement:
+              topologySpreadConstraints:
+                - maxSkew: 1
+                  topologyKey: "kubernetes.io/hostname"
+                  whenUnsatisfiable: "DoNotSchedule"
+                  labelSelector:
+                    matchLabels:
+                      rook_file_system: *fs
             resources:
               requests:
                 cpu: 100m
