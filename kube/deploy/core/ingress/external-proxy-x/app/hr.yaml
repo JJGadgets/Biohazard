@@ -102,3 +102,10 @@ spec:
         server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni]) check check-sni str(external-proxy-x.${DNS_SHORT})
 # TODO: fix SSL verify
 # server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify required ca-file /tls/ca.pem
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

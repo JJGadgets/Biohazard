@@ -206,13 +206,14 @@ spec:
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
           metadataServer:
-            activeCount: 2
+            activeCount: 1 # runs 2, which is min_size of 3 node cluster anyway
             activeStandby: true
             resources:
               requests:
-                cpu: 1000m
+                cpu: 100m
                 memory: 4Gi
               limits:
+                cpu: 2000m # 2 cores
                 memory: 4Gi
         storageClass:
           enabled: true
