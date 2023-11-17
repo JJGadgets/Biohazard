@@ -32,7 +32,8 @@ spec:
       enableOBCs: true
     csi:
       enableCSIHostNetwork: true
-      enableCSIEncryption: true
+      # enableCSIEncryption: true
+      enableCSIEncryption: false # TODO: disable for now till needed, and key management is decided
       enableMetadata: true # I love my verbosity
       csiAddons: # for RBD NodeLoss failover
         enabled: true
