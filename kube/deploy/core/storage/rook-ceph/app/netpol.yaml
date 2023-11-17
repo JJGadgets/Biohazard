@@ -15,6 +15,10 @@ spec:
     # external Ceph cluster
     - fromCIDRSet:
         - cidr: "${IP_PVE_CEPH_CIDR}"
+    # csi-addons
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "csi-addons-system"
   egress:
     # same namespace
     - toEndpoints:

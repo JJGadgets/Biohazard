@@ -8,5 +8,14 @@ metadata:
 spec:
   endpointSelector: {}
   egress:
+    # allow access to apiserver
     - toEntities:
         - kube-apiserver
+    # allow access to Rook-Ceph's rbdplugin which has csi-addons listener
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "rook-ceph"
+            app: "csi-rbdplugin"
+      toPorts:
+        - ports:
+            - port: "9070"
