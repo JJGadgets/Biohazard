@@ -42,6 +42,9 @@ spec:
       # dnsPolicy: "ClusterFirstWithHostNet"
       metricsService:
         create: true
+      serviceMonitor:
+        enabled: true
+        interval: 5s
       tolerations:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
@@ -70,6 +73,8 @@ spec:
       replicas: 2
       metricsService:
         create: true
+      serviceMonitor:
+        enabled: true
       rbac:
         clusterRole:
           extraResources:
@@ -79,14 +84,29 @@ spec:
             - apiGroups: ["*"]
               resources: ["*"]
               verbs: ["*"]
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: "kyverno"
+              app.kubernetes.io/component: "admission-controllero"
+      resources:
+        limits:
+          memory: 512Mi
     cleanupController:
       replicas: 2
       metricsService:
         create: true
+      serviceMonitor:
+        enabled: true
     reportsController:
       replicas: 2
       metricsService:
         create: true
+      serviceMonitor:
+        enabled: true
       resources:
         limits:
           memory: 512Mi
