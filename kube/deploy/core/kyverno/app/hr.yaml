@@ -23,6 +23,7 @@ spec:
       ingress.home.arpa/apiserver: "allow"
       egress.home.arpa/apiserver: "allow"
       egress.home.arpa/host: "allow"
+      prom.home.arpa/kps: "allow"
     config:
       webhooks:
         - objectSelector:

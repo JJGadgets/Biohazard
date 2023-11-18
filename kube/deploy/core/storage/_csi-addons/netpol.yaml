@@ -19,3 +19,10 @@ spec:
       toPorts:
         - ports:
             - port: "9070"
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "rook-ceph"
+            app: "csi-rbdplugin-provisioner"
+      toPorts:
+        - ports:
+            - port: "9070"
