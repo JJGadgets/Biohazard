@@ -19,7 +19,7 @@ spec:
           egress.home.arpa/r2: "allow"
       replicas: ${PG_REPLICAS:=3}
       dataVolumeClaimSpec:
-        storageClassName: "${PG_SC:=block}"
+        storageClassName: "${PG_SC:=local}"
         accessModes: [ReadWriteOnce]
         resources:
           requests:
@@ -31,7 +31,7 @@ spec:
           labelSelector:
             matchLabels:
               postgres-operator.crunchydata.com/cluster: *name
-              postgres-operator.crunchydata.com/instance-set: *instance
+              postgres-operator.crunchydata.com/role: "pgbouncer"
   users:
     - name: "${PG_DB_USER:=app}"
       databases: ["${PG_DB_NAME:=app}"]
@@ -66,17 +66,19 @@ spec:
               resources:
                 requests:
                   storage: "1Mi" # doesn't matter with NFS
-          schedules:
-            full: "0 * * * *"
-            differential: "*/5 * * * *"
+          schedules: # more aggressive for NAS (over NFS)
+            full: "0 6 * * *" # everyday at 06:00
+            differential: "0 * * * *" # every hour
+            incremental: "*/5 * * * *" # every 5 minutes
         - name: "repo2" # Cloudflare R2
           s3: &r2
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
             bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
             region: "us-east-1"
-          schedules:
-            full: "0 6 * * *"
-            differential: "0 * * * *"
+          schedules: # less aggressive for R2 to save on S3 API costs
+            full: "0 6 * * 1" # every monday at 06:00
+            differential: "0 6 * * *" # everyday at 06:00
+            incremental: "0 * * * *" # every hour
   # dataSource:
   #   pgbackrest:
   #     metadata: *netpols
