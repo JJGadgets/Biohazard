@@ -44,14 +44,16 @@ spec:
       configuration: &brcfg [secret: {name: "pg-${PG_APP_NAME}-secrets"}]
       global: &brflag
         archive-timeout: "60" # sends WAL archive every X seconds
-        repo1-retention-full: "30"
         repo1-retention-full-type: "time"
+        repo1-retention-full: "30"
+        repo1-retention-diff: "48"
         repo2-bundle: "y"
         repo2-block: "y"
         repo2-path: "/${PG_APP_NAME}"
         repo2-s3-uri-style: "path"
-        repo2-retention-full: "30"
         repo2-retention-full-type: "time"
+        repo2-retention-full: "5"
+        repo2-retention-diff: "30"
         repo2-cipher-type: "aes-256-cbc"
       manual:
         repoName: repo2
@@ -75,10 +77,10 @@ spec:
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
             bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
             region: "us-east-1"
-          schedules: # less aggressive for R2 to save on S3 API costs
-            full: "0 6 * * 1" # every monday at 06:00
-            differential: "0 6 * * *" # everyday at 06:00
-            incremental: "0 * * * *" # every hour
+          schedules: # less aggressive for R2 to save on S3 API costs, times staggered to try and avoid NFS schedule to avoid operator spamming failed jobs
+            full: "27 6 * * 1" # every monday at 06:27
+            differential: "17 6 * * *" # everyday at 06:17
+            incremental: "7 * * * *" # every hour at 7th minute
   # dataSource:
   #   pgbackrest:
   #     metadata: *netpols
