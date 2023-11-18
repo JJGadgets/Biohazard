@@ -20,18 +20,18 @@ spec:
       replicas: ${PG_REPLICAS:=3}
       dataVolumeClaimSpec:
         storageClassName: "${PG_SC:=local}"
-        accessModes: [ReadWriteOnce]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: "${PG_CONFIG_SIZE:=20Gi}"
-      topologySpreadConstraints: &tsc
+      topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
           whenUnsatisfiable: "DoNotSchedule"
           labelSelector:
             matchLabels:
               postgres-operator.crunchydata.com/cluster: *name
-              postgres-operator.crunchydata.com/role: "pgbouncer"
+              postgres-operator.crunchydata.com/instance-set: *instance
   users:
     - name: "${PG_DB_USER:=app}"
       databases: ["${PG_DB_NAME:=app}"]
@@ -56,15 +56,15 @@ spec:
         repo2-retention-diff: "30"
         repo2-cipher-type: "aes-256-cbc"
       manual:
-        repoName: repo2
-        options: [--type=full]
+        repoName: "repo2"
+        options: ["--type=full"]
       repos:
         - name: "repo1" # NFS
           volume: &nfs
             volumeClaimSpec:
               storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
               volumeName: "pg-${PG_APP_NAME}-wal-nfs"
-              accessModes: [ReadWriteMany]
+              accessModes: ["ReadWriteMany"]
               resources:
                 requests:
                   storage: "1Mi" # doesn't matter with NFS
@@ -81,20 +81,30 @@ spec:
             full: "27 6 * * 1" # every monday at 06:27
             differential: "17 6 * * *" # everyday at 06:17
             incremental: "7 * * * *" # every hour at 7th minute
-  # dataSource:
-  #   pgbackrest:
-  #     metadata: *netpols
-  #     stanza: db
-  #     configuration: *brcfg
-  #     global: *brflag
-  #     repo:
-  #       name: repo1
-  #       s3: *r2
+  dataSource:
+    pgbackrest:
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/r2: "allow"
+      stanza: "db"
+      configuration: *brcfg
+      global: *brflag
+      repo:
+        name: "repo2"
+        s3: *r2
   proxy:
     pgBouncer:
       port: 5432
       replicas: 3
-      topologySpreadConstraints: *tsc
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
+              postgres-operator.crunchydata.com/role: "pgbouncer"
 ---
 apiVersion: v1
 kind: Secret
