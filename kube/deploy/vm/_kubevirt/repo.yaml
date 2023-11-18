@@ -6,13 +6,12 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  url: ssh://git@github.com/JJGadgets/kubevirt-flux
+  url: https://github.com/JJGadgets/kubevirt-flux.git
   ref:
     branch: v1.1.0
   ignore: |
     # exclude all to whitelist
     /*
-    # include operator
-    !/kubevirt-operator.yaml
-    # include CRDs
-    !/kubevirt-cr.yaml
+    # include operator (with CRDs) and CR to deploy KubeVirt
+    !/deploy
+# TODO: if KubeVirt CR used to actually deploy KubeVirt needs to be modified from defaults, maybe consider self-managing it?
