@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values: # TODO: separate Grafana's actual configs like dashboards (leave deployment config) into its own configMap and use valuesFrom
-    replicas: 3
+    replicas: 1 # OIDC needs specific session, thus 1 replica
     podLabels: 
       egress.home.arpa/ingress-nginx: "allow"
     env:
