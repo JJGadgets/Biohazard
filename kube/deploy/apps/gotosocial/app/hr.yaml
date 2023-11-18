@@ -48,7 +48,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: &pgsec "pg-gotosocial-pguser-gotosocial"
-            key: "host"
+            key: "pgbouncer-host"
       GTS_DB_DATABASE:
         valueFrom:
           secretKeyRef:
