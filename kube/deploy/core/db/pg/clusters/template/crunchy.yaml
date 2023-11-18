@@ -83,10 +83,6 @@ spec:
             incremental: "7 * * * *" # every hour at 7th minute
   dataSource:
     pgbackrest:
-      metadata:
-        labels:
-          egress.home.arpa/apiserver: "allow"
-          egress.home.arpa/r2: "allow"
       stanza: "db"
       configuration: *brcfg
       global: *brflag
