@@ -1,0 +1,18 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: vm-1-kubevirt-app
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: ssh://git@github.com/JJGadgets/kubevirt-flux
+  ref:
+    branch: v1.1.0
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include operator
+    !/kubevirt-operator.yaml
+    # include CRDs
+    !/kubevirt-cr.yaml
