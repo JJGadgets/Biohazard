@@ -9,14 +9,14 @@ spec:
   chart:
     spec:
       chart: grafana
-      version: 6.61.1
+      version: 7.0.6
       sourceRef:
         name: grafana
         kind: HelmRepository
         namespace: flux-system
   values: # TODO: separate Grafana's actual configs like dashboards (leave deployment config) into its own configMap and use valuesFrom
     replicas: 1 # OIDC needs specific session, thus 1 replica
-    podLabels: 
+    podLabels:
       egress.home.arpa/ingress-nginx: "allow"
     env:
       GF_EXPLORE_ENABLED: true
