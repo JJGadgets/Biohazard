@@ -86,7 +86,7 @@ spec:
             cpu: "500m"
             memory: "3Gi"
           limits:
-            cpu: "999999m" 
+            cpu: "999999m"
             memory: "10Gi"
         mgr-sidecar:
           requests:
@@ -162,6 +162,7 @@ spec:
         storageClass:
           <<: *rbd-sc
           name: "block-ssd-ec-2-1"
+          isDefault: false
       # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
       #   spec:
       #     failureDomain: "osd"
