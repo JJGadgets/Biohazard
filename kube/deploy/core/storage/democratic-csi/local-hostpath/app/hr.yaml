@@ -22,7 +22,7 @@ spec:
     storageClasses:
       - name: local
         defaultClass: false
-        reclaimPolicy: Retain
+        reclaimPolicy: Delete
         volumeBindingMode: WaitForFirstConsumer
         # distributed support is not yet ready for expansion
         allowVolumeExpansion: false
