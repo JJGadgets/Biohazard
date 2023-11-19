@@ -8,22 +8,23 @@ prometheus:
     paths: ["/"]
     pathType: Prefix
   prometheusSpec:
-    replicas: 2
+    replicas: 3
+    retention: 14d
+    retentionSize: 30GB
+    walCompression: true
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local
+          resources:
+            requests:
+              storage: 35Gi
+    enableAdminAPI: true
     ruleSelectorNilUsesHelmValues: false
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
     scrapeConfigSelectorNilUsesHelmValues: false
-    enableAdminAPI: true
-    walCompression: true
-    retentionSize: 15GB
-    storageSpec:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: block
-          resources:
-            requests:
-              storage: 20Gi
     resources:
       requests:
         cpu: 150m
@@ -36,5 +37,4 @@ prometheus:
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
-            app.kubernetes.io/instance: "kps"
-            app.kubernetes.io/name: "prometheus"
+            prometheus: "kps"
