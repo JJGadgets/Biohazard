@@ -8,8 +8,8 @@ prometheus:
     paths: ["/"]
     pathType: Prefix
   prometheusSpec:
-    scrapeInterval: "5s"
-    scrapeTimeout: "60s"
+    scrapeInterval: "10s"
+    scrapeTimeout: "5s"
     replicas: 3
     retention: 14d
     retentionSize: 30GB
