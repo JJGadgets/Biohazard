@@ -23,8 +23,8 @@ spec:
       valuesKey: prom.yaml
     - <<: *vf
       valuesKey: kube-state-metrics.yaml
-    # - <<: *vf
-    #   valuesKey: node-exporter.yaml
+    - <<: *vf
+      valuesKey: node-exporter.yaml
   values:
     crds:
       enabled: false

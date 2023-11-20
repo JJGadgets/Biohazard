@@ -1,0 +1,22 @@
+---
+# 2023-11-20: temporary, standalone node-exporter isn't working, remember to remove pod-security labels on monitoring
+# 2023-11-20 2: this works, now unused after troubleshooting
+nodeExporter:
+  enabled: true
+prometheus-node-exporter:
+  namespaceOverride: "node-exporter" # this one has pod-security set
+  podLabels:
+    prom.home.arpa/kps: "allow"
+  hostNetwork: false
+  rbac:
+    pspEnabled: false
+  prometheus:
+    monitor:
+      enabled: true
+      interval: "2s"
+  resources:
+    requests:
+      cpu: 23m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
