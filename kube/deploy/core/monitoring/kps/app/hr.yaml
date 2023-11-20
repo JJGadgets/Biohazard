@@ -31,7 +31,7 @@ spec:
     alertmanager:
       enabled: false
     nodeExporter:
-      enabled: false
+      enabled: true # TODO: 2023-11-20: temporary, standalone node-exporter isn't working, remember to remove pod-security labels on monitoring
     grafana:
       enabled: false
       forceDeployDashboards: true
