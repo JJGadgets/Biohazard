@@ -20,13 +20,32 @@ spec:
     hostNetwork: false
     rbac:
       pspEnabled: false
-    prometheus:
-      monitor:
-        enabled: true
     resources:
       requests:
         cpu: 23m
         memory: 64Mi
       limits:
         memory: 256Mi
-
+    prometheus:
+      monitor:
+        enabled: true
+        relabelings:
+          # replaces other node identifiers with hostname
+          - action: replace
+            regex: (.*)
+            replacement: $1
+            sourceLabels:
+              - __meta_kubernetes_pod_node_name
+            targetLabel: kubernetes_node
+          - action: replace
+            regex: (.*)
+            replacement: $1
+            sourceLabels:
+              - __meta_kubernetes_pod_node_name
+            targetLabel: nodename
+          - action: replace
+            regex: (.*)
+            replacement: $1.bjw-s.casa:9100
+            sourceLabels:
+              - kubernetes_node
+            targetLabel: instance
