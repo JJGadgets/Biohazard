@@ -26,7 +26,7 @@ spec:
             image:
               repository: "public.ecr.aws/docker/library/caddy"
               tag: "latest"
-            command: ["caddy", "--file-server", "--root", "/config", "--listen", ":8080", "--browse", "--access-log"]
+            command: ["caddy", "file-server", "--browse", "--access-log", "--listen", ":8080", "--root", "/config"]
             env:
               TZ: "${CONFIG_TZ}"
             securityContext:
@@ -34,7 +34,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["CAP_NET_BIND_SERVICE"]
+                add: ["NET_BIND_SERVICE"]
             resources:
               requests:
                 cpu: 10m
