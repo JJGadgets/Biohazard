@@ -29,6 +29,8 @@ spec:
     prometheus:
       monitor:
         enabled: true
+        interval: "10s"
+        scrapeTimeout: "5s"
         relabelings:
           # replaces other node identifiers with hostname
           - action: replace
@@ -45,7 +47,7 @@ spec:
             targetLabel: nodename
           - action: replace
             regex: (.*)
-            replacement: $1.bjw-s.casa:9100
+            replacement: $1.${DNS_CLUSTER}:9100
             sourceLabels:
               - kubernetes_node
             targetLabel: instance
