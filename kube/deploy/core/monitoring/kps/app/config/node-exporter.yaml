@@ -7,7 +7,7 @@ prometheus-node-exporter:
   namespaceOverride: "node-exporter" # this one has pod-security set
   podLabels:
     prom.home.arpa/kps: "allow"
-  hostNetwork: false
+  hostNetwork: true # can't seem to scrape without this?
   rbac:
     pspEnabled: false
   prometheus:
