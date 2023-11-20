@@ -1,0 +1,85 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app nfs-web
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.2.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+        containers:
+          main:
+            image:
+              repository: "public.ecr.aws/docker/library/caddy"
+              tag: "latest"
+            command: ["caddy", "--file-server", "--root", "/config", "--listen", ":8080", "--browse", "--access-log"]
+            env:
+              TZ: "${CONFIG_TZ}"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 6000Mi
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: nginx
+        # annotations: # TODO
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_HOME}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+        hosts:
+          - host: &host "${APP_DNS_NFS_WEB}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *host
+    persistence:
+      config:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/nfs-web"
+        advancedMounts:
+          main:
+            main:
+              - path: "/config"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid 33
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: false
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: Always
