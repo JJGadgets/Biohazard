@@ -1,0 +1,25 @@
+# My Winodws gaming PC, with an NVIDIA GPU.
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: nighthawk-windows-exporter
+  namespace: monitoring
+spec:
+  scrapeInterval: "2s"
+  scrapeTimeout: "1s"
+  staticConfigs:
+    - targets: ["${IP_NIGHTHAWK}:9180"]
+  metricsPath: "/metrics"
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: nighthawk-nvidia
+  namespace: monitoring
+spec:
+  scrapeInterval: "2s"
+  scrapeTimeout: "1s"
+  staticConfigs:
+    - targets: ["${IP_NIGHTHAWK}:9835"]
+  metricsPath: "/metrics"
