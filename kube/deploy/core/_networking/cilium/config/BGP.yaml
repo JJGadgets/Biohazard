@@ -27,24 +27,4 @@ spec:
       neighbors:
         - peerAddress: "${IP_EC2_NON_K8S}/32"
           peerASN: ${ASN_EC2_INGRESS}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: bgp-config # this "bgp-config" ConfigMap is used for the old `bgp.enabled: true` which is the old MetalLB BGP, this will be deprecated in future releases
-  namespace: kube-system
-data:
-  config.yaml: |
-    peers:
-      - peer-address: "${IP_ROUTER_VLAN_K8S}"
-        peer-asn: ${ASN_ROUTER}
-        my-asn: ${ASN_ROUTER}
-      - peer-address: "${IP_EC2_NON_K8S}"
-        peer-asn: ${ASN_EC2_INGRESS}
-        my-asn: ${ASN_EC2_INGRESS}
-    address-pools:
-      - name: main-addr-pool
-        protocol: bgp
-        avoid-buggy-ips: true
-        addresses:
-          - "${IP_LB_CIDR}"
+
