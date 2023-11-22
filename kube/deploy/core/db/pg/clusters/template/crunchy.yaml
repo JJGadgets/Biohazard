@@ -69,18 +69,18 @@ spec:
                 requests:
                   storage: "1Mi" # doesn't matter with NFS
           schedules: # more aggressive for NAS (over NFS)
-            full: "0 6 * * *" # everyday at 06:00
-            differential: "0 * * * *" # every hour
-            incremental: "*/5 * * * *" # every 5 minutes
+            full: "0 6 * * 1" # every Monday at 06:00
+            differential: "0 6 * * 2-7" # every day at 06:00 except Monday
+            incremental: "0 1-5,7-23 * * *" # every hour except 06:00
         - name: "repo2" # Cloudflare R2
           s3: &r2
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
             bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
             region: "us-east-1"
-          schedules: # less aggressive for R2 to save on S3 API costs, times staggered to try and avoid NFS schedule to avoid operator spamming failed jobs
-            full: "27 6 * * 1" # every monday at 06:27
-            differential: "17 6 * * *" # everyday at 06:17
-            incremental: "7 * * * *" # every hour at 7th minute
+          schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
+            full: "30 6 * * 1" # every Monday at 06:30
+            differential: "30 6 * * 2-7" # every day at 06:30 except Monday
+            incremental: "30 1-5,7-23 * * *" # every hour except 06:30
   dataSource:
     pgbackrest:
       stanza: "db"
