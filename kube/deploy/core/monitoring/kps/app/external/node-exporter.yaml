@@ -7,6 +7,6 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - "${IP_ROUTER_LAN}:9100"
+        - "${IP_ROUTER_VLAN_K8S}:9100"
         - "${IP_BLACKHAWK}:9100" # My laptop
   metricsPath: "/metrics"
