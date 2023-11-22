@@ -29,8 +29,9 @@ spec:
       network:
         #provider: host
         connections:
+          requireMsgr2: true
           encryption:
-            enabled: true
+            enabled: false # TODO: 2023-11-23 disabled to test speeds with compression without encryption
           compression:
             enabled: true
       crashCollector:
