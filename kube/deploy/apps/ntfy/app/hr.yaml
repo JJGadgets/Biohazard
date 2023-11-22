@@ -8,30 +8,81 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.3.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    automountServiceAccountToken: false
-    controller:
-      type: statefulset
-    image:
-      repository: docker.io/binwiederhier/ntfy
-      tag: v2.4.0@sha256:be59d51a83e265d5945bf8b1e2286b0ab4de6d61f0348e057155533995bbcc40
-    command: ["ntfy", "serve"]
-    env:
-      TZ: "${CONFIG_TZ}"
-      NTFY_BASE_URL: "https://${APP_DNS_NTFY}"
-      NTFY_LISTEN_HTTP: ":8080"
-      NTFY_BEHIND_PROXY: "true"
-      NTFY_UPSTREAM_BASE_URL: "https://ntfy.sh"
-      NTFY_AUTH_FILE: "/authfile/user.db"
-      NTFY_AUTH_DEFAULT_ACCESS: "write-only"
-      NTFY_SMTP_SERVER_LISTEN: ":2525"
-      NTFY_SMTP_SERVER_DOMAIN: "${APP_DNS_NTFY_MX}"
-      NTFY_SMTP_SERVER_ADDR_PREFIX: "pushme-"
+    controllers:
+      main:
+        type: "deployment"
+        replicas: "1"
+        pod:
+          labels:
+            ingress.home.arpa/nginx: "allow"
+        containers:
+          main:
+            imagePullPolicy: "IfNotPresent"
+            image: &img
+              repository: "docker.io/binwiederhier/ntfy"
+              tag: "v2.8.0"
+            command: ["ntfy", "serve"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              NTFY_BASE_URL: "https://${APP_DNS_NTFY}"
+              NTFY_LISTEN_HTTP: ":8080"
+              NTFY_BEHIND_PROXY: "true"
+              NTFY_UPSTREAM_BASE_URL: "https://ntfy.sh" # for iOS
+              NTFY_CACHE_DURATION: "24h"
+              NTFY_CACHE_DIR: "/config/cache.db"
+              NTFY_AUTH_FILE: "/config/authfile.db"
+              NTFY_ATTACHMENT_CACHE_DIR: "/config/attachments"
+              NTFY_AUTH_DEFAULT_ACCESS: "write-only"
+              NTFY_SMTP_SERVER_LISTEN: ":2525"
+              NTFY_SMTP_SERVER_DOMAIN: "${APP_DNS_NTFY_MX}"
+              NTFY_SMTP_SERVER_ADDR_PREFIX: "pushme-"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "50Mi"
+              limits:
+                cpu: "2000m"
+                memory: "150Mi"
+          litestream: &ls
+            imagePullPolicy: "IfNotPresent"
+            image:
+              repository: "docker.io/litestream/litestream"
+              tag: "0.3.11"
+            args: ["replicate"]
+            envFrom:
+              - secretRef:
+                  name: "ntfy-litestream"
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1024Mi"
+        initContainers:
+          01-litestream-restore-authfile:
+            <<: *ls
+            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/authfile.db"]
+          01-litestream-restore-cache:
+            <<: *ls
+            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/cache.db"]
+          02-init-unifiedpush:
+            imagePullPolicy: "IfNotPresent"
+            image: *img
+            command: ["ntfy", "access", "*", "up*", "write-only"]
+            env: *env
     service:
       main:
         ports:
@@ -39,8 +90,9 @@ spec:
             port: 8080
       smtp:
         enabled: true
-        type: LoadBalancer
-        externalTrafficPolicy: Local
+        controller: "main"
+        type: "LoadBalancer"
+        externalTrafficPolicy: "Cluster"
         annotations:
           coredns.io/hostname: "${APP_DNS_NTFY_MX}"
           "io.cilium/lb-ipam-ips": "${APP_IP_NTFY_MX}"
@@ -48,47 +100,95 @@ spec:
           smtp:
             port: 25
             targetPort: 2525
-            protocol: TCP
+            protocol: "TCP"
     ingress:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        className: "nginx"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         hosts:
           - host: &host "${APP_DNS_NTFY}"
             paths:
-              - path: /
-                pathType: Prefix
+              - path: "/"
+                pathType: "Prefix"
+                service:
+                  name: "main"
+                  port: "http"
         tls:
           - hosts:
               - *host
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_NTFY}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    volumeClaimTemplates:
-      - name: authfile
-        mountPath: /authfile
-        accessMode: ReadWriteOnce
-        size: 2Gi
-        storageClass: block
-    resources:
-      requests:
-        cpu: 10m
-        memory: 50Mi
-      limits:
-        memory: 150Mi
-    initContainers:
-      01-init-unifiedpush:
-        command: ["ntfy", "access", "*", "up*", "write-only"]
-        env:
-          NTFY_AUTH_FILE: "/authfile/user.db"
-          NTFY_AUTH_DEFAULT_ACCESS: "write-only"
-        image: docker.io/binwiederhier/ntfy:v2.4.0@sha256:be59d51a83e265d5945bf8b1e2286b0ab4de6d61f0348e057155533995bbcc40
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - mountPath: /authfile
-          name: authfile
+    persistence:
+      config:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/config"
+            readOnly: false
+      litestream:
+        enabled: true
+        type: configMap
+        name: "ntfy-config"
+        advancedMounts:
+          main:
+            litestream: &lscfgmnt
+              - subPath: "litestream-replicate"
+                path: "/etc/litestream.yml"
+                readOnly: true
+            01-litestream-restore-authfile: *lscfgmnt
+            01-litestream-restore-cache: *lscfgmnt
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}/ntfy"
+        advancedMounts:
+          main:
+            litestream: &lsnfsmnt
+              - subPath: "authfile"
+                path: "/nfs-authfile"
+              - subPath: "cache"
+                path: "/nfs-cache"
+            01-litestream-restore-authfile: *lsnfsmnt
+            01-litestream-restore-cache: *lsnfsmnt
+    configMaps:
+      config:
+        enabled: true
+        data:
+          litestream-replicate: |
+            dbs:
+              - path: "/config/authfile.db"
+                replicas:
+                  - &nas
+                    name: "nas"
+                    type: "file"
+                    path: "/nfs-authfile"
+                    retention: "168h"
+                    validation-interval: "1h"
+                  - &r2
+                    name: "r2"
+                    type: "s3"
+                    endpoint: "$${R2_ENDPOINT}"
+                    bucket: "$${R2_BUCKET}"
+                    path: "ntfy-authfile"
+                    force-path-style: true
+                    retention: "168h"
+                    validation-interval: "24h"
+                    age:
+                      recipients: ["$${AGE_PUBKEY}"]
+                      identities: ["$${AGE_SECRET}"]
+              - path: "/config/cache.db"
+                replicas:
+                  - <<: *nas
+                    path: "/nfs-cache"
+                  - <<: *r2
+                    path: "ntfy-cache"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_NTFY}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
