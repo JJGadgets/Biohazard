@@ -35,13 +35,14 @@ spec:
               TZ: "${CONFIG_TZ}"
               LOG_LEVEL: "debug"
               RENOVATE_PLATFORM: "github"
-              RENOVATE_AUTODISCOVER: "true"
-              RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
+              RENOVATE_AUTODISCOVER: "false" # TODO: add initContainer for generating OAuth token from GitHub App then passing that to main container... somehow
+              # RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
+              RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
               RENOVATE_GIT_AUTHOR: "367320+tinfoild[bot]@users.noreply.github.com"
             envFrom:
               - secretRef:
                   name: "renovate-secrets"
-            securityContext:
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
@@ -52,6 +53,14 @@ spec:
                 memory: 128Mi
               limits:
                 memory: 6000Mi
+        # initContainers:
+        #   01-github-app-generate-token: # TODO: not working because how would you pass the output value to the main container if Renovate doesn't allow reading from file (I think)?
+        #     imagePullPolicy: "IfNotPresent"
+        #     image:
+        #       repository: "ghcr.io/mshekow/github-app-installation-token"
+        #       tag: "2023.11.16"
+        #     args: ["367320", "44352851", "/privkey"]
+        #     securityContext: *sc
     service:
       main:
         enabled: false
@@ -63,6 +72,17 @@ spec:
         globalMounts:
           - path: "/tmp"
             readOnly: false
+      # github-app-privkey:
+      #   enabled: true
+      #   type: secret
+      #   name: "renovate-secrets"
+      #   defaultMode: 0400
+      #   advancedMounts:
+      #     main:
+      #       01-github-app-generate-token:
+      #         - subPath: "github-app-privkey"
+      #           path: "/privkey"
+      #           readOnly: true
     dnsConfig:
       options:
         - name: ndots
