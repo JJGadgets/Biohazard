@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.0.3
+      version: 2.3.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -52,6 +52,9 @@ spec:
                 memory: 128Mi
               limits:
                 memory: 6000Mi
+    service:
+      main:
+        enabled: false
     persistence:
       tmp:
         enabled: true
