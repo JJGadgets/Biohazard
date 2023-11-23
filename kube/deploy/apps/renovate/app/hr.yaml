@@ -1,0 +1,76 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app renovate
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        # type: cronjob
+        type: "deployment" # TODO: 2023-11-24: trying out Renovate constantly restarting once it's finished
+        replicas: 1
+        # cronjob:
+        #   concurrencyPolicy: Forbid
+        #   schedule: "@hourly"
+        pod:
+          labels:
+            egress.home.arpa/world: "allow"
+        containers:
+          main:
+            image:
+              repository: "ghcr.io/renovatebot/renovate"
+              tag: "37.66.0"
+            args: ["JJGadgets/Biohazard"] # TODO: use only on main home-prod GitOps repo first
+            env:
+              TZ: "${CONFIG_TZ}"
+              LOG_LEVEL: "debug"
+              RENOVATE_PLATFORM: "github"
+              RENOVATE_AUTODISCOVER: "true"
+              RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
+              RENOVATE_GIT_AUTHOR: "367320+tinfoild[bot]@users.noreply.github.com"
+            envFrom:
+              - secretRef:
+                  name: "renovate-secrets"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 6000Mi
+    persistence:
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/tmp"
+            readOnly: false
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+    defaultPodOptions:
+      restartPolicy: "Always"
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid ${APP_UID_RENOVATE}
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: false
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: Always
