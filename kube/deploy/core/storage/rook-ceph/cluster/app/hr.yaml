@@ -26,14 +26,16 @@ spec:
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
     cephClusterSpec:
+      cephVersion:
+        image: "quay.io/ceph/ceph:v18.2.0"
       network:
         #provider: host
         connections:
-          requireMsgr2: true
+          requireMsgr2: false
           encryption:
             enabled: false # TODO: 2023-11-23 disabled to test speeds with compression without encryption
           compression:
-            enabled: true
+            enabled: false
       crashCollector:
         disable: true
       dashboard:
