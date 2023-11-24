@@ -100,7 +100,8 @@ spec:
         - name: ndots
           value: "1"
     defaultPodOptions:
-      restartPolicy: "Always"
+      # restartPolicy: "Always"
+      restartPolicy: "Never" # cronjob
       automountServiceAccountToken: false
       securityContext:
         runAsUser: &uid ${APP_UID_RENOVATE}
