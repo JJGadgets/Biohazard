@@ -16,12 +16,12 @@ spec:
   values:
     controllers:
       main:
-        # type: cronjob
-        type: "deployment" # TODO: 2023-11-24: trying out Renovate constantly restarting once it's finished
+        type: cronjob
+        # type: "deployment" # TODO: 2023-11-24: trying out Renovate constantly restarting once it's finished
         replicas: 1
-        # cronjob:
-        #   concurrencyPolicy: Forbid
-        #   schedule: "@hourly"
+        cronjob:
+          concurrencyPolicy: Forbid
+          schedule: "@hourly"
         pod:
           labels:
             egress.home.arpa/world: "allow"
