@@ -17,7 +17,6 @@ spec:
     controllers:
       main:
         type: cronjob
-        # type: "deployment" # TODO: 2023-11-24: trying out Renovate constantly restarting once it's finished
         replicas: 1
         cronjob:
           concurrencyPolicy: Forbid
@@ -35,10 +34,10 @@ spec:
               TZ: "${CONFIG_TZ}"
               LOG_LEVEL: "debug"
               RENOVATE_PLATFORM: "github"
-              RENOVATE_AUTODISCOVER: "false" # TODO: add initContainer for generating OAuth token from GitHub App then passing that to main container... somehow
-              # RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
-              RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
-              RENOVATE_GIT_AUTHOR: "367320+tinfoild[bot]@users.noreply.github.com"
+              RENOVATE_AUTODISCOVER: "true"
+              RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
+              # RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
+              RENOVATE_GIT_AUTHOR: "tinfoild <367320+tinfoild[bot]@users.noreply.github.com>"
               RENOVATE_CONFIG_FILE: "/config/config.json"
             envFrom:
               - secretRef:
@@ -51,11 +50,12 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 500Mi
               limits:
+                cpu: 750m # 3/4 of a core at most
                 memory: 6000Mi
         initContainers:
-          01-github-app-generate-token: # TODO: not working because how would you pass the output value to the main container if Renovate doesn't allow reading from file (I think)?
+          01-github-app-generate-token:
             imagePullPolicy: "IfNotPresent"
             image:
               repository: "ghcr.io/mshekow/github-app-installation-token"
@@ -100,7 +100,6 @@ spec:
         - name: ndots
           value: "1"
     defaultPodOptions:
-      # restartPolicy: "Always"
       restartPolicy: "Never" # cronjob
       automountServiceAccountToken: false
       securityContext:
