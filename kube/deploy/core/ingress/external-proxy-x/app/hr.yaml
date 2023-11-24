@@ -46,7 +46,7 @@ spec:
           - /bin/sh
           - -c
           - 'cat /ssl/short/tls.crt /ssl/short/tls.key > /tls/short.pem && cat /ssl/long/tls.crt /ssl/long/tls.key > /tls/long.pem'
-        image: public.ecr.aws/docker/library/busybox:latest@sha256:b5d6fe0712636ceb7430189de28819e195e8966372edfc2d9409d79402a0dc16
+        image: public.ecr.aws/docker/library/busybox:latest@sha256:3fbc632167424a6d997e74f52b878d7cc478225cffac6bc977eedfe51c7f4e79
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: tls
