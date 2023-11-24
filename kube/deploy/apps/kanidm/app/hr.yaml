@@ -19,7 +19,7 @@ spec:
       type: statefulset
     image:
       repository: docker.io/kanidm/server
-      tag: latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+      tag: latest@sha256:8beaaab95ef029d438f99e2d4f2630b4bd2141858da47d9fc9d9de664d9b9101
     env:
       TZ: "${CONFIG_TZ}"
     service:
@@ -148,7 +148,7 @@ spec:
         - /bin/sh
         - -c
         - '[ -s /data/kanidm.db ] || /sbin/kanidmd recover_account -c /data/server.toml admin'
-        image: docker.io/kanidm/server:latest@sha256:c10a2938d3a8c15169a3ed2f6d08d25430d22cef3d5749d57ab3a9052d60354c
+        image: docker.io/kanidm/server:latest@sha256:8beaaab95ef029d438f99e2d4f2630b4bd2141858da47d9fc9d9de664d9b9101
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /data
