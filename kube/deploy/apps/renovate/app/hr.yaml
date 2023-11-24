@@ -39,6 +39,7 @@ spec:
               # RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
               RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
               RENOVATE_GIT_AUTHOR: "367320+tinfoild[bot]@users.noreply.github.com"
+              RENOVATE_CONFIG_FILE: "/config/config.json"
             envFrom:
               - secretRef:
                   name: "renovate-secrets"
@@ -53,14 +54,21 @@ spec:
                 memory: 128Mi
               limits:
                 memory: 6000Mi
-        # initContainers:
-        #   01-github-app-generate-token: # TODO: not working because how would you pass the output value to the main container if Renovate doesn't allow reading from file (I think)?
-        #     imagePullPolicy: "IfNotPresent"
-        #     image:
-        #       repository: "ghcr.io/mshekow/github-app-installation-token"
-        #       tag: "2023.11.16"
-        #     args: ["367320", "44352851", "/privkey"]
-        #     securityContext: *sc
+        initContainers:
+          01-github-app-generate-token: # TODO: not working because how would you pass the output value to the main container if Renovate doesn't allow reading from file (I think)?
+            imagePullPolicy: "IfNotPresent"
+            image:
+              repository: "ghcr.io/mshekow/github-app-installation-token"
+              tag: "2023.11.16"
+            command: ["/bin/sh", "-c", "node index.js 367320 44352851 /privkey | tee /config/RENOVATE_TOKEN"]
+            securityContext: *sc
+          02-config:
+            imagePullPolicy: "IfNotPresent"
+            image:
+              repository: "docker.io/mikefarah/yq"
+              tag: "4.40.3"
+            command: ["/bin/sh", "-c", "RENOVATE_TOKEN=$(cat /config/RENOVATE_TOKEN) yq eval --output-format json --null-input '.token = env(RENOVATE_TOKEN)' | tee /config/config.json"]
+            securityContext: *sc
     service:
       main:
         enabled: false
@@ -70,19 +78,23 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "renovate"
+            path: "/tmp"
             readOnly: false
-      # github-app-privkey:
-      #   enabled: true
-      #   type: secret
-      #   name: "renovate-secrets"
-      #   defaultMode: 0400
-      #   advancedMounts:
-      #     main:
-      #       01-github-app-generate-token:
-      #         - subPath: "github-app-privkey"
-      #           path: "/privkey"
-      #           readOnly: true
+          - subPath: "config"
+            path: "/config"
+            readOnly: false
+      github-app-privkey:
+        enabled: true
+        type: secret
+        name: "renovate-secrets"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            01-github-app-generate-token:
+              - subPath: "github-app-privkey"
+                path: "/privkey"
+                readOnly: true
     dnsConfig:
       options:
         - name: ndots
