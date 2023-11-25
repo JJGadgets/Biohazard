@@ -80,7 +80,7 @@ spec:
     persistence:
       data:
         enabled: true
-        type: pvc
+        type: persistentVolumeClaim
         size: "10Gi"
         storageClass: "block"
         accessMode: "ReadWriteOnce"
