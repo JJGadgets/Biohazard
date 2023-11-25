@@ -11,7 +11,7 @@ users:
       - "github:jjgadgets"
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPkuFpjTwHzP1cw9XDtJOKKROwkZycvAx++w1j/7g2Yr"
 install:
-  image: "quay.io/kairos/kairos-debian:v2.4.1-k3sv1.27.3-k3s1"
+  image: &img "quay.io/kairos/debian:bookworm-standard-amd64-generic-v2.4.2-k3sv1.28.2-k3s1"
   auto: true # for single node without P2P/VPN
   #device: "/dev/sda"
   reboot: true
@@ -25,8 +25,8 @@ install:
     oem:
       size: 60
       fs: "ext4"
-  # bind_mounts:
-  #   - /etc/wireguard
+  bind_mounts:
+    - /etc/wireguard
 reset:
   reboot: true
   poweroff: false
@@ -41,26 +41,27 @@ k3s:
   replace_args: true
   args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644"]
 stages:
-  after-install-chroot:
-    - name: "1. Install extra packages"
+  after-install-chroot: &apt
+    - name: Install extra packages
       commands:
         - apt update
         - apt install -y wireguard-tools
-        # - apt install -y zfs-dkms
-        # - apt clean && rm -rf /var/lib/apt/lists/*
-    # - name: "2. Load WireGuard kernel module"
-    #   modules: ["wireguard"]
-    # - name: "4. Enable wg-quick@wg0.service"
-    #   commands:
-    #     - systemctl enable --now wg-quick@wg0.service
+  after-upgrade-chroot: *apt
   boot:
-    - name: "1. WireGuard"
+    - name: "1. Load WireGuard kernel module"
       modules: ["wireguard"]
-    - name: "2. WireGuard config"
+    - name: "2. Create WireGuard config folder"
+      directories:
+        - path: "/etc/wireguard"
+          permissions: 0700
+          owner: 0
+          group: 0
+    - name: "3. Install WireGuard config"
       files:
         - path: "/etc/wireguard/wg0.conf"
-          permissions: "0400"
-          owner: "root"
+          permissions: 0700
+          owner: 0
+          group: 0
           content: |
             [Interface]
             PrivateKey = ${SECRET_HERCULES_WG_PRIVKEY}
@@ -73,8 +74,6 @@ stages:
             PresharedKey = ${SECRET_HERCULES_WG_PEERPSK}
             AllowedIPs = ${SECRET_HERCULES_WG_ALLOWEDIPS}
             PersistentKeepalive = 15
-    # - name: "ZFS"
-    #   modules: ["zfs"]
-    - name: "3. Enable wg0.conf"
+    - name: "4. Enable wg0.conf"
       systemctl:
          enable: ["wg-quick@wg0.service"]
