@@ -334,7 +334,7 @@ spec:
         memory: 6000Mi
     initContainers:
       02-un-root:
-        image: "docker.io/psono/psono-admin-client:1.6.11"
+        image: "docker.io/psono/psono-admin-client:1.7.0"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
         command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono; exit']
