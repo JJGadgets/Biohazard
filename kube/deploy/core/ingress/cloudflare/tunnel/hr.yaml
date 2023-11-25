@@ -18,7 +18,7 @@ spec:
       type: daemonset
     image:
       repository: cloudflare/cloudflared
-      tag: 2023.5.1
+      tag: 2023.10.0
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
