@@ -43,6 +43,7 @@ spec:
               RENOVATE_USERNAME: "tinfoild[bot]"
               RENOVATE_GIT_AUTHOR: "tinfoild <${SECRET_RENOVATE_GITHUB_APP_API_ID}+tinfoild[bot]@users.noreply.github.com>"
               RENOVATE_CONFIG_FILE: "/config/config.json"
+              RENOVATE_BASE_DIR: "/data"
             envFrom:
               - secretRef:
                   name: "renovate-secrets"
@@ -77,6 +78,16 @@ spec:
       main:
         enabled: false
     persistence:
+      data:
+        enabled: true
+        type: pvc
+        size: "10Gi"
+        storageClass: "block"
+        accessMode: "ReadWriteOnce"
+        retain: true
+        globalMounts:
+          - path: "/data"
+            readOnly: false
       # TODO: add either Redis or PVC to cache e.g. index.docker.io to alleviate rate limits
       tmp:
         enabled: true
