@@ -4,6 +4,9 @@ kind: Kustomization
 metadata:
   name: renovate-app
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/disabled: "false"
 spec:
   path: ./kube/deploy/apps/renovate/app
   dependsOn: []
+  prune: true

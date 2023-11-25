@@ -38,7 +38,7 @@ spec:
               RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
               # RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
               RENOVATE_USERNAME: "tinfoild[bot]"
-              RENOVATE_GIT_AUTHOR: "tinfoild <367320+tinfoild[bot]@users.noreply.github.com>"
+              RENOVATE_GIT_AUTHOR: "tinfoild <${SECRET_RENOVATE_GITHUB_APP_API_ID}+tinfoild[bot]@users.noreply.github.com>"
               RENOVATE_CONFIG_FILE: "/config/config.json"
             envFrom:
               - secretRef:
@@ -61,7 +61,7 @@ spec:
             image:
               repository: "ghcr.io/mshekow/github-app-installation-token"
               tag: "2023.11.16"
-            command: ["/bin/sh", "-c", "node index.js 367320 44352851 /privkey | tee /config/RENOVATE_TOKEN"]
+            command: ["/bin/sh", "-c", "node index.js ${SECRET_RENOVATE_GITHUB_APP_APP_ID} ${SECRET_RENOVATE_GITHUB_APP_INSTALL_ID} /privkey | tee /config/RENOVATE_TOKEN"]
             securityContext: *sc
           02-config:
             imagePullPolicy: "IfNotPresent"
@@ -74,6 +74,7 @@ spec:
       main:
         enabled: false
     persistence:
+      # TODO: add either Redis or PVC to cache e.g. index.docker.io to alleviate rate limits
       tmp:
         enabled: true
         type: emptyDir
