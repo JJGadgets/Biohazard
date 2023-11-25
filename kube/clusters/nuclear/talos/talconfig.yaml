@@ -310,7 +310,7 @@ controlPlane:
               hostNetwork: true
               containers:
                 - name: *name
-                  image: "quay.io/frrouting/frr:8.5.2@sha256:d4cb742ae97e43a4ea7cad3fc1e9663365761792d31213f3752668d05cab3e1c"
+                  image: "quay.io/frrouting/frr:8.5.3@sha256:70702141339aed92dcf5dc869093085e866dc7891067e3e02a581b13214b39d8"
                   command: ["/usr/lib/frr/docker-start"]
                   securityContext:
                     privileged: true
