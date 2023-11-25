@@ -33,7 +33,10 @@ spec:
             env:
               TZ: "${CONFIG_TZ}"
               LOG_LEVEL: "debug"
+              RENOVATE_DRY_RUN: "false"
+              RENOVATE_REBASE_WHEN: "behind-base-branch"
               RENOVATE_PLATFORM: "github"
+              RENOVATE_PLATFORM_COMMIT: "true" # use GitHub API to commit so GitHub.com commit signing on behalf of GitHub App can be done
               RENOVATE_AUTODISCOVER: "true"
               RENOVATE_AUTODISCOVER_FILTER: "JJGadgets/Biohazard"
               # RENOVATE_REPOSITORIES: "JJGadgets/Biohazard"
