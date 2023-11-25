@@ -26,6 +26,7 @@ env:
   LOG_LEVEL: debug
   RENOVATE_DRY_RUN: false
   RENOVATE_PLATFORM: "github"
+  RENOVATE_PLATFORM_COMMIT: "true"
   # for those forking: set your own secrets in your GitHub repo settings before running
   RENOVATE_AUTODISCOVER: true
   RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository }}" # this is to prevent forks from running Renovate against upstream repo
