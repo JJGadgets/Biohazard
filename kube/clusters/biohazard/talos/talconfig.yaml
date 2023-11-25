@@ -64,9 +64,9 @@ nodes:
                 gateway: "${IP_ROUTER_VLAN_K8S}"
             vip:
               ip: "${IP_CLUSTER_VIP}"
-          - <<: *vlan-ceph
-            mtu: 1500
-            addresses: ["${IP_PVE_CEPH_PREFIX}8/28"]
+          # - <<: *vlan-ceph
+          #   mtu: 1500
+          #   addresses: ["${IP_PVE_CEPH_PREFIX}8/28"]
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -76,9 +76,9 @@ nodes:
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}6/28"]
-          - <<: *vlan-ceph
-            mtu: 1500
-            addresses: ["${IP_PVE_CEPH_PREFIX}9/28"]
+          # - <<: *vlan-ceph
+          #   mtu: 1500
+          #   addresses: ["${IP_PVE_CEPH_PREFIX}9/28"]
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3 4C4T, 32GB RAM, 512GB OS NVMe
@@ -90,9 +90,9 @@ nodes:
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
-          - <<: *vlan-ceph
-            mtu: 1500
-            addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
+          # - <<: *vlan-ceph
+          #   mtu: 1500
+          #   addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
 
 controlPlane:
   patches:
