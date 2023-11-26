@@ -138,16 +138,6 @@ spec:
               matchLabels:
                 rook_object_store: "${CLUSTER_NAME}"
             namespace: rook-ceph
-      toPorts:
-        - ports:
-            - port: "6953"
-              protocol: TCP
-            - port: "6953"
-              protocol: UDP
-            - port: "8080"
-              protocol: TCP
-            - port: "8080"
-              protocol: UDP
     - toEndpoints:
         - matchLabels:
             rook_object_store: "${CLUSTER_NAME}"
@@ -229,9 +219,6 @@ spec:
         - k8sService:
             serviceName: ingress-nginx-controller-admission
             namespace: ingress
-      toPorts:
-        - ports:
-            - port: "443"
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: ingress-nginx
