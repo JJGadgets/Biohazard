@@ -14,33 +14,34 @@ cgroup:
 cluster:
   name: "biohazard"
   id: "1"
-  
+
 ## NOTE: ClusterMesh, for connecting multiple clusters
-# clustermesh:
-#   useAPIServer: true
-#   apiserver:
-#     replicas: 3
-#     service:
-#       type: "NodePort"
-#       nodePort: 32371
-#   config:
-#     enabled: true
-#     clusters:
-#       - name: "hercules"
-#         port: 32372
-#         ips: ["${IP_HERCULES}"]
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    replicas: 3
+    service:
+      type: "NodePort"
+      nodePort: 32371
+  config:
+    enabled: true
+    clusters:
+      - name: "hercules"
+        port: 32372
+        ips: ["${IP_HERCULES}"]
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
-tunnel: "disabled"
-autoDirectNodeRoutes: true
-ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
+# tunnel: "disabled"
+# autoDirectNodeRoutes: true
+# ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 ### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
-# routingMode: tunnel
-# tunnelProtocol: geneve
-# loadBalancer:
-#   algorithm: maglev
-#   mode: dsr
-#   dsrDispatch: geneve
+routingMode: tunnel
+tunnelProtocol: geneve
+loadBalancer:
+  algorithm: maglev
+  mode: dsr
+  dsrDispatch: geneve
+  acceleration: best-effort
 
 ## NOTE: Cilium's networking internals
 ipam:

@@ -15,6 +15,7 @@ spec:
       toPorts:
         - ports:
             - port: "53"
+              protocol: "ANY"
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy

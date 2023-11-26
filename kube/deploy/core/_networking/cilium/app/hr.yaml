@@ -10,11 +10,12 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 spec:
-  interval: 5m
+  interval: "5m"
+  timeout: "1h"
   chart:
     spec:
       chart: cilium
-      version: "1.13.4"
+      version: "1.14.3"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository
@@ -35,7 +36,18 @@ spec:
     #     podCIDR: true
     bgpControlPlane:
       enabled: true
-    ## NOTE: Hubble observability
+    ## Note: Cilium ingress controller
+    ingressController:
+      enabled: true
+      enforceHttps: true
+      loadbalancerMode: "shared"
+      defaultSecretName: "short-domain-tls"
+      defaultSecretNamespace: "ingress"
+      service:
+        type: "LoadBalancer"
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_CILIUM_INGRESS}"
+    ## NOTE: Observability with Hubble & Prometheus
     hubble:
       ui:
         ingress:
@@ -46,3 +58,40 @@ spec:
           tls:
             - hosts:
                 - "${APP_DNS_HUBBLE}"
+      relay:
+        prometheus:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+      metrics:
+        enabled:
+          - dns:query
+          - drop
+          - tcp
+          - flow
+          - port-distribution
+          - icmp
+          - http
+        serviceMonitor:
+          enabled: true
+        dashboards:
+          enabled: true
+          annotations:
+            grafana_folder: "Cilium"
+    operator:
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+      dashboards:
+        enabled: true
+        annotations:
+          grafana_folder: "Cilium"
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+    dashboards:
+      enabled: true
+      annotations:
+        grafana_folder: "Cilium"
