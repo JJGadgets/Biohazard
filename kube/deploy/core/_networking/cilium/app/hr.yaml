@@ -20,8 +20,10 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   valuesFrom:
-    - kind: ConfigMap
-      name: cilium-helm-values
+    - kind: "ConfigMap"
+      name: "cilium-helm-values"
+      valuesKey: "${CLUSTER_NAME}.yaml"
+      optional: false
   values:
     ## NOTE: BGP for LoadBalancer services
     ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.

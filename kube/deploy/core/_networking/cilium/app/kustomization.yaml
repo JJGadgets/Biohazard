@@ -8,6 +8,8 @@ configMapGenerator:
   - name: "cilium-helm-values"
     namespace: kube-system
     files:
-      - values.yaml=${CLUSTER_NAME}/helm-values.yaml
+      - biohazard.yaml=config/biohazard/helm-values.yaml
+      - hercules.yaml=config/hercules/helm-values.yaml
+      - nuclear.yaml=config/nuclear/helm-values.yaml
 configurations:
   - kustomizeconfig.yaml
