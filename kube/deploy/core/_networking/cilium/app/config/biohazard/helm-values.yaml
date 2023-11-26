@@ -1,0 +1,91 @@
+---
+## NOTE: required for Talos
+securityContext:
+  privileged: true
+  capabilities:
+    ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
+    cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: "/sys/fs/cgroup"
+
+## NOTE: Cluster identification, mainly for ClusterMesh
+cluster:
+  name: "biohazard"
+  id: ${CONFIG_CILIUM_CLUSTER_ID}
+  
+## NOTE: ClusterMesh, for connecting multiple clusters
+clustermesh:
+  useAPIServer: true
+  apiserver:
+    replicas: 3
+    service:
+      type: "NodePort"
+      nodePort: 32371
+  config:
+    enabled: true
+    clusters:
+    - name: "hercules"
+      port: 32372
+      ips: ["${IP_HERCULES}"]
+
+## NOTE: Cilium's routing modes for inter-nodes pod traffic
+### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
+routingMode: tunnel
+tunnelProtocol: geneve
+loadBalancer:
+  algorithm: maglev
+  mode: dsr
+  dsrDispatch: geneve
+
+## NOTE: Cilium's networking internals
+ipam:
+  mode: kubernetes
+kubeProxyReplacement: strict
+### Talos 1.5 and above come with KubePrism which is an internal TCP load balancer for kube-apiserver. DO NOT COPY IF NOT ON TALOS OR A KUBEPRISM-SUPPORTED KUBERNETES DISTRIBUTION!!!
+k8sServiceHost: "127.0.0.1"
+k8sServicePort: "7445"
+kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+
+## NOTE: Cilium can automatically kill and respawn pods upon ConfigMap updates or other resource changes
+rollOutCiliumPods: true
+operator:
+  rollOutPods: true
+
+## NOTE: Cilium additional features and/or CRDs
+bpf:
+  masquerade: false # not beneficial for homelab, and tends to conflict with other networking stuff
+  tproxy: true # L7 netpols stuff
+l7Proxy: true # enables L7 netpols
+bgpControlPlane:
+  enabled: true
+  ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
+  ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
+localRedirectPolicy: true
+nodePort:
+  enabled: true
+  range: "9993,32767"
+bandwidthManager:
+  enabled: true
+  bbr: false # enable after Talos kernel updated to >= 5.18
+enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
+### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy & CiliumEndpoints status (policy enforcement etc) with the below enabled
+enableCnpStatusUpdates: true
+endpointStatus:
+  enabled: true
+  status: "policy"
+wellKnownIdentities: # for use in netpols, by having well-known endpoint labels
+  enabled: true
+
+## NOTE: Hubble observability
+hubble:
+  enabled: true
+  peerService:
+    clusterDomain: cluster.local
+  relay:
+    enabled: true
+    rollOutPods: true
+  ui:
+    enabled: true
+    rollOutPods: true

@@ -14,13 +14,13 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 1-core-1-networking-cilium-config
+  name: 1-core-1-networking-cilium-loadbalanacer
   namespace: flux-system
   labels:
     kustomization.flux.home.arpa/name: "cilium"
     kustomization.flux.home.arpa/helmpatches: "false"
 spec:
-  path: ./kube/deploy/core/_networking/cilium/config
+  path: ./kube/deploy/core/_networking/cilium/loadbalancer
   dependsOn:
     - name: 1-core-1-networking-cilium-app
 ---

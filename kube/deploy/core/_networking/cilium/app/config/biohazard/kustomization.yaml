@@ -1,25 +1,14 @@
 ---
+# this Kustomization is only for bootstrapping with `kustomize build --enable-helm`
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 helmCharts:
   - name: cilium
     repo: https://helm.cilium.io/
-    version: 1.13.1
+    version: 1.14.4
     releaseName: cilium
     namespace: kube-system
-    valuesFile: base-values.yaml
-    valuesMerge: override
-    valuesInline:
-      hubble:
-        enabled: false
-        relay:
-          enabled: false
-        ui:
-          enabled: false
-        tls:
-          enabled: false
-          auto:
-            enabled: false
+    valuesFile: helm-values.yaml
 commonAnnotations:
   meta.helm.sh/release-name: cilium
   meta.helm.sh/release-namespace: kube-system

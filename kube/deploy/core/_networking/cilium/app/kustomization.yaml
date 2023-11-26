@@ -1,11 +1,13 @@
+---
+# this Kustomization is the actual one used by Flux
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - hr.yaml
 configMapGenerator:
-  - name: cilium-base-install-values
+  - name: "cilium-helm-values"
     namespace: kube-system
     files:
-      - values.yaml=bootstrap-install/base-values.yaml
+      - values.yaml=${CLUSTER_NAME}/helm-values.yaml
 configurations:
   - kustomizeconfig.yaml

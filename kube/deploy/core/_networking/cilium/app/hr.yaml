@@ -14,35 +14,18 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: 1.13.4
+      version: "1.14.4"
       sourceRef:
-        kind: HelmRepository
         name: cilium-charts
+        kind: HelmRepository
         namespace: flux-system
-      interval: 5m
-  install:
-    # perform remediation when helm install fails
-    remediation:
-      retries: 100
-  upgrade:
-    # perform remediation when helm upgrade fails
-    remediation:
-      retries: 100
-      # remediate the last failure, when no retries remain
-      remediateLastFailure: true
-    cleanupOnFail: true
   valuesFrom:
     - kind: ConfigMap
-      name: cilium-base-install-values
+      name: cilium-helm-values
   values:
-    securityContext: # required for Talos
-      capabilities:
-        ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
-        cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
-    cgroup:
-      autoMount:
-        enabled: false
-      hostRoot: "/sys/fs/cgroup"
+    ## NOTE: BGP for LoadBalancer services
+    ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
+    ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
     # bgp:
     #   enabled: true
     #   announce:
@@ -50,39 +33,9 @@ spec:
     #     podCIDR: true
     bgpControlPlane:
       enabled: true
-        # `bgp.announce` block is moved to CiliumBGPPeeringPolicy used by bgpControlPlane, for more fine grained control over announced addresses
-        # bgpControlPlane is newer GoBGP implementation, `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
-    loadBalancer:
-      algorithm: maglev
-      # mode: snat
-      mode: dsr
-    nodePort:
-      enabled: true
-      range: 9993,32767
-    bandwidthManager:
-      enabled: true
-      bbr: false # enable after Talos kernel updated to >= 5.18
-    bpf:
-      masquerade: true
-      tproxy: true
-    enableIPv6BIGTCP: false # enable after Talos kernel updated to >= 5.19
-    l7Proxy: true
-    
-    # `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy & CiliumEndpoints status (policy enforcement etc) with this enabled
-    enableCnpStatusUpdates: true
-    endpointStatus:
-      enabled: true
-      status: "policy"
-
+    ## NOTE: Hubble observability
     hubble:
-      enabled: true
-      peerService:
-        clusterDomain: cluster.local
-      relay:
-        enabled: true
       ui:
-        enabled: true
-        rollOutPods: true
         ingress:
           enabled: true
           className: "nginx"
@@ -91,9 +44,3 @@ spec:
           tls:
             - hosts:
                 - "${APP_DNS_HUBBLE}"
-      tls:
-        enabled: true
-        auto:
-          enabled: true
-          method: "helm"
-          certValidityDuration: 3650
