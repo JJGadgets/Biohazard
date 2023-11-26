@@ -21,11 +21,13 @@ additionalApiServerCertSans:
   - "${IP_CLUSTER_VIP}"
   - "${IP_ROUTER_VLAN_K8S}"
   - "c.${DNS_CLUSTER}"
+  - "127.0.0.1"
 
 additionalMachineCertSans:
   - "${IP_CLUSTER_VIP}"
   - "${IP_ROUTER_VLAN_K8S}"
   - "c.${DNS_CLUSTER}"
+  - "127.0.0.1" # KubePrism
 
 nodes:
 
@@ -36,8 +38,6 @@ nodes:
     installDiskSelector:
       size: "<= 600GB"
       type: "nvme"
-    nodeLabels:
-      rook: "true"
     nameservers: ["${IP_HOME_DNS}"]
     disableSearchDomain: true
     networkInterfaces:
@@ -120,6 +120,12 @@ controlPlane:
             - ip: "${IP_CLUSTER_VIP}"
               aliases:
                 - "c.${DNS_CLUSTER}"
+            - ip: "${IP_HERCULES}"
+              aliases:
+                - "hercules.mesh.cilium.io"
+            - ip: "${IP_TRUENAS}"
+              aliases:
+                - "nas.${DNS_MAIN}"
         time:
           disabled: false
           servers:
@@ -205,6 +211,22 @@ controlPlane:
                       archive = 0
               }
 
+    - &nfsMountOptions |-
+      machine:
+        files:
+          - op: create
+            path: /etc/nfsmount.conf
+            permissions: 0o644
+            content: |
+              [ NFSMount_Global_Options ]
+              nfsvers=4.2
+              hard=True
+              noatime=True
+              nodiratime=True
+              rsize=131072
+              wsize=131072
+              nconnect=8
+
 worker:
   patches:
     - *kubeletExtraArgs
@@ -215,3 +237,4 @@ worker:
     # Rook Ceph encrypted OSDs
     # TODO: https://github.com/siderolabs/talos/issues/3129
     - *encryptedOSD
+    - *nfsMountOptions
