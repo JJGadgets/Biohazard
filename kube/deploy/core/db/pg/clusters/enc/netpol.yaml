@@ -76,9 +76,6 @@ spec:
         - k8sService:
             serviceName: cnpg-webhook-service
             namespace: cnpg
-      toPorts:
-        - ports:
-            - port: "443"
     # connect to operator
     - toEndpoints:
         - matchLabels:
