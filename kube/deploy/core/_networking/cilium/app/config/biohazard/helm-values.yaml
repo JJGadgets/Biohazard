@@ -16,19 +16,19 @@ cluster:
   id: "1"
   
 ## NOTE: ClusterMesh, for connecting multiple clusters
-clustermesh:
-  useAPIServer: true
-  apiserver:
-    replicas: 3
-    service:
-      type: "NodePort"
-      nodePort: 32371
-  config:
-    enabled: true
-    clusters:
-      - name: "hercules"
-        port: 32372
-        ips: ["${IP_HERCULES}"]
+# clustermesh:
+#   useAPIServer: true
+#   apiserver:
+#     replicas: 3
+#     service:
+#       type: "NodePort"
+#       nodePort: 32371
+#   config:
+#     enabled: true
+#     clusters:
+#       - name: "hercules"
+#         port: 32372
+#         ips: ["${IP_HERCULES}"]
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 tunnel: "disabled"
