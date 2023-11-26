@@ -4,7 +4,7 @@ talosVersion: v1.5.4
 kubernetesVersion: v1.28.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
-dnsDomain: cluster.local
+# dnsDomain: cluster.local
 talosImageURL: "factory.talos.dev/installer/b585b09d94017b3086ee1bf52b422ca79abd60478fb7591bf21108f065769e7e"
 # image extensions: amd-ucode, intel-ucode, i915-ucode, iscsi-tools, zfs
 # install Tailscale later, service won't be considered up until Tailscale is enrolled (I think)
@@ -31,7 +31,7 @@ nodes:
 
   - &m720q
     hostname: "ange.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe
-    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}5"
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
     controlPlane: true
     installDiskSelector:
       size: "<= 600GB"
@@ -56,7 +56,7 @@ nodes:
             vlanId: 58
             mtu: 1500
             dhcp: false
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}5/28"]
+            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
             routes:
               - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
                 metric: 1
@@ -70,26 +70,26 @@ nodes:
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
-    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}6"
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
     networkInterfaces:
       - <<: *m720q-net
         vlans:
           - <<: *m720q-v58
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}6/28"]
+            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
           # - <<: *vlan-ceph
           #   mtu: 1500
           #   addresses: ["${IP_PVE_CEPH_PREFIX}9/28"]
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3 4C4T, 32GB RAM, 512GB OS NVMe
-    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - interface: "enp1s0d1"
         mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
         dhcp: false
         vlans:
           - <<: *m720q-v58
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
+            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
           # - <<: *vlan-ceph
           #   mtu: 1500
           #   addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
@@ -125,6 +125,13 @@ controlPlane:
           servers:
             - "${IP_ROUTER_LAN}"
           bootTimeout: 2m0s
+
+    - &kubePrism |-
+      machine:
+        features:
+          kubePrism:
+            enabled: true
+            port: 7445
 
     - &kubeletSubnet |-
       machine:
