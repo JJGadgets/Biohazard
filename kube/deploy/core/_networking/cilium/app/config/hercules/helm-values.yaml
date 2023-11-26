@@ -8,7 +8,7 @@ containerRuntime:
 ## NOTE: Cluster identification, mainly for ClusterMesh
 cluster:
   name: "hercules"
-  id: ${CONFIG_CILIUM_CLUSTER_ID}
+  id: "2"
 
 ## NOTE: ClusterMesh, for connecting multiple clusters
 clustermesh:
@@ -21,9 +21,9 @@ clustermesh:
   config:
     enabled: true
     clusters:
-    - name: "biohazard"
-      port: 32371
-      ips: ["${IP_ROUTER_VLAN_K8S_PREFIX}1", "${IP_ROUTER_VLAN_K8S_PREFIX}2", "${IP_ROUTER_VLAN_K8S_PREFIX}3"]
+      - name: "biohazard"
+        port: 32371
+        ips: ["${IP_ROUTER_VLAN_K8S_PREFIX}1", "${IP_ROUTER_VLAN_K8S_PREFIX}2", "${IP_ROUTER_VLAN_K8S_PREFIX}3"]
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 ### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
