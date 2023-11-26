@@ -11,9 +11,10 @@ spec:
       app.kubernetes.io/instance: ingress-nginx
       app.kubernetes.io/name: ingress-nginx
   ingress:
-    # allow kube-apiserver for webhooks
+    # allow kube-apiserver and remote-node (Cilium) for webhooks
     - fromEntities:
         - kube-apiserver
+        - remote-node
       toPorts:
         - ports:
             - port: "80"
