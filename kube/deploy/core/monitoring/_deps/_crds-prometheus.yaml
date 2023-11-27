@@ -29,7 +29,8 @@ metadata:
     prune.flux.home.arpa/disabled: "true"
 spec:
   interval: 30m
-  prune: false
+  force: true # so that CRDs can be updated
+  prune: true
   wait: true
   dependsOn: []
   sourceRef:
