@@ -4,6 +4,9 @@ kind: Kustomization
 metadata:
   name: 1-core-1-networking-multus-app
   namespace: flux-system
+  labels:
+    prune.home.arpa/disabled: "false"
 spec:
   path: ./kube/deploy/core/_networking/multus/app
   dependsOn: []
+  prune: true
