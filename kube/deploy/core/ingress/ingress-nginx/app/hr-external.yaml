@@ -1,0 +1,72 @@
+---
+# this is for apps to be exposed but may not be for public usage, e.g. exposing authenticated media apps, NextCloud, etc
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &zone nginx-external
+  namespace: ingress
+spec:
+  chart:
+    spec:
+      chart: ingress-nginx
+      version: 4.8.3
+      sourceRef:
+        name: ingress-nginx
+        kind: HelmRepository
+        namespace: flux-system
+  valuesFrom:
+    - kind: ConfigMap
+      name: "ingress-nginx-helm-values"
+      valuesKey: "common-values.yaml"
+  values:
+    fullnameOverride: *zone
+    controller:
+      service:
+        enabled: true
+        type: "LoadBalancer"
+        externalTrafficPolicy: "Cluster"
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_EXTERNAL}"
+      extraArgs:
+        default-ssl-certificate: "ingress/short-domain-tls"
+      ingressClassResource:
+        name: *zone
+        default: true
+        controllerValue: "k8s.io/nginx-external"
+      admissionWebhooks:
+        objectSelector:
+          matchExpressions:
+            - key: ingress-class
+              operator: In
+              values: [*zone]
+      config:
+        # hardening
+        custom-http-errors: "400,403,404,405,409,410,411,412,413,414,415,416,417,418,421,425,431,451,500,501,502,503,504,505,506,510"
+        proxy-body-size: "100k"
+        client-body-timeout: 10
+        client-header-timeout: 10
+        keep-alive: 10
+        large-client-header-buffers: "2 2k"
+      addHeaders:
+        # https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html
+        # https://www.invicti.com/blog/web-security/http-security-headers/
+        X-Robots-Tag: "noindex, nofollow" # anti search engines
+        Cache-Control: "no-store" # don't store caches
+        X-Frame-Options: "DENY"
+        X-Content-Type-Options: "nosniff"
+        X-XSS-Protection: "1; mode=block"
+        Referrer-Policy: "no-referrer"
+        X-DNS-Prefetch-Control: "off"
+        Permissions-Policy: "interest-cohort=()" # anti Google FLoC
+        Cross-Origin-Opener-Policy: "same-origin"
+        Cross-Origin-Resource-Policy: "same-site"
+        Cross-Origin-Embedder-Policy: "require-corp"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "ingress-nginx"
+              app.kubernetes.io/instance: *zone
+              app.kubernetes.io/component: "controller"

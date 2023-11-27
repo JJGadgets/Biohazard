@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -22,13 +22,21 @@ spec:
       repository: public.ecr.aws/docker/library/busybox
       tag: 1.36.1-glibc
     command: ["busybox", "sh", "-c"]
-    args: ["wget 'https://jjgadgets.tech/error.zstd' -O /dev/shm/index.html && httpd -f -v -p 8080 -h /dev/shm"]
+    args: ["httpd -f -v -p 8080 -h /config"]
     service:
       main:
         ports:
           http:
             port: 80
             targetPort: 8080
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: "default-backend-html"
+        subPath: "index.html"
+        mountPath: "/config/index.html"
+        readOnly: true
     podSecurityContext:
       runAsUser: &uid 404200
       runAsGroup: *uid
@@ -40,3 +48,53 @@ spec:
         memory: 32Mi
       limits:
         memory: 256Mi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "default-error-page-${DNS_SHORT//./-}"
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: &host "error.${DNS_SHORT}"
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: default-backend
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - *host
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "default-error-page-${DNS_MAIN//./-}"
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: &host "error.${DNS_MAIN}"
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: default-backend
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - *host

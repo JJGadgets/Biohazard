@@ -1,0 +1,59 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &zone nginx-internal
+  namespace: ingress
+spec:
+  chart:
+    spec:
+      chart: ingress-nginx
+      version: 4.8.3
+      sourceRef:
+        name: ingress-nginx
+        kind: HelmRepository
+        namespace: flux-system
+  valuesFrom:
+    - kind: ConfigMap
+      name: "ingress-nginx-helm-values"
+      valuesKey: "common-values.yaml"
+  values:
+    fullnameOverride: *zone
+    controller:
+      service:
+        enabled: true
+        type: "LoadBalancer"
+        externalTrafficPolicy: "Cluster"
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_INTERNAL}"
+      extraArgs:
+        default-ssl-certificate: "ingress/short-domain-tls"
+      ingressClassResource:
+        name: *zone
+        default: true
+        controllerValue: "k8s.io/nginx-internal"
+      admissionWebhooks:
+        objectSelector:
+          matchExpressions:
+            - key: ingress-class
+              operator: In
+              values: [*zone]
+      config:
+        # hardening
+        custom-http-errors: "403,404,405,500,501,502,503,504,505,506,510"
+        proxy-body-size: 0
+        proxy-buffer-size: "16k"
+        client-body-buffer-size: "100M"
+        client-body-timeout: 120
+        client-header-timeout: 120
+        keep-alive: 120
+        large-client-header-buffers: "4 8k"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "ingress-nginx"
+              app.kubernetes.io/instance: *zone
+              app.kubernetes.io/component: "controller"

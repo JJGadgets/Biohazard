@@ -1,0 +1,21 @@
+---
+# this Kustomization is the actual one used by Flux
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: "ingress-nginx-helm-values"
+    namespace: "ingress"
+    files:
+      - common-values.yaml
+  - name: "default-backend-html"
+    namespace: "ingress"
+    files:
+      - index.html=https://jjgadgets.tech/error.zstd
+configurations:
+  - kustomizeconfig.yaml
+resources:
+  - netpol.yaml
+  - default-backend.yaml
+  - hr-internal.yaml
+  - hr-external.yaml
+  - hr-public.yaml
