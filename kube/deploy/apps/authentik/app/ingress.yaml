@@ -8,11 +8,11 @@ metadata:
     ingress.cilium.io/websocket: "enabled"
     ingress.cilium.io/service-type: "LoadBalancer"
     ingress.cilium.io/loadbalancer-mode: "dedicated"
-    io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK}"
+    io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_INGRESS}"
 spec:
   ingressClassName: "cilium"
   rules:
-    - host: &host "${APP_DNS_AUTHENTIK_INGRESS}"
+    - host: &host "${APP_DNS_AUTHENTIK}"
       http:
         paths:
           - pathType: Prefix
