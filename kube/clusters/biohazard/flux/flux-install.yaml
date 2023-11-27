@@ -45,11 +45,10 @@ spec:
         - op: add
           path: /spec/template/spec/containers/0/args/-
           value: --requeue-dependency=1s
-        - op: replace
-          path: /spec/template/spec/volumes/0
+        - op: add
+          path: /spec/template/spec/volumes/0/emptyDir
           value:
-            emptyDir:
-              medium: Memory
+            medium: Memory
       target:
         kind: Deployment
         name: "(kustomize-controller|helm-controller|source-controller)"
