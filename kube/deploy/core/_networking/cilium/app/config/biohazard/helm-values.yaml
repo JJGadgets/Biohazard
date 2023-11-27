@@ -34,16 +34,19 @@ cluster:
 #         ips: ["${IP_HERCULES}"]
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
-# tunnel: "disabled"
-# autoDirectNodeRoutes: true
-# ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
-### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
-routingMode: tunnel
-tunnelProtocol: geneve
+routingMode: native
+autoDirectNodeRoutes: true
+ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 loadBalancer:
   algorithm: maglev
   mode: dsr
-  dsrDispatch: geneve
+### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
+# routingMode: tunnel
+# tunnelProtocol: geneve
+# loadBalancer:
+#   algorithm: maglev
+#   mode: dsr
+#   dsrDispatch: geneve
   # acceleration: best-effort
 
 ## NOTE: Cilium's networking internals
