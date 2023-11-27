@@ -1,0 +1,27 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik-cilium
+  namespace: authentik
+  annotations:
+    ingress.cilium.io/websocket: "enabled"
+    ingress.cilium.io/service-type: "LoadBalancer"
+    ingress.cilium.io/loadbalancer-mode: "dedicated"
+    io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK}"
+spec:
+  ingressClassName: "cilium"
+  rules:
+    - host: &host "${APP_DNS_AUTHENTIK_INGRESS}"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: authentik
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - *host
