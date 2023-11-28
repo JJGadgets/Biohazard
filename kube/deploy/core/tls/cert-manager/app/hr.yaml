@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: cert-manager
-      version: v1.13.0-alpha.0
+      version: v1.13.2
       sourceRef:
         name: jetstack
         kind: HelmRepository
@@ -22,3 +22,15 @@ spec:
     webhook:
       extraArgs:
         - --feature-gates=AdditionalCertificateOutputFormats=true
+    prometheus:
+      enabled: true
+      servicemonitor:
+        enabled: true
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/instance: cert-manager
+            app.kubernetes.io/component: controller

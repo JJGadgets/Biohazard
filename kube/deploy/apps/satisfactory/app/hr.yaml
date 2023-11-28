@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -84,4 +84,5 @@ spec:
         cpu: 200m
         memory: 11000Mi
       limits:
+        cpu: 3000m
         memory: 20000Mi
