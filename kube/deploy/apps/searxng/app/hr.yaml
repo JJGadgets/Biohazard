@@ -50,7 +50,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_SEARXNG}"
             paths:
@@ -99,10 +99,6 @@ spec:
                   - duckduckgo
                   - brave
                   - startpage
-                  - qwant
-                  - qwant news
-                  - qwant images
-                  - qwant videos
                   - gitlab
                   - github
                   - codeberg
@@ -201,6 +197,11 @@ spec:
               image_proxy: true
               http_protocol_version: "1.1"
               method: "GET"
+            outgoing:
+              proxies:
+                all://:
+                  - socks5://10.64.0.1:1080
+                  - socks5://10.8.0.1:1080
             ui:
               static_use_hash: true
               infinite_scroll: true
@@ -214,7 +215,7 @@ spec:
               - 'Tracker URL remover'
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
-    # NOTE: Search engines disabled: 
+    # NOTE: Search engines disabled:
     # - archive.is (too many requests)
     resources:
       requests:

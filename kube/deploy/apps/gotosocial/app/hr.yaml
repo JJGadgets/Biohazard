@@ -23,7 +23,7 @@ spec:
       replicas: 1
     image:
       repository: "docker.io/superseriousbusiness/gotosocial"
-      tag: "0.12.1"
+      tag: "0.12.2"
     podLabels:
       ingress.home.arpa/nginx: "allow"
       ingress.home.arpa/cloudflare: "allow"
@@ -34,6 +34,7 @@ spec:
     env:
       TZ: "${CONFIG_TZ}"
       GTS_APPLICATION_NAME: "The JJGadgets Hut"
+      GTS_LANDING_PAGE_USER: "jj"
       GTS_HOST: &host "social.jjgadgets.tech"
       GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
       GTS_PROTOCOL: "https"
@@ -80,10 +81,7 @@ spec:
           secretKeyRef:
             name: "gotosocial-media-s3"
             key: "AWS_SECRET_ACCESS_KEY"
-      GTS_LANDING_PAGE_USER: "jj"
     envFrom:
-    #   - secretRef:
-    #       name: gotosocial-pg
       - secretRef:
           name: gotosocial-oidc
     service:
@@ -96,7 +94,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-public"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"

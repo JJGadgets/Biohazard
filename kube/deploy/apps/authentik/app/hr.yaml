@@ -25,7 +25,7 @@ spec:
       port: 9000
     ingress:
       enabled: true
-      ingressClassName: "nginx"
+      ingressClassName: "nginx-external"
       annotations:
         external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
         external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"

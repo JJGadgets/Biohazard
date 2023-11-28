@@ -32,6 +32,8 @@ spec:
       WHOOGLE_CONFIG_DISABLE: 1
       WHOOGLE_CONFIG_TOR: 0
       WHOOGLE_TOR_SERVICE: 0
+      WHOOGLE_PROXY_TYPE: "socks5"
+      WHOOGLE_PROXY_LOC: "10.64.0.1:1080"
     dnsPolicy: None
     dnsConfig:
       options:
@@ -48,7 +50,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: "${APP_DNS_WHOOGLE}"
             paths:
