@@ -20,9 +20,11 @@ includes:
   volsync:
     aliases: [vs]
     taskfile: .taskfiles/volsync/Taskfile.dist.yaml
-  cnpg:
-    aliases: [pg]
-    taskfile: .taskfiles/cnpg/Taskfile.dist.yaml
+  # cnpg:
+  #   aliases: [pg]
+  #   taskfile: .taskfiles/cnpg/Taskfile.dist.yaml
+  pg:
+    taskfile: .taskfiles/pg/Taskfile.dist.yaml
   rook:
     aliases: [r]
     taskfile: .taskfiles/rook
@@ -81,3 +83,25 @@ tasks:
     cmds:
       - htpasswd -bnBC 10 REMOVEME {{.USERPW}}
 
+  kubectl-sops:
+    silent: true
+    desc: Run kubectl commands with a SOPS encrypted $KUBECONFIG file
+    preconditions:
+      - sh: command -v sops
+    vars: &vars
+      KUBECONFIGSOPS: '{{ .KUBECONFIG | default "~/.kube/config.sops.yaml" }}'
+      KCMD:
+        sh: |-
+          [[ -n "{{.KUBECTL_CMD}}" ]] && echo "{{.KUBECTL_CMD}}" || [[ -n $(command -v kubecolor) ]] && command -v kubecolor && exit || [[ -n $(command -v kubectl) ]] && command -v kubectl && exit || exit 1
+      KUBETMPDIR:
+        sh: "mktemp -d"
+      KUBECONFIG: "{{.KUBETMPDIR}}/decrypted.yaml"
+    cmds:
+      # - echo "{{.KUBECTL_CMD}}"
+      - defer: "rm {{.KUBECONFIG}} && rmdir {{.KUBETMPDIR}}"
+      - |
+        mkfifo {{.KUBECONFIG}}
+        KUBECONFIG={{.KUBECONFIG}} {{.KCMD}} {{.CLI_ARGS}} &
+        KUBECTL_PID=$!
+        sops --decrypt --output {{.KUBECONFIG}} {{.KUBECONFIGSOPS}} >/dev/null 2>/dev/null
+        wait $KUBECTL_PID
