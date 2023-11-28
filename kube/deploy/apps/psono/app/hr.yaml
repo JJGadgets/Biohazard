@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: "docker.io/psono/psono-server-enterprise"
-      tag: "3.5.4"
+      tag: "3.8.0"
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-enc"
@@ -123,11 +123,11 @@ spec:
         memory: 6000Mi
     initContainers:
       01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        image: ghcr.io/onedr0p/postgres-init:15.5@sha256:18560dc4098004b6486a81c92d575a7f9d636c5ede997c515f15b52e130bd827
         imagePullPolicy: IfNotPresent
         envFrom: [secretRef: {name: psono-pg-superuser}]
       02-un-root:
-        image: "docker.io/psono/psono-server-enterprise:3.5.4"
+        image: "docker.io/psono/psono-server-enterprise:3.8.0"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && cp -rL /root/. /psono && find /psono -type f | xargs -I% sed -i "s/\/root/\/psono/g" %']
         command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono; exit']
@@ -160,7 +160,7 @@ spec:
       # repository: "docker.io/psono/psono-client"
       # tag: "2.4.4"
       repository: public.ecr.aws/docker/library/caddy
-      tag: 2.7.4
+      tag: 2.7.5
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
@@ -230,7 +230,7 @@ spec:
         memory: 6000Mi
     initContainers:
       02-un-root:
-        image: "docker.io/psono/psono-client:2.4.4"
+        image: "docker.io/psono/psono-client:2.4.9"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
         command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono; exit']
@@ -263,7 +263,7 @@ spec:
       # repository: "docker.io/psono/psono-admin-client"
       # tag: "1.6.11"
       repository: public.ecr.aws/docker/library/caddy
-      tag: 2.7.4
+      tag: 2.7.5
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx: "allow"
@@ -334,7 +334,7 @@ spec:
         memory: 6000Mi
     initContainers:
       02-un-root:
-        image: "docker.io/psono/psono-admin-client:1.6.11"
+        image: "docker.io/psono/psono-admin-client:1.7.0"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono && chown -R 69420:69420 /psono; exit']
         command: ["/bin/sh", "-c", 'cp -rL /usr/share/nginx/html/. /psono; exit']

@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: haproxy
-      version: 1.18.0
+      version: 1.19.3
       sourceRef:
         name: haproxytech
         kind: HelmRepository
@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: haproxytech/haproxy-debian
-      tag: "2.7.6"
+      tag: "2.8.4"
       pullPolicy: IfNotPresent
     kind: DaemonSet
     service:

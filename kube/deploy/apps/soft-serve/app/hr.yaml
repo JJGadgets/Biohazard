@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: ghcr.io/charmbracelet/soft-serve
-      tag: v0.6.2
+      tag: v0.7.3
     podLabels:
       ingress.home.arpa/nginx: "allow"
       db.home.arpa/pg: "pg-default"
@@ -109,6 +109,6 @@ spec:
         memory: 6000Mi
     initContainers:
       01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
+        image: ghcr.io/onedr0p/postgres-init:15.5@sha256:18560dc4098004b6486a81c92d575a7f9d636c5ede997c515f15b52e130bd827
         imagePullPolicy: IfNotPresent
         envFrom: [secretRef: {name: soft-serve-pg-superuser}]
