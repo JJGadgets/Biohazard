@@ -70,7 +70,7 @@ nodes:
         machine:
           install:
             extensions:
-              - image: ghcr.io/siderolabs/i915-ucode:20230310
+              - image: ghcr.io/siderolabs/i915-ucode:20231111
       # ZFS support for NAS
       - &zfs-install |-
         machine:
@@ -263,7 +263,7 @@ controlPlane:
             - "${IP_ROUTER_LAN}"
           bootTimeout: 2m0s
 
-    - &kubeletNodeIP |-
+    - &kubeletSubnet |-
       machine:
         kubelet:
           nodeIP:
@@ -366,7 +366,7 @@ worker:
 
     - *clusterPatch
 
-    - *kubeletNodeIP
+    - *kubeletSubnet
 
     - *frr-pod
 
