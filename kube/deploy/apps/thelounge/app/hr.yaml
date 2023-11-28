@@ -21,7 +21,7 @@ spec:
       type: deployment
       replicas: 1
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       authentik.home.arpa/ldap: "allow"
     image:
       repository: ghcr.io/thelounge/thelounge

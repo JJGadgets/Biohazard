@@ -24,7 +24,7 @@ spec:
       repository: "ghcr.io/diced/zipline"
       tag: "3.7.4"
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-zipline"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     env:

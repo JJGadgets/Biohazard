@@ -24,7 +24,7 @@ spec:
       repository: ghcr.io/elk-zone/elk
       tag: v0.10.3
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/ingress-nginx: "allow"
     env:
       TZ: "${CONFIG_TZ}"

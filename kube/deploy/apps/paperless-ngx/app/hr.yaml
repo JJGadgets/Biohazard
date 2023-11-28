@@ -22,7 +22,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
         containers:
           main:
             image:

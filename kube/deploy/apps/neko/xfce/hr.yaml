@@ -24,7 +24,7 @@ spec:
       repository: ghcr.io/m1k1o/neko/xfce
       tag: 2.8.8@sha256:d44e5b7f8b4968841a86860c402c008816fdc0eabc7eff39f42bc6c50670f78f
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"

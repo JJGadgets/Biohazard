@@ -25,7 +25,7 @@ spec:
       repository: "docker.io/superseriousbusiness/gotosocial"
       tag: "0.12.2"
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       ingress.home.arpa/cloudflare: "allow"
       db.home.arpa/pg: "pg-gotosocial"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"

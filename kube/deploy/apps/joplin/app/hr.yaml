@@ -24,7 +24,7 @@ spec:
       repository: docker.io/joplin/server
       tag: 2.12.1-beta@sha256:332cc8eacbb55aa5d5120039ed256332fa5a535ca3aac0657e5338015e34824c
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world-ntp: "allow"
     env:

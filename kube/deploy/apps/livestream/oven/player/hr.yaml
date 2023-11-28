@@ -24,7 +24,7 @@ spec:
       repository: docker.io/airensoft/ovenplayerdemo
       tag: 1.0.0@sha256:f42bb15fe56e2ea2e65d12fd567be16d1b48c0d1ad3a609f2198beb70dec20c8
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
     env:
       TZ: "${CONFIG_TZ}"
     service:

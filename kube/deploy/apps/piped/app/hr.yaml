@@ -16,7 +16,7 @@ spec:
   values:
     automountServiceAccountToken: false
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/ingress-nginx: "allow"
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world: "allow"

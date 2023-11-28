@@ -25,7 +25,7 @@ spec:
       tag: "17.0.1"
     command: ["atuin", "server", "start"]
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-atuin"
     env:
       TZ: "${CONFIG_TZ}"
