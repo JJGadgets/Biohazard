@@ -16,45 +16,17 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: ingress
-            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/instance: nginx-external
             app.kubernetes.io/name: ingress-nginx
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
-            - port: "9100"
-              protocol: TCP
-            - port: "9000"
-              protocol: TCP
-            - port: "9443"
-              protocol: TCP
-            - port: "9300"
-              protocol: TCP
   egress:
     # same namespace
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # proxy DNS requests
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-          rules:
-            dns:
-              - matchPattern: "*"
-    # allow ingress-nginx
+    # allow all ingress-nginx
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: ingress
-            app.kubernetes.io/component: controller
-            app.kubernetes.io/instance: ingress-nginx
             app.kubernetes.io/name: ingress-nginx
     # allow Duo
     - toFQDNs:
@@ -68,10 +40,3 @@ spec:
       toPorts:
         - ports:
             - port: "587"
-    - toEntities:
-        - kube-apiserver
-    - toEntities:
-        - host
-      toPorts:
-        - ports:
-            - port: "6443"

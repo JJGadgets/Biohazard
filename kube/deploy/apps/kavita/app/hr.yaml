@@ -15,6 +15,9 @@ spec:
         namespace: flux-system
   values:
     automountServiceAccountToken: false
+    podLabels:
+      ingress.home.arpa/nginx-internal: "allow"
+      egress.home.arpa/world-https: "allow" # metadata fetching
     controller:
       type: "deployment"
       replicas: 1
