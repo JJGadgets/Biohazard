@@ -19,19 +19,13 @@ spec:
     dnsPolicy: ClusterFirstWithHostNet
     tetragon:
       enabled: true
-      image:
-        repository: quay.io/cilium/tetragon
-        tag: v0.8.3
-        securityContext:
-          privileged: true
-        enableK8sAPI: true
-        enableCiliumAPI: true
-        enableProcessCred: true
-        enableProcessNs: true
-        prometheus:
-          enabled: false
+      securityContext:
+        privileged: true
+      enableK8sAPI: true
+      enableCiliumAPI: true
+      enableProcessCred: true
+      enableProcessNs: true
+      prometheus:
+        enabled: false
     tetragonOperator:
-      enabled: true
-      image:
-        repository: quay.io/cilium/tetragon-operator
-        tag: v0.8.3
+        enabled: true
