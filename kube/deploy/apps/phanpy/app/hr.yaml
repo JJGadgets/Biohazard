@@ -37,7 +37,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "phanpy.${DNS_SHORT}"
             paths:

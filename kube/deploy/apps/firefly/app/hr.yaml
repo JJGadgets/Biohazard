@@ -74,7 +74,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_FIREFLY}/outpost.goauthentik.io/start?rd=$escaped_request_uri

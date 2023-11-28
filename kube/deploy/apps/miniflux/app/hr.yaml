@@ -48,7 +48,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_MINIFLUX}"
             paths:

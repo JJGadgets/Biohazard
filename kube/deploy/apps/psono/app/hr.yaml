@@ -79,7 +79,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${APP_IP_NGINX}"
           nginx.ingress.kubernetes.io/use-regex: "true"
@@ -173,7 +173,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_PSONO}"
             paths:
@@ -276,7 +276,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_PSONO}"
             paths:

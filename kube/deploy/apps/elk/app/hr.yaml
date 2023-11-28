@@ -40,7 +40,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "elk.${DNS_SHORT}"
             paths:

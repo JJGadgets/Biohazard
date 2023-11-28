@@ -178,7 +178,7 @@ spec:
       enabled: true
     ingress:
       enabled: true
-      ingressClassName: "nginx"
+      ingressClassName: "nginx-internal"
       hosts:
         - &host "${APP_DNS_GRAFANA}"
       tls:

@@ -83,7 +83,7 @@ spec:
           memory: 500Mi
     ingress:
       main:
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
@@ -95,7 +95,7 @@ spec:
           - hosts:
               - *frontend
       backend:
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
@@ -107,7 +107,7 @@ spec:
           - hosts:
               - *backend
       ytproxy:
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"

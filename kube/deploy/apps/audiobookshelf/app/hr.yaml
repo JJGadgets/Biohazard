@@ -47,7 +47,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: nginx
+        className: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_AUDIOBOOKSHELF}"
             paths:
