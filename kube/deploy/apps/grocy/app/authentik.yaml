@@ -5,7 +5,7 @@ metadata:
   name: grocy-authentik
   namespace: authentik
 spec:
-  ingressClassName: nginx
+  ingressClassName: "nginx-internal"
   rules:
     - host: &host "${APP_DNS_GROCY}"
       http:

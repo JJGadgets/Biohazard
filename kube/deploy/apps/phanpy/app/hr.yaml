@@ -27,7 +27,7 @@ spec:
       repository: "ghcr.io/jjgadgets/phanpy"
       tag: "production"
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
     service:
       main:
         ports:
@@ -37,7 +37,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "phanpy.${DNS_SHORT}"
             paths:

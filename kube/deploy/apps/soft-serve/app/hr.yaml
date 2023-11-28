@@ -24,7 +24,7 @@ spec:
       repository: ghcr.io/charmbracelet/soft-serve
       tag: v0.7.3
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
     env:
       TZ: "${CONFIG_TZ}"
@@ -74,7 +74,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_SOFT_SERVE_HTTPS}"
             paths:

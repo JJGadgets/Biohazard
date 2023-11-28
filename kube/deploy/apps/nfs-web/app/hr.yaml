@@ -20,7 +20,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
         containers:
           main:
             image:
@@ -50,7 +50,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: nginx
+        className: "nginx-internal"
         # annotations: # TODO
         #   external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_HOME}"
         #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"

@@ -24,7 +24,7 @@ spec:
       repository: ghcr.io/miniflux/miniflux
       tag: 2.0.44-distroless@sha256:c369c2fdaff368a469c836f0c9f40f15f02f74b4418617fd9c886f28b02154d3
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world: "allow"
     env:

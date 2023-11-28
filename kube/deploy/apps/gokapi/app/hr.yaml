@@ -30,7 +30,7 @@ spec:
     ingress:
       main:
         enabled: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: "${APP_DNS_GOKAPI}"
             paths:

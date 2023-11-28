@@ -44,7 +44,7 @@ spec:
         ssl: false
       labels:
         mgr:
-          ingress.home.arpa/nginx: "allow"
+          ingress.home.arpa/nginx-internal: "allow"
           prom.home.arpa/kps: "allow"
       mon:
         count: 3
@@ -279,7 +279,7 @@ spec:
                 memory: 2Gi
         ingress:
           enabled: true
-          ingressClassName: "nginx"
+          ingressClassName: "nginx-internal"
           host:
             name: &rgw-host "${APP_DNS_RGW_S3}"
             path: "/"
@@ -297,7 +297,7 @@ spec:
       createPrometheusRules: true
     ingress:
       dashboard:
-        ingressClassName: "nginx"
+        ingressClassName: "nginx-internal"
         host:
           name: &dashboard-host "${APP_DNS_CEPH}"
           path: "/"

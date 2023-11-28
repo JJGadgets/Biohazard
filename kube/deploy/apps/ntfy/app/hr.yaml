@@ -20,7 +20,7 @@ spec:
         replicas: "1"
         pod:
           labels:
-            ingress.home.arpa/nginx: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
         containers:
           main:
             imagePullPolicy: "IfNotPresent"
@@ -105,7 +105,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: "nginx"
+        className: "nginx-internal"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         hosts:

@@ -56,7 +56,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: "nginx"
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_SYNCTHING_USER_1}"
             paths:

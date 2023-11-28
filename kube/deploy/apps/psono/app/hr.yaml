@@ -24,7 +24,7 @@ spec:
       repository: "docker.io/psono/psono-server-enterprise"
       tag: "3.8.0"
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-enc"
       egress.home.arpa/ingress-nginx: "allow"
     env:
@@ -79,7 +79,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${APP_IP_NGINX}"
           nginx.ingress.kubernetes.io/use-regex: "true"
@@ -163,7 +163,7 @@ spec:
       tag: 2.7.5
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
     service:
       main:
         ports:
@@ -173,7 +173,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_PSONO}"
             paths:
@@ -266,7 +266,7 @@ spec:
       tag: 2.7.5
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
     service:
       main:
         ports:
@@ -276,7 +276,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_PSONO}"
             paths:

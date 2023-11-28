@@ -8,7 +8,7 @@ metadata:
     external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: "nginx-internal"
   rules:
   - host: &host "${APP_DNS_FLUX_WEBHOOK}"
     http:

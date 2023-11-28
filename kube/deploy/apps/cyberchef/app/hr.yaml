@@ -24,7 +24,7 @@ spec:
       repository: docker.io/mpepping/cyberchef
       tag: v10.5.2@sha256:61f336cc9d716a0bf88193325fdeaec73669dd1de8040ad34f7ac5641e9c279a
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
     env:
       TZ: "${CONFIG_TZ}"
     service:
@@ -36,7 +36,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_CYBERCHEF}"
             paths:

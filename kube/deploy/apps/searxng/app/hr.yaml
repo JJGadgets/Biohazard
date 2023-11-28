@@ -24,7 +24,7 @@ spec:
       repository: docker.io/searxng/searxng
       tag: 2023.7.22-65d8b1a31
     podLabels:
-      ingress.home.arpa/nginx: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"

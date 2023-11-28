@@ -21,7 +21,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/world: "allow" # TODO: tighten this
             # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
         containers:
@@ -174,7 +174,7 @@ spec:
       main: &ingress
         enabled: true
         primary: false
-        className: nginx
+        className: "nginx-internal"
         hosts:
           - host: *host
             paths:

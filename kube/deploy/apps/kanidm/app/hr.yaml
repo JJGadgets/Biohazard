@@ -52,7 +52,7 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: nginx
+        ingressClassName: "nginx-internal"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"

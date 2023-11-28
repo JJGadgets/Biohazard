@@ -52,7 +52,7 @@ spec:
       ui:
         ingress:
           enabled: true
-          className: "nginx"
+          className: "nginx-internal"
           hosts:
             - "${APP_DNS_HUBBLE}"
           tls:

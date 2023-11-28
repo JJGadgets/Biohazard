@@ -58,7 +58,7 @@ metadata:
     external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: "nginx-internal"
   rules:
   - host: &host "error.${DNS_SHORT}"
     http:
@@ -83,7 +83,7 @@ metadata:
     external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: "nginx-internal"
   rules:
   - host: &host "error.${DNS_MAIN}"
     http:

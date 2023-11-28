@@ -22,7 +22,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
         containers:
           main:
             image:
@@ -85,7 +85,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: nginx
+        className: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_GROCY}/outpost.goauthentik.io/start?rd=$escaped_request_uri
