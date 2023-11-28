@@ -20,7 +20,7 @@ spec:
       replicas: 1
     fullNameOverride: insurgency-sandstorm
     image:
-      repository: docker.io/andrewmhub/insurgency-sandstorm
+      repository: "docker.io/andrewmhub/insurgency-sandstorm"
       tag: lite # I wish this wasn't how it's tagged, but alas
     args: ["-hostname=\"${CONFIG_SANDSTORM_NAME}\"", "-Log", "-Port=${CONFIG_SANDSTORM_PORT}", "-QueryPort=${CONFIG_SANDSTORM_QUERYPORT}", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", "-CmdModList=\"${CONFIG_SANDSTORM_MODS}\"", "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"]
     env:
@@ -62,40 +62,10 @@ spec:
             enabled: true
             port: *query
             protocol: UDP
-    initContainers:
-      init-permission:
-        image: busybox:1.36.0
-        imagePullPolicy: IfNotPresent
-        command:
-          - sh
-          - -c
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm
-          - chmod -R 775 /home/steam/steamcmd/sandstorm
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Mods
-          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Mods
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
-          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Config
-          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/Config
-          - chown -R 1000:1000 /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
-          - chmod -R 775 /home/steam/steamcmd/sandstorm/Insurgency/SaveGames
-        securityContext:
-          runAsUser: 0
-        volumeMounts:
-          - name: game
-            mountPath: /home/steam/steamcmd/sandstorm
-          - name: mods
-            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Mods
-          - name: config1
-            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
-          - name: config2
-            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config
-          - name: savegames
-            mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
     podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
+      runAsUser: &uid 1000
+      runAsGroup: *uid
+      fsGroup: *uid
       fsGroupChangePolicy: "Always"
     persistence:
       game:
@@ -105,42 +75,6 @@ spec:
         accessMode: ReadWriteOnce
         storageClass: block
         size: 100Gi
-        retain: true
-        readOnly: false
-      mods:
-        enabled: true
-        type: pvc
-        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Mods
-        accessMode: ReadWriteOnce
-        storageClass: block
-        size: 100Gi
-        retain: true
-        readOnly: false
-      config1:
-        enabled: true
-        type: pvc
-        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/Config
-        accessMode: ReadWriteOnce
-        storageClass: block
-        size: 1Gi
-        retain: true
-        readOnly: false
-      config2:
-        enabled: true
-        type: pvc
-        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Config
-        accessMode: ReadWriteOnce
-        storageClass: block
-        size: 1Gi
-        retain: true
-        readOnly: false
-      savegames:
-        enabled: true
-        type: pvc
-        mountPath: /home/steam/steamcmd/sandstorm/Insurgency/Saved/SaveGames
-        accessMode: ReadWriteOnce
-        storageClass: block
-        size: 10Gi
         retain: true
         readOnly: false
       gameini:
@@ -193,28 +127,23 @@ spec:
         readOnly: true
     resources:
       requests:
-        memory: 1024Mi
+        cpu: "1000m"
+        memory: "2048Mi"
+      limits:
+        cpu: "3000m" # 3 cores
+        memory: "6000Mi"
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 15
-          preference:
-            matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - cp2
-        - weight: 10
-          preference:
-            matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - cp1
-        - weight: 5
-          preference:
-            matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - cp3
+          - weight: 15
+            preference:
+              matchExpressions:
+                - key: "kubernetes.io/hostname"
+                  operator: In
+                  values: ["ange", "charlotte"] # i5-8500T
+          - weight: 10
+            preference:
+              matchExpressions:
+                - key: "kubernetes.io/hostname"
+                  operator: In
+                  values: ["chise"] # i3-8100
