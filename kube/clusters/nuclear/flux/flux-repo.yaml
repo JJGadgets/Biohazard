@@ -150,8 +150,8 @@ spec:
         metadata:
           name: not-used
         spec:
-          # prune: true
-          prune: false # disable prune for Flux restructure
+          prune: true
+          # prune: false
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
