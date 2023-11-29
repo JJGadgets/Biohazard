@@ -234,7 +234,7 @@ controlPlane:
       machine:
         files:
           - op: create
-            path: /etc/nfsmount.conf
+            path: /etc/cri/conf.d/20-customization.part
             permissions: 0o644
             content: |
               [plugins."io.containerd.grpc.v1.cri"]
