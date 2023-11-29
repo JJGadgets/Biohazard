@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.0.2
+      version: "2.3.0"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -26,7 +26,7 @@ spec:
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
         containers:
           main:
-            image:
+            image: &img
               repository: "docker.io/${APPNAME}/server"
               tag: "v"
             env:
@@ -44,39 +44,48 @@ spec:
             envFrom:
               - secretRef:
                   name: "${APPNAME}-secrets"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: "10m"
+                memory: "128Mi"
               limits:
-                memory: 6000Mi
-        statefulset:
-          volumeClaimTemplates:
-            - name: data
-              mountPath: "/data"
-              accessMode: ReadWriteOnce
-              size: 20Gi
-              storageClass: block
-            - name: backup
-              mountPath: "/backup"
-              accessMode: ReadWriteOnce
-              size: 20Gi
-              storageClass: block
+                cpu: "3000m"
+                memory: "6000Mi"
+        # statefulset:
+        #   volumeClaimTemplates:
+        #     - name: data
+        #       accessMode: ReadWriteOnce
+        #       size: 20Gi
+        #       storageClass: block
+        #       advancedMounts:
+        #         main: # only container name here
+        #           - path: "/data"
+        #         01-init-${APPNAME}-admin-password:
+        #           - path: "/data"
+        #     - name: backup
+        #       accessMode: ReadWriteOnce
+        #       size: 20Gi
+        #       storageClass: block
+        #       globalMounts:
+        #         - path: "/backup"
         initContainers:
           01-init-${APPNAME}-admin-password:
             command:
             - /bin/sh
             - -c
             - '[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin'
-            image: docker.io/${APPNAME}/server:latest
+            image: *img
             imagePullPolicy: IfNotPresent
-            volumeMounts:
-            - mountPath: /data
-              name: data
-            - mountPath: /config
-              name: config
+            # TODO: add example PVC initContainer mounts to persistence/volumeClaimTemplates
           01-init-db:
-            image: "ghcr.io/onedr0p/postgres-init:14.8"
+            image:
+              repository: "ghcr.io/onedr0p/postgres-init"
+              tag: "15.0"
             imagePullPolicy: IfNotPresent
             envFrom: [secretRef: {name: "${APPNAME}-pg-superuser"}]
     service:
@@ -137,8 +146,7 @@ spec:
                   name: main
                   port: http
         tls:
-          - hosts:
-              - *host
+          - hosts: [*host]
 #     dnsConfig:
 #       options:
 #         - name: ndots
@@ -152,7 +160,7 @@ spec:
           main:
             main:
               - subPath: "server.toml"
-                mountPath: "/data/server.toml"
+                path: "/data/server.toml"
                 readOnly: true
       data:
         enabled: true
@@ -160,7 +168,9 @@ spec:
         advancedMounts:
           main:
             main:
-              - path: /data
+              - path: "/data"
+            01-init-${APPNAME}-admin-password:
+              - path: "/data"
       nfs:
         enabled: true
         type: nfs
@@ -169,7 +179,14 @@ spec:
         advancedMounts:
           main:
             main:
-              - path: /nfs
+              - path: "/nfs"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/tmp"
+            readOnly: false
       tls:
         enabled: true
         type: secret
@@ -210,4 +227,6 @@ spec:
         runAsUser: &uid ${APP_UID_APPNAME}
         runAsGroup: *uid
         fsGroup: *uid
+        runAsNonRoot: false
+        seccompProfile: {type: "RuntimeDefault"}
         fsGroupChangePolicy: Always
