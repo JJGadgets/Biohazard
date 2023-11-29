@@ -92,7 +92,7 @@ tasks:
       KUBECONFIGSOPS: '{{ .KUBECONFIG | default "~/.kube/config.sops.yaml" }}'
       KCMD:
         sh: |-
-          [[ -n "{{.KUBECTL_CMD}}" ]] && echo "{{.KUBECTL_CMD}}" || [[ -n $(command -v kubecolor) ]] && command -v kubecolor && exit || [[ -n $(command -v kubectl) ]] && command -v kubectl && exit || exit 1
+          [[ -n "{{.KCMD}}" ]] && echo "{{.KCMD}}" || [[ -n $(command -v kubecolor) ]] && command -v kubecolor && exit || [[ -n $(command -v kubectl) ]] && command -v kubectl && exit || exit 1
       KUBETMPDIR:
         sh: "mktemp -d"
       KUBECONFIG: "{{.KUBETMPDIR}}/decrypted.yaml"

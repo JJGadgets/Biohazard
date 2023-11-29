@@ -1,9 +1,118 @@
 {
-    "yaml.schemas": {
-        "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/kustomization-kustomize-v1beta2.json": ["kustomization.yaml", "kustomization.yml", "*-fKt.yaml", "*-fKt.yml"],
-        "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/helmrelease-helm-v2beta1.json": ["helm-release.yaml", "helm-release.yml", "*-fHr.yaml", "*-fHr.yml"],
-        "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/helmrepository-helm-v1beta2.json": ["charts/*", "charts/*/*", "*-charts.yaml", "*-charts.yml"],
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/kustomization-kustomize-v1.json": [
+      "kube/**/ks.yaml",
+      "kube/**/ks.yml",
+      "kube/**/*crd*.yaml",
+      "kube/**/*crd*.yml"
+    ],
+    "https://raw.githubusercontent.com/JJGadgets/flux2-schemas/main/helmrelease-helm-v2beta1.json": [
+      "kube/**/helm-release.yaml",
+      "kube/**/helm-release.yml",
+      "kube/**/hr.yaml",
+      "kube/**/hr.yml"
+    ],
+    "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json": "file:///home/jj-void/GitRepos/JJGadgets/Biohazard/kube/deploy/core/flux-system/misc/kyverno.yaml",
+    "kubernetes://schema/postgres-operator.crunchydata.com/v1beta1@postgrescluster": [
+      "file:///home/jj-void/GitRepos/JJGadgets/Biohazard/kube/deploy/core/db/pg/clusters/default/crunchydata.yaml",
+      "file:///home/jj-void/GitRepos/JJGadgets/Biohazard/kube/deploy/core/db/pg/clusters/template/crunchy.yaml",
+      "file:///home/jj-void/GitRepos/JJGadgets/Biohazard/kube/deploy/core/db/pg/clusters/default/crunchy.yaml"
+    ]
+  },
+  "git.autofetch": false,
+  "git.autoStash": true,
+  "editor.mouseWheelZoom": false,
+  "files.autoSave": "afterDelay",
+  "editor.formatOnSave": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.guides.bracketPairs": true,
+  "editor.matchBrackets": "always",
+  "editor.autoClosingDelete": "auto",
+  "editor.autoClosingOvertype": "auto",
+  "editor.autoSurround": "quotes",
+  "terminal.integrated.enableMultiLinePasteWarning": true,
+  "editor.autoClosingBrackets": "languageDefined",
+  "editor.guides.bracketPairsHorizontal": "active",
+  "editor.fontFamily": "'Iosevka NF', 'monospace', monospace",
+  "editor.fontLigatures": true,
+  "git.alwaysShowStagedChangesResourceGroup": false,
+  "git.autofetchPeriod": 10,
+  "git.autorefresh": true,
+  "git.autoRepositoryDetection": true,
+  "git.branchProtectionPrompt": "alwaysPrompt",
+  "git.countBadge": "all",
+  "git.enableCommitSigning": true,
+  "git.inputValidation": "warn",
+  "git.mergeEditor": true,
+  "git.terminalGitEditor": true,
+  "git.terminalAuthentication": true,
+  "git.supportCancellation": true,
+  "git.showPushSuccessNotification": true,
+  "git.showProgress": true,
+  "git.showInlineOpenFileAction": true,
+  "git.untrackedChanges": "mixed",
+  "terminal.integrated.confirmOnKill": "always",
+  "search.useParentIgnoreFiles": true,
+  "editor.fontSize": 12,
+  "zoombar.defaultZoom": 100,
+  "gitblame.inlineMessageEnabled": true,
+  "scm.diffDecorationsGutterPattern": {
+    "added": true
+  },
+  "githubPullRequests.quickDiff": true,
+  "better-comments.highlightPlainText": true,
+  "todo-tree.ripgrep.ripgrep": "/usr/bin/rg",
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.enableFileLinks": "notRemote",
+  "terminal.integrated.fontSize": 12,
+  "terminal.integrated.smoothScrolling": true,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.size": "fill",
+  "terminal.integrated.env.linux": {
+    "EDITOR": "code-oss",
+    "VISUAL": "code-oss"
+  },
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "terminal.integrated.allowChords": false,
+  "hungryDelete.enableSmartBackspace": true,
+  "hungryDelete.languageConfigurations": [
+    {
+      "languageId": "go",
+      "indentationRules": {
+        "increaseIndentPattern": "^.*(\\bcase\\b.*:|\\bdefault\\b:|(\\b(func|if|else|switch|select|for|struct)\\b.*)?{[^}\"'`]*|\\([^)\"'`]*)$",
+        "decreaseIndentPattern": "^\\s*(\\bcase\\b.*:|\\bdefault\\b:|}[)}]*[),]?|\\)[,]?)$"
+      }
     },
-    "git.autofetch": "all",
-    "git.autoStash": true
+    {
+      "languageId": "json",
+      "indentationRules": {
+        "increaseIndentPattern": "^.*(\\{[^}]*|\\[[^\\]]*)$",
+        "decreaseIndentPattern": "^\\s*[}\\]],?\\s*$"
+      }
+    },
+    {
+      "languageId": "less",
+      "indentationRules": {
+        "increaseIndentPattern": "(^.*\\{[^}]*$)",
+        "decreaseIndentPattern": "^\\s*\\}"
+      }
+    },
+    {
+      "languageId": "yaml",
+      "indentationRules": {
+        "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$",
+        "decreaseIndentPattern": "^\\s+\\}$"
+      }
+    }
+  ],
+  "editor.lineNumbers": "relative",
+  "zenMode.hideLineNumbers": false,
+  "git.enableSmartCommit": false,
+  "editor.multiCursorModifier": "ctrlCmd",
+  "terminal.integrated.tabs.focusMode": "singleClick",
+  // "editor.tokenColorCustomizations": {
+  //   "comments": "",
+  //   "textMateRules": []
+  // }
 }

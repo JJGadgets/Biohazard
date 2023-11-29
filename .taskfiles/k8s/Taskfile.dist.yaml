@@ -94,24 +94,30 @@ tasks:
       - kubectl delete configmap -n kube-system cilium-config || true
       - kubectl delete daemonset -n kube-system cilium || true
       - kubectl delete deployment -n kube-system cilium-operator || true
-      - cp /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/clusters/{{.C}}/helm-values.yaml /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install/base-values.yaml
+      #- cp /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/clusters/{{.C}}/helm-values.yaml /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install/base-values.yaml
       - task: sops-apply
         vars:
           C: '{{.C | default "admin@biohazard"}}'
-          F: "/{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install"
+          F: "/{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/clusters/{{.C}}/"
           FCMD: "kustomize build --enable-helm"
-      - defer: rm -rf /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install/base-values.yaml
+      #- defer: rm -rf /{{.ROOT_DIR}}/kube/deploy/core/_networking/cilium/app/bootstrap-install/base-values.yaml
 
   newapp:
     desc: Copy app folder structure template, substitute APPNAME, and (TODO) prompt user for variables values such as DNS, UID etc.
     vars:
       APP: &app-fail '{{ or .APP (fail "Missing `app` variable!") }}'
     cmds:
-      - cp -r ./kube/templates/test ./kube/deploy/apps/{{.app}}
+      - cp -r ./kube/templates/test ./kube/deploy/apps/{{.APP}}
       # lowercase, used for resource names etc
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.app}}/ | xargs -I% sed -i 's/${APPNAME}/{{.app}}/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.app}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.app}}}/g;s/\(_{{.app}}}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
+
+  shortnames:
+    desc: List all installed CRDs and their short names.
+    cmds:
+      - |-
+        kubectl get crds -o jsonpath='{range .items[*]}{.spec.names.kind}: {.spec.names.shortNames}{"\n"}{end}'
 
   iperf2:
     desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.
