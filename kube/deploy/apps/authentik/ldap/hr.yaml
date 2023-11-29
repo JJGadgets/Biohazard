@@ -24,7 +24,7 @@ spec:
       repository: ghcr.io/goauthentik/ldap
       tag: "2023.10.4"
     podLabels:
-      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/nginx-external: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       AUTHENTIK_HOST: "https://${APP_DNS_AUTH}"
@@ -75,14 +75,11 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
-    affinity:
-      podAntiAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/name
-                    operator: In
-                    values: ["authentik-ldap"]
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: "DoNotSchedule"
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: *app
+            app.kubernetes.io/instance: *app
