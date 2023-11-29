@@ -15,12 +15,15 @@ on:
         default: debug
         required: false
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/6 * * * *" # every 10 minutes
   push:
     branches: ["main"]
     paths:
       - renovate.json5
-      - .renovate/**.json5
+      - .renovaterc.json5
+      - .renovate/**
+      - .github/renovate**
+      - .github/workflows/renovate.yaml
 
 env:
   LOG_LEVEL: debug
