@@ -28,18 +28,45 @@
       "automerge": true,
       "automergeType": "pr"
     },
-    // manually approve app-template major releases
     {
-      "matchPackagePatterns": ["app-template"],
-      "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
+      "description": "Auto merge Github Actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "matchUpdateTypes": ["minor", "patch", "digest"]
     },
     // configure more granular control for apps in ./kube/deploy/core
     {
       "matchFileNames": ["kube/deploy/core/**"],
       "automerge": false, // enforce no automerge
       "separateMultipleMajor": true,
-      "separateMinorPatch": true
+      "separateMinorPatch": true,
+      "labels": ["kube-deploy-core"]
+    },
+    {
+      "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
+      // "matchDatasources": ["docker"],
+      "automerge": true,
+      "automergeType": "pr",
+      "matchFileNames": ["kube/deploy/apps/**"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
+      "labels": ["kube-deploy-apps"]
+    },
+    {
+      "description": "Auto merge patch app-template versions",
+      "matchPackagePatterns": ["app-template"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["app-template"]
+    },
+    // manually approve app-template major releases
+    {
+      "matchPackagePatterns": ["app-template"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     },
     // Miniflux enforce distroless images
     {
