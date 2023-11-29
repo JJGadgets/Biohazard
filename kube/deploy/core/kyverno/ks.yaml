@@ -7,13 +7,13 @@ metadata:
 spec:
   path: ./kube/deploy/core/kyverno/app
   dependsOn: []
-# ---
-# apiVersion: kustomize.toolkit.fluxcd.io/v1
-# kind: Kustomization
-# metadata:
-#   name: 1-core-kyverno-policies
-#   namespace: flux-system
-# spec:
-#   path: ./kube/deploy/core/kyverno/policies
-#   dependsOn:
-#     - name: 1-core-kyverno-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-kyverno-policies
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/kyverno/policies
+  dependsOn:
+    - name: 1-core-kyverno-app
