@@ -213,21 +213,22 @@ controlPlane:
                       archive = 0
               }
 
-    - &nfsMountOptions |-
-      machine:
-        files:
-          - op: create
-            path: /etc/nfsmount.conf
-            permissions: 0o644
-            content: |
-              [ NFSMount_Global_Options ]
-              nfsvers=4.2
-              hard=True
-              noatime=True
-              nodiratime=True
-              rsize=131072
-              wsize=131072
-              nconnect=8
+    # TODO: can't create files outside /var, maybe open FR to whitelist this?
+    # - &nfsMountOptions |-
+    #   machine:
+    #     files:
+    #       - op: create
+    #         path: /etc/nfsmount.conf
+    #         permissions: 0o644
+    #         content: |
+    #           [ NFSMount_Global_Options ]
+    #           nfsvers=4.2
+    #           hard=True
+    #           noatime=True
+    #           nodiratime=True
+    #           rsize=131072
+    #           wsize=131072
+    #           nconnect=8
 
     # patch containerd for spegel (discard) 
     - &containerdPatches |-
@@ -253,5 +254,5 @@ worker:
     # Rook Ceph encrypted OSDs
     # TODO: https://github.com/siderolabs/talos/issues/3129
     - *encryptedOSD
-    - *nfsMountOptions
+    # - *nfsMountOptions
     - *containerdPatches
