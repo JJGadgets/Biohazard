@@ -40,43 +40,45 @@ spec:
           This resource is used by Flux and cannot be deleted.
           Add this label to confirm this resource's deletion:
           `kyverno.home.arpa/delete=CONFIRM-DELETE`
----
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: "flux-block-ks-prune"
-  annotations:
-    policies.kyverno.io/title: "Block Flux Kustomization (ks.yaml) Pruning Resources"
-    policies.kyverno.io/category: "Protection"
-    policies.kyverno.io/subject: "FluxCD"
-    policies.kyverno.io/description: "Prevent removal of resources managed by any Flux Kustomizations, unless resource is labelled to confirm delete. This allows for auditing resources to be pruned before they are actually pruned."
-spec:
-  validationFailureAction: Enforce
-  background: false
-  rules:
-    - name: "flux-block-ks-prune"
-      match:
-        any:
-          - resources:
-              kinds: ["*"] # TODO: evaluate if this should be changed to only stateful resources e.g. PVs, PVCs, CNPG clusters etc
-              operations: ["DELETE"]
-              selector:
-                matchExpressions:
-                  - key: "kustomize.toolkit.fluxcd.io/name"
-                    operator: "Exists"
-                  - key: "kyverno.home.arpa/delete"
-                    operator: "NotIn"
-                    values: ["CONFIRM-DELETE"]
-      exclude:
-        any:
-          - resources:
-              kinds: ["v1/Node"]
-              # without this exclusion, Talos boot will hang as the Kyverno webhook will race condition during the Talos node spec/status patching, before the CNI is initialized
-      # TODO: add check for Flux clusterRole/subject so user can still delete
-      validate:
-        deny: {}
-        message: |
-          Flux is trying to prune the {{ request.object.apiVersion }}/{{ request.object.kind }} resource {{ request.object.metadata.name }}
-          Add this label to confirm this resource's deletion:
-          `kyverno.home.arpa/delete=CONFIRM-DELETE`
+
+# NOTE: below policy is disabled due to being too broad in scope, and the anti-delete-all-persistence policy already covers resources where data loss could happen. Feel free to copy if you want though.
+# ---
+# # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+# apiVersion: kyverno.io/v1
+# kind: ClusterPolicy
+# metadata:
+#   name: "flux-block-ks-prune"
+#   annotations:
+#     policies.kyverno.io/title: "Block Flux Kustomization (ks.yaml) Pruning Resources"
+#     policies.kyverno.io/category: "Protection"
+#     policies.kyverno.io/subject: "FluxCD"
+#     policies.kyverno.io/description: "Prevent removal of resources managed by any Flux Kustomizations, unless resource is labelled to confirm delete. This allows for auditing resources to be pruned before they are actually pruned."
+# spec:
+#   validationFailureAction: Enforce
+#   background: false
+#   rules:
+#     - name: "flux-block-ks-prune"
+#       match:
+#         any:
+#           - resources:
+#               kinds: ["*"] # TODO: evaluate if this should be changed to only stateful resources e.g. PVs, PVCs, CNPG clusters etc
+#               operations: ["DELETE"]
+#               selector:
+#                 matchExpressions:
+#                   - key: "kustomize.toolkit.fluxcd.io/name"
+#                     operator: "Exists"
+#                   - key: "kyverno.home.arpa/delete"
+#                     operator: "NotIn"
+#                     values: ["CONFIRM-DELETE"]
+#       exclude:
+#         any:
+#           - resources:
+#               kinds: ["v1/Node"]
+#               # without this exclusion, Talos boot will hang as the Kyverno webhook will race condition during the Talos node spec/status patching, before the CNI is initialized
+#       # TODO: add check for Flux clusterRole/subject so user can still delete
+#       validate:
+#         deny: {}
+#         message: |
+#           Flux is trying to prune the {{ request.object.apiVersion }}/{{ request.object.kind }} resource {{ request.object.metadata.name }}
+#           Add this label to confirm this resource's deletion:
+#           `kyverno.home.arpa/delete=CONFIRM-DELETE`
