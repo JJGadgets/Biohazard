@@ -84,9 +84,11 @@ nodes:
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
-      - interface: "enp1s0d1"
-        mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
+      - mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
         dhcp: false
+        deviceSelector:
+          driver: "mlx4_core"
+          hardwareAddr: "*:80"
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
@@ -227,6 +229,20 @@ controlPlane:
               wsize=131072
               nconnect=8
 
+    # patch containerd for spegel (discard) 
+    - &containerdPatches |-
+      machine:
+        files:
+          - op: create
+            path: /etc/nfsmount.conf
+            permissions: 0o644
+            content: |
+              [plugins."io.containerd.grpc.v1.cri"]
+                enable_unprivileged_ports = true
+                enable_unprivileged_icmp = true
+              [plugins."io.containerd.grpc.v1.cri".containerd]
+                discard_unpacked_layers = false
+
 worker:
   patches:
     - *kubeletExtraArgs
@@ -238,3 +254,4 @@ worker:
     # TODO: https://github.com/siderolabs/talos/issues/3129
     - *encryptedOSD
     - *nfsMountOptions
+    - *containerdPatches
