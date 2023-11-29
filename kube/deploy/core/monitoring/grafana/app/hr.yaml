@@ -17,7 +17,7 @@ spec:
   values: # TODO: separate Grafana's actual configs like dashboards (leave deployment config) into its own configMap and use valuesFrom
     replicas: 1 # OIDC needs specific session, thus 1 replica
     podLabels:
-      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/nginx-external: "allow" # authentik
     env:
       GF_EXPLORE_ENABLED: true
       GF_LOG_MODE: console
