@@ -20,7 +20,8 @@ spec:
         replicas: "1"
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
+            ingress.home.arpa/nginx-external: "allow"
+            egress.home.arpa/r2: "allow"
         containers:
           main:
             imagePullPolicy: "IfNotPresent"
@@ -69,8 +70,8 @@ spec:
                 cpu: "10m"
                 memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "1024Mi"
+                cpu: "2000m"
+                memory: "2048Mi"
         initContainers:
           01-litestream-restore-authfile:
             <<: *ls
@@ -105,7 +106,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: "nginx-internal"
+        className: "nginx-external"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         hosts:
