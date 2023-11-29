@@ -186,6 +186,28 @@ spec:
             dns:
               - matchPattern: "*"
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: "egress-to-ingress-nginx-external"
+  namespace: ingress
+spec:
+  # TODO: simplify this entire netpols file
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/instance: "nginx-external"
+  ingress:
+    # allow traffic from pods with egress label
+    - fromEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: egress.home.arpa/nginx-external
+              operator: In
+              values: ["allow"]
+---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
 metadata:
