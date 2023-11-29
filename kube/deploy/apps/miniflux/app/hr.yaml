@@ -21,12 +21,13 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: ghcr.io/miniflux/miniflux
-      tag: 2.0.44-distroless@sha256:c369c2fdaff368a469c836f0c9f40f15f02f74b4418617fd9c886f28b02154d3
+      repository: "ghcr.io/miniflux/miniflux"
+      tag: "2.0.50-distroless"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world: "allow"
+      egress.home.arpa/nginx-external: "allow" # authentik
     env:
       TZ: "${CONFIG_TZ}"
       BASE_URL: "https://${APP_DNS_MINIFLUX}"
