@@ -29,7 +29,7 @@ spec:
       ingress.home.arpa/cloudflare: "allow"
       db.home.arpa/pg: "pg-gotosocial"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/nginx-external: "allow"
       egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"

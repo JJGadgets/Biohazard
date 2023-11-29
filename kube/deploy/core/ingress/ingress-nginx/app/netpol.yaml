@@ -245,17 +245,51 @@ spec:
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: "egress-to-ingress-nginx"
+  name: "egress-to-ingress-nginx-internal"
 spec:
   description: "Allow pods that require egress to ingress-nginx, no port restrictions"
   endpointSelector:
     matchLabels:
-      egress.home.arpa/ingress-nginx: allow
+      egress.home.arpa/nginx-internal: allow
   egress:
     # ingress controller webhook admission
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/instance: ingress-nginx
+            app.kubernetes.io/instance: nginx-internal
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "egress-to-ingress-nginx-external"
+spec:
+  description: "Allow pods that require egress to ingress-nginx, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/nginx-external: allow
+  egress:
+    # ingress controller webhook admission
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: nginx-external
+            app.kubernetes.io/name: ingress-nginx
+            io.kubernetes.pod.namespace: ingress
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "egress-to-ingress-nginx-public"
+spec:
+  description: "Allow pods that require egress to ingress-nginx, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/nginx-public: allow
+  egress:
+    # ingress controller webhook admission
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: nginx-public
             app.kubernetes.io/name: ingress-nginx
             io.kubernetes.pod.namespace: ingress
 ---
