@@ -1,16 +1,52 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
+    // FluxCD
     {
       "description": "Flux Group",
       "groupName": "Flux",
-      "matchPackagePatterns": ["flux"],
+      "matchPackagePatterns": ["(?<!mini)flux"],
       "matchDatasources": ["docker", "github-tags"],
       "versioning": "semver",
       "group": {
         "commitMessageTopic": "{{{groupName}}} group"
       },
       "separateMinorPatch": true
+    },
+    // automerge patch Flux versions
+    {
+      "description": "Flux Group",
+      "groupName": "Flux",
+      "matchPackagePatterns": ["(?<!mini)flux"],
+      "matchDatasources": ["docker", "github-tags"],
+      "versioning": "semver",
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      },
+      "separateMinorPatch": true,
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    // manually approve app-template major releases
+    {
+      "matchPackagePatterns": ["app-template"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    // configure more granular control for apps in ./kube/deploy/core
+    {
+      "matchFileNames": ["kube/deploy/core/**"],
+      "automerge": false, // enforce no automerge
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true
+    },
+    // Miniflux enforce distroless images
+    {
+      "matchDatasources": ["docker"],
+      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$",
+      "versioning": "semver",
+      "matchPackagePatterns": ["miniflux"]
     }
   ]
 }

@@ -1,2 +1,27 @@
-{}
-// TODO: set auto merge for apps in kube/deploy/apps folder
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "description": "Auto merge Github Actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "matchUpdateTypes": ["minor", "patch", "digest"]
+    },
+    {
+      "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
+      // "matchDatasources": ["docker"],
+      "automerge": true,
+      "automergeType": "pr",
+      "matchFileNames": ["kube/deploy/apps/**"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchCurrentVersion": "!/^0/", // avoid breaking changes in 0.x SemVer releases
+    },
+    {
+      "description": "Auto merge patch app-template versions",
+      "matchPackagePatterns": ["app-template"],
+      "matchUpdateTypes": ["patch"]
+    }
+  ]
+}

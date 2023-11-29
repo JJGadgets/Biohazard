@@ -1,43 +1,51 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
+    "config:recommended", // config:base predates config:recommended
     "docker:enableMajor",
+    "docker:pinDigests",
+    "group:kubernetes",
+    "replacements:k8s-registry-move",
     ":disableRateLimiting",
     ":dependencyDashboard",
     ":semanticCommits",
     ":automergeDigest",
     ":automergeBranch",
+    ":timezone(Asia/Singapore)",
+    ":assignAndReview(@JJGadgets)",
     "github>JJGadgets/Biohazard//.renovate/autoMerge.json5",
     "github>JJGadgets/Biohazard//.renovate/commitMessage.json5",
     "github>JJGadgets/Biohazard//.renovate/groups.json5",
     "github>JJGadgets/Biohazard//.renovate/labels.json5",
     "github>JJGadgets/Biohazard//.renovate/semanticCommits.json5",
+    "github>JJGadgets/Biohazard//.renovate/security.json5",
+    "security:openssf-scorecard",
     "helpers:pinGitHubActionDigests"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "suppressNotifications": ["prIgnoreNotification"],
-  "rebaseWhen": "conflicted",
+  "rebaseWhen": "behind-base-branch", // automerge needs this, and because I keep breaking my shit lol
   // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
+  // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
   "flux": {
     "fileMatch": [
-      "(^|/)kube/.+\\.ya?ml(\\.j2)?(\\.j2)?$"
+      "^kube/.+(?<!sops)\\.ya?ml$"
     ]
   },
   "helm-values": {
     "fileMatch": [
-      "(^|/)kube/.+\\.ya?ml(\\.j2)?(\\.j2)?$"
+      "^kube/.+(?<!sops)\\.ya?ml$"
     ]
   },
   "kubernetes": {
     "fileMatch": [
-      "(^|/)kube/.+\\.ya?ml(\\.j2)?(\\.j2)?$"
+      "^kube/.+(?<!sops)\\.ya?ml$"
     ]
   },
   "kustomize": {
     "fileMatch": [
-      "(^|/)kustomization\\.ya?ml(\\.j2)?$"
+      "(^|/)kustomization\\.ya?ml$"
     ]
   },
   "regexManagers": [
