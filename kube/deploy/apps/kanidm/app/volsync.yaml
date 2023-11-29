@@ -19,7 +19,7 @@ metadata:
 spec:
   sourcePVC: backup-kanidm-0
   trigger:
-    schedule: "0 6 * * *"
+    schedule: "0 22 * * *" # 6am GMT+8
   restic:
     copyMethod: Snapshot
     pruneIntervalDays: 14
