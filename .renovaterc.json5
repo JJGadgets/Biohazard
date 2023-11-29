@@ -29,27 +29,23 @@
   // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
   "assigneesFromCodeOwners": true,
   "reviewersFromCodeOwners": true,
+  "ignorePaths": ["**/archive/**", "**/**.sops.**"],
   "flux": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
-    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "helm-values": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
-    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "kubernetes": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
-    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "kustomize": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
-    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "regexManagers": [
     {
       "description": "Process various other dependencies",
       "fileMatch": ["^kube/.+\\.ya?ml$"],
-      "ignorePaths": ["**/archive/**", "**/**.sops.**"],
       "matchStrings": [
         // Example: `k3s_release_version: "v1.27.3+k3s1"`
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n",
