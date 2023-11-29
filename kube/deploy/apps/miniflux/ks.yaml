@@ -10,7 +10,7 @@ spec:
   path: ./kube/deploy/apps/miniflux/app
   dependsOn:
     - name: 1-core-ingress-nginx-app
-    - name: 1-core-db-pg-clusters-default
+    - name: miniflux-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
