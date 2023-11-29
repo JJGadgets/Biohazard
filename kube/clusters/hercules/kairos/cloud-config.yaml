@@ -1,4 +1,5 @@
 #cloud-config
+# This config is oriented entirely for use with a single node k3s cluster running on my OVH VPS, which will act as my homelab's ingress point, and to host some off-cluster stuff too.
 hostname: "hercules"
 users:
   - name: "jj"
@@ -39,7 +40,7 @@ kubevip:
 k3s:
   enabled: true
   replace_args: true
-  args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644"]
+  args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644", "--node-ip ${SECRET_HERCULES_WG_ADDRESS_V4}"]
 stages:
   after-install-chroot: &apt
     - name: Install extra packages
@@ -48,15 +49,30 @@ stages:
         - apt install -y wireguard-tools
   after-upgrade-chroot: *apt
   boot:
-    - name: "1. Load WireGuard kernel module"
+    - name: "Setup sysctls to more aggressively use zram"
+      sysctl:
+        vm.vfs_cache_pressure: "500"
+        vm.swappiness: "180"
+        vm.dirty_background_ratio: "1"
+        vm.dirty_ratio: "50"
+        vm.watermark_scale_factor: "100"
+        vm.page-cluster: "0"
+    - name: "1. Load zram kernel module"
+      modules: ["zram"]
+    - name: "2. Configure zram swap"
+      commands:
+        - zramctl -f -s 2G -a lz4
+        - mkswap /dev/zram0
+        - swapon -d -p 1000 /dev/zram0
+    - name: "3. Load WireGuard kernel module"
       modules: ["wireguard"]
-    - name: "2. Create WireGuard config folder"
+    - name: "4. Create WireGuard config folder"
       directories:
         - path: "/etc/wireguard"
           permissions: 0700
           owner: 0
           group: 0
-    - name: "3. Install WireGuard config"
+    - name: "5. Install WireGuard config"
       files:
         - path: "/etc/wireguard/wg0.conf"
           permissions: 0700
@@ -65,7 +81,7 @@ stages:
           content: |
             [Interface]
             PrivateKey = ${SECRET_HERCULES_WG_PRIVKEY}
-            Address = ${SECRET_HERCULES_WG_ADDRESS}
+            Address = ${SECRET_HERCULES_WG_ADDRESS_V4}/32, ${SECRET_HERCULES_WG_ADDRESS_V6}/128
             DNS = ${SECRET_HERCULES_WG_DNS}
             ListenPort = ${SECRET_HERCULES_WG_LISTEN}
             MTU = 1420
@@ -74,6 +90,21 @@ stages:
             PresharedKey = ${SECRET_HERCULES_WG_PEERPSK}
             AllowedIPs = ${SECRET_HERCULES_WG_ALLOWEDIPS}
             PersistentKeepalive = 15
-    - name: "4. Enable wg0.conf"
+    - name: "6. Enable wg0.conf"
       systemctl:
-         enable: ["wg-quick@wg0.service"]
+        enable: ["wg-quick@wg0.service"]
+        start: ["wg-quick@wg0.service"]
+    - name: "Setup $KUBECONFIG"
+      environment:
+        KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+    - name: "Setup /etc/hosts"
+      files:
+        - path: "/etc/hosts"
+          permissions: 0644
+          owner: 0
+          group: 0
+          content: |
+            127.0.0.1 localhost hercules
+            ${IP_ROUTER_VLAN_K8S_PREFIX}1 biohazard.mesh.cilium.io
+            ${IP_ROUTER_VLAN_K8S_PREFIX}2 biohazard.mesh.cilium.io
+            ${IP_ROUTER_VLAN_K8S_PREFIX}3 biohazard.mesh.cilium.io
