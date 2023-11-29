@@ -65,9 +65,16 @@ spec:
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
-            - key: egress.home.arpa/ingress-nginx
+            - &egress
+              key: egress.home.arpa/ingress-nginx
               operator: In
               values: ["allow"]
+            - <<: *egress
+              key: egress.home.arpa/nginx-internal
+            - <<: *egress
+              key: egress.home.arpa/nginx-external
+            - <<: *egress
+              key: egress.home.arpa/nginx-public
     # allow authentik-managed components to connect to main authentik server
     - fromEndpoints:
         - matchExpressions:
@@ -76,6 +83,11 @@ spec:
             - key: app.kubernetes.io/managed-by
               operator: In
               values: ["goauthentik.io"]
+    # allow KPS to scrape
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "monitoring"
+            prometheus: "kps"
   egress:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
