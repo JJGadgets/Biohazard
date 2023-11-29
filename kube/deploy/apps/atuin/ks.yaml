@@ -19,14 +19,14 @@ spec:
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
     - name: 1-core-db-pg-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: 1-core-storage-democratic-csi-local-hostpath
   postBuild:
     substitute:
       PG_APP_NAME: &app "atuin"
       PG_APP_NS: *app
       PG_DB_NAME: *app
       PG_DB_USER: *app
-      PG_REPLICAS: "2"
-      PG_SC: "block"
+      PG_REPLICAS: "3"
+      PG_SC: "local"
       PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"
