@@ -12,7 +12,6 @@
     ":automergeDigest",
     ":automergeBranch",
     ":timezone(Asia/Singapore)",
-    ":assignAndReview(@JJGadgets)",
     "github>JJGadgets/Biohazard//.renovate/autoMerge.json5",
     "github>JJGadgets/Biohazard//.renovate/commitMessage.json5",
     "github>JJGadgets/Biohazard//.renovate/groups.json5",
@@ -28,32 +27,29 @@
   "rebaseWhen": "behind-base-branch", // automerge needs this, and because I keep breaking my shit lol
   // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
   // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
+  "assigneesFromCodeOwners": true,
+  "reviewersFromCodeOwners": true,
   "flux": {
-    "fileMatch": [
-      "^kube/.+(?<!sops)\\.ya?ml$"
-    ]
+    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "helm-values": {
-    "fileMatch": [
-      "^kube/.+(?<!sops)\\.ya?ml$"
-    ]
+    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "kubernetes": {
-    "fileMatch": [
-      "^kube/.+(?<!sops)\\.ya?ml$"
-    ]
+    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "kustomize": {
-    "fileMatch": [
-      "(^|/)kustomization\\.ya?ml$"
-    ]
+    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "ignorePaths": ["**/archive/**", "**/**.sops.**"]
   },
   "regexManagers": [
     {
       "description": "Process various other dependencies",
-      "fileMatch": [
-        "(^|/)kube/.+\\.ya?ml(\\.j2)?(\\.j2)?$"
-      ],
+      "fileMatch": ["^kube/.+\\.ya?ml$"],
+      "ignorePaths": ["**/archive/**", "**/**.sops.**"],
       "matchStrings": [
         // Example: `k3s_release_version: "v1.27.3+k3s1"`
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n",

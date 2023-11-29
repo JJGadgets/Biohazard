@@ -16,7 +16,7 @@
       "automergeType": "pr",
       "matchFileNames": ["kube/deploy/apps/**"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchCurrentVersion": "!/^0/", // avoid breaking changes in 0.x SemVer releases
+      "matchCurrentVersion": "!/^0\\./" // avoid breaking changes in 0.x SemVer releases
     },
     {
       "description": "Auto merge patch app-template versions",
