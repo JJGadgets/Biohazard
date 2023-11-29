@@ -65,6 +65,20 @@ spec:
           rules:
             dns:
               - matchPattern: "*"
+    # allow Flux notification-controller ingress
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: flux-system
+            app: notification-controller
+      toPorts:
+        - ports:
+            - port: "9292"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - {}
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
