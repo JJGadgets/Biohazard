@@ -36,6 +36,11 @@ spec:
       OAUTH2_REDIRECT_URL: https://${APP_DNS_MINIFLUX}/oauth2/oidc/callback
       OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://${APP_DNS_AUTH}/application/o/miniflux/
       OAUTH2_USER_CREATION: "1"
+      DATABASE_URL:
+        valueFrom:
+          secretKeyRef:
+            name: &pgsec "pg-miniflux-pguser-miniflux"
+            key: "pgbouncer-uri"
     envFrom:
       - secretRef:
           name: miniflux-secrets
@@ -67,11 +72,5 @@ spec:
         cpu: 10m
         memory: 128Mi
       limits:
+        cpu: 3000m
         memory: 512Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:15.5@sha256:18560dc4098004b6486a81c92d575a7f9d636c5ede997c515f15b52e130bd827
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef:
-              name: miniflux-pg-superuser

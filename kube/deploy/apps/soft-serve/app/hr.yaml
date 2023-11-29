@@ -39,9 +39,12 @@ spec:
       SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE_HTTPS}"
       SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
       SOFT_SERVE_DB_DRIVER: "postgres"
-    envFrom:
-      - secretRef:
-          name: soft-serve-secrets
+      SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-soft-serve-pguser-soft-serve, key: pgbouncer-uri}}}
+      SOFT_SERVE_INITIAL_ADMIN_KEYS: |
+        ${SECRET_ADMIN_SSH_PUBKEY_1}
+        ${SECRET_ADMIN_SSH_PUBKEY_2}
+        ${SECRET_ADMIN_SSH_PUBKEY_3}
+        ${SECRET_ADMIN_SSH_PUBKEY_4}
     service:
       main:
         enabled: true
@@ -106,9 +109,5 @@ spec:
         cpu: 10m
         memory: 128Mi
       limits:
+        cpu: 3000m
         memory: 6000Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:15.5@sha256:18560dc4098004b6486a81c92d575a7f9d636c5ede997c515f15b52e130bd827
-        imagePullPolicy: IfNotPresent
-        envFrom: [secretRef: {name: soft-serve-pg-superuser}]

@@ -36,15 +36,33 @@ spec:
       APP_PORT: "22300"
       APP_BASE_URL: "https://${APP_DNS_JOPLIN}"
       DB_CLIENT: "pg"
+      POSTGRES_PORT: "5432"
+      POSTGRES_HOST:
+        valueFrom:
+          secretKeyRef:
+            name: &pgsec "pg-joplin-pguser-joplin"
+            key: "pgbouncer-host"
+      POSTGRES_DATABASE:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "dbname"
+      POSTGRES_USER:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "user"
+      POSTGRES_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: *pgsec
+            key: "password"
       TERMS_ENABLED: "false"
       COOKIES_SECURE: "false"
       ERROR_STACK_TRACES: "false"
       IS_ADMIN_INSTANCE: "true"
       ACCOUNT_TYPES_ENABLED: "false"
       USER_DATA_AUTO_DELETE_ENABLED: "false"
-    envFrom:
-      - secretRef:
-          name: joplin-secrets
     service:
       main:
         ports:
