@@ -14,6 +14,11 @@ spec:
           - resources:
               kinds: ["v1/Namespace", "v1/PersistentVolumeClaim", "v1/PersistentVolume", "postgresql.cnpg.io/*/Cluster", "postgres-operator.crunchydata.com/*/PostgresCluster"]
               operations: ["DELETE"]
+              selector:
+                matchExpressions:
+                  - key: "kyverno.home.arpa/delete"
+                    operator: "NotIn"
+                    values: ["CONFIRM-DELETE"]
       validate:
         deny: {}
         message: |
