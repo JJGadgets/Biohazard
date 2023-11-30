@@ -182,6 +182,8 @@ spec:
         advancedMounts:
           main:
             main:
+              - subPath: "paperless"
+                path: "/tmp"
               - subPath: "apt"
                 path: "/var/lib/apt"
               - &sockdir
