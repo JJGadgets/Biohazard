@@ -6,7 +6,56 @@ metadata:
   namespace: flux-system
 spec:
   path: ./kube/deploy/apps/paperless-ngx/app
+  dependsOn: []
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless-ngx-db
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
-    - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-ingress-nginx-app
-    - name: 1-core-storage-volsync-app
+    - name: 1-core-db-pg-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
+  postBuild:
+    substitute:
+      PG_APP_NAME: &app "paperless-ngx"
+      PG_APP_NS: *app
+      PG_DB_NAME: *app
+      PG_DB_USER: *app
+      PG_REPLICAS: "3"
+      PG_SC: "local"
+      PG_CONFIG_VERSION: "15.2-11"
+      PG_CONFIG_SIZE: "10Gi"
+  patches:
+    - patch: |
+        apiVersion: postgres-operator.crunchydata.com/v1beta1
+        kind: PostgresCluster
+        metadata:
+          name: "pg-paperless-ngx"
+          namespace: "paperless-ngx"
+        spec:
+          backups:
+            pgbackrest:
+              global:
+                repo1-path: "/pgbackrest/repo1/paperless-ngx"
+      target:
+        group: "postgres-operator.crunchydata.com"
+        version: "v1beta1"
+        kind: "PostgresCluster"
+        name: "pg-paperless-ngx"
+        namespace: "paperless-ngx"
+    - patch: |
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: "pg-paperless-ngx-wal-nfs"
+        spec:
+          nfs:
+            path: "${PATH_NAS_BACKUPS_PGBACKREST}"
+      target:
+        group: ""
+        version: "v1"
+        kind: "PersistentVolume"
+        name: "pg-paperless-ngx-wal-nfs"

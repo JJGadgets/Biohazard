@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.0.3
+      version: 2.3.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -18,16 +18,17 @@ spec:
   values:
     controllers:
       main:
-        type: statefulset
+        type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
+            # egress.home.arpa/nginx-external: "allow" # authentik # commented out currently because only OIDC needs this
         containers:
           main:
             image:
               repository: "ghcr.io/paperless-ngx/paperless-ngx"
-              tag: "2.0.0"
+              tag: "2.0.0@sha256:667d53ccccd45a74d034b13c5a7c31789dfb4d001c73328a581a10d9ebcb16e0"
             args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
@@ -35,9 +36,9 @@ spec:
               PAPERLESS_TIME_ZONE: "${CONFIG_TZ}"
               PAPERLESS_WEBSERVER_WORKERS: "2"
               PAPERLESS_TASK_WORKERS: "2"
-              PAPERLESS_REDIS: "unix:///tmp/redis.sock"
+              PAPERLESS_REDIS: "unix:///sockets/redis.sock"
               PAPERLESS_CONSUMPTION_DIR: &consume "/nas/consume"
-              PAPERLESS_DATA_DIR: &pvc "/paperless-data"
+              PAPERLESS_DATA_DIR: &pvc "/nas-data"
               PAPERLESS_EXPORT_DIR: &export "/nas/export"
               PAPERLESS_MEDIA_ROOT: &media "/nas/media"
               PAPERLESS_TRASH_DIR: &trash "/nas/trash"
@@ -46,9 +47,37 @@ spec:
               PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
               PAPERLESS_OCR_LANGUAGES: "eng"
               PAPERLESS_OCR_LANGUAGE: "eng"
-              PAPERLESS_CONSUMER_POLLING: "60"
+              PAPERLESS_CONSUMER_POLLING: "60" # 1 minute, inotify doesn't work over NFS
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+              PAPERLESS_DBENGINE: "postgresql"
+              PAPERLESS_DBSSLMODE: "verify-full"
+              PAPERLESS_DBSSLROOTCERT: &pg-ca "/pg-tls/ca.crt"
+              PAPERLESS_DBHOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: &pguser "pg-paperless-ngx-pguser-paperless-ngx"
+                    key: "pgbouncer-host"
+              PAPERLESS_DBPORT:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pguser
+                    key: "pgbouncer-port"
+              PAPERLESS_DBNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pguser
+                    key: "dbname"
+              PAPERLESS_DBUSER:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pguser
+                    key: "user"
+              PAPERLESS_DBPASS:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pguser
+                    key: "password"
             envFrom:
               - secretRef:
                   name: "paperless-ngx-secrets"
@@ -66,8 +95,8 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.2.3-bookworm"
-            command: ["redis-server", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/tmp/redis.sock", "--unixsocketperm", "700"]
+              tag: "7.2.3-bookworm@sha256:2976bc0437deff693af2dcf081a1d1758de8b413e6de861151a5a136c25eb9e4"
+            command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
@@ -75,23 +104,48 @@ spec:
                 memory: 1000Mi
               limits:
                 memory: 2000Mi
-        statefulset:
-          volumeClaimTemplates:
-            - name: data
-              accessMode: ReadWriteOnce
-              size: 20Gi
-              storageClass: block
-              globalMounts:
-                - path: *pvc
-              # advancedMounts:
-              #   main:
-              #     main:
-              #       - path: *pvc
+        tika:
+          main:
+            image:
+              repository: "ghcr.io/paperless-ngx/tika"
+              tag: "2.9.0-full@sha256:7b05dc240a56f3ab487a5f955ae5b5e88eaaaaf5189fcb653f4e21b0347d9d5c"
+            securityContext: *sc
+            resources: # TODO: adjust (Java app)
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                cpu: 3000m
+                memory: 6000Mi
+        gotenberg:
+          main:
+            image:
+              repository: "docker.io/gotenberg/gotenberg"
+              tag: "7.10.1@sha256:6db5229007ef8f4ac9c4955da2635f725a4d91ad5f650809487362e925fd3c7d"
+            command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
+            securityContext: *sc
+            resources: # TODO: adjust (Go app)
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                cpu: 3000m
+                memory: 6000Mi
     service:
       main:
         ports:
           http:
             port: *port
+      tika:
+        controller: "tika"
+        ports:
+          tika:
+            port: 9998
+      gotenberg:
+        controller: "gotenberg"
+        ports:
+          gotenberg:
+            port: 3000
     ingress:
       main:
         enabled: true
@@ -125,18 +179,39 @@ spec:
         enabled: true
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
         advancedMounts:
           main:
             main:
               - subPath: "apt"
                 path: "/var/lib/apt"
+              - &sockdir
+                subPath: "sockets"
+                path: "/sockets"
+            redis:
+              - *sockdir
+              - subPath: "forceDisableDataPathToDisableRDB"
+                path: "/data"
+                readOnly: true # jank to lock the dir
+          gotenberg:
+            main:
+              - subPath: "gotenberg"
+                path: "/tmp"
+      pg-tls:
+        enabled: true
+        type: secret
+        name: "pg-paperless-ngx-cluster-cert"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "ca.crt"
+                path: *pg-ca
+                readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
+      enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
       securityContext:
-        runAsUser: &uid 1000 # `paperless` user
+        runAsUser: &uid 1000 # hardcoded `paperless` user
         runAsGroup: *uid
         fsGroup: *uid
         runAsNonRoot: false

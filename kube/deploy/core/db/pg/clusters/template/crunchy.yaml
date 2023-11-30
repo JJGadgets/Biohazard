@@ -47,6 +47,7 @@ spec:
         repo1-retention-full-type: "time"
         repo1-retention-full: "5"
         repo1-retention-diff: "30"
+        # repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}"
         repo2-bundle: "y"
         repo2-block: "y"
         repo2-path: "/${PG_APP_NAME}"
@@ -55,9 +56,6 @@ spec:
         repo2-retention-full: "5"
         repo2-retention-diff: "30"
         repo2-cipher-type: "aes-256-cbc"
-      manual:
-        repoName: "repo2"
-        options: ["--type=full"]
       repos:
         - name: "repo1" # NFS
           volume: &nfs
