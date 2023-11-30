@@ -228,9 +228,10 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
       securityContext:
+        runAsNonRoot: false
         runAsUser: &uid 1000 # hardcoded `paperless` user
         runAsGroup: *uid
         fsGroup: *uid
-        runAsNonRoot: false
-        seccompProfile: {type: "RuntimeDefault"}
-        fsGroupChangePolicy: Always
+        fsGroupChangePolicy: "Always"
+        seccompProfile:
+          type: "RuntimeDefault"
