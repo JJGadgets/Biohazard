@@ -50,6 +50,9 @@ spec:
               PAPERLESS_CONSUMER_POLLING: "60" # 1 minute, inotify doesn't work over NFS
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+              PAPERLESS_TIKA_ENABLED: "true"
+              PAPERLESS_TIKA_ENDPOINT: "http://tika.paperless-ngx.svc.cluster.local"
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg.paperless-ngx.svc.cluster.local"
               PAPERLESS_DBENGINE: "postgresql"
               PAPERLESS_DBSSLMODE: "verify-full"
               PAPERLESS_DBSSLROOTCERT: &pg-ca "/pg-tls/ca.crt"
@@ -104,7 +107,10 @@ spec:
                 memory: 1000Mi
               limits:
                 memory: 2000Mi
-        tika:
+      tika:
+        type: deployment
+        replicas: 1
+        containers:
           main:
             image:
               repository: "ghcr.io/paperless-ngx/tika"
@@ -117,7 +123,10 @@ spec:
               limits:
                 cpu: 3000m
                 memory: 6000Mi
-        gotenberg:
+      gotenberg:
+        type: deployment
+        replicas: 1
+        containers:
           main:
             image:
               repository: "docker.io/gotenberg/gotenberg"
@@ -140,12 +149,14 @@ spec:
         controller: "tika"
         ports:
           tika:
-            port: 9998
+            port: 80
+            targetPort: 9998
       gotenberg:
         controller: "gotenberg"
         ports:
           gotenberg:
-            port: 3000
+            port: 80
+            targetPort: 3000
     ingress:
       main:
         enabled: true
