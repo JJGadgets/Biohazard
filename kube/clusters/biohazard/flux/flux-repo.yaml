@@ -226,15 +226,22 @@ spec:
                   name: not-used
                 spec:
                   interval: 5m
-                  maxHistory: 5
+                  timeout: 15m
+                  maxHistory: 10
                   install:
+                    crds: CreateReplace
                     createNamespace: true
                     remediation:
                       retries: 5
                   upgrade:
+                    crds: CreateReplace
                     cleanupOnFail: true
                     remediation:
                       retries: 5
+                      strategy: uninstall
+                  rollback:
+                    recreate: true
+                    cleanupOnFail: true
                   uninstall:
                     keepHistory: false
               target:
