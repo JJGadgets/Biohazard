@@ -60,6 +60,7 @@ tasks:
       DBUSER: '{{.DBUSER}}'
     cmds:
       - kubectl cp --container database {{.DUMP}} {{.NS}}/{{.CRUNCHY_PRIMARY}}:{{.CP_DIR}}/restore-dump.psql
-      - kubectl exec -it --container database -n {{.NS}} {{.CRUNCHY_PRIMARY}} -- /bin/bash -c 'echo "ALTER DATABASE {{.DBNAME}} OWNER TO {{.DBUSER}};" | psql'
+      - |-
+        kubectl exec -it --container database -n {{.NS}} {{.CRUNCHY_PRIMARY}} -- /bin/bash -c 'echo "ALTER DATABASE \"{{.DBNAME}}\" OWNER TO \"{{.DBUSER}}\";" | psql'
       - kubectl exec -it --container database -n {{.NS}} {{.CRUNCHY_PRIMARY}} -- /bin/bash -c 'pg_restore --dbname {{.DBNAME}} {{.ARGS}} {{.CP_DIR}}/restore-dump.psql'
       - defer: kubectl exec -it -n {{.NS}} {{.CRUNCHY_PRIMARY}} -- /bin/bash -c 'rm -rf {{.CP_DIR}}/restore-dump.psql'
