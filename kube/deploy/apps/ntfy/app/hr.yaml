@@ -75,10 +75,10 @@ spec:
         initContainers:
           01-litestream-restore-authfile:
             <<: *ls
-            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/authfile.db"]
+            args: ["restore", "-v", "-if-db-not-exists", "-if-replica-exists", "/config/authfile.db"]
           01-litestream-restore-cache:
             <<: *ls
-            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/cache.db"]
+            args: ["restore", "-v", "-if-db-not-exists", "-if-replica-exists", "/config/cache.db"]
           02-init-unifiedpush:
             imagePullPolicy: "IfNotPresent"
             image: *img
@@ -188,8 +188,12 @@ spec:
                     path: "ntfy-cache"
     defaultPodOptions:
       automountServiceAccountToken: false
+      enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
       securityContext:
+        runAsNonRoot: false
         runAsUser: &uid ${APP_UID_NTFY}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
+        seccompProfile:
+          type: "RuntimeDefault"
