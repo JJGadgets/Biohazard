@@ -205,6 +205,10 @@ spec:
               - subPath: "forceDisableDataPathToDisableRDB"
                 path: "/data"
                 readOnly: true # jank to lock the dir
+          tika:
+            main:
+              - subPath: "tika"
+                path: "/tmp"
           gotenberg:
             main:
               - subPath: "gotenberg"
