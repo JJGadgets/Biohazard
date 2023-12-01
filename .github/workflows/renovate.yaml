@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@e995b4e40ace2eb5bf13137d9abe242c98f3aab6 # v1.6.0
+        uses: actions/create-github-app-token@46e4a501e119d39574a54e53a06c9a705efc55c9 # v1.6.1
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
