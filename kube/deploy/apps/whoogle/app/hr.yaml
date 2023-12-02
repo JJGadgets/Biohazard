@@ -18,6 +18,9 @@ spec:
     controller:
       strategy: RollingUpdate
     fullNameOverride: whoogle
+    podLabels:
+      ingress.home.arpa/nginx-internal: "allow"
+      egress.home.arpa/world-https: "allow"
     image:
       repository: docker.io/benbusby/whoogle-search
       tag: 0.8.4
@@ -34,13 +37,6 @@ spec:
       WHOOGLE_TOR_SERVICE: 0
       WHOOGLE_PROXY_TYPE: "socks5"
       WHOOGLE_PROXY_LOC: "10.64.0.1:1080"
-    dnsPolicy: None
-    dnsConfig:
-      options:
-        - name: ndots
-          value: "1"
-      nameservers:
-        - "${IP_HOME_DNS}"
     service:
       main:
         ports:
@@ -52,13 +48,12 @@ spec:
         primary: true
         ingressClassName: "nginx-internal"
         hosts:
-          - host: "${APP_DNS_WHOOGLE}"
+          - host: &host "${APP_DNS_WHOOGLE}"
             paths:
             - path: /
               pathType: Prefix
         tls:
-          - hosts:
-            - "${APP_DNS_WHOOGLE}"
+          - hosts: [*host]
     resources:
       requests:
         cpu: 5m
