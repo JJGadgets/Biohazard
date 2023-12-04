@@ -71,7 +71,7 @@ spec:
             imagePullPolicy: "IfNotPresent"
             image:
               repository: "docker.io/mikefarah/yq"
-              tag: "4.40.3"
+              tag: "4.40.4@sha256:b3c09254ef3687fdd679a690b7861e24ee23fb9519f8cb428bf969dd9fe5401e"
             command: ["/bin/sh", "-c", "RENOVATE_TOKEN=$(cat /config/RENOVATE_TOKEN) yq eval --output-format json --null-input '.token = env(RENOVATE_TOKEN)' | tee /config/config.json"]
             securityContext: *sc
     service:
