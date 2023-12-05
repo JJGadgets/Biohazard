@@ -25,7 +25,7 @@ spec:
       tag: 2.13.5-beta@sha256:4d496d1a091b76d1546422120d4be9f16eba1c32b154bacd201da3feb2ed2a69
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
-      db.home.arpa/pg: "pg-default"
+      db.home.arpa/pg: "pg-joplin"
       egress.home.arpa/world-ntp: "allow"
     env:
       INSTANCE_NAME: "JJGadgets"
@@ -73,9 +73,9 @@ spec:
         enabled: true
         primary: true
         ingressClassName: "nginx-internal"
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        # annotations:
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_JOPLIN}"
             paths:
@@ -104,9 +104,3 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
-    initContainers:
-      01-init-db:
-        image: ghcr.io/onedr0p/postgres-init:15.5@sha256:70b4c228f2e86de39008a35211c76c1ac6de1dcdf0e908ac09ede6a11e2344e2
-        imagePullPolicy: IfNotPresent
-        envFrom:
-          - secretRef: {name: joplin-pg-superuser}
