@@ -4,14 +4,17 @@ kind: Kustomization
 metadata:
   name: 1-core-db-pg-app
   namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/deploy/core/db/pg/app
   prune: false
+  wait: false
   dependsOn:
     - name: 1-core-storage-csi-driver-nfs-app
   healthChecks:
-    - name: cloudnative-pg
-      namespace: cnpg
+    - name: crunchy-pgo
+      namespace: crunchy-pgo
       kind: HelmRelease
       apiVersion: helm.toolkit.fluxcd.io/v2beta1
 ---
