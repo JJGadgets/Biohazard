@@ -6,6 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   path: ./kube/deploy/core/db/pg/app
+  prune: false
   dependsOn:
     - name: 1-core-storage-csi-driver-nfs-app
   healthChecks:
