@@ -5,9 +5,21 @@ kind: ClusterPolicy
 metadata:
   name: "pod-reloader"
 spec:
+  applyRules: "All"
   mutateExistingOnPolicyUpdate: false
   background: false
   rules:
+    - name: "reloader-hash"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Secret", "v1/ConfigMap"]
+              operations: ["UPDATE"]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              reloader.kyverno.home.arpa/currentHash: &hashGen "{{ truncate('{{ base64_encode('{{ request.object.spec.data }}') }}',`10`) }}"
     - &reloader
       name: "reload-env-vars-secret"
       match:
@@ -15,6 +27,10 @@ spec:
           - resources:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
+      # preconditions: # TODO: check hash between app and secret/cm
+      #   all:
+      #     - key: "{{ request.object.metadata.labels.\"reloader.kyverno.home.arpa/currentHash\" }}"
+      #       operators: "NotEquals"
       mutate:
         targets: &targets
           - apiVersion: "apps/v1"
@@ -30,8 +46,8 @@ spec:
           spec:
             template:
               metadata: &hash
-                annotations:
-                  kyverno.home.arpa/reloader: "{{ random('[0-9a-z]{8}') }}"
+                labels:
+                  "reloader.kyverno.home.arpa/{{ request.object.kind }}-{{ request.object.metadata.name }}": *hashGen
               spec:
                 containers:
                   - env:
