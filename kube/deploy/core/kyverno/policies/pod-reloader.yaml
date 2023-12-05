@@ -65,6 +65,7 @@ spec:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
       mutate:
+        targets: *targets
         patchStrategicMerge:
           spec:
             template:
@@ -80,6 +81,7 @@ spec:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
       mutate:
+        targets: *targets
         patchStrategicMerge:
           spec:
             template:
