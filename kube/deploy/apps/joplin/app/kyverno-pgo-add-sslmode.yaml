@@ -19,4 +19,4 @@ spec:
         patchStrategicMerge:
           stringData:
             uri-sslmode: "{{ base64_decode('{{ request.object.data.uri }}') }}?sslmode=require"
-            pgboucner-uri-sslmode: "{{ base64_decode('{{ request.object.data.\"pgbouncer-uri\" }}') }}?sslmode=require"
+            pgbouncer-uri-sslmode: "{{ base64_decode('{{ request.object.data.\"pgbouncer-uri\" }}') }}?sslmode=require"
