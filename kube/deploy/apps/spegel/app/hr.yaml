@@ -17,5 +17,24 @@ spec:
     spegel:
       containerdSock: /run/containerd/containerd.sock
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
+      registries:
+        - https://registry.developers.crunchydata.com
+        - https://jank.ing
+        - https://registry.jjgadgets.tech
+        - https://images.jjgadgets.tech
+        - https://cr.jjgadgets.tech
+        - https://oci.jjgadgets.tech
+        - https://containers.jjgadgets.tech
+        - https://omgimg.jjgadgets.tech
+        - https://containersandshit.jjgadgets.tech
+        - https://docker.io
+        - https://ghcr.io
+        - https://quay.io
+        - https://mcr.microsoft.com
+        - https://public.ecr.aws
+        - https://gcr.io
+        - https://registry.k8s.io
+        - https://k8s.gcr.io
+        - https://lscr.io
     serviceMonitor:
       enabled: true
