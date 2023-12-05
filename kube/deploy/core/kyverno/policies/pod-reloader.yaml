@@ -19,7 +19,7 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              reloader.kyverno.home.arpa/currentHash: &hashGen "{{ truncate('{{ base64_encode('{{ request.object.spec.data }}') }}',`10`) }}"
+              reloader.kyverno.home.arpa/currentHash: &hashGen "{{ truncate('{{ base64_encode('{{ request.object.data }}') }}',`10`) }}"
     - &reloader
       name: "reload-env-vars-secret"
       match:
