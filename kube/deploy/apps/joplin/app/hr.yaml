@@ -40,7 +40,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: &pgsec "pg-joplin-pguser-joplin"
-            key: "pgbouncer-uri"
+            key: "pgbouncer-uri-sslmode"
       # POSTGRES_PORT: "5432"
       # POSTGRES_HOST:
       #   valueFrom:

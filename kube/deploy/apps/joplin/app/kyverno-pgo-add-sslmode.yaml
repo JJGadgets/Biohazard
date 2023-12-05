@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: "joplin-pgo-add-sslmode"
+  namespace: "joplin"
+spec:
+  mutateExistingOnPolicyUpdate: false
+  background: false
+  rules:
+    - name: "joplin-pgo-add-sslmode"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Secret"]
+              name: "pg-joplin-pguser-joplin"
+      mutate:
+        patchStrategicMerge:
+          stringData:
+            uri-sslmode: "{{ base64_decode('{{ request.object.data.uri }}') }}?sslmode=require"
+            pgboucner-uri-sslmode: "{{ base64_decode('{{ request.object.data.\"pgbouncer-uri\" }}') }}?sslmode=require"
