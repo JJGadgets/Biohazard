@@ -98,6 +98,9 @@ spec:
       temp:
         <<: *tmp
         mountPath: "/home/joplin/packages/server/temp"
+      pm2:
+        <<: *tmp
+        mountPath: "/.pm2"
     resources:
       requests:
         cpu: 10m
