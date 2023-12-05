@@ -5,7 +5,7 @@ kind: ClusterPolicy
 metadata:
   name: "pod-reloader"
 spec:
-  mutateExistingOnPolicyUpdate: true
+  mutateExistingOnPolicyUpdate: false
   background: false
   rules:
     - &reloader
