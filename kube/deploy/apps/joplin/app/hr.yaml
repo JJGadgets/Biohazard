@@ -36,27 +36,32 @@ spec:
       APP_PORT: "22300"
       APP_BASE_URL: "https://${APP_DNS_JOPLIN}"
       DB_CLIENT: "pg"
-      POSTGRES_PORT: "5432"
-      POSTGRES_HOST:
+      POSTGRES_CONNECTION_STRING:
         valueFrom:
           secretKeyRef:
             name: &pgsec "pg-joplin-pguser-joplin"
-            key: "pgbouncer-host"
-      POSTGRES_DATABASE:
-        valueFrom:
-          secretKeyRef:
-            name: *pgsec
-            key: "dbname"
-      POSTGRES_USER:
-        valueFrom:
-          secretKeyRef:
-            name: *pgsec
-            key: "user"
-      POSTGRES_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: *pgsec
-            key: "password"
+            key: "pgbouncer-uri"
+      # POSTGRES_PORT: "5432"
+      # POSTGRES_HOST:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: &pgsec "pg-joplin-pguser-joplin"
+      #       key: "pgbouncer-host"
+      # POSTGRES_DATABASE:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: *pgsec
+      #       key: "dbname"
+      # POSTGRES_USER:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: *pgsec
+      #       key: "user"
+      # POSTGRES_PASSWORD:
+      #   valueFrom:
+      #     secretKeyRef:
+      #       name: *pgsec
+      #       key: "password"
       TERMS_ENABLED: "false"
       COOKIES_SECURE: "false"
       ERROR_STACK_TRACES: "false"
