@@ -10,9 +10,7 @@ spec:
   prune: true
   path: ./kube/deploy/apps/soft-serve/app
   dependsOn:
-    # - name: 1-core-db-pg-clusters-default
-    - name: 1-core-ingress-nginx-app
-    #- name: 1-core-storage-volsync-app
+    - name: soft-serve-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
