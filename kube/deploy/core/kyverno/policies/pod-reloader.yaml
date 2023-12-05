@@ -15,6 +15,25 @@ spec:
           - resources:
               kinds: ["v1/Secret", "v1/ConfigMap"]
               operations: ["UPDATE"]
+              selector:
+                matchExpressions:
+                  - key: "postgres-operator.crunchydata.com/role"
+                    operator: "NotIn"
+                    values: ["pgbouncer"]
+                  - &pgo
+                    key: "postgres-operator.crunchydata.com/instance-set"
+                    operator: "NotIn"
+                    values: ["kyvernoreloaderrandomvalueherelol"]
+                  - <<: *pgo
+                    key: "postgres-operator.crunchydata.com/cluster-certificate"
+                  - <<: *pgo
+                    key: "postgres-operator.crunchydata.com/pgbouncer"
+      preconditions:
+        all:
+          - &noPGO
+            key: "{{ request.object.metadata.name }}"
+            operator: "NotEquals"
+            value: "pg-*-config"
       mutate:
         patchStrategicMerge:
           metadata:
@@ -27,9 +46,9 @@ spec:
           - resources:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
-      # preconditions: # TODO: check hash between app and secret/cm
-      #   all:
-      #     - key: "{{ request.object.metadata.labels.\"reloader.kyverno.home.arpa/currentHash\" }}"
+      preconditions:
+        all: [*noPGO]
+      #     - key: "{{ request.object.metadata.labels.\"reloader.kyverno.home.arpa/currentHash\" }}" # TODO: check hash between app and secret/cm
       #       operators: "NotEquals"
       mutate:
         targets: &targets
@@ -61,6 +80,8 @@ spec:
           - resources:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
+      preconditions:
+        all: [*noPGO]
       mutate:
         targets: *targets
         patchStrategicMerge:
@@ -80,6 +101,8 @@ spec:
           - resources:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
+      preconditions:
+        all: [*noPGO]
       mutate:
         targets: *targets
         patchStrategicMerge:
@@ -96,6 +119,8 @@ spec:
           - resources:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
+      preconditions:
+        all: [*noPGO]
       mutate:
         targets: *targets
         patchStrategicMerge:
