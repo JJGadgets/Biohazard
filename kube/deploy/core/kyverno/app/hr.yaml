@@ -69,7 +69,7 @@ spec:
       container:
         resources:
           limits:
-            memory: 1Gi
+            memory: 2Gi
     backgroundController:
       replicas: 2
       metricsService:
@@ -95,7 +95,8 @@ spec:
               app.kubernetes.io/component: "admission-controllero"
       resources:
         limits:
-          memory: 512Mi
+          cpu: 500m
+          memory: 2Gi
     cleanupController:
       replicas: 2
       metricsService:
