@@ -9,7 +9,8 @@ spec:
   mutateExistingOnPolicyUpdate: false
   background: false
   rules:
-    - name: "reloader-hash"
+    - &hashRule
+      name: "reloader-hash"
       match:
         any:
           - resources:
@@ -17,28 +18,31 @@ spec:
               operations: ["UPDATE"]
               selector:
                 matchExpressions:
-                  - key: "postgres-operator.crunchydata.com/role"
-                    operator: "NotIn"
-                    values: ["pgbouncer"]
-                  - &pgo
-                    key: "postgres-operator.crunchydata.com/instance-set"
-                    operator: "NotIn"
-                    values: ["kyvernoreloaderrandomvalueherelol"]
-                  - <<: *pgo
-                    key: "postgres-operator.crunchydata.com/cluster-certificate"
-                  - <<: *pgo
-                    key: "postgres-operator.crunchydata.com/pgbouncer"
+                  - key: "postgres-operator.crunchydata.com/cluster"
+                    operator: "DoesNotExist"
       preconditions:
         all:
           - &noPGO
             key: "{{ request.object.metadata.name }}"
-            operator: "NotEquals"
-            value: "pg-*-config"
+            operator: "AnyNotIn"
+            value: ["pg-*-config", "pgo-root-cacert"]
       mutate:
         patchStrategicMerge:
           metadata:
             labels:
+              reloader.kyverno.home.arpa/enabled: "true"
               reloader.kyverno.home.arpa/currentHash: &hashGen "{{ truncate('{{ base64_encode('{{ request.object.data }}') }}',`10`) }}"
+    - <<: *hashRule
+      name: "reloader-hash-pguser"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Secret"]
+              operations: ["UPDATE"]
+              selector:
+                matchExpressions:
+                  - key: "postgres-operator.crunchydata.com/pguser"
+                    operator: "Exists"
     - &reloader
       name: "reload-env-vars-secret"
       match:
@@ -46,6 +50,9 @@ spec:
           - resources:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
+              selector: &selector
+                matchLabels:
+                  reloader.kyverno.home.arpa/enabled: "true"
       preconditions:
         all: [*noPGO]
       #     - key: "{{ request.object.metadata.labels.\"reloader.kyverno.home.arpa/currentHash\" }}" # TODO: check hash between app and secret/cm
@@ -80,6 +87,7 @@ spec:
           - resources:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
+              selector: *selector
       preconditions:
         all: [*noPGO]
       mutate:
@@ -101,6 +109,7 @@ spec:
           - resources:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
+              selector: *selector
       preconditions:
         all: [*noPGO]
       mutate:
@@ -119,6 +128,7 @@ spec:
           - resources:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
+              selector: *selector
       preconditions:
         all: [*noPGO]
       mutate:
