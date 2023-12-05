@@ -95,11 +95,16 @@ spec:
         bind :80 accept-proxy
         redirect scheme https code 301 if !{ ssl_fc } # HTTP to HTTPS redirect
         option forwardfor
-        default_backend https_servers
+        use_backend nginx-public if { req.hdr(host) -m end ${DNS_LONG} }
+        use_backend nginx-external if { req.hdr(host) -m end ${DNS_SHORT} }
 
-      backend https_servers
+      backend nginx-public
         mode http
-        server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni]) check check-sni str(external-proxy-x.${DNS_SHORT})
+        server nginxpublic nginx-public-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni]) check check-sni str(external-proxy-x.${DNS_LONG})
+
+      backend nginx-external
+        mode http
+        server nginxexternal nginx-external-controller.ingress.svc.cluster.local:443 ssl verify none sni str(%[ssl_fc_sni]) check check-sni str(external-proxy-x.${DNS_SHORT})
 # TODO: fix SSL verify
 # server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify required ca-file /tls/ca.pem
     resources:
