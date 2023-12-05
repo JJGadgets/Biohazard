@@ -36,6 +36,7 @@ spec:
       APP_PORT: "22300"
       APP_BASE_URL: "https://${APP_DNS_JOPLIN}"
       DB_CLIENT: "pg"
+      NODE_TLS_REJECT_UNAUTHORIZED: "0" # for Postgres SSL # TODO: find out how to load Postgres CA to container's trust store
       POSTGRES_CONNECTION_STRING:
         valueFrom:
           secretKeyRef:
