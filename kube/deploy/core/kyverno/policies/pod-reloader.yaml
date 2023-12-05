@@ -16,7 +16,7 @@ spec:
               kinds: ["v1/Secret"]
               operations: ["UPDATE"]
       mutate:
-        targets:
+        targets: &targets
           - apiVersion: "apps/v1"
             kind: "Deployment"
             namespace: "{{request.namespace}}"
@@ -29,7 +29,7 @@ spec:
         patchStrategicMerge:
           spec:
             template:
-              metadata:
+              metadata: &hash
                 annotations:
                   kyverno.home.arpa/reloader: "{{ random('[0-9a-z]{8}') }}"
               spec:
@@ -46,9 +46,11 @@ spec:
               kinds: ["v1/ConfigMap"]
               operations: ["UPDATE"]
       mutate:
+        targets: *targets
         patchStrategicMerge:
           spec:
             template:
+              metadata: *hash
               spec:
                 containers:
                   - env:
@@ -65,6 +67,8 @@ spec:
       mutate:
         patchStrategicMerge:
           spec:
+            template:
+              metadata: *hash
             volumes:
               - secret:
                   <(name): "{{ request.object.metadata.name }}"
@@ -78,6 +82,8 @@ spec:
       mutate:
         patchStrategicMerge:
           spec:
+            template:
+              metadata: *hash
             volumes:
               - configMap:
                   <(name): "{{ request.object.metadata.name }}"
