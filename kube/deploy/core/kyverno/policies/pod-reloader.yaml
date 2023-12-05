@@ -20,6 +20,8 @@ spec:
                 matchExpressions:
                   - key: "postgres-operator.crunchydata.com/cluster"
                     operator: "DoesNotExist"
+                  - key: "grafana_dashboard"
+                    operator: "DoesNotExist"
       preconditions:
         all:
           - &noPGO
