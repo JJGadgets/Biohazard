@@ -38,7 +38,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: pg-zipline-pguser-zipline
-            key: uri
+            key: pgbouncer-uri
       # TODO: 2023-06-03 add OAuth when Authentik support is merged: https://github.com/diced/zipline/discussions/321 and https://github.com/diced/zipline/pull/372/
       DATASOURCE_S3_ACCESS_KEY_ID:
         valueFrom:
@@ -174,10 +174,3 @@ spec:
         memory: 128Mi
       limits:
         memory: 6000Mi
-    # initContainers:
-    #   01-init-db:
-    #     image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-    #     imagePullPolicy: IfNotPresent
-    #     envFrom:
-    #       - secretRef:
-    #           name: zipline-pg-superuser
