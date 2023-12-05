@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/kyverno.io/clusterpolicy_v1.json
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: "pod-reloader"
+spec:
+  mutateExistingOnPolicyUpdate: true
+  background: false
+  rules:
+    - &reloader
+      name: "reload-env-vars-secret"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Secret"]
+              operations: ["UPDATE"]
+      mutate:
+        targets:
+          - apiVersion: "apps/v1"
+            kind: "Deployment"
+            namespace: "{{request.namespace}}"
+          - apiVersion: "apps/v1"
+            kind: "StatefulSet"
+            namespace: "{{request.namespace}}"
+          - apiVersion: "apps/v1"
+            kind: "DaemonSet"
+            namespace: "{{request.namespace}}"
+        patchStrategicMerge:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  kyverno.home.arpa/reloader: "{{ random('[0-9a-z]{8}') }}"
+              spec:
+                containers:
+                  - env:
+                      - valueFrom:
+                          secretKeyRef:
+                            <(name): "{{ request.object.metadata.name }}"
+    - <<: *reloader
+      name: "reload-env-vars-configmap"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/ConfigMap"]
+              operations: ["UPDATE"]
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - env:
+                      - valueFrom:
+                          configMapKeyRef:
+                            <(name): "{{ request.object.metadata.name }}"
+    - <<: *reloader
+      name: "reload-volume-secret"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/Secret"]
+              operations: ["UPDATE"]
+      mutate:
+        patchStrategicMerge:
+          spec:
+            volumes:
+              - secret:
+                  <(name): "{{ request.object.metadata.name }}"
+    - <<: *reloader
+      name: "reload-volume-configmap"
+      match:
+        any:
+          - resources:
+              kinds: ["v1/ConfigMap"]
+              operations: ["UPDATE"]
+      mutate:
+        patchStrategicMerge:
+          spec:
+            volumes:
+              - configMap:
+                  <(name): "{{ request.object.metadata.name }}"
