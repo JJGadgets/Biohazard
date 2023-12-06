@@ -25,6 +25,8 @@ spec:
       tag: "3.7.7"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
+      ingress.home.arpa/nginx-external: "allow"
+      ingress.home.arpa/nginx-public: "allow"
       db.home.arpa/pg: "pg-zipline"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     env:
