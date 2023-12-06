@@ -40,7 +40,8 @@ kubevip:
 k3s:
   enabled: true
   replace_args: true
-  args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-cloud-controller", "--disable-kube-proxy", "--write-kubeconfig-mode 0644", "--node-ip ${SECRET_HERCULES_WG_ADDRESS_V4}"]
+  args: ["--disable=flannel,traefik,servicelb,local-storage,metrics-server", "--flannel-backend=none", "--disable-network-policy", "--service-cidr 172.24.0.0/16", "--cluster-cidr 172.23.0.0/16", "--disable-kube-proxy", "--write-kubeconfig-mode 0644", "--node-ip ${SECRET_HERCULES_WG_ADDRESS_V4}", "--bind-address ${SECRET_HERCULES_WG_ADDRESS_V4}", "--advertise-address ${SECRET_HERCULES_WG_ADDRESS_V4}"]
+  # , "--node-external-ip $(ip -4 route list dev $(ip -4 route list default | awk '{print $5}') table local | awk '{print $2}')"]
 stages:
   after-install-chroot: &apt
     - name: Install extra packages
