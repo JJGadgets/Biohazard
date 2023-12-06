@@ -1,6 +1,7 @@
 [env]
 KUBECTL_INTERACTIVE_DELETE = "true"
 KUBECTL_COMMAND_HEADERS = "true"
+#SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
 
 [tools]
 # kubectl = [""]
@@ -12,6 +13,8 @@ flux2 = ["2.1.2"]
 talosctl = ["1.5.4"]
 talhelper = ["1.14.0"]
 cilium-cli= ["0.15.14"]
+
+pulumi = ["3.95.0"]
 
 [plugins]
 talhelper = "https://github.com/bjw-s/asdf-talhelper.git"
