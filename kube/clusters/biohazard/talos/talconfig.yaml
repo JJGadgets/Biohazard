@@ -103,16 +103,29 @@ controlPlane:
         path: /machine/kubelet/extraArgs
         value:
           feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
+
     - &apiServerExtraArgs |-
       - op: add
         path: /cluster/apiServer/extraArgs
         value:
           feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
+
+    - &apiServerResources |-
+      cluster:
+        apiServer:
+          resources:
+            requests:
+              cpu: 200m
+              memory: 2Gi
+            limits:
+              memory: 8Gi
+
     # - |-
     #   - op: add
     #     path: /cluster/controllerManager/extraArgs
     #     value:
     #       node-cidr-mask-size: 22
+
     - &machinePatch |-
       machine:
         install:
@@ -153,6 +166,14 @@ controlPlane:
         etcd:
           advertisedSubnets:
             - "${IP_ROUTER_VLAN_K8S_CIDR}"
+
+    - &etcdQuota |-
+      cluster:
+        etcd:
+          extraArgs:
+            quota-backend-bytes: 4294967296 # 4 GiB
+    # https://www.talos.dev/v1.5/advanced/etcd-maintenance/#space-quota
+    # maximum recommended is 8GiB, will resize to 4GiB for now so etcd won't shoot its load all at once
 
     - &clusterPatch |-
       cluster:
