@@ -47,7 +47,7 @@ spec:
         repo1-retention-full-type: "time"
         repo1-retention-full: "5"
         repo1-retention-diff: "30"
-        # repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}"
+        repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}"
         repo2-bundle: "y"
         repo2-block: "y"
         repo2-path: "/${PG_APP_NAME}"
@@ -68,7 +68,7 @@ spec:
                   storage: "1Mi" # doesn't matter with NFS
           schedules: # more aggressive for NAS (over NFS)
             full: "0 6 * * 1" # every Monday at 06:00
-            differential: "0 6 * * 2-7" # every day at 06:00 except Monday
+            differential: "0 6 * * 2-6" # every day at 06:00 except Monday
             incremental: "0 1-5,7-23 * * *" # every hour except 06:00
         - name: "repo2" # Cloudflare R2
           s3: &r2
@@ -79,14 +79,14 @@ spec:
             full: "30 6 * * 1" # every Monday at 06:30
             differential: "30 6 * * 0,2-6" # every day at 06:30 except Monday
             incremental: "30 1-5,7-23 * * *" # every hour except 06:30
-  # dataSource:
-  #   pgbackrest:
-  #     stanza: "db"
-  #     configuration: *brcfg
-  #     global: *brflag
-  #     repo:
-  #       name: "repo2"
-  #       s3: *r2
+  dataSource:
+    pgbackrest:
+      stanza: "db"
+      configuration: *brcfg
+      global: *brflag
+      repo:
+        name: "repo2"
+        s3: *r2
   proxy:
     pgBouncer:
       port: 5432

@@ -11,6 +11,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: "${IP_TRUENAS}"
-    path: "${PATH_NAS_BACKUPS_PGBACKREST}/${PG_APP_NAME}"
-    # path: "${PATH_NAS_BACKUPS_PGBACKREST}"
-  mountOptions: ["nfsvers=4.0", "tcp", "hard", "noatime", "nodiratime", "nocto"]
+    path: "${PATH_NAS_BACKUPS_PGBACKREST}"
+  mountOptions: ["nfsvers=4.2", "tcp", "hard", "noatime", "nodiratime", "nocto"]
