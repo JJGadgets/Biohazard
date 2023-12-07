@@ -119,6 +119,16 @@ tasks:
       - |-
         kubectl get crds -o jsonpath='{range .items[*]}{.spec.names.kind}: {.spec.names.shortNames}{"\n"}{end}'
 
+  clear-old-pods:
+    aliases: [cop]
+    desc: Clears all old pods remaining after a reboot
+    cmds:
+      - |-
+        while true; do
+          kubectl delete pod -A --field-selector=status.phase==Failed || true;
+          kubectl delete pod -A --field-selector=status.phase==Succeeded || true;
+        done
+
   iperf2:
     desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.
     dir: "/{{.ROOT_DIR}}/.taskfiles/k8s/template/iperf2"
