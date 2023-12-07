@@ -15,7 +15,7 @@ spec:
         namespace: flux-system
   values:
     # server is in active-active, 3 replicas seems to confuse authentik
-    replicas: 1
+    replicas: 2
     worker:
       # workers don't need leader election, thus any size works
       replicas: 3

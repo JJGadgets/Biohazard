@@ -69,6 +69,11 @@ spec:
             devicePathFilter: *osd-s3500-1-6tb
           - name: "chise"
             devicePathFilter: *osd-s3500-1-6tb
+      placement:
+        osd:
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
       resources:
         mgr:
           requests:
