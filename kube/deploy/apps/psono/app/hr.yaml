@@ -22,7 +22,7 @@ spec:
       replicas: 1
     image:
       repository: "docker.io/psono/psono-server-enterprise"
-      tag: "3.8.0"
+      tag: "3.8.1@sha256:07578eb5445142d696d697aff5b10581609a74729eb3e709c0988ca4b92c37d0"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-enc"
@@ -127,7 +127,7 @@ spec:
         imagePullPolicy: IfNotPresent
         envFrom: [secretRef: {name: psono-pg-superuser}]
       02-un-root:
-        image: "docker.io/psono/psono-server-enterprise:3.8.0"
+        image: "docker.io/psono/psono-server-enterprise:3.8.1@sha256:07578eb5445142d696d697aff5b10581609a74729eb3e709c0988ca4b92c37d0"
         imagePullPolicy: IfNotPresent
         # command: ["/bin/sh", "-c", 'chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono && cp -rL /root/. /psono && find /psono -type f | xargs -I% sed -i "s/\/root/\/psono/g" %']
         command: ["/bin/sh", "-c", 'cp -rL /root/. /psono && chown -R ${APP_UID_PSONO}:${APP_UID_PSONO} /psono; exit']
