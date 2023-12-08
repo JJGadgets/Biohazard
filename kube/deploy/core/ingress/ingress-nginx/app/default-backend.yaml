@@ -15,33 +15,20 @@ spec:
         namespace: flux-system
   values:
     podLabels:
-      egress.home.arpa/world-https: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
+      ingress.home.arpa/nginx-external: "allow"
+      ingress.home.arpa/nginx-public: "allow"
     controller:
       type: daemonset
     image:
-      repository: public.ecr.aws/docker/library/busybox
-      tag: 1.36.1-glibc
-    command: ["busybox", "sh", "-c"]
-    args: ["httpd -f -v -p 8080 -h /config"]
+      repository: "registry.jjgadgets.tech/jjgadgets/jjgadgets-error-page-ingress-nginx"
+      tag: "@sha256:ca1fa3411ff56ce2bb444aec5ffd5afb374f790cea24e01c689b7993643c4db5"
     service:
       main:
         ports:
           http:
             port: 80
             targetPort: 8080
-    persistence:
-      config:
-        enabled: true
-        type: configMap
-        name: "default-backend-html"
-        subPath: "index.html"
-        mountPath: "/config/index.html"
-        readOnly: true
-    podSecurityContext:
-      runAsUser: &uid 404200
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
     resources:
       requests:
         cpu: 10m
