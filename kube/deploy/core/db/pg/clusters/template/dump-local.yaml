@@ -8,6 +8,7 @@ metadata:
     postgresql: &pg "pg-${PG_APP_NAME}"
     app.kubernetes.io/instance: *pg
     app.kubernetes.io/name: "pg-dump-local"
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
 spec:
   schedule: "0 6 * * *"
   timeZone: "Asia/Singapore"
@@ -70,6 +71,8 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: &name "pg-${PG_APP_NAME}-${PG_DB_NAME}-dump-local"
+  labels:
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
 spec:
   storageClassName: *name
   capacity:
@@ -86,6 +89,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: &name "pg-${PG_APP_NAME}-${PG_DB_NAME}-dump-local"
   namespace: "${PG_APP_NS}"
+  labels:
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
 spec:
   accessModes: [ReadWriteMany]
   storageClassName: *name
