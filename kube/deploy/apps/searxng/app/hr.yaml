@@ -23,13 +23,14 @@ spec:
     image:
       repository: docker.io/searxng/searxng
       tag: 2023.7.22-65d8b1a31
+    command: ["uwsgi", "--master", "--http-socket", "0.0.0.0:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/world: "allow"
     env:
       TZ: "${CONFIG_TZ}"
-      SEARXNG_BASE_URL: "https://{APP_DNS_SEARXNG}"
-      SEARXNG_URL: "https://{APP_DNS_SEARXNG}" # TODO: which env var to use?
+      SEARXNG_BASE_URL: "https://{APP_DNS_SEARXNG}/"
+      SEARXNG_URL: "https://{APP_DNS_SEARXNG}"
       SEARXNG_PORT: &http "8080"
       SEARXNG_SECRET:
         valueFrom:
@@ -62,12 +63,12 @@ spec:
     dnsConfig:
       options:
         - name: ndots
-          value: "1"
-    # podSecurityContext: # TODO: maybe build rootless container or Kyverno/patch entrypoint?
-    #   runAsUser: &uid ${APP_UID_SEARXNG}
-    #   runAsGroup: *uid
-    #   fsGroup: *uid
-    #   fsGroupChangePolicy: Always
+          value: "1" # Alpine base
+    podSecurityContext: # TODO: maybe build rootless container or Kyverno/patch entrypoint?
+      runAsUser: &uid ${APP_UID_SEARXNG}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
     persistence:
       config:
         enabled: true
@@ -193,7 +194,10 @@ spec:
               safe_search: 0
               autocomplete: "duckduckgo"
               autocomplete_min: 2
+              default_lang: "en"
+              max_page: 0
             server:
+              base_url: "https://${APP_DNS_SEARXNG}/"
               image_proxy: true
               http_protocol_version: "1.1"
               method: "GET"
