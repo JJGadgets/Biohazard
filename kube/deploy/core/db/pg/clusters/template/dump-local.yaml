@@ -22,7 +22,7 @@ spec:
           enableServiceLinks: false
           restartPolicy: "OnFailure"
           securityContext:
-            runAsUser: &uid ${UID_NAS_BACKUPS_K8S}
+            runAsUser: &uid 26 # Postgres UID for Crunchy
             runAsGroup: *uid
             fsGroup: *uid
           volumes:
