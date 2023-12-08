@@ -59,7 +59,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: *pguser
-                      key: "username"
+                      key: "user"
                 - name: "POSTGRES_PASSWORD"
                   valueFrom:
                     secretKeyRef:
@@ -79,7 +79,7 @@ spec:
   nfs:
     server: "${IP_TRUENAS}"
     path: "${PATH_NAS_BACKUPS_K8S}/pg-dump"
-  mountOptions: ["nfsvers=4.2", "tcp", "hard", "noatime", "nodiratime", "nocto"]
+  mountOptions: ["nfsvers=4", "tcp", "hard", "noatime", "nodiratime", "nocto"]
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
