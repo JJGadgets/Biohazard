@@ -16,6 +16,23 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-ingress-internet
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/internet: "allow"
+  ingress:
+    - fromCIDRSet:
+        - cidr: "0.0.0.0/0"
+          except:
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+            - "192.168.0.0/16"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-ingress-host
 spec:
   endpointSelector:
@@ -37,3 +54,42 @@ spec:
   ingress:
     - fromEntities:
         - "kube-apiserver"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-ingress-lan
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/lan: "allow"
+  ingress:
+    - fromCIDRSet:
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-ingress-user1
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/wg-user1: "allow"
+  ingress:
+    - fromCIDRSet:
+        - cidr: "${IP_WG_USER_1_V4}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-ingress-wg-guest
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/wg-guest: "allow"
+  ingress:
+    - fromCIDRSet:
+        - cidr: "${IP_WG_GUEST_V4}"

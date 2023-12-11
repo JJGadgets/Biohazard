@@ -59,6 +59,44 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-internet
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/internet: allow
+  egress:
+    - toCIDRSet:
+        - cidr: "0.0.0.0/0"
+          except:
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+            - "192.168.0.0/16"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-internet-https
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/internet-https: allow
+  egress:
+    - toCIDRSet:
+        - cidr: "0.0.0.0/0"
+          except:
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+            - "192.168.0.0/16"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: ANY
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-world-https
 spec:
   endpointSelector:
@@ -146,3 +184,42 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-lan
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/lan: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_ROUTER_LAN_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-user1
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/wg-user1: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_WG_USER_1_V4}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-wg-guest
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/wg-guest: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_WG_GUEST_V4}"
