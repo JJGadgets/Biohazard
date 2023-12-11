@@ -168,7 +168,7 @@ spec:
         hosts:
           - host: &host "${APP_DNS_PAPERLESS_NGX}"
             paths:
-              - path: /
+              - path: "/"
                 pathType: Prefix
                 service:
                   name: main
@@ -176,6 +176,21 @@ spec:
         tls:
           - hosts:
               - *host
+      api:
+        enabled: true
+        primary: false
+        className: "nginx-internal"
+        hosts:
+          - host: &api "${APP_DNS_PAPERLESS_NGX}"
+            paths:
+              - path: "/api"
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *api
     persistence:
       nas:
         enabled: true
