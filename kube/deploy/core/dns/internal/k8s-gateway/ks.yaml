@@ -7,3 +7,6 @@ metadata:
 spec:
   path: ./kube/deploy/core/dns/internal/k8s-gateway/app
   dependsOn: []
+  postBuild:
+    substitute:
+      UPSTREAM: "${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3"
