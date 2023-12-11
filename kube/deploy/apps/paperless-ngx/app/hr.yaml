@@ -91,10 +91,11 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
-                memory: 1000Mi
+                cpu: "10m"
+                memory: "1000Mi"
               limits:
-                memory: 2000Mi
+                cpu: "3000m"
+                memory: "3000Mi"
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
@@ -103,10 +104,11 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 10m
-                memory: 1000Mi
+                cpu: "10m"
+                memory: "32Mi"
               limits:
-                memory: 2000Mi
+                cpu: "1000m"
+                memory: "512Mi"
       tika:
         type: deployment
         replicas: 1
@@ -118,11 +120,11 @@ spec:
             securityContext: *sc
             resources: # TODO: adjust (Java app)
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: "10m"
+                memory: "256Mi"
               limits:
-                cpu: 3000m
-                memory: 6000Mi
+                cpu: "3000m"
+                memory: "6000Mi"
       gotenberg:
         type: deployment
         replicas: 1
@@ -135,11 +137,11 @@ spec:
             securityContext: *sc
             resources: # TODO: adjust (Go app)
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: "10m"
+                memory: "64Mi"
               limits:
-                cpu: 3000m
-                memory: 6000Mi
+                cpu: "3000m"
+                memory: "6000Mi"
     service:
       main:
         ports:
