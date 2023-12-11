@@ -183,8 +183,8 @@ spec:
         hosts:
           - host: &api "${APP_DNS_PAPERLESS_NGX}"
             paths:
-              - path: "/api"
-                pathType: Prefix
+              - path: "/api/(.+)"
+                pathType: ImplementationSpecific
                 service:
                   name: main
                   port: http
