@@ -180,10 +180,12 @@ spec:
         enabled: true
         primary: false
         className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
         hosts:
           - host: &api "${APP_DNS_PAPERLESS_NGX}"
             paths:
-              - path: "/api/(.+)"
+              - path: "/api/.*"
                 pathType: ImplementationSpecific
                 service:
                   name: main
