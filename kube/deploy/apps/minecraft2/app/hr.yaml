@@ -20,8 +20,8 @@ spec:
         replicas: 1
         pod:
           labels:
-            egress.home.arpa/world: "true"
-            egress.home.arpa/world-https: "true"
+            ingress.home.arpa/internet: "allow"
+            egress.home.arpa/internet: "allow"
         containers:
           main:
             image: &image
@@ -142,7 +142,7 @@ spec:
     persistence:
       data:
         enabled: true
-        existingClaim: "minecraft-data"
+        existingClaim: "minecraft2-data"
         globalMounts:
           - path: "/data"
             readOnly: false
