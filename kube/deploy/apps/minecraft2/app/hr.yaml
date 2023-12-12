@@ -1,0 +1,155 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app minecraft2
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 2.3.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: "deployment"
+        replicas: 1
+        pod:
+          labels:
+            egress.home.arpa/world: "true"
+            egress.home.arpa/world-https: "true"
+        containers:
+          main:
+            image: &image
+              repository: "ghcr.io/jjgadgets/minecraft-server"
+              tag: "java17-graalvm"
+            env:
+              TZ: "${CONFIG_TZ}"
+              MEMORY: "2048M"
+              EULA: "TRUE"
+              TYPE: "FABRIC"
+              VERSION: "1.20.1"
+              FABRIC_LOADER_VERSION: "0.15.1"
+              MOD_PLATFORM: "MODRINTH"
+              MODRINTH_ALLOWED_VERSION_TYPE: "release"
+              MODRINTH_DOWNLOAD_DEPENDENCIES: "required"
+              MODRINTH_PROJECTS: |-
+                lithium:ZSNsJrPI
+                lazydfu
+                fabric-api:tFw0iWAk
+                ferrite-core:unerR5MN
+                krypton:jiDwS0W1
+                carpet:K0Wj117C
+                ledger:pOxgWfwI
+                spark:XGW2fviP
+                chunky:t8SbUchF
+                servertick:IOYJbkmQ
+                fabric-language-kotlin:48ri5y9r
+                memoryleakfix:dGlflhb6
+              MODRINTH_MODPACK: "https://modrinth.com/modpack/prominence-2-fabric/version/2.2.1"
+              SERVER_NAME: "${CONFIG_MINECRAFT2_NAME}"
+              OPS: "${CONFIG_MINECRAFT2_OPS}"
+              OVERRIDE_ICON: "TRUE"
+              MOTD: "Welcome to ${CONFIG_MINECRAFT2_NAME}!"
+              LEVEL_TYPE: "DEFAULT"
+              LEVEL: "world"
+              MODE: "survival"
+              DIFFICULTY: "hard"
+              MAX_WORLD_SIZE: "6e+07"
+              MAX_PLAYERS: "20"
+              PVP: "true"
+              ALLOW_NETHER: "true"
+              ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
+              ENABLE_COMMAND_BLOCK: "false"
+              FORCE_GAMEMODE: "true"
+              GENERATE_STRUCTURES: "true"
+              HARDCORE: "false"
+              MAX_BUILD_HEIGHT: "256"
+              MAX_TICK_TIME: "-1"
+              VIEW_DISTANCE: "10"
+              OVERRIDE_SERVER_PROPERTIES: "true"
+              ENABLE_RCON: "false"
+              ENABLE_AUTOPAUSE: "TRUE"
+              AUTOPAUSE_SUDO: "false"
+              AUTOPAUSE_KNOCK_INTERFACE: "eth0"
+              AUTOPAUSE_TIMEOUT_EST: "300"
+              AUTOPAUSE_TIMEOUT_INIT: "120"
+              RCON_CMDS_STARTUP: |-
+                gamerule keepInventory false
+              SNOOPER_ENABLED: "false"
+              SYNC_CHUNK_WRITES: "false"
+              USE_AIKAR_FLAGS: "true"
+            resources:
+              requests:
+                cpu: 100m
+                memory: 3072Mi
+              limits:
+                cpu: 2500m
+                memory: 6000Mi
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 60
+                  exec: &probeexec {command: ["mc-health"]}
+              readiness: *probe
+              startup:
+                <<: *probe
+                spec:
+                  initialDelaySeconds: 30
+                  periodSeconds: 1
+                  failureThreshold: 300
+                  exec: *probeexec
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: true
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_RAW"]
+    service:
+      main:
+        enabled: true
+        primary: true
+        controller: main
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_MINECRAFT2}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT2}"
+        ports:
+          http:
+            enabled: false
+          minecraft:
+            enabled: true
+            primary: true
+            port: 25565
+            protocol: TCP
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
+        # runAsUser: &uid ${APP_UID_MINECRAFT}
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: true
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: "Always"
+    persistence:
+      data:
+        enabled: true
+        existingClaim: "minecraft-data"
+        globalMounts:
+          - path: "/data"
+            readOnly: false
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: /tmp
+            readOnly: false
