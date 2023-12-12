@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: "minecraft2-data"
-  namespace: "minecraft2"
+  namespace: &app "minecraft2"
   labels:
     app.kubernetes.io/name: *app
     app.kubernetes.io/instance: *app
