@@ -38,19 +38,14 @@ spec:
               MODRINTH_ALLOWED_VERSION_TYPE: "release"
               MODRINTH_DOWNLOAD_DEPENDENCIES: "required"
               MODRINTH_PROJECTS: |-
-                lithium:ZSNsJrPI
-                lazydfu
-                fabric-api:tFw0iWAk
-                ferrite-core:unerR5MN
-                krypton:jiDwS0W1
-                carpet:K0Wj117C
-                ledger:pOxgWfwI
-                spark:XGW2fviP
                 chunky:t8SbUchF
                 servertick:IOYJbkmQ
-                fabric-language-kotlin:48ri5y9r
-                memoryleakfix:dGlflhb6
               MODRINTH_MODPACK: "https://modrinth.com/modpack/prominence-2-fabric/version/2.2.1"
+              MODRINTH_EXCLUDE_FILES: |-
+                Luna-FABRIC
+                fm_audio_extension_fabric
+                drippyloadingscreen_fabric
+                fancymenu_fabric
               SERVER_NAME: "${CONFIG_MINECRAFT2_NAME}"
               OPS: "${CONFIG_MINECRAFT2_OPS}"
               OVERRIDE_ICON: "TRUE"
