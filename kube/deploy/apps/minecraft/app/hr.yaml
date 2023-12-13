@@ -99,7 +99,7 @@ spec:
                 cpu: 100m
                 memory: 3072Mi
               limits:
-                cpu: 2500m
+                cpu: 3000m
                 memory: 6000Mi
             probes:
               liveness: &probe
@@ -132,6 +132,10 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
+          tailscale.io/expose: "true"
+          tailscale.com/hostname: "mc"
+        labels: # netpols
+          tailscale.io/expose: "true"
         ports:
           http:
             enabled: false
