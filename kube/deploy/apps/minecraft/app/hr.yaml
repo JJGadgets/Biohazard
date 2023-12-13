@@ -132,7 +132,7 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
-          tailscale.io/expose: "true"
+          tailscale.com/expose: "true"
           tailscale.com/hostname: "mc"
         labels: # netpols
           tailscale.io/expose: "true"
