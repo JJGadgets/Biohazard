@@ -29,7 +29,7 @@ spec:
               tag: "java17-graalvm"
             env:
               TZ: "${CONFIG_TZ}"
-              MEMORY: "2048M"
+              MEMORY: "4096M"
               EULA: "TRUE"
               TYPE: "FABRIC"
               VERSION: "1.20.1"
@@ -46,6 +46,7 @@ spec:
                 fm_audio_extension_fabric
                 drippyloadingscreen_fabric
                 fancymenu_fabric
+              MODRINTH_FORCE_SYNCHRONIZE: "true"
               SERVER_NAME: "${CONFIG_MINECRAFT2_NAME}"
               OPS: "${CONFIG_MINECRAFT2_OPS}"
               OVERRIDE_ICON: "TRUE"
@@ -80,11 +81,11 @@ spec:
               USE_AIKAR_FLAGS: "true"
             resources:
               requests:
-                cpu: 100m
-                memory: 3072Mi
+                cpu: "100m"
+                memory: "7168Mi"
               limits:
-                cpu: 2500m
-                memory: 6000Mi
+                cpu: "3500m"
+                memory: "10240Mi"
             probes:
               liveness: &probe
                 enabled: true
@@ -124,16 +125,6 @@ spec:
             primary: true
             port: 25565
             protocol: TCP
-    defaultPodOptions:
-      automountServiceAccountToken: false
-      securityContext:
-        runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
-        # runAsUser: &uid ${APP_UID_MINECRAFT}
-        runAsGroup: *uid
-        fsGroup: *uid
-        runAsNonRoot: true
-        seccompProfile: {type: "RuntimeDefault"}
-        fsGroupChangePolicy: "Always"
     persistence:
       data:
         enabled: true
@@ -148,3 +139,28 @@ spec:
         globalMounts:
           - path: /tmp
             readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: &uid 1000 # must be 1000 for `minecraft` user, so that autopause (`knockd`) can be launched with sudo nopasswd (https://github.com/itzg/docker-minecraft-server/blob/ec539a5dd27ba6e796c6d89975c01a99ce031f4e/files/sudoers-mc)
+        # runAsUser: &uid ${APP_UID_MINECRAFT}
+        runAsGroup: *uid
+        fsGroup: *uid
+        runAsNonRoot: true
+        seccompProfile: {type: "RuntimeDefault"}
+        fsGroupChangePolicy: "Always"
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 15
+              preference:
+                matchExpressions:
+                  - key: "kubernetes.io/hostname"
+                    operator: "In"
+                    values: ["ange", "charlotte"] # i5-8500T
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: "kubernetes.io/hostname"
+                    operator: "In"
+                    values: ["chise"] # i3-8100
