@@ -1,0 +1,31 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app tailscale
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: ./cmd/k8s-operator/deploy/chart
+      sourceRef:
+        name: *app
+        kind: GitRepository
+        namespace: flux-system
+  values:
+    operatorConfig:
+      image:
+        repo: "ghcr.io/tailscale/k8s-operator"
+        tag: &v "v1.54.1"
+      logging: "info"
+      hostname: "tailscale-operator-k8s"
+      nodeSelector:
+        kubernetes.io/os: "linux"
+    proxyConfig:
+      image:
+        repo: "ghcr.io/tailscale/tailscale"
+        tag: *v
+      defaultTags: "tag:k8s"
+      firewallMode: "auto"
+    apiServerProxyConfig:
+      mode: "true"

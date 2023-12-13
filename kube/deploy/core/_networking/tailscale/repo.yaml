@@ -1,0 +1,16 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: tailscale
+  namespace: flux-system
+spec:
+  interval: 30m
+  url: https://github.com/tailscale/tailscale.git
+  ref:
+    tag: "v1.54.1"
+  ignore: |
+    # exclude all
+    /*
+    # helm chart
+    !/cmd/k8s-operator/deploy/chart
