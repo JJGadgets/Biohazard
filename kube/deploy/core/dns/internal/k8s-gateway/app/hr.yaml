@@ -24,6 +24,9 @@ spec:
       port: 53
       annotations:
         "io.cilium/lb-ipam-ips": "${APP_IP_K8S_GATEWAY}"
+        tailscale.com/expose: "true"
+        tailscale.com/hostname: "k8s-gateway"
+        tailscale.com/tags: "tag:k8s-gateway"
     extraZonePlugins:
       - name: log
       - name: errors
