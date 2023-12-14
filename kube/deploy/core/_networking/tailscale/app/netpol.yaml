@@ -24,6 +24,11 @@ spec:
       toPorts:
         - ports:
             - port: "6443"
+    # allow access to k8s-gateway
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "dns"
+            app.kubernetes.io/name: "k8s-gateway"
     # allow access to Tailscale-exposed pods
     - toServices:
         - k8sServiceSelector:
