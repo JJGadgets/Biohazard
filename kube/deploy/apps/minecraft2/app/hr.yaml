@@ -22,6 +22,7 @@ spec:
           labels:
             ingress.home.arpa/internet: "allow"
             egress.home.arpa/internet: "allow"
+            tailscale.com/expose: "true"
         containers:
           main:
             image: &image
@@ -75,7 +76,7 @@ spec:
               MAX_TICK_TIME: "-1"
               VIEW_DISTANCE: "10"
               OVERRIDE_SERVER_PROPERTIES: "true"
-              ENABLE_RCON: "false"
+              ENABLE_RCON: "true"
               ENABLE_AUTOPAUSE: "TRUE"
               AUTOPAUSE_SUDO: "false"
               AUTOPAUSE_KNOCK_INTERFACE: "eth0"
@@ -84,7 +85,7 @@ spec:
               RCON_CMDS_STARTUP: |-
                 gamerule keepInventory false
               SNOOPER_ENABLED: "false"
-              SYNC_CHUNK_WRITES: "false"
+              SYNC_CHUNK_WRITES: "true"
               USE_AIKAR_FLAGS: "true"
             resources:
               requests:
@@ -106,7 +107,7 @@ spec:
                 spec:
                   initialDelaySeconds: 30
                   periodSeconds: 1
-                  failureThreshold: 300
+                  failureThreshold: 1500
                   exec: *probeexec
             securityContext:
               readOnlyRootFilesystem: true
@@ -124,6 +125,8 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT2}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT2}"
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "${APP_TS_MINECRAFT2}"
         ports:
           http:
             enabled: false
@@ -171,3 +174,11 @@ spec:
                   - key: "kubernetes.io/hostname"
                     operator: "In"
                     values: ["chise"] # i3-8100
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: "kubernetes.io/hostname"
+              namespaces: ["minecraft", "minecraft2"]
+              labelSelctor:
+                matchLabels:
+                  app.kubernetes.io/name: "minecraft"
+                  app.kubernetes.io/instance: "minecraft"
