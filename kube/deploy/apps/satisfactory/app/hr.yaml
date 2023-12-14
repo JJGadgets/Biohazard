@@ -18,7 +18,7 @@ spec:
       type: statefulset
     image:
       repository: docker.io/wolveix/satisfactory-server
-      tag: v1.5.6@sha256:77bbd2eed50fbf49114dcce090a71a07933a7496787f07bfc947fb6fc5367efa
+      tag: v1.6.0@sha256:7aa3af5bc0f229a8eed96dbf003103977d00342dd3c06deeef9eaf8ffb141610
     podSecurityContext:
       runAsUser: 0 # image uses PUID & PGID to fix permissions for Docker users, which requires starting as rootless :sadge: TODO: open issue to allow envvar to configure if rootless is allowed
       runAsGroup: &uid ${APP_UID_SATISFACTORY}
