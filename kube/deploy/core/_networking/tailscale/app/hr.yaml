@@ -17,7 +17,7 @@ spec:
       image:
         repo: "ghcr.io/tailscale/k8s-operator"
         tag: &v "v1.54.1"
-      logging: "info"
+      logging: "debug"
       hostname: "tailscale-operator-k8s"
       nodeSelector:
         kubernetes.io/os: "linux"
