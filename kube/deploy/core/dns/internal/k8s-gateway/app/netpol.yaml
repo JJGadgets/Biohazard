@@ -24,6 +24,9 @@ spec:
         - ports:
             - port: "53"
             - port: "1053"
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "tailscale"
   egress:
     - toCIDRSet:
         - cidr: "${IP_ROUTER_VLAN_K8S}/32"
