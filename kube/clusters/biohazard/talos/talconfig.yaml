@@ -4,10 +4,7 @@ talosVersion: v1.5.4
 kubernetesVersion: v1.28.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
-# dnsDomain: cluster.local
-talosImageURL: "factory.talos.dev/installer/b585b09d94017b3086ee1bf52b422ca79abd60478fb7591bf21108f065769e7e"
-# image extensions: amd-ucode, intel-ucode, i915-ucode, iscsi-tools, zfs
-# install Tailscale later, service won't be considered up until Tailscale is enrolled (I think)
+allowSchedulingOnControlPlanes: true
 
 cniConfig:
   name: none
@@ -17,17 +14,15 @@ clusterPodNets:
 clusterSvcNets:
   - "${IP_SVC_CIDR_V4}"
 
-additionalApiServerCertSans:
-  - "${IP_CLUSTER_VIP}"
-  - "${IP_ROUTER_VLAN_K8S}"
-  - "c.${DNS_CLUSTER}"
-  - "127.0.0.1"
-
-additionalMachineCertSans:
+additionalApiServerCertSans: &san
   - "${IP_CLUSTER_VIP}"
   - "${IP_ROUTER_VLAN_K8S}"
   - "c.${DNS_CLUSTER}"
   - "127.0.0.1" # KubePrism
+  - "tailscale-operator-k8s"
+  - "tailscale-operator-k8s.${DNS_TS}"
+
+additionalMachineCertSans: *san
 
 nodes:
 
@@ -67,6 +62,33 @@ nodes:
           # - <<: *vlan-ceph
           #   mtu: 1500
           #   addresses: ["${IP_PVE_CEPH_PREFIX}8/28"]
+    machineFiles:
+      - &ts
+        op: create
+        path: /var/etc/tailscale/auth.env
+        permissions: 0o600
+        content: |
+          TS_KUBE_SECRET=""
+          TS_STATE_DIR=/var/lib/tailscale
+          TS_USERSPACE=false
+          TS_ACCEPT_DNS=false
+      - &tsNode
+        op: append
+        path: /var/etc/tailscale/auth.env
+        permissions: 0o600
+        content: |
+          TS_HOSTNAME=ange
+          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:ange
+          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_ANGE}
+          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}1/32
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/i915-ucode
+            - siderolabs/intel-ucode
+            - siderolabs/iscsi-tools
+            - siderolabs/tailscale
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -79,6 +101,14 @@ nodes:
           # - <<: *vlan-ceph
           #   mtu: 1500
           #   addresses: ["${IP_PVE_CEPH_PREFIX}9/28"]
+    machineFiles:
+      - *ts
+      - <<: *tsNode
+        content: |
+          TS_HOSTNAME=charlotte
+          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:charlotte
+          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHARLOTTE}
+          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}2/32
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3 4C4T, 32GB RAM, 512GB OS NVMe
@@ -95,6 +125,14 @@ nodes:
           # - <<: *vlan-ceph
           #   mtu: 1500
           #   addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
+    machineFiles:
+      - *ts
+      - <<: *tsNode
+        content: |
+          TS_HOSTNAME=chise
+          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:chise
+          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHISE}
+          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}3/32
 
 controlPlane:
   patches:
@@ -146,6 +184,10 @@ controlPlane:
           servers:
             - "${IP_ROUTER_LAN}"
           bootTimeout: 2m0s
+#         kernel:
+#           modules:
+#             - name: nct6683
+#               parameters: ["force=on"]
 
     - &kubePrism |-
       machine:
