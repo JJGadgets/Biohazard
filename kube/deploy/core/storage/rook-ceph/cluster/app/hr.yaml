@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: "rook-ceph-cluster-${CLUSTER_NAME}"
+  name: "rook-ceph-cluster-${CLUSTER_NAME:=biohazard}"
   namespace: rook-ceph
 spec:
   timeout: 1h
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-    clusterName: "${CLUSTER_NAME}"
+    clusterName: "${CLUSTER_NAME:=biohazard}"
     operatorNamespace: "rook-ceph"
     configOverride: |
       [global]
