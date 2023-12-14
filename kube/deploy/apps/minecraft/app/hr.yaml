@@ -22,6 +22,7 @@ spec:
           labels:
             egress.home.arpa/world: "true"
             egress.home.arpa/world-https: "true"
+            tailscale.com/expose: "true"
         containers:
           main:
             image: &image
@@ -134,8 +135,6 @@ spec:
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
           tailscale.com/expose: "true"
           tailscale.com/hostname: "mc"
-        labels: # netpols
-          tailscale.io/expose: "true"
         ports:
           http:
             enabled: false
