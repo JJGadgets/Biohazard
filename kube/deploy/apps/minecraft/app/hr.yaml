@@ -186,7 +186,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - topologyKey: "kubernetes.io/hostname"
               namespaces: ["minecraft", "minecraft2"]
-              labelSelctor:
+              labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: "minecraft2"
                   app.kubernetes.io/instance: "minecraft2"
