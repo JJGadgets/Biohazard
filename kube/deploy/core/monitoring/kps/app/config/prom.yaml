@@ -32,6 +32,7 @@ prometheus:
         cpu: 150m
         memory: 2048M
       limits:
+        cpu: 500m
         memory: 8192M
     topologySpreadConstraints:
       - maxSkew: 1
