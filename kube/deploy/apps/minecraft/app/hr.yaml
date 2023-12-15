@@ -97,11 +97,11 @@ spec:
               USE_AIKAR_FLAGS: "true"
             resources:
               requests:
-                cpu: 100m
-                memory: 3072Mi
+                cpu: "1000m"
+                memory: "3072Mi"
               limits:
-                cpu: 3000m
-                memory: 6000Mi
+                cpu: "2000m"
+                memory: "6000Mi"
             probes:
               liveness: &probe
                 enabled: true

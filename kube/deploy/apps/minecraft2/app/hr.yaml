@@ -89,10 +89,10 @@ spec:
               USE_AIKAR_FLAGS: "true"
             resources:
               requests:
-                cpu: "100m"
+                cpu: "1000m"
                 memory: "7168Mi"
               limits:
-                cpu: "3500m"
+                cpu: "2000m"
                 memory: "10240Mi"
             probes:
               liveness: &probe
