@@ -1,0 +1,129 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app tailscale-router
+  namespace: tailscale
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: "2.4.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: "daemonset"
+        containers:
+          main:
+            image: &img
+              repository: "ghcr.io/tailscale/tailscale"
+              tag: "v1.56.0@sha256:ed1f9317d0bab2bc17f6eecc29401479b91c938df48c28b1bd3d3014eba9d013"
+            env:
+              TZ: "${CONFIG_TZ}"
+              PORT: &port "${CONFIG_TAILSCALE_NODE_PORT}"
+              # SA_NAME: "tailscale-router"
+              TS_USERSPACE: "true"
+              # TS_HOSTNAME: &nodeEnv
+              #   valueFrom:
+              #     fieldRef:
+              #       fieldPath: "spec.nodeName"
+              # TS_KUBE_SECRET: *nodeEnv
+              TS_HOSTNAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: "metadata.name"
+              TS_KUBE_SECRET: ""
+              TS_AUTHKEY: "file:/authkey"
+              TS_ROUTES: "${IP_ROUTER_VLAN_K8S_CIDR},${IP_LB_CIDR},${IP_SVC_CIDR_V4}"
+              TS_EXTRA_ARGS: "--advertise-exit-node=true --advertise-connector=true --advertise-tags=tag:kube"
+              TS_TAILSCALED_EXTRA_ARGS: "--state=mem: --debug=0.0.0.0:8080 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                memory: "512Mi"
+    # serviceAccount:
+    #   name: *app
+    #   create: true
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+          socks5:
+            port: 1080
+            protocol: TCP
+          http-proxy:
+            port: 28081
+            protocol: TCP
+      tailscaled:
+        enabled: true
+        primary: false
+        controller: main
+        type: LoadBalancer
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_TAILSCALE}"
+        ports:
+          wireguard:
+            enabled: true
+            port: ${CONFIG_TAILSCALE_NODE_PORT}
+            protocol: UDP
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        name: "tailscale-router-secrets"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "authkey"
+                path: "/authkey"
+                readOnly: true
+      # tmp:
+      #   enabled: true
+      #   type: emptyDir
+      #   medium: Memory
+      #   globalMounts:
+      #     - subPath: "tmp"
+      #       path: "/tmp"
+      #       readOnly: false
+      #     - subPath: "cache"
+      #       path: ".cache"
+      #       readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: &uid ${APP_UID_TAILSCALE}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: {type: "RuntimeDefault"}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+          - port: http
+            scheme: http
+            path: /debug/metrics
+            interval: 1m
+            scrapeTimeout: 30s
