@@ -27,6 +27,8 @@ spec:
         tailscale.com/expose: "true"
         tailscale.com/hostname: "k8s-gateway"
         tailscale.com/tags: "tag:k8s-gateway"
+      labels:
+        io.cilium/l2: "true"
     extraZonePlugins:
       - name: log
       - name: errors

@@ -132,9 +132,11 @@ spec:
         externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT}"
+          io.cilium/lb-ipam-ips: "${APP_IP_MINECRAFT}"
           tailscale.com/expose: "true"
           tailscale.com/hostname: "mc"
+        labels:
+          io.cilium/l2: "true"
         ports:
           http:
             enabled: false
