@@ -16,13 +16,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: "tailscale-router"
-  namespace: "tailscale"
+  name: &name "tailscale-router"
+  namespace: &ns "tailscale"
 subjects:
   - kind: ServiceAccount
-    name: "tailscale-router"
-    namespace: networking
+    name: *name
+    namespace: *ns
 roleRef:
-  kind: Role
-  name: "tailscale-router"
   apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: *name
