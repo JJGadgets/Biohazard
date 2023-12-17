@@ -40,7 +40,7 @@ spec:
               TS_AUTHKEY: "file:/authkey"
               TS_ROUTES: "${IP_ROUTER_VLAN_K8S_CIDR},${IP_LB_CIDR},${IP_SVC_CIDR_V4}"
               TS_EXTRA_ARGS: "--advertise-exit-node=true --advertise-connector=true --advertise-tags=tag:kube"
-              TS_TAILSCALED_EXTRA_ARGS: "--state=mem: --debug=0.0.0.0:8080 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081"
+              TS_TAILSCALED_EXTRA_ARGS: "--state=mem: --debug=0.0.0.0:8080 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081 --no-logs-no-support"
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -90,19 +90,19 @@ spec:
               - subPath: "authkey"
                 path: "/authkey"
                 readOnly: true
-      # tmp:
-      #   enabled: true
-      #   type: emptyDir
-      #   medium: Memory
-      #   globalMounts:
-      #     - subPath: "tmp"
-      #       path: "/tmp"
-      #       readOnly: false
-      #     - subPath: "cache"
-      #       path: ".cache"
-      #       readOnly: false
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+          - subPath: "cache"
+            path: ".cache"
+            readOnly: false
     defaultPodOptions:
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true # the image expects a ServiceAccount secret when running on Kubernetes even if you're not using it
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: false
