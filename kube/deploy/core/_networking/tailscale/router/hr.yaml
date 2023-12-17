@@ -25,22 +25,22 @@ spec:
             env:
               TZ: "${CONFIG_TZ}"
               PORT: &port "${CONFIG_TAILSCALE_NODE_PORT}"
-              # SA_NAME: "tailscale-router"
+              SA_NAME: "tailscale-router"
               TS_USERSPACE: "true"
-              # TS_HOSTNAME: &nodeEnv
-              #   valueFrom:
-              #     fieldRef:
-              #       fieldPath: "spec.nodeName"
-              # TS_KUBE_SECRET: *nodeEnv
-              TS_HOSTNAME:
+              TS_HOSTNAME: &nodeEnv
                 valueFrom:
                   fieldRef:
-                    fieldPath: "metadata.name"
-              TS_KUBE_SECRET: ""
+                    fieldPath: "spec.nodeName"
+              TS_KUBE_SECRET: *nodeEnv
+              # TS_HOSTNAME:
+              #   valueFrom:
+              #     fieldRef:
+              #       fieldPath: "metadata.name"
+              # TS_KUBE_SECRET: ""
               TS_AUTHKEY: "file:/authkey"
               TS_ROUTES: "${IP_ROUTER_VLAN_K8S_CIDR},${IP_LB_CIDR},${IP_SVC_CIDR_V4}"
               TS_EXTRA_ARGS: "--advertise-exit-node=true --advertise-connector=true --advertise-tags=tag:kube"
-              TS_TAILSCALED_EXTRA_ARGS: "--state=mem: --debug=0.0.0.0:8080 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081 --no-logs-no-support"
+              TS_TAILSCALED_EXTRA_ARGS: "--debug=0.0.0.0:8080 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081 --no-logs-no-support"
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -52,9 +52,9 @@ spec:
                 memory: "128Mi"
               limits:
                 memory: "512Mi"
-    # serviceAccount:
-    #   name: *app
-    #   create: true
+    serviceAccount:
+      name: *app
+      create: true
     service:
       main:
         ports:
@@ -83,7 +83,7 @@ spec:
         enabled: true
         type: secret
         name: "tailscale-router-secrets"
-        defaultMode: 0400
+        defaultMode: "0400"
         advancedMounts:
           main:
             main:
