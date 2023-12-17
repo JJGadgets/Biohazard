@@ -92,6 +92,8 @@ spec:
         type: LoadBalancer
         annotations:
           io.cilium/lb-ipam-ips: "${APP_IP_TAILSCALE}" # BGP
+        labels:
+          io.cilium/l2: "true"
         externalIPs: ["${APP_IP_EXT_TAILSCALE}"] # L2
         ports:
           wireguard:
