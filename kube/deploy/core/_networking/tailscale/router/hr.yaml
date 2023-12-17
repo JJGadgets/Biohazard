@@ -83,7 +83,7 @@ spec:
         enabled: true
         type: secret
         name: "tailscale-router-secrets"
-        defaultMode: "0400"
+        defaultMode: 0400
         advancedMounts:
           main:
             main:
@@ -111,6 +111,10 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: {type: "RuntimeDefault"}
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
