@@ -24,7 +24,7 @@ spec:
               tag: "v1.56.0@sha256:ed1f9317d0bab2bc17f6eecc29401479b91c938df48c28b1bd3d3014eba9d013"
             env:
               TZ: "${CONFIG_TZ}"
-              PORT: &port "${CONFIG_TAILSCALE_NODE_PORT}"
+              PORT: "${CONFIG_TAILSCALE_NODE_PORT}"
               SA_NAME: "tailscale-router"
               TS_USERSPACE: "true"
               TS_HOSTNAME: &nodeEnv
@@ -37,10 +37,10 @@ spec:
               #     fieldRef:
               #       fieldPath: "metadata.name"
               # TS_KUBE_SECRET: ""
-              TS_AUTHKEY: "file:/authkey"
+              TS_AUTHKEY: "file:/secrets/authkey"
               TS_ROUTES: "${IP_ROUTER_VLAN_K8S_CIDR},${IP_LB_CIDR},${IP_SVC_CIDR_V4}"
               TS_EXTRA_ARGS: "--advertise-exit-node=true --advertise-connector=true --advertise-tags=tag:kube"
-              TS_TAILSCALED_EXTRA_ARGS: "--debug=0.0.0.0:58169 --socks5-server=0.0.0.0:1080 --outbound-http-proxy-listen=0.0.0.0:28081 --no-logs-no-support"
+              TS_TAILSCALED_EXTRA_ARGS: "--debug=0.0.0.0:58169 --socks5-server=0.0.0.0:61080 --outbound-http-proxy-listen=0.0.0.0:58081 --no-logs-no-support"
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -52,6 +52,22 @@ spec:
                 memory: "128Mi"
               limits:
                 memory: "512Mi"
+            # probes:
+            #   startup:
+            #     enabled: false
+            #   readiness:
+            #     enabled: false
+            #   liveliness:
+            #     enabled: true
+            #     custom: true
+            #     spec:
+            #       initialDelaySeconds: 0
+            #       periodSeconds: 1
+            #       timeoutSeconds: 5
+            #       failureThreshold: 3
+            #       command:
+            #         - /bin/sh
+            #         - -c
     serviceAccount:
       name: *app
       create: true
@@ -59,12 +75,15 @@ spec:
       main:
         ports:
           http:
-            port: 8080
+            port: 80
+            targetPort: 58169
           socks5:
             port: 1080
+            targetPort: 61080
             protocol: TCP
           http-proxy:
-            port: 28081
+            port: 8080
+            targetPort: 58081
             protocol: TCP
       tailscaled:
         enabled: true
@@ -72,7 +91,8 @@ spec:
         controller: main
         type: LoadBalancer
         annotations:
-          "io.cilium/lb-ipam-ips": "${APP_IP_TAILSCALE}"
+          io.cilium/lb-ipam-ips: "${APP_IP_TAILSCALE}" # BGP
+        externalIPs: ["${APP_IP_EXT_TAILSCALE}"] # L2
         ports:
           wireguard:
             enabled: true
@@ -87,8 +107,7 @@ spec:
         advancedMounts:
           main:
             main:
-              - subPath: "authkey"
-                path: "/authkey"
+              - path: "/secrets"
                 readOnly: true
       tmp:
         enabled: true
@@ -99,10 +118,11 @@ spec:
             path: "/tmp"
             readOnly: false
           - subPath: "cache"
-            path: ".cache"
+            path: "/.cache"
             readOnly: false
     defaultPodOptions:
-      hostNetwork: true
+      # hostNetwork: true
+      # dnsPolicy: "ClusterFirstWithHostNet"
       automountServiceAccountToken: true # the image expects a ServiceAccount secret when running on Kubernetes even if you're not using it
       enableServiceLinks: false
       securityContext:
