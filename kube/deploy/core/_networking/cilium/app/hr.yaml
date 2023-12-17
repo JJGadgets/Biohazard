@@ -41,6 +41,15 @@ spec:
     #     podCIDR: true
     bgpControlPlane:
       enabled: true
+    ## NOTE: Cilium L2 LoadBalancer service IP announcements
+    l2announcements:
+      enabled: true
+      leaseDuration: "120s"
+      leaseRenewDeadline: "60s"
+      leaseRetryPeriod: "1s"
+    k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
+      qps: 50
+      burst: 100
     ## Note: Cilium ingress controller
     ingressController:
       enabled: true
@@ -96,6 +105,7 @@ spec:
       enabled: true
       serviceMonitor:
         enabled: true
+        trustCRDsExist: true # for CI or local Helm builds, such as flux-local
     dashboards:
       enabled: true
       annotations:

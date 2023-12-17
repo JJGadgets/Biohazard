@@ -1,13 +1,19 @@
 ---
-apiVersion: "cilium.io/v2alpha1"
+apiVersion: cilium.io/v2alpha1
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: main-pool
 spec:
   cidrs:
     - cidr: "${IP_LB_CIDR}"
+  serviceSelector:
+    matchExpressions:
+      - key: "io.cilium/l2"
+        operator: DoesNotExist
+      - key: "exposeSvc"
+        operator: DoesNotExist
 ---
-apiVersion: "cilium.io/v2alpha1"
+apiVersion: cilium.io/v2alpha1
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: dns
