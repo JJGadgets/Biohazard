@@ -27,6 +27,7 @@ spec:
         externalTrafficPolicy: "Cluster"
         annotations:
           "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_PUBLIC}"
+          tailscale.com/expose: "true"
       extraArgs:
         default-ssl-certificate: "ingress/long-domain-tls"
       ingressClassResource:

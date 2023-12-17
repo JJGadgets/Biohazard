@@ -42,6 +42,10 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: UDP
+    # allow traffic from Tailscale within cluster
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: tailscale
     # allow traffic from external-proxy-x
     - fromEndpoints:
         - matchLabels:
