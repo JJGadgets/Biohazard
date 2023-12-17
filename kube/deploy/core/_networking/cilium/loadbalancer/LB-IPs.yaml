@@ -8,8 +8,6 @@ spec:
     - cidr: "${IP_LB_CIDR}"
   serviceSelector:
     matchExpressions:
-      - key: "io.cilium/l2"
-        operator: DoesNotExist
       - key: "exposeSvc"
         operator: DoesNotExist
 ---

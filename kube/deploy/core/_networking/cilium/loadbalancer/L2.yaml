@@ -5,6 +5,7 @@ metadata:
   name: "l2"
 spec:
   externalIPs: true
+  loadBalancerIPs: true # as a backup to BGP
   nodeSelector:
     matchLabels:
       kubernetes.io/os: "linux"
