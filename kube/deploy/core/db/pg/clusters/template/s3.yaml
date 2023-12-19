@@ -8,6 +8,27 @@ spec:
   bucketName: "pg-${PG_APP_NAME}"
   storageClassName: "rgw-${CLUSTER_NAME}"
 ---
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: "kubernetes"
+  namespace: &ns "${PG_APP_NS}"
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: *ns
+      server:
+        url: "https://kubernetes.default.svc.cluster.local"
+        caProvider:
+          type: "ConfigMap"
+          name: "kube-root-ca.crt"
+          namespace: *ns
+          key: "ca.crt"
+      auth:
+        serviceAccount:
+          name: "external-secrets-kubernetes-provider"
+          namespace: "external-secrets"
+---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/external-secrets.io/externalsecret_v1beta1.json
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -18,7 +39,7 @@ metadata:
 spec:
   refreshInterval: "1m"
   secretStoreRef:
-    kind: "ClusterSecretStore"
+    kind: "SecretStore"
     name: "kubernetes"
   target:
     name: "pg-${PG_APP_NAME}-s3-crunchy"
