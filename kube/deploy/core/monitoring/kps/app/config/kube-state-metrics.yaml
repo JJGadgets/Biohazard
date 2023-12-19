@@ -9,9 +9,18 @@ kube-state-metrics:
   prometheus:
     monitor:
       enabled: true
+      interval: "10s"
+      scrapeTimeout: "5s"
       relabelings:
+        # replaces other node identifiers with hostname
         - action: replace
           sourceLabels: ["__meta_kubernetes_pod_node_name"]
           regex: ^(.*)$
           replacement: $1
           targetLabel: kubernetes_node
+  resources:
+    requests:
+      cpu: 15m
+      memory: 127M
+    limits:
+      memory: 153M

@@ -8,8 +8,9 @@ prometheus:
     paths: ["/"]
     pathType: Prefix
   prometheusSpec:
-    scrapeInterval: "10s"
-    scrapeTimeout: "5s"
+    # Prometheus resource allocation
+    # scrapeInterval: "10s"
+    # scrapeTimeout: "5s"
     replicas: 3
     retention: 14d
     retentionSize: 30GB
@@ -21,23 +22,34 @@ prometheus:
           resources:
             requests:
               storage: 35Gi
-    enableAdminAPI: true
+    resources:
+      requests:
+        cpu: 250m
+        memory: 2048M
+      limits:
+        cpu: 350m
+        memory: 8192M
+    # scheduling
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: "DoNotSchedule"
+        labelSelector:
+          matchLabels:
+            prometheus: "kps"
+    # don't use labels from this KPS deployment for labelSelector of these Prometheus resources
     ruleSelectorNilUsesHelmValues: false
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
     scrapeConfigSelectorNilUsesHelmValues: false
-    resources:
-      requests:
-        cpu: 150m
-        memory: 2048M
-      limits:
-        cpu: 500m
-        memory: 8192M
-    topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: "kubernetes.io/hostname"
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            prometheus: "kps"
+    # enable features
+    enableAdminAPI: true
+    enableFeatures:
+      - auto-gomaxprocs
+      - memory-snapshot-on-shutdown
+      - new-service-discovery-manager
+    # multi clusters
+    externalLabels:
+      cluster: ${CLUSTER_NAME}
+    replicaExternalLabelName: "__replica__" # must match with thanos value `.query.replicaLabel[0]`

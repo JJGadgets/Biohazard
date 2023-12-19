@@ -37,8 +37,37 @@ spec:
     grafana:
       enabled: false
       forceDeployDashboards: true
-      sidecar:
+      sidecar: # TODO: who did I yoink this from and why is this needed?
         dashboards:
           multicluster:
             etcd:
               enabled: true
+    prometheusOperator:
+      resources:
+        requests:
+          cpu: 35m
+          memory: 273M
+        limits:
+          memory: 326M
+      prometheusConfigReloader:
+        resources:
+          requests:
+            cpu: 5m
+            memory: 32M
+          limits:
+            memory: 32M
+  postRenderers:
+    - kustomize: # put KPS Grafana dashboards into Kubernetes folder, yoinked from bjw-s
+        patches:
+          - target:
+              version: v1
+              kind: ConfigMap
+              labelSelector: grafana_dashboard in (1)
+            patch: |-
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: not-used
+                namespace: not-used
+                annotations:
+                  grafana_folder: Kubernetes

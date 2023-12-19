@@ -48,7 +48,7 @@ spec:
             targetLabel: nodename
           - action: replace
             regex: (.*)
-            replacement: $1.${DNS_CLUSTER}:9100
+            replacement: $1.${CLUSTER_NAME}:9100
             sourceLabels:
               - kubernetes_node
             targetLabel: instance
