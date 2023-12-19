@@ -7,3 +7,37 @@ metadata:
 spec:
   bucketName: "pg-${PG_APP_NAME}"
   storageClassName: "rgw-${CLUSTER_NAME}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name "pg-${PG_APP_NAME}-s3"
+  namespace: "${PG_APP_NS}"
+  # name: "test"
+spec:
+  refreshInterval: "1m"
+  secretStoreRef:
+    kind: "ClusterSecretStore"
+    name: "kubernetes"
+  target:
+    name: "pg-${PG_APP_NAME}-s3-crunchy"
+    creationPolicy: "Owner"
+    deletionPolicy: "Retain"
+    template:
+      type: "Opaque"
+      data:
+        s3.conf: |
+          [global]
+          repo3-s3-key={{ .AWS_ACCESS_KEY_ID }}
+          repo3-s3-key-secret={{ .AWS_SECRET_ACCESS_KEY }}
+  data:
+    - secretKey: &key "AWS_ACCESS_KEY_ID"
+      remoteRef: &src
+        key: *name
+        property: *key
+        decodingStrategy: "Auto"
+    - secretKey: &key "AWS_SECRET_ACCESS_KEY"
+      remoteRef:
+        <<: *src
+        property: *key
