@@ -41,7 +41,11 @@ spec:
         labels:
           egress.home.arpa/apiserver: "allow"
           egress.home.arpa/r2: "allow"
-      configuration: &brcfg [secret: {name: "pg-${PG_APP_NAME}-secrets"}]
+      configuration: &brcfg
+        - secret:
+            name: "pg-${PG_APP_NAME}-secrets"
+        - secret:
+            name: "pg-${PG_APP_NAME}-s3-crunchy"
       global: &brflag
         archive-timeout: "60" # sends WAL archive every X seconds
         compress-type: "bz2"
