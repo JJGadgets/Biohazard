@@ -77,7 +77,7 @@ spec:
     template:
       type: "Opaque"
       data:
-        s3.conf: |
+        s3-rgw.conf: |
           [global]
           repo3-s3-key={{ .AWS_ACCESS_KEY_ID }}
           repo3-s3-key-secret={{ .AWS_SECRET_ACCESS_KEY }}
