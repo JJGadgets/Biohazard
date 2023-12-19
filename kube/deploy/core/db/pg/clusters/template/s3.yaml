@@ -8,10 +8,42 @@ spec:
   bucketName: "pg-${PG_APP_NAME}"
   storageClassName: "rgw-${CLUSTER_NAME}"
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "external-secrets-kubernetes-provider"
+  namespace: "${PG_APP_NS}"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["*"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["selfsubjectrulesreviews"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: &name "external-secrets-kubernetes-provider"
+  namespace: "${PG_APP_NS}"
+roleRef:
+  apiGroup: "rbac.authorization.k8s.io"
+  kind: "Role"
+  name: *name
+subjects:
+  - kind: "ServiceAccount"
+    name: *name
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "external-secrets-kubernetes-provider"
+  namespace: "${PG_APP_NS}"
+---
 apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
-  name: "kubernetes"
+  name: "kubernetes-${PG_APP_NS}"
   namespace: &ns "${PG_APP_NS}"
 spec:
   provider:
@@ -22,12 +54,10 @@ spec:
         caProvider:
           type: "ConfigMap"
           name: "kube-root-ca.crt"
-          namespace: *ns
           key: "ca.crt"
       auth:
         serviceAccount:
           name: "external-secrets-kubernetes-provider"
-          namespace: "external-secrets"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/external-secrets.io/externalsecret_v1beta1.json
 apiVersion: external-secrets.io/v1beta1
@@ -35,12 +65,11 @@ kind: ExternalSecret
 metadata:
   name: &name "pg-${PG_APP_NAME}-s3"
   namespace: "${PG_APP_NS}"
-  # name: "test"
 spec:
   refreshInterval: "1m"
   secretStoreRef:
     kind: "SecretStore"
-    name: "kubernetes"
+    name: "kubernetes-${PG_APP_NS}"
   target:
     name: "pg-${PG_APP_NAME}-s3-crunchy"
     creationPolicy: "Owner"
@@ -57,7 +86,6 @@ spec:
       remoteRef: &src
         key: *name
         property: *key
-        decodingStrategy: "Auto"
     - secretKey: &key "AWS_SECRET_ACCESS_KEY"
       remoteRef:
         <<: *src
