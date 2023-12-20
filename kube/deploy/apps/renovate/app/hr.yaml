@@ -64,7 +64,7 @@ spec:
             imagePullPolicy: "IfNotPresent"
             image:
               repository: "ghcr.io/mshekow/github-app-installation-token"
-              tag: "2023.12.06@sha256:b35b6e7a2dc1900ad0d9df1beac801bcfbfbc8e5c64aef725c86a0fe53575b76"
+              tag: "2023.12.20@sha256:a4855b44ce224e7e31b8e649ccb42e1129f27199c1db00006afc5179086a56d9"
             command: ["/bin/sh", "-c", "node index.js ${SECRET_RENOVATE_GITHUB_APP_APP_ID} ${SECRET_RENOVATE_GITHUB_APP_INSTALL_ID} /privkey | tee /config/RENOVATE_TOKEN"]
             securityContext: *sc
           02-config:
