@@ -17,7 +17,7 @@ spec:
     nameOverride: node-exporter
     podLabels:
       prom.home.arpa/kps: "allow"
-    hostNetwork: false
+    hostNetwork: true # to get node-level network metrics, else it'll only show the pod's network metrics
     rbac:
       pspEnabled: false
     resources:
