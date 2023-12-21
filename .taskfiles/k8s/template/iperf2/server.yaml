@@ -12,7 +12,9 @@ spec:
     spec:
       automountServiceAccountToken: false
       restartPolicy: "Never"
-      nodeName: "${SERVER_NODE}"
+      nodeSelector:
+        kubernetes.io/hostname: "${SERVER_NODE}"
+      # hostNetwork: true
       containers:
         - name: *name
           image: "public.ecr.aws/debian/debian:bookworm-20230411-slim"
@@ -50,13 +52,14 @@ metadata:
     jobs.home.arpa/iperf2: "server"
 spec:
   type: ClusterIP
+  clusterIP: "None"
   selector:
     job-name: *name
-  ports:
-    - name: "iperf"
-      protocol: "TCP"
-      port: &port ${SERVER_PORT}
-      targetPort: *port
+  # ports:
+  #   - name: "iperf"
+  #     protocol: "TCP"
+  #     port: &port ${SERVER_PORT}
+  #     targetPort: *port
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

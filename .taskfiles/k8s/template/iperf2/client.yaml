@@ -12,7 +12,10 @@ spec:
     spec:
       automountServiceAccountToken: false
       restartPolicy: Never
-      nodeName: ${CLIENT_NODE}
+      # hostNetwork: true
+      dnsPolicy: "ClusterFirstWithHostNet"
+      nodeSelector:
+        kubernetes.io/hostname: "${CLIENT_NODE}"
       containers:
         - name: *name
           image: public.ecr.aws/debian/debian:bookworm-20230411-slim

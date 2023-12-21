@@ -25,17 +25,35 @@ tasks:
       NAME: &name-fail '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
       NS: *ns-fail
     cmds:
-      - until [[ $(kubectl -n "{{.NS}}" get pod "{{.NAME}}" -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
+      - until [[ $(kubectl -n {{.NS}} get pod {{.NAME}} -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
 
   wait-pod-running:
     aliases: [waitr]
     internal: true
-    desc: Wait for a job's pod to change its status to pending
+    desc: Wait for a job's pod to change its status to running
     vars:
       NAME: *name-fail
       NS: *ns-fail
     cmds:
-      - until [[ $(kubectl -n "{{.NS}}" get pod "{{.NAME}}" -o jsonpath='{.items[*].status.phase}') == "Running" ]]; do sleep 1; done
+      - until [[ $(kubectl -n {{.NS}} get pod {{.NAME}} -o jsonpath='{.items[*].status.phase}') == "Running" ]]; do sleep 1; done
+
+  wait-pod-running-v2:
+    internal: true
+    desc: Wait for a job's pod to change its status to running
+    vars:
+      NAME: *name-fail
+      NS: *ns-fail
+    cmds:
+      - until kubectl wait pod -n {{.NS}} {{.NAME}} --for-jsonpath='{.items[*].status.phase}'=Running --timeout=-; do sleep 1; done
+
+  wait-pod-ready:
+    internal: true
+    desc: Wait for a pod to be ready
+    vars:
+      NAME: *name-fail
+      NS: *ns-fail
+    cmds:
+      - until kubectl wait pod -n {{.NS}} {{.NAME}} --for=condition=Ready --timeout=1h; do sleep 1; done
 
   wait-pod-delete:
     aliases: [waitd]
@@ -147,7 +165,7 @@ tasks:
     cmds:
       - cat ./server.yaml | envsubst | kubectl apply -f -
       - defer: cat ./server.yaml | envsubst | kubectl delete -f -
-      - task: wait-pod-running
+      - task: wait-pod-ready
         vars:
           NAME: '-l job-name={{.SERVER_NAME}}'
           NS: '{{.SERVER_NS}}'
