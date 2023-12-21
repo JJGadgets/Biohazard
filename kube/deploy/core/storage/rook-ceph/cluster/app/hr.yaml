@@ -94,7 +94,8 @@ spec:
             cpu: "500m"
             memory: "3Gi"
           limits:
-            cpu: "999999m"
+            # cpu: "999999m"
+            cpu: "2000m" # 2023-12-22: re-enabled CPU limits becaues 3 8th gen Intel CPUs aren't enough for the rest of my workloads apparently
             memory: "10Gi"
         mgr-sidecar:
           requests:
@@ -138,7 +139,7 @@ spec:
           parameters:
             min_size: "2"
             compression_mode: "aggressive"
-            compression_algorithm: "zstd"
+            compression_algorithm: "lz4"
         storageClass: &rbd-sc
           enabled: true
           name: "block"
@@ -166,7 +167,7 @@ spec:
           parameters:
             min_size: "2"
             compression_mode: "aggressive"
-            compression_algorithm: "zstd"
+            compression_algorithm: "lz4"
         storageClass:
           <<: *rbd-sc
           name: "block-ssd-ec-2-1"
