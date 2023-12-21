@@ -27,7 +27,7 @@ additionalMachineCertSans: *san
 nodes:
 
   - &m720q
-    hostname: "ange.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe
+    hostname: "ange.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
     controlPlane: true
     installDiskSelector:
@@ -37,19 +37,19 @@ nodes:
     disableSearchDomain: true
     networkInterfaces:
       - &m720q-net
-        mtu: 1500 # TODO: switch to 9000 once M720q risers arrive
+        mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
         dhcp: false
         deviceSelector:
           # onboard I219-V NIC
-          driver: "e1000e"
+          # driver: "e1000e"
           # hardwareAddr: "*:9a"
           # TODO: switch to Mellanox once M720q risers arrive
-          # driver: "mlx4_core"
-          # hardwareAddr: "*:6a"
+          driver: "mlx4_core"
+          hardwareAddr: "*:80"
         vlans:
           - &m720q-v58
             vlanId: 58
-            mtu: 1500
+            mtu: 9000
             dhcp: false
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
             routes:
@@ -77,7 +77,7 @@ nodes:
         path: /var/etc/tailscale/auth.env
         permissions: 0o600
         content: |
-          TS_HOSTNAME=ange
+          TS_HOSTNAME=ange-talos
           TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:ange
           TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_ANGE}
           TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}1/32
@@ -89,12 +89,20 @@ nodes:
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
             - siderolabs/tailscale
+    inlinePatch:
+      machine:
+        sysfs:
+          devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
+          devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
-    hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
+    hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
     networkInterfaces:
       - <<: *m720q-net
+        deviceSelector:
+          driver: "mlx4_core"
+          hardwareAddr: "*:6a"
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
@@ -105,20 +113,19 @@ nodes:
       - *ts
       - <<: *tsNode
         content: |
-          TS_HOSTNAME=charlotte
+          TS_HOSTNAME=charlotte-talos
           TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:charlotte
           TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHARLOTTE}
           TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}2/32
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
-    hostname: "chise.${DNS_CLUSTER}" # M720q, i3 4C4T, 32GB RAM, 512GB OS NVMe
+    hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
-      - mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
-        dhcp: false
+      - <<: *m720q-net
         deviceSelector:
           driver: "mlx4_core"
-          hardwareAddr: "*:80"
+          hardwareAddr: "*:40"
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
@@ -129,10 +136,15 @@ nodes:
       - *ts
       - <<: *tsNode
         content: |
-          TS_HOSTNAME=chise
+          TS_HOSTNAME=chise-talos
           TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:chise
           TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHISE}
           TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}3/32
+    inlinePatch:
+      machine:
+        sysfs:
+          devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
+          devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
 controlPlane:
   patches:
@@ -158,11 +170,11 @@ controlPlane:
             limits:
               memory: 8Gi
 
-    # - |-
-    #   - op: add
-    #     path: /cluster/controllerManager/extraArgs
-    #     value:
-    #       node-cidr-mask-size: 22
+    - &nodeCidrSize |-
+      - op: add
+        path: /cluster/controllerManager/extraArgs
+        value:
+          node-cidr-mask-size: 22
 
     - &machinePatch |-
       machine:
@@ -171,18 +183,22 @@ controlPlane:
         network:
           extraHostEntries:
             - ip: "${IP_CLUSTER_VIP}"
-              aliases:
-                - "c.${DNS_CLUSTER}"
+              aliases: ["c.${DNS_CLUSTER}"]
+            - ip: "${IP_ROUTER_VLAN_K8S}"
+              aliases: ["c.${DNS_CLUSTER}"]
+            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
+              aliases: ["c.${DNS_CLUSTER}"]
+            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
+              aliases: ["c.${DNS_CLUSTER}"]
+            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
+              aliases: ["c.${DNS_CLUSTER}"]
             - ip: "${IP_HERCULES}"
-              aliases:
-                - "hercules.mesh.cilium.io"
+              aliases: ["hercules.mesh.cilium.io"]
             - ip: "${IP_TRUENAS}"
-              aliases:
-                - "nas.${DNS_MAIN}"
+              aliases: ["nas.${DNS_MAIN}"]
         time:
           disabled: false
-          servers:
-            - "${IP_ROUTER_LAN}"
+          servers: ["${IP_ROUTER_LAN}"]
           bootTimeout: 2m0s
 #         kernel:
 #           modules:
@@ -202,6 +218,12 @@ controlPlane:
           nodeIP:
             validSubnets:
               - "${IP_ROUTER_VLAN_K8S_CIDR}"
+
+    - &kubeletConfig |-
+      machine:
+        kubelet:
+          extraConfig:
+            maxPods: 200
 
     - &etcdSubnet |-
       cluster:
@@ -293,7 +315,7 @@ controlPlane:
     #           wsize=131072
     #           nconnect=8
 
-    # patch containerd for spegel (discard) 
+    # patch containerd for spegel (discard)
     - &containerdPatches |-
       machine:
         files:
