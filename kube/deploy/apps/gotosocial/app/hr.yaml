@@ -31,6 +31,7 @@ spec:
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
       egress.home.arpa/nginx-external: "allow"
       egress.home.arpa/world: "allow"
+      prom.home.arpa/kps: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -41,6 +42,7 @@ spec:
       GTS_PORT: "8080"
       GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
       GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+      GTS_METRICS_ENABLED: "true"
       GTS_TLS_CERTIFICATE_CHAIN: "/tls/fullchain.pem"
       GTS_TLS_CERTIFICATE_KEY: "/tls/privkey.pem"
       GTS_DB_TYPE: "postgres"
@@ -176,3 +178,6 @@ spec:
           <<: *probe
           periodSeconds: 1
           failureThreshold: 300
+    serviceMonitor:
+      main:
+        enabled: true
