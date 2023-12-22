@@ -1,5 +1,6 @@
 ---
 prometheus:
+  externalUrl: "https://${APP_DNS_PROMETHEUS}/"
   ingress:
     enabled: true
     ingressClassName: "nginx-internal"
@@ -51,5 +52,5 @@ prometheus:
       - new-service-discovery-manager
     # multi clusters
     externalLabels:
-      cluster: ${CLUSTER_NAME}
+      cluster: "${CLUSTER_NAME}"
     replicaExternalLabelName: "__replica__" # must match with thanos value `.query.replicaLabel[0]`

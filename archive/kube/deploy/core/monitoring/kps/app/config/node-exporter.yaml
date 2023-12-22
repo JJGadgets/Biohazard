@@ -12,10 +12,11 @@ prometheus-node-exporter:
   prometheus:
     monitor:
       enabled: true
-      #interval: "5s"
+      interval: "10s"
   resources:
     requests:
       cpu: 23m
       memory: 64Mi
     limits:
+      cpu: 100m
       memory: 256Mi
