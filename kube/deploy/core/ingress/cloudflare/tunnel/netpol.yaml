@@ -10,6 +10,11 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: cloudflared
       app.kubernetes.io/name: cloudflared
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "monitoring"
+            prometheus: "kps"
   egress:
     # ingress controller
     - toEndpoints:

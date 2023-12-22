@@ -16,6 +16,9 @@ spec:
   values:
     controller:
       type: daemonset
+    automountServiceAccountToken: false
+    podLabels:
+      prom.home.arpa/kps: "allow"
     image:
       repository: cloudflare/cloudflared
       tag: 2023.10.0
@@ -25,6 +28,9 @@ spec:
         ports:
           http:
             port: 9090
+    serviceMonitor:
+      main:
+        enabled: true
     persistence:
       config:
         enabled: true
@@ -52,6 +58,10 @@ spec:
             ingress:
               - hostname: "cftest.${DNS_SHORT}"
                 service: hello_world
+
+              - hostname: "*"
+                path: "^/metrics"
+                service: http://default-backend.ingress.svc.cluster.local:80
               
               - hostname: "${APP_DNS_FLUX_WEBHOOK}"
                 service: "http://webhook-receiver.flux-system.svc.cluster.local:80"
