@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "pg-default-wal-nfs"
+  labels:
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
+spec:
+  storageClassName: "pg-default-wal-nfs"
+  capacity:
+    storage: 1Mi
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_BACKUPS_PGBACKREST}"
+  mountOptions: ["nfsvers=4", "tcp", "hard", "noatime", "nodiratime", "nocto"]

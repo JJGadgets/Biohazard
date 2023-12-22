@@ -2,68 +2,98 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pg-default-dump-local
-  namespace: pg
-  labels:
-    postgresql: &pg pg-default
+  name: "pg-default-dump-local"
+  namespace: "pg"
+  labels: &labels
+    postgresql: &pg "pg-${PG_APP_NAME}"
     app.kubernetes.io/instance: *pg
-    app.kubernetes.io/name: pg-dump-local
+    app.kubernetes.io/name: "pg-dump-local"
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
 spec:
   schedule: "0 6 * * *"
   timeZone: "Asia/Singapore"
-  concurrencyPolicy: Forbid
+  concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
       template:
         metadata:
-          labels:
-            postgresql: *pg
-            app.kubernetes.io/instance: *pg
-            app.kubernetes.io/name: pg-dump-local
+          labels: *labels
         spec:
           automountServiceAccountToken: false
           enableServiceLinks: false
-          restartPolicy: OnFailure
+          restartPolicy: "OnFailure"
           securityContext:
-            runAsUser: &uid ${UID_NAS_BACKUPS_K8S}
+            runAsUser: &uid 26 # Postgres UID for Crunchy
             runAsGroup: *uid
             fsGroup: *uid
           volumes:
-            - name: nas-backups
-              nfs:
-                server: "${IP_TRUENAS}"
-                path: "${PATH_NAS_BACKUPS_K8S}/pg/default"
+            - name: &pvc "nas-backups"
+              persistentVolumeClaim:
+                claimName: "pg-default-dump-local"
           containers:
-            - name: postgres-backup
-              image: docker.io/prodrigestivill/postgres-backup-local:16@sha256:085926531fbabe298792a83384d07d6146683732e53e51891ac75eaa71e09d08
-              imagePullPolicy: IfNotPresent
-              command:
-                - "/backup.sh"
+            - name: "postgres-backup"
+              image: "docker.io/prodrigestivill/postgres-backup-local:16@sha256:085926531fbabe298792a83384d07d6146683732e53e51891ac75eaa71e09d08"
+              imagePullPolicy: "IfNotPresent"
+              command: ["/backup.sh"]
               volumeMounts:
-                - name: nas-backups
+                - name: *pvc
+                  subPath: "default"
                   mountPath: /backups
+                  readOnly: false
               env:
-                # backup all databases with `pg_dumpall` rather than specifying which databases to backup
+                # don't use pg_dumpall because this template assumes 1 cluster and 1 DB by default
                 - name: "POSTGRES_CLUSTER"
                   value: "TRUE"
-                # for `pg_dumpall -l <db>`, used to "connect to for dumping global objects and discovering what other databases should be dumped. If not specified, the postgres database will be used" (https://www.postgresql.org/docs/15/app-pg-dumpall.html)
                 - name: "POSTGRES_DB"
                   value: "postgres"
-                # disable default -Z6 since not `pg_dumpall` compatible
                 # DROP backed_up_databases IF EXISTS
                 - name: "POSTGRES_EXTRA_OPTS"
                   value: "--clean --if-exists"
-                # use read-only service since backups don't require writes
+                # use pgBouncer service to handle connection loadbalancing and failover
                 - name: "POSTGRES_HOST"
-                  value: "pg-default-ro.pg.svc.cluster.local"
-                # use superuser credentials
+                  valueFrom:
+                    secretKeyRef:
+                      name: &pguser "pg-default-pguser-postgres"
+                      key: "pgbouncer-host"
+                # use pguser app credentials
                 - name: "POSTGRES_USER"
                   valueFrom:
                     secretKeyRef:
-                      name: pg-default-superuser
-                      key: username
+                      name: *pguser
+                      key: "user"
                 - name: "POSTGRES_PASSWORD"
                   valueFrom:
                     secretKeyRef:
-                      name: pg-default-superuser
-                      key: password
+                      name: *pguser
+                      key: "password"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: &name "pg-${PG_APP_NAME}-${PG_DB_NAME}-dump-local"
+  labels:
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
+spec:
+  storageClassName: *name
+  capacity:
+    storage: 1Mi
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: "${IP_TRUENAS}"
+    path: "${PATH_NAS_BACKUPS_K8S}/pg-dump"
+  mountOptions: ["nfsvers=4", "tcp", "hard", "noatime", "nodiratime", "nocto"]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: &name "pg-${PG_APP_NAME}-${PG_DB_NAME}-dump-local"
+  namespace: "${PG_APP_NS}"
+  labels:
+    kustomize.toolkit.fluxcd.io/force: "Enabled"
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: *name
+  resources:
+    requests:
+      storage: 1Mi

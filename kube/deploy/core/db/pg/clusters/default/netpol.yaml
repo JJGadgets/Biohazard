@@ -3,63 +3,63 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: &pg pg-default
+  name: "apps-to-pg-default"
 spec:
   endpointSelector:
     matchLabels:
-      db.home.arpa/pg: *pg
+      db.home.arpa/pg: "pg-default"
   egress:
-    - icmps:
-        - {}
-    # allow pods marked with db label to connect
-    - toEndpoints:
+    - toEndpoints: &pg
         - matchLabels:
-            cnpg.io/cluster: *pg
-            io.kubernetes.pod.namespace: pg
+            cnpg.io/cluster: "pg-default"
+          matchExpressions: &ns
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+        - matchLabels:
+            postgres-operator.crunchydata.com/cluster: "pg-default"
+          matchExpressions: *ns
       toPorts:
         - ports:
             - port: "5432"
+    - toEndpoints: *pg
+      icmps: [{}]
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: pg-default
-  namespace: &app pg
+  name: "pg-default"
+  namespace: &app "pg"
 spec:
-  endpointSelector: {}
+  endpointSelector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: "pg-default"
   ingress:
     # same namespace
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # allow pods marked with db label to connect
-    - fromEndpoints:
-        - matchLabels:
-            db: pg-default
-          matchExpressions:
-            - key: io.kubernetes.pod.namespace
-              operator: Exists
-      toPorts:
-        - ports:
-            - port: "5432"
-    - fromEndpoints:
-        - matchLabels:
-            db.home.arpa/pg: pg-default
-          matchExpressions:
-            - key: io.kubernetes.pod.namespace
-              operator: Exists
-      toPorts:
-        - ports:
-            - port: "5432"
     # allow operator to connect
     - fromEndpoints:
+        - matchLabels: &operator
+            io.kubernetes.pod.namespace: crunchy-pgo
+            # postgres-operator.crunchydata.com/control-plane: pgo
+    # allow labelled pods to connect to Postgres only and ping with pg_health
+    - fromEndpoints: &pg
         - matchLabels:
-            io.kubernetes.pod.namespace: cnpg
-            app.kubernetes.io/instance: cloudnative-pg
-            app.kubernetes.io/name: cloudnative-pg
+            db.home.arpa/pg: "pg-default"
+          matchExpressions:
+            - &ns
+              key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "5432"
+    - fromEndpoints: *pg
+      icmps: [{}]
   egress:
     # allow access to apiserver
+    # this is needed for initdb and calling back to operator
     - toEntities:
         - kube-apiserver
     - toEntities:
@@ -67,83 +67,17 @@ spec:
       toPorts:
         - ports:
             - port: "6443"
-    # same namespace
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-    # CNPG webhook
-    - toServices:
-        - k8sService:
-            serviceName: cnpg-webhook-service
-            namespace: cnpg
     # connect to operator
     - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: cnpg
-            app.kubernetes.io/instance: cloudnative-pg
-            app.kubernetes.io/name: cloudnative-pg
+        - matchLabels: *operator
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:
+            namespace: rook-ceph
             selector:
               matchLabels:
                 rook_object_store: "${CLUSTER_NAME}"
-            namespace: rook-ceph
     - toEndpoints:
         - matchLabels:
             rook_object_store: "${CLUSTER_NAME}"
             io.kubernetes.pod.namespace: rook-ceph
-      toPorts:
-        - ports:
-            - port: "6953"
-              protocol: TCP
-            - port: "6953"
-              protocol: UDP
-            - port: "8080"
-              protocol: TCP
-            - port: "8080"
-              protocol: UDP
----
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: pg-default-dump-local
-  namespace: pg
-spec:
-  endpointSelector:
-    matchLabels:
-      postgresql: &pg pg-default
-      app.kubernetes.io/instance: *pg
-      app.kubernetes.io/name: pg-dump-local
-  ingress:
-    - {}
-  egress:
-    - toCIDRSet:
-        - cidr: "${IP_TRUENAS}/32"
-      toPorts:
-        - ports:
-            - port: "2049"
-              protocol: TCP
-            - port: "2049"
-              protocol: UDP
-    - toServices:
-        - k8sServiceSelector:
-            selector:
-              matchLabels:
-                postgresql: *pg
-      toPorts:
-        - ports:
-            - port: "5432"
-              protocol: TCP
-            - port: "5432"
-              protocol: UDP
-    - toEndpoints:
-        - matchLabels:
-            postgresql: *pg
-      toPorts:
-        - ports:
-            - port: "5432"
-              protocol: TCP
-            - port: "5432"
-              protocol: UDP
