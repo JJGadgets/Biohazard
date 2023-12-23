@@ -25,7 +25,7 @@ spec:
       repository: "registry.jjgadgets.tech/jjgadgets/gotosocial"
       tag: "0.13.0@sha256:e1e3c7b8243ecae740d8c4baae98d9487b80f4e3aa23a9561072e4f9772f6800"
     podLabels:
-      ingress.home.arpa/nginx-public: "allow"
+      ingress.home.arpa/nginx-internal: "allow"
       ingress.home.arpa/cloudflare: "allow"
       db.home.arpa/pg: "pg-gotosocial"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
