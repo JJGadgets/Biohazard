@@ -96,7 +96,8 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: "nginx-public"
+        # ingressClassName: "nginx-public" # TODO: if GtS is ever taken off of Cloudflare + cloudflared, switch back to nginx-public
+        ingressClassName: "nginx-internal"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
