@@ -89,11 +89,10 @@ spec:
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
             full: "30 6 * * 1" # every Monday at 06:30
-            differential: "30 6 * * 0,2-6" # every day at 06:30 except Monday
-            incremental: "30 1-5,7-23 * * *" # every hour except 06:30
+            incremental: "30 6 * * 0,2-6" # every day at 06:30 except Monday
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
-            endpoint: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
+            endpoint: "http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
             bucket: "pg-${PG_APP_NAME}"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
@@ -112,6 +111,12 @@ spec:
     pgBouncer:
       port: 5432
       replicas: 3
+      config:
+        global:
+          pool_mode: "transaction"
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
