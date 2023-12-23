@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: &app elk
-  namespace: default
+  namespace: apps
 spec:
   chart:
     spec:
@@ -14,15 +14,13 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
     automountServiceAccountToken: false
     controller:
       type: deployment
       replicas: 1
     image:
-      repository: ghcr.io/elk-zone/elk
-      tag: v0.10.3
+      repository: "registry.jjgadgets.tech/jjgadgets/elk"
+      tag: "0.10.3"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/ingress-nginx: "allow"
@@ -31,6 +29,9 @@ spec:
       NUXT_PUBLIC_DEFAULT_SERVER: "social.jjgadgets.tech"
       NUXT_PUBLIC_PRIVACY_POLICY_URL: "https://jjgadgets.tech"
       NUXT_PUBLIC_SINGLE_INSTANCE: "true"
+    envFrom:
+      - secretRef:
+          name: "elk-secrets"
     service:
       main:
         ports:
@@ -54,12 +55,6 @@ spec:
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always
-    persistence:
-      config:
-        enabled: true
-        type: emptyDir
-        medium: Memory
-        mountPath: /elk/data
     resources:
       requests:
         cpu: 10m
