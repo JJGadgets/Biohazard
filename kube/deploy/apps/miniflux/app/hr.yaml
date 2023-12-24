@@ -40,7 +40,7 @@ spec:
       DATABASE_URL:
         valueFrom:
           secretKeyRef:
-            name: &pgsec "pg-miniflux-pguser-miniflux"
+            name: &pgsec "pg-default-pguser-miniflux"
             key: "pgbouncer-uri"
     envFrom:
       - secretRef:
