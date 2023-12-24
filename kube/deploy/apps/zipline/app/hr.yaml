@@ -27,7 +27,7 @@ spec:
       ingress.home.arpa/nginx-internal: "allow"
       ingress.home.arpa/nginx-external: "allow"
       ingress.home.arpa/nginx-public: "allow"
-      db.home.arpa/pg: "pg-zipline"
+      db.home.arpa/pg: "pg-default"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     env:
       TZ: "${CONFIG_TZ}"
@@ -39,7 +39,7 @@ spec:
       CORE_DATABASE_URL:
         valueFrom:
           secretKeyRef:
-            name: pg-zipline-pguser-zipline
+            name: pg-default-pguser-zipline
             key: pgbouncer-uri
       # TODO: 2023-06-03 add OAuth when Authentik support is merged: https://github.com/diced/zipline/discussions/321 and https://github.com/diced/zipline/pull/372/
       DATASOURCE_S3_ACCESS_KEY_ID:
