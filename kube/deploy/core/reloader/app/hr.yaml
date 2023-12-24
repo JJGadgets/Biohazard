@@ -1,0 +1,47 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app reloader
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: *app
+      version: "1.0.56"
+      sourceRef:
+        name: stakater
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    fullnameOverride: *app
+    reloader:
+      reloadStrategy: "annotations"
+      autoReloadAll: true
+      readOnlyRootFileSystem: true
+      enableHA: true
+      deployment:
+        replicas: 2
+        labels:
+          app.kubernetes.io/name: *app
+          egress.home.arpa/apiserver: "allow"
+        tolerations:
+          - key: "node-role.kubernetes.io/control-plane"
+            operator: "Exists"
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: "kubernetes.io/hostname"
+            whenUnsatisfiable: "DoNotSchedule"
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: *app
+        resources:
+          requests:
+            cpu: "5m"
+            memory: "144Mi"
+          limits:
+            cpu: "100m"
+            memory: "256Mi"
+      podMonitor:
+        enabled: true
+        namespace: "{{ .Release.Namespace }}"
