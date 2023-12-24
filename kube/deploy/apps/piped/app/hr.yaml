@@ -39,9 +39,9 @@ spec:
         COMPROMISED_PASSWORD_CHECK: true
         DISABLE_REGISTRATION: false
         database:
-          connection_url: "jdbc:postgresql://pg-default-rw.pg.svc.cluster.local:5432/${SECRET_PIPED_PG_DBNAME}"
+          connection_url: "jdbc:postgresql://pg-default-pgbouncer.pg.svc:5432/piped"
           driver_class: "org.postgresql.Driver"
-          secret: "piped-secrets"
+          secret: "pg-default-pguser-piped-fixed"
       podSecurityContext: &psc
         runAsUser: &uid ${APP_UID_PIPED}
         runAsGroup: *uid
