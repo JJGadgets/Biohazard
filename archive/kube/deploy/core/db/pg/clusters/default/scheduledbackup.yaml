@@ -1,0 +1,12 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: &pg pg-default
+  namespace: pg
+spec:
+  schedule: "0 0 6 * * *"
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: *pg

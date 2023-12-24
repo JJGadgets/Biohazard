@@ -1,0 +1,127 @@
+---
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: &name "pg-default"
+  namespace: "pg"
+spec:
+  postgresVersion: 16
+  users:
+    - name: "postgres"
+    - name: "atuin"
+      databases: ["atuin"]
+    - name: "zipline"
+      databases: ["zipline"]
+    - name: "kyverno"
+      databases: ["kyverno"]
+    - name: "grafana"
+      databases: ["grafana"]
+    - name: "blocky"
+      databases: ["blocky"]
+  patroni: # turn on sync writes to at least 1 other replica
+    dynamicConfiguration:
+      synchronous_mode: true
+      postgresql:
+        synchronous_commit: "on"
+  instances:
+    - name: &instance "default"
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/r2: "allow"
+      replicas: 3
+      dataVolumeClaimSpec:
+        storageClassName: "local"
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: "100Gi"
+      topologySpreadConstraints: &tsc
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
+              postgres-operator.crunchydata.com/role: "pgbouncer"
+  backups:
+    pgbackrest:
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/r2: "allow"
+      configuration: &brcfg [secret: {name: "pg-default-secrets"}]
+      global: &brflag
+        archive-timeout: "60" # sends WAL archive every X seconds
+        repo1-retention-full: "30"
+        repo1-retention-full-type: "time"
+        repo2-bundle: "y"
+        repo2-block: "y"
+        repo2-path: "/default"
+        repo2-s3-uri-style: "path"
+        repo2-retention-full: "30"
+        repo2-retention-full-type: "time"
+        repo2-cipher-type: "aes-256-cbc"
+      manual:
+        repoName: repo2
+        options: [--type=full]
+      repos:
+        - name: "repo1" # NFS
+          volume: &nfs
+            volumeClaimSpec:
+              storageClassName: "pg-default-wal-nfs"
+              volumeName: "pg-default-wal-nfs"
+              accessModes: [ReadWriteMany]
+              resources:
+                requests:
+                  storage: "1Mi" # doesn't matter with NFS
+          schedules: # more aggressive for NAS (over NFS)
+            full: "0 6 * * *" # everyday at 06:00
+            differential: "0 * * * *" # every hour
+            incremental: "*/5 * * * *" # every 5 minutes
+        - name: "repo2" # Cloudflare R2
+          s3: &r2
+            endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
+            bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
+            region: "us-east-1"
+          schedules: # less aggressive for R2 to save on S3 API costs, times staggered to try and avoid NFS schedule to avoid operator spamming failed jobs
+            full: "27 6 * * 1" # every monday at 06:27
+            differential: "17 6 * * *" # everyday at 06:17
+            incremental: "7 * * * *" # every hour at 7th minute
+  # dataSource:
+  #   pgbackrest:
+  #     metadata: *netpols
+  #     stanza: db
+  #     configuration: *brcfg
+  #     global: *brflag
+  #     repo:
+  #       name: repo1
+  #       s3: *r2
+  proxy:
+    pgBouncer:
+      port: 5432
+      replicas: 3
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
+              postgres-operator.crunchydata.com/role: "pgbouncer"
+  
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "pg-default-secrets"
+  namespace: "pg"
+type: Opaque
+stringData:
+  s3.conf: |
+    [global]
+    repo2-s3-key=${SECRET_PGBACKREST_WAL_R2_ID}
+    repo2-s3-key-secret=${SECRET_PGBACKREST_WAL_R2_KEY}
+  encryption.conf: |
+    [global]
+    repo2-cipher-pass=${SECRET_PGBACKREST_WAL_ENCRYPT}

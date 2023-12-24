@@ -1,0 +1,9 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: pg-default-s3
+  namespace: pg
+spec:
+  bucketName: "pg-default"
+  storageClassName: "rgw-${CLUSTER_NAME}"

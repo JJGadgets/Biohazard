@@ -16,12 +16,15 @@ metadata:
   namespace: flux-system
   labels:
     prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-default"
 spec:
-  path: ./kube/deploy/core/db/pg/clusters/default/pguser
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
   dependsOn:
     - name: 1-core-db-pg-clusters-default
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
+      PG_NAME: "default"
       PG_DB_USER: &app "zipline"
       PG_APP_NS: *app
