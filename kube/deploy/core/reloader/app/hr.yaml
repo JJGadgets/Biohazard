@@ -25,6 +25,7 @@ spec:
         labels:
           app.kubernetes.io/name: *app
           egress.home.arpa/apiserver: "allow"
+          egress.home.arpa/discord: "allow" # alerts
         env: # alerts
           open:
             ALERT_ON_RELOAD: "true"
