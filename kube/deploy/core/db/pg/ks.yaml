@@ -21,21 +21,6 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 1-core-db-pg-clusters-default
-  namespace: flux-system
-spec:
-  path: ./kube/deploy/core/db/pg/clusters/default
-  dependsOn:
-    - name: 1-core-db-pg-app
-  healthChecks:
-    - name: pg-default
-      namespace: pg
-      kind: Cluster
-      apiVersion: postgresql.cnpg.io/v1
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
   name: 1-core-db-pg-clusters-enc
   namespace: flux-system
 spec:

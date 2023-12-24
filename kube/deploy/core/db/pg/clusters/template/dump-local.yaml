@@ -43,12 +43,12 @@ spec:
               env:
                 # don't use pg_dumpall because this template assumes 1 cluster and 1 DB by default
                 - name: "POSTGRES_CLUSTER"
-                  value: "FALSE"
+                  value: "TRUE"
                 - name: "POSTGRES_DB"
-                  value: "${PG_DB_NAME}"
+                  value: "postgres"
                 # DROP backed_up_databases IF EXISTS
                 - name: "POSTGRES_EXTRA_OPTS"
-                  value: "--clean --if-exists --no-owner -Z6"
+                  value: "--clean --if-exists"
                 # use pgBouncer service to handle connection loadbalancing and failover
                 - name: "POSTGRES_HOST"
                   valueFrom:

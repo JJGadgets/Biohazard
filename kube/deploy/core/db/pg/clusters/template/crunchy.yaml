@@ -49,9 +49,10 @@ spec:
         - secret:
             name: "pg-${PG_APP_NAME}-s3-crunchy"
       global: &brflag
-        archive-timeout: "60" # sends WAL archive every X seconds
+        archive-timeout: "60"
         # compress-type: "bz2"
         # compress-level: "9"
+        # delta: "y"
         repo1-retention-full-type: "time"
         repo1-retention-full: "5"
         repo1-retention-diff: "30"
@@ -70,6 +71,7 @@ spec:
         repo3-retention-full-type: "time"
         repo3-retention-full: "5"
         repo3-retention-diff: "30"
+        repo3-cipher-type: "aes-256-cbc"
       repos:
         - name: "repo1" # NFS
           volume: &nfs
@@ -142,3 +144,4 @@ stringData:
   encryption.conf: |
     [global]
     repo2-cipher-pass=${SECRET_PGBACKREST_WAL_ENCRYPT}
+    repo3-cipher-pass=${SECRET_PGBACKREST_WAL_ENCRYPT}

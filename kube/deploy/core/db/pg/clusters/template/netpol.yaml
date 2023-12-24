@@ -3,7 +3,7 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: "${PG_APP_NAME}-to-pg"
+  name: "apps-to-pg-${PG_APP_NAME}"
 spec:
   endpointSelector:
     matchLabels:
@@ -12,13 +12,12 @@ spec:
     - toEndpoints: &pg
         - matchLabels:
             cnpg.io/cluster: "pg-${PG_APP_NAME}"
-          matchExpressions:
-            - &ns
-              key: io.kubernetes.pod.namespace
+          matchExpressions: &ns
+            - key: io.kubernetes.pod.namespace
               operator: Exists
         - matchLabels:
             postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
-          matchExpressions: [*ns]
+          matchExpressions: *ns
       toPorts:
         - ports:
             - port: "5432"
@@ -34,7 +33,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      cnpg.io/cluster: "pg-${PG_APP_NAME}"
+      postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
   ingress:
     # same namespace
     - fromEndpoints:
@@ -42,10 +41,9 @@ spec:
             io.kubernetes.pod.namespace: *app
     # allow operator to connect
     - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: cnpg
-            app.kubernetes.io/instance: cloudnative-pg
-            app.kubernetes.io/name: cloudnative-pg
+        - matchLabels: &operator
+            io.kubernetes.pod.namespace: crunchy-pgo
+            # postgres-operator.crunchydata.com/control-plane: pgo
     # allow labelled pods to connect to Postgres only and ping with pg_health
     - fromEndpoints: &pg
         - matchLabels:
@@ -69,40 +67,17 @@ spec:
       toPorts:
         - ports:
             - port: "6443"
-    # same namespace
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-            cnpg.io/cluster: "pg-${PG_APP_NAME}"
-    # CNPG webhook
-    - toServices:
-        - k8sService:
-            serviceName: cnpg-webhook-service
-            namespace: cnpg
     # connect to operator
     - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: cnpg
-            app.kubernetes.io/instance: cloudnative-pg
-            app.kubernetes.io/name: cloudnative-pg
+        - matchLabels: *operator
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:
+            namespace: rook-ceph
             selector:
               matchLabels:
-                rook_object_store: "${CLUSTER_NAME}"
-            namespace: rook-ceph
+                rgw: "${CLUSTER_NAME}"
     - toEndpoints:
         - matchLabels:
-            rook_object_store: "${CLUSTER_NAME}"
+            rgw: "${CLUSTER_NAME}"
             io.kubernetes.pod.namespace: rook-ceph
-      toPorts:
-        - ports:
-            - port: "6953"
-              protocol: TCP
-            - port: "6953"
-              protocol: UDP
-            - port: "8080"
-              protocol: TCP
-            - port: "8080"
-              protocol: UDP

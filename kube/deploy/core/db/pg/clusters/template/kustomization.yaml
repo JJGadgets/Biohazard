@@ -1,11 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- secret-superuser.yaml
 - s3.yaml
 - nfs.yaml
 - netpol.yaml
 - crunchy.yaml
-# - cluster.yaml
-# - scheduledbackup.yaml
 - dump-local.yaml
