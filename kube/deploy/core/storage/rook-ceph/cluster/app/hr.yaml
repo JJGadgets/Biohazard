@@ -274,8 +274,12 @@ spec:
             bucket:
               interval: "60s"
           gateway:
-            port: 6953
+            labels: # netpols
+              tailscale.com/expose: "true"
             instances: 2
+            port: 6953
+            # securePort: 443 # TODO: switch from Tailscale to L2 + externalIP... maybe?
+            # sslCertificateRef: "rgw-biohazard-tls"
             priorityClassName: "system-cluster-critical"
             resources:
               requests:
@@ -285,9 +289,9 @@ spec:
                 memory: 2Gi
         ingress:
           enabled: true
-          ingressClassName: "nginx-internal"
+          ingressClassName: "tailscale"
           host:
-            name: &rgw-host "${APP_DNS_RGW_S3}"
+            name: &rgw-host "rgw-biohazard"
             path: "/"
           tls:
             - hosts: [*rgw-host]
