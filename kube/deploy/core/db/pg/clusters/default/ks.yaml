@@ -4,6 +4,8 @@ kind: Kustomization
 metadata:
   name: 1-core-db-pg-clusters-default
   namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
