@@ -17,28 +17,8 @@ kind: Kustomization
 metadata:
   name: miniflux-db
   namespace: flux-system
-spec:
-  path: ./kube/deploy/core/db/pg/clusters/template
-  dependsOn:
-    - name: 1-core-db-pg-app
-    - name: 1-core-storage-democratic-csi-local-hostpath
-    - name: 1-core-secrets-es-k8s
-  postBuild:
-    substitute:
-      PG_APP_NAME: &app "miniflux"
-      PG_APP_NS: *app
-      PG_DB_NAME: *app
-      PG_DB_USER: *app
-      PG_REPLICAS: "3"
-      PG_SC: "local"
-      PG_CONFIG_VERSION: "15.2-11"
-      PG_CONFIG_SIZE: "20Gi"
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: miniflux-pguser
-  namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
 spec:
   path: ./kube/deploy/core/db/pg/clusters/default/pguser
   dependsOn:
