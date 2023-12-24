@@ -15,19 +15,17 @@ kind: Kustomization
 metadata:
   name: joplin-db
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-home"
 spec:
-  path: ./kube/deploy/core/db/pg/clusters/template
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
   dependsOn:
-    - name: 1-core-db-pg-app
-    - name: 1-core-storage-democratic-csi-local-hostpath
+    - name: 1-core-db-pg-clusters-home
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
-      PG_APP_NAME: &app "joplin"
+      PG_NAME: "home"
+      PG_DB_USER: &app "joplin"
       PG_APP_NS: *app
-      PG_DB_NAME: *app
-      PG_DB_USER: *app
-      PG_REPLICAS: "3"
-      PG_SC: "local"
-      PG_CONFIG_VERSION: "15.2-11"
-      PG_CONFIG_SIZE: "20Gi"

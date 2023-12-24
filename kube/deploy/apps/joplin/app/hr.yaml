@@ -40,7 +40,7 @@ spec:
       POSTGRES_CONNECTION_STRING:
         valueFrom:
           secretKeyRef:
-            name: &pgsec "pg-joplin-pguser-joplin"
+            name: &pgsec "pg-home-pguser-joplin-fixed"
             key: "pgbouncer-uri-sslmode"
       # POSTGRES_PORT: "5432"
       # POSTGRES_HOST:
