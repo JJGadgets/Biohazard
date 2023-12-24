@@ -25,6 +25,13 @@ spec:
         labels:
           app.kubernetes.io/name: *app
           egress.home.arpa/apiserver: "allow"
+        env: # alerts
+          open:
+            ALERT_ON_RELOAD: "true"
+            ALERT_SINK: "webhook"
+          existing:
+            reloader-secrets:
+              ALERT_WEBHOOK_URL: "ALERT_WEBHOOK_URL"
         tolerations:
           - key: "node-role.kubernetes.io/control-plane"
             operator: "Exists"
