@@ -25,13 +25,6 @@ spec:
     backend:
       image:
         repository: "docker.io/1337kavin/piped"
-      initContainers:
-        01-init-db:
-          image: "ghcr.io/onedr0p/postgres-init:15.5"
-          imagePullPolicy: "IfNotPresent"
-          envFrom:
-            - secretRef:
-                name: "piped-pg-superuser"
       config:
         PORT: 8080
         HTTP_WORKERS: 2
