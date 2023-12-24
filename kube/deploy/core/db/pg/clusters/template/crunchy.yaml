@@ -17,6 +17,7 @@ spec:
         labels:
           egress.home.arpa/apiserver: "allow"
           egress.home.arpa/r2: "allow"
+          s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
       replicas: ${PG_REPLICAS:=3}
       dataVolumeClaimSpec:
         storageClassName: "${PG_SC:=local}"
@@ -41,6 +42,7 @@ spec:
         labels:
           egress.home.arpa/apiserver: "allow"
           egress.home.arpa/r2: "allow"
+          s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
       configuration: &brcfg
         - secret:
             name: "pg-${PG_APP_NAME}-secrets"
@@ -92,7 +94,7 @@ spec:
             incremental: "30 6 * * 0,2-6" # every day at 06:30 except Monday
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
-            endpoint: "http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
+            endpoint: "rgw-biohazard.${DNS_TS}"
             bucket: "pg-${PG_APP_NAME}"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
