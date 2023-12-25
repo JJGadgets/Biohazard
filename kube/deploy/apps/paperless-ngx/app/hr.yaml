@@ -59,7 +59,7 @@ spec:
               PAPERLESS_DBHOST:
                 valueFrom:
                   secretKeyRef:
-                    name: &pguser "pg-paperless-ngx-pguser-paperless-ngx"
+                    name: &pguser "pg-home-pguser-paperless-ngx"
                     key: "pgbouncer-host"
               PAPERLESS_DBPORT:
                 valueFrom:
