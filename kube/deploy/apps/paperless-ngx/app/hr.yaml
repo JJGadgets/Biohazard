@@ -55,8 +55,8 @@ spec:
               PAPERLESS_TIKA_ENDPOINT: "http://tika.paperless-ngx.svc.cluster.local"
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg.paperless-ngx.svc.cluster.local"
               PAPERLESS_DBENGINE: "postgresql"
-              PAPERLESS_DBSSLMODE: "verify-full"
-              PAPERLESS_DBSSLROOTCERT: &pg-ca "/pg-tls/ca.crt"
+              # PAPERLESS_DBSSLMODE: "verify-full"
+              # PAPERLESS_DBSSLROOTCERT: &pg-ca "/pg-tls/ca.crt"
               PAPERLESS_DBHOST:
                 valueFrom:
                   secretKeyRef:
@@ -233,17 +233,17 @@ spec:
             main:
               - subPath: "gotenberg"
                 path: "/tmp"
-      pg-tls:
-        enabled: true
-        type: secret
-        name: "pg-paperless-ngx-cluster-cert"
-        defaultMode: 0400
-        advancedMounts:
-          main:
-            main:
-              - subPath: "ca.crt"
-                path: *pg-ca
-                readOnly: true
+      # pg-tls:
+      #   enabled: true
+      #   type: secret
+      #   name: "pg-paperless-ngx-cluster-cert"
+      #   defaultMode: 0400
+      #   advancedMounts:
+      #     main:
+      #       main:
+      #         - subPath: "ca.crt"
+      #           path: *pg-ca
+      #           readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
