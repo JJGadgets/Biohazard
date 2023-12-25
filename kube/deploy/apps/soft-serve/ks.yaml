@@ -29,5 +29,5 @@ spec:
   postBuild:
     substitute:
       PG_NAME: "default"
-      PG_DB_USER: &app "softserve"
-      PG_APP_NS: *app
+      PG_DB_USER: "softserve"
+      PG_APP_NS: "soft-serve"
