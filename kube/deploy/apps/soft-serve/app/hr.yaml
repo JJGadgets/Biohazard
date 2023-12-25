@@ -39,7 +39,7 @@ spec:
       SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE_HTTPS}"
       SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
       SOFT_SERVE_DB_DRIVER: "postgres"
-      SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-soft-serve-pguser-soft-serve, key: pgbouncer-uri}}}
+      SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
       SOFT_SERVE_INITIAL_ADMIN_KEYS: |
         ${SECRET_ADMIN_SSH_PUBKEY_1}
         ${SECRET_ADMIN_SSH_PUBKEY_2}

@@ -17,19 +17,17 @@ kind: Kustomization
 metadata:
   name: soft-serve-db
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-default"
 spec:
-  path: ./kube/deploy/core/db/pg/clusters/template
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
   dependsOn:
-    - name: 1-core-db-pg-app
-    - name: 1-core-storage-democratic-csi-local-hostpath
+    - name: 1-core-db-pg-clusters-default
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
-      PG_APP_NAME: &app "soft-serve"
+      PG_NAME: "default"
+      PG_DB_USER: &app "softserve"
       PG_APP_NS: *app
-      PG_DB_NAME: *app
-      PG_DB_USER: *app
-      PG_REPLICAS: "3"
-      PG_SC: "local"
-      PG_CONFIG_VERSION: "15.2-11"
-      PG_CONFIG_SIZE: "20Gi"
