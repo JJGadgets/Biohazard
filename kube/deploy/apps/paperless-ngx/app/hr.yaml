@@ -22,6 +22,7 @@ spec:
         replicas: 1
         pod:
           labels:
+            db.home.arpa/pg: "pg-home"
             ingress.home.arpa/nginx-internal: "allow"
             # egress.home.arpa/nginx-external: "allow" # authentik # commented out currently because only OIDC needs this
         containers:
