@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "${PVC}"
+  labels:
+    snapshot.home.arpa/enabled: "true"
+spec:
+  storageClassName: "${SC:=block}"
+  accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+  resources:
+    requests:
+      storage: "${SIZE:=20Gi}"
+  dataSourceRef:
+    apiGroup: "volsync.backube"
+    kind: "ReplicationDestination"
+    name: "${PVC}-bootstrap"

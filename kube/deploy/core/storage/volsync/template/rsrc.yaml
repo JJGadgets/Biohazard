@@ -1,0 +1,24 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: "${PVC}-r2-restic"
+spec:
+  sourcePVC: "${PVC}"
+  trigger:
+    schedule: "0 */12 * * *" # 8am & 8pm GMT+8
+  restic:
+    copyMethod: "Snapshot"
+    pruneIntervalDays: ${PRUNE:=14}
+    repository: "${PVC}-restic"
+    cacheCapacity: "${CACHESIZE:=2Gi}"
+    volumeSnapshotClassName: "${VSC:=block}"
+    storageClassName: "${SC:=block}"
+    cacheStorageClassName: "${SC:=block}"
+    moverSecurityContext:
+      runAsUser: ${RUID:=1000}
+      runAsGroup: ${RGID:=1000}
+      fsGroup: ${RFSG:=1000}
+    retain: # keep all backups within 1 week (7 days), keep latest snapshot from each day within 2 weeks
+      daily: ${DAILY:=14}
+      within: ${WITHIN:=7d}

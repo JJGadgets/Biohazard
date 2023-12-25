@@ -1,0 +1,20 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: "${PVC}-bootstrap"
+spec:
+  trigger:
+    manual: "restore-once-bootstrap"
+  restic:
+    repository: "${PVC}-${RESTORE:=r2}-restic"
+    copyMethod: "Snapshot"
+    volumeSnapshotClassName: "${VSC:=block}"
+    storageClassName: "${SC:=block}"
+    cacheStorageClassName: "${SC:=local}"
+    capacity: "${SIZE:=20Gi}"
+    accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+    moverSecurityContext:
+      runAsUser: ${RUID:=1000}
+      runAsGroup: ${RGID:=1000}
+      fsGroup: ${RFSG:=1000}
