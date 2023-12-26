@@ -19,7 +19,7 @@ spec:
         vm.home.arpa/ad: "dc${NUM}"
     spec:
       hostname: "thunder-dc${NUM}"
-      subdomain: "${DNS_AD}"
+      # subdomain: "${DNS_AD}"
       evictionStrategy: "LiveMigrate"
       networks:
         - name: "main"
