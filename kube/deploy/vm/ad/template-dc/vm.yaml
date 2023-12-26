@@ -54,13 +54,13 @@ spec:
                   protocol: "UDP"
         firmware:
           uuid: "${UUID}"
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "8192Mi"
-          limits:
-            cpu: "2000m"
-            memory: "10240Mi"
+        # resources:
+        #   requests:
+        #     cpu: "100m"
+        #     memory: "8192Mi"
+        #   limits:
+        #     cpu: "2000m"
+        #     memory: "10240Mi"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
