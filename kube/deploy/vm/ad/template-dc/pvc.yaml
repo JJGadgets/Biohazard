@@ -6,8 +6,8 @@ metadata:
   labels:
     snapshot.home.arpa/enabled: "true"
 spec:
-  storageClassName: "block"
-  accessModes: ["ReadWriteOnce"]
+  storageClassName: "file"
+  accessModes: ["ReadWriteMany"]
   volumeMode: "Filesystem"
   resources:
     requests:

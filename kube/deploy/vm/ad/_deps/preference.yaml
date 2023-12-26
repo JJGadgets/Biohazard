@@ -5,6 +5,12 @@ metadata:
   name: "ad-dc" # Windows Server 2022 & Windows 11
 # from https://github.com/kubevirt/kubevirt/blob/2c5e56f2cd0fcde341f47a7da0b94bc812c2f43f/examples/windows.yaml
 spec:
+  preferredSubdomain: "vm-ad"
+  requirements:
+    cpu:
+      guest: 2
+    memory:
+      guest: 8192Mi
   clock:
     preferredClockOffset:
       timezone: "${CONFIG_TZ}"
@@ -21,10 +27,8 @@ spec:
   devices:
     preferredDiskBus: sata
     preferredInterfaceModel: virtio
-    # preferredTPM:
-    #   persistent: true
     preferredTPM:
-      persistent: false
+      persistent: true
     preferredAutoattachMemBalloon: false
     preferredAutoattachInputDevice: true
     preferredAutoattachGraphicsDevice: true
@@ -44,7 +48,7 @@ spec:
     preferredUseEfi: true
     preferredUseSecureBoot: true
   volumes:
-    preferredStorageClassName: "block"
+    preferredStorageClassName: "file"
   preferredTerminationGracePeriodSeconds: 180
   machine:
     preferredMachineType: "pc-q35-rhel9.2.0"

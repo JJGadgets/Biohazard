@@ -19,8 +19,8 @@ spec:
         vm.home.arpa/ad: "dc${NUM}"
     spec:
       hostname: "thunder-dc${NUM}"
-      # subdomain: "${DNS_AD}"
-      evictionStrategy: "LiveMigrate"
+      subdomain: "vm-ad"
+      evictionStrategy: "LiveMigrate" # needs RWX PVC
       networks:
         - name: "main"
           pod:
@@ -47,16 +47,16 @@ spec:
                   protocol: "UDP"
         firmware:
           uuid: "${UUID}"
-          # bootloader:
-          #   efi:
-          #     persistent: true
-        # resources:
+          bootloader:
+            efi:
+              persistent: true
+        resources:
         #   requests:
         #     cpu: "100m"
         #     memory: "8192Mi"
-        #   limits:
-        #     cpu: "2000m"
-        #     memory: "10240Mi"
+          limits:
+            cpu: "2000m"
+            memory: "12Gi"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
