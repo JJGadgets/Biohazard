@@ -196,9 +196,21 @@ spec:
           parameters:
             min_size: "2"
             compression_mode: "aggressive"
-            compression_algorithm: "lz4"
+            compression_algorithm: "lz4" # some games compress pretty good
         storageClass:
           enabled: false # only my gaming PC will be accessing this
+      - name: "builtin-mgr"
+        spec:
+          name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
+          failureDomain: "host"
+          replicated:
+            size: 3 # https://github.com/rook/rook/discussions/13178
+            requireSafeReplicaSize: true
+          parameters:
+            min_size: "2"
+            compression_mode: "none"
+        storageClass:
+          enabled: false # ain't nothin' touchin' the mgr pool lol
     cephBlockPoolsVolumeSnapshotClass:
       enabled: true
       name: "block"
