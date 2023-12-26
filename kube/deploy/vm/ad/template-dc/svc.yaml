@@ -8,3 +8,16 @@ spec:
   clusterIP: None
   selector:
     vm.home.arpa/ad: "dc${NUM}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "ad-dc${NUM}-wg"
+spec:
+  type: ClusterIP
+  selector:
+    vm.home.arpa/ad: "dc${NUM}"
+  ports:
+    - name: wireguard
+      port: 45678
+      protocol: UDP
