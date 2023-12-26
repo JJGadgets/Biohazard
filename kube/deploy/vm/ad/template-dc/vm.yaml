@@ -33,8 +33,7 @@ spec:
         devices:
           disks:
             - name: "c-drive"
-              disk:
-                bus: "${BUS:=sata}"
+              disk: {}
           interfaces:
             - name: "main"
               masquerade: {}
