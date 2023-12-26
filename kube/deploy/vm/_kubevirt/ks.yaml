@@ -30,3 +30,17 @@ spec:
       target:
         kind: Namespace
         name: kubevirt
+    - patch: |
+        apiVersion: kubevirt.io/v1
+        kind: KubeVirt
+        metadata:
+          name: not-used
+        spec:
+          configuration:
+            vmStateStorageClass: "file"
+            developerConfiguration:
+              featureGates:
+                - VMPersistentState
+      target:
+        group: kubevirt.io
+        kind: KubeVirt

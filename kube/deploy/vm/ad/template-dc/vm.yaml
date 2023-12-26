@@ -18,7 +18,7 @@ spec:
         vm.home.arpa/windows: "ad"
         vm.home.arpa/ad: "dc${NUM}"
     spec:
-      hostname: "thunder-DC${NUM}"
+      hostname: "thunder-dc${NUM}"
       subdomain: "${DNS_AD}"
       evictionStrategy: "LiveMigrate"
       networks:
@@ -35,13 +35,6 @@ spec:
             - name: "c-drive"
               disk:
                 bus: "sata"
-          autoattachMemBalloon: false
-          autoattachGraphicsDevice: true
-          autoattachInputDevice: true
-          inputs:
-            - name: "tablet"
-              type: "tablet"
-          autoattachPodInterface: true
           interfaces:
             - name: "main"
               masquerade: {}
@@ -54,6 +47,9 @@ spec:
                   protocol: "UDP"
         firmware:
           uuid: "${UUID}"
+          # bootloader:
+          #   efi:
+          #     persistent: true
         # resources:
         #   requests:
         #     cpu: "100m"
