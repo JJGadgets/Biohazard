@@ -15,10 +15,10 @@ spec:
         namespace: flux-system
   values:
     # server is in active-active, 3 replicas seems to confuse authentik
-    replicas: 2
+    replicas: 1
     worker:
       # workers don't need leader election, thus any size works
-      replicas: 3
+      replicas: 1
     service:
       port: 9000
     ingress:
