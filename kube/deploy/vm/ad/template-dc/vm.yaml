@@ -33,8 +33,6 @@ spec:
         devices:
           disks:
             - name: "c-drive"
-              disk:
-                bus: "sata"
           interfaces:
             - name: "main"
               masquerade: {}
@@ -50,13 +48,6 @@ spec:
           bootloader:
             efi:
               persistent: true
-        resources:
-        #   requests:
-        #     cpu: "100m"
-        #     memory: "8192Mi"
-          limits:
-            cpu: "2000m"
-            memory: "12Gi"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
