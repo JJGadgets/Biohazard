@@ -1,0 +1,42 @@
+---
+apiVersion: instancetype.kubevirt.io/v1beta1
+kind: VirtualMachinePreference
+metadata:
+  name: "windows" # Windows Server 2022 & Windows 11
+# from https://github.com/kubevirt/kubevirt/blob/2c5e56f2cd0fcde341f47a7da0b94bc812c2f43f/examples/windows.yaml
+spec:
+  clock:
+    preferredClockOffset:
+      timezone: "${CONFIG_TZ}"
+    preferredTimer:
+      hpet:
+        present: false
+      hyperv: {}
+      pit:
+        tickPolicy: delay
+      rtc:
+        tickPolicy: catchup
+  cpu:
+    preferredCPUTopology: preferSockets
+  devices:
+    preferredDiskBus: sata
+    preferredInterfaceModel: virtio
+    preferredTPM:
+      persistent: true
+  features:
+    preferredAcpi: {}
+    preferredApic: {}
+    preferredHyperv:
+      relaxed: {}
+      spinlocks:
+        spinlocks: 8191
+      vapic: {}
+    preferredSmm: {}
+  firmware:
+    preferredUseEfi: true
+    preferredUseSecureBoot: true
+  volumes:
+    preferredStorageClassName: "block"
+  preferredTerminationGracePeriodSeconds: 180
+  machine:
+    preferredMachineType: "pc-q35-6.0"

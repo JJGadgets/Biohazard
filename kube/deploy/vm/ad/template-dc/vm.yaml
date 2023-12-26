@@ -1,0 +1,70 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: "ad-dc${NUM}"
+spec:
+  preference:
+    kind: "VirtualMachinePreference"
+    name: "windows"
+  instancetype:
+    kind: "VirtualMachineInstancetype"
+    name: "cpu-2-mem-8g"
+  runStrategy: "Always"
+  template:
+    metadata:
+      labels:
+        vm.home.arpa/os: "windows"
+        vm.home.arpa/windows: "ad"
+        vm.home.arpa/ad: "dc${NUM}"
+    spec:
+      hostname: "thunder-DC${NUM}"
+      subdomain: "${DNS_AD}"
+      evictionStrategy: "LiveMigrate"
+      networks:
+        - name: "main"
+          pod:
+            vmNetworkCIDR: "${IP_KUBEVIRT_AD_CIDR_V4}"
+      volumes:
+        - name: "c-drive"
+          persistentVolumeClaim:
+            claimName: "vm-ad-dc${NUM}-c-drive"
+      domain:
+        devices:
+          disks:
+            - name: "c-drive"
+              disk:
+                bus: "sata"
+          autoattachMemBalloon: false
+          autoattachGraphicsDevice: true
+          autoattachInputDevice: true
+          inputs:
+            - name: "tablet"
+              type: "tablet"
+          autoattachPodInterface: true
+          interfaces:
+            - name: "main"
+              masquerade: {}
+              ports:
+                - name: "wireguard"
+                  port: 45678
+                  protocol: "UDP"
+                - name: "tailscale"
+                  port: 41641
+                  protocol: "UDP"
+        firmware:
+          uuid: "${UUID}"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "8192Mi"
+          limits:
+            cpu: "2000m"
+            memory: "10240Mi"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              vm.home.arpa/windows: "ad"
