@@ -20,7 +20,6 @@ spec:
   targetNamespace: "vm-ad"
   dependsOn:
     - name: zz-vm-1-kubevirt-app
-    - name: zz-vm-1-kubevirt-base
     - name: zz-vm-ad-1-deps
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
@@ -38,7 +37,6 @@ spec:
   targetNamespace: "vm-ad"
   dependsOn:
     - name: zz-vm-1-kubevirt-app
-    - name: zz-vm-1-kubevirt-base
     - name: zz-vm-ad-1-deps
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
