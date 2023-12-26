@@ -7,17 +7,13 @@ metadata:
   namespace: *app
 spec:
   endpointSelector: {}
-  ingress:
-    - fromEntities:
-        - world
-    - fromEndpoints:
-        - {}
-    - fromEntities:
-        - cluster
+  ingress: [{}] # deny all
   egress:
+    # kube-apiserver
     - toEntities:
-        - world
-    - toEndpoints:
-        - {}
+        - kube-apiserver
     - toEntities:
-        - cluster
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
