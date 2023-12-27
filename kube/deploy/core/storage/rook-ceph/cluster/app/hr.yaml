@@ -203,6 +203,7 @@ spec:
         spec:
           name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
           failureDomain: "host"
+          deviceClass: "ssd"
           replicated:
             size: 3 # https://github.com/rook/rook/discussions/13178
             requireSafeReplicaSize: true
@@ -221,11 +222,14 @@ spec:
         spec:
           preserveFilesystemOnDelete: true
           metadataPool:
+            failureDomain: "host"
+            deviceClass: "ssd"
             replicated:
               size: 3
           dataPools:
             - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
               failureDomain: "host"
+              deviceClass: "ssd"
               replicated:
                 size: 3
               parameters:
@@ -276,10 +280,12 @@ spec:
           preservePoolsOnDelete: true
           metadataPool:
             failureDomain: "host"
+            deviceClass: "ssd"
             replicated:
               size: 3
           dataPool:
             failureDomain: "host"
+            deviceClass: "ssd"
             replicated:
               size: 3
           healthCheck:
