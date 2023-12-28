@@ -15,6 +15,7 @@ spec:
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
     cacheStorageClassName: "${CACHE:=block}"
+    cacheAccessModes: ["ReadWriteOnce"]
     moverSecurityContext:
       runAsUser: ${RUID:=1000}
       runAsGroup: ${RGID:=1000}

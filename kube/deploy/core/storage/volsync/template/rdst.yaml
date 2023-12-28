@@ -9,9 +9,10 @@ spec:
   restic:
     repository: "${PVC}-${RESTORE:=r2}-restic"
     copyMethod: "Snapshot"
-    volumeSnapshotClassName: "${VSC:=block}"
+    volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
     cacheStorageClassName: "${SC:=local}"
+    cacheAccessModes: ["ReadWriteOnce"]
     capacity: "${SIZE:=20Gi}"
     accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
     moverSecurityContext:
