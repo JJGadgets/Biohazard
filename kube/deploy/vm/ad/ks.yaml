@@ -16,7 +16,7 @@ metadata:
   name: zz-vm-ad-dc1-pvc
   namespace: flux-system
 spec:
-  path: ./kube/deploy/vm/ad/template-dc
+  path: ./kube/deploy/core/storage/volsync/template
   targetNamespace: "vm-ad"
   dependsOn:
     - name: 1-core-storage-volsync-app
@@ -58,7 +58,7 @@ metadata:
   name: zz-vm-ad-dc2-pvc
   namespace: flux-system
 spec:
-  path: ./kube/deploy/vm/ad/template-dc
+  path: ./kube/deploy/core/storage/volsync/template
   targetNamespace: "vm-ad"
   dependsOn:
     - name: 1-core-storage-volsync-app
