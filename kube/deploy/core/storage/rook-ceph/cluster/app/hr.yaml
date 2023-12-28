@@ -5,6 +5,7 @@ metadata:
   name: "rook-ceph-cluster-${CLUSTER_NAME:=biohazard}"
   namespace: rook-ceph
 spec:
+  interval: 5m
   timeout: 1h
   chart:
     spec:
@@ -102,7 +103,7 @@ spec:
             cpu: "100m"
             memory: "100Mi"
           limits:
-            cpu: "8000m"
+            cpu: "1000m"
             memory: "500Mi"
         crashcollector:
           requests:
@@ -218,8 +219,9 @@ spec:
       isDefault: true
       deletionPolicy: "Delete"
     cephFileSystems:
-      - name: &fs "${CLUSTER_NAME}-fs"
-        spec:
+      - &cephfs
+        name: &fs "${CLUSTER_NAME}-fs"
+        spec: &cephfsSpec
           preserveFilesystemOnDelete: true
           metadataPool:
             failureDomain: "host"
@@ -227,20 +229,22 @@ spec:
             replicated:
               size: 3
           dataPools:
-            - name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
+            - &cephfsData
+              name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
               failureDomain: "host"
               deviceClass: "ssd"
               replicated:
                 size: 3
               parameters:
+                min_size: "2"
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
           metadataServer:
-            activeCount: 1 # runs 2, which is min_size of 3 node cluster anyway
+            activeCount: 3 # 3 active 3 standby
             activeStandby: true
             placement:
               topologySpreadConstraints:
-                - maxSkew: 1
+                - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
                   topologyKey: "kubernetes.io/hostname"
                   whenUnsatisfiable: "DoNotSchedule"
                   labelSelector:
@@ -249,11 +253,11 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 4Gi
+                memory: 2Gi
               limits:
                 cpu: 2000m # 2 cores
                 memory: 4Gi
-        storageClass:
+        storageClass: &cephfsSC
           enabled: true
           isDefault: false
           name: "file"
@@ -269,6 +273,26 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+      - <<: *cephfs
+        name: &fs "nas"
+        spec:
+          <<: *cephfsSpec
+          dataPools:
+            - <<: *cephfsData
+              name: "nas-data0"
+          metadataServer:
+            activeCount: 3 # 3 active 3 standby
+            activeStandby: true
+            placement:
+              topologySpreadConstraints:
+                - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
+                  topologyKey: "kubernetes.io/hostname"
+                  whenUnsatisfiable: "DoNotSchedule"
+                  labelSelector:
+                    matchLabels:
+                      rook_file_system: *fs
+        storageClass:
+          enabled: false # Samba vfs_ceph &/or Ceph NFS
     cephFileSystemVolumeSnapshotClass:
       enabled: true
       name: "file"
