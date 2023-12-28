@@ -12,9 +12,9 @@ spec:
     pruneIntervalDays: ${PRUNE:=14}
     repository: "${PVC}-restic"
     cacheCapacity: "${CACHESIZE:=2Gi}"
-    volumeSnapshotClassName: "${VSC:=block}"
+    volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
-    cacheStorageClassName: "${SC:=block}"
+    cacheStorageClassName: "${CACHE:=block}"
     moverSecurityContext:
       runAsUser: ${RUID:=1000}
       runAsGroup: ${RGID:=1000}

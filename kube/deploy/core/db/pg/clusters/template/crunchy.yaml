@@ -73,6 +73,16 @@ spec:
         repo3-retention-diff: "30"
         repo3-cipher-type: "aes-256-cbc"
       repos:
+        # the array with index 0 on the `repos` list is used for replica recovery/replay from WALs, regardless of repo name (repo1, repo2, etc)
+        - name: "repo3" # Ceph RGW in-cluster
+          s3: &rgw
+            endpoint: "rgw-biohazard.${DNS_TS}"
+            bucket: "pg-${PG_APP_NAME}"
+            region: "us-east-1"
+          schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
+            full: "15 6 * * 1" # every Monday at 06:15
+            differential: "15 6 * * 0,2-6" # every day at 06:15 except Monday
+            incremental: "15 1-5,7-23 * * *" # every hour except 06:15
         - name: "repo1" # NFS
           volume: &nfs
             volumeClaimSpec:
@@ -94,23 +104,14 @@ spec:
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
             full: "30 6 * * 1" # every Monday at 06:30
             incremental: "30 6 * * 0,2-6" # every day at 06:30 except Monday
-        - name: "repo3" # Ceph RGW in-cluster
-          s3: &rgw
-            endpoint: "rgw-biohazard.${DNS_TS}"
-            bucket: "pg-${PG_APP_NAME}"
-            region: "us-east-1"
-          schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
-            full: "15 6 * * 1" # every Monday at 06:15
-            differential: "15 6 * * 0,2-6" # every day at 06:15 except Monday
-            incremental: "15 1-5,7-23 * * *" # every hour except 06:15
-  # dataSource:
-  #   pgbackrest:
-  #     stanza: "db"
-  #     configuration: *brcfg
-  #     global: *brflag
-  #     repo:
-  #       name: "repo3"
-  #       s3: *rgw
+  dataSource:
+    pgbackrest:
+      stanza: "db"
+      configuration: *brcfg
+      global: *brflag
+      repo:
+        name: "repo3"
+        s3: *rgw
   proxy:
     pgBouncer:
       port: 5432

@@ -5,9 +5,11 @@ metadata:
   name: "${PVC}"
   labels:
     snapshot.home.arpa/enabled: "true"
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
   storageClassName: "${SC:=block}"
   accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+  volumeMode: "${VOLUMEMODE:=Filesystem}"
   resources:
     requests:
       storage: "${SIZE:=20Gi}"
