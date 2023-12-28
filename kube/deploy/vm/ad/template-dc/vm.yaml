@@ -43,6 +43,8 @@ spec:
                 - name: "tailscale"
                   port: 41641
                   protocol: "UDP"
+          autoattachInputDevice: false
+          inputs: []
         firmware:
           uuid: "${UUID}"
           bootloader:
