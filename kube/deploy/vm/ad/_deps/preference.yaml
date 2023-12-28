@@ -30,11 +30,12 @@ spec:
     preferredTPM:
       persistent: true
     preferredAutoattachMemBalloon: false
-    preferredAutoattachInputDevice: true
     preferredAutoattachGraphicsDevice: true
     preferredAutoattachSerialConsole: true
     preferredAutoattachPodInterface: true
-    preferredInputType: "tablet"
+    # preferredAutoattachInputDevice: true
+    # preferredInputType: "tablet"
+    preferredAutoattachInputDevice: false # save CPU resources, similar to disabling tablet input on Proxmox
   features:
     preferredAcpi: {}
     preferredApic: {}
