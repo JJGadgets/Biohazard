@@ -10,7 +10,7 @@ spec:
   restic:
     copyMethod: "Snapshot"
     pruneIntervalDays: ${PRUNE:=14}
-    repository: "${PVC}-restic"
+    repository: "${PVC}-r2-restic"
     cacheCapacity: "${CACHESIZE:=2Gi}"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
