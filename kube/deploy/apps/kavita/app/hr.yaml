@@ -44,6 +44,17 @@ spec:
         tls:
           - hosts:
               - *host
+      tailscale:
+        enabled: true
+        primary: false
+        ingressClassName: "tailscale"
+        hosts:
+          - host: "read"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts: ["read"]
     persistence:
       config:
         enabled: true
