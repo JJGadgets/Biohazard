@@ -19,7 +19,6 @@ spec:
         vm.home.arpa/ad: "dc${NUM}"
     spec:
       hostname: "thunder-dc${NUM}"
-      evictionStrategy: "LiveMigrate" # needs RWX PVC
       networks:
         - name: "main"
           pod:

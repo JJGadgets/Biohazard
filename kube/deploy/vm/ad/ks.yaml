@@ -24,11 +24,8 @@ spec:
   postBuild:
     substitute:
       PVC: "vm-ad-dc1-c-drive"
-      SC: "file"
-      SNAP: "file"
       SIZE: "105Gi"
       VOLUMEMODE: "Filesystem"
-      ACCESSMODE: "ReadWriteMany"
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
@@ -66,11 +63,8 @@ spec:
   postBuild:
     substitute:
       PVC: "vm-ad-dc2-c-drive"
-      SC: "file"
-      SNAP: "file"
       SIZE: "105Gi"
       VOLUMEMODE: "Filesystem"
-      ACCESSMODE: "ReadWriteMany"
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
