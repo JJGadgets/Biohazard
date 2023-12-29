@@ -11,7 +11,7 @@ spec:
     copyMethod: "Snapshot"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
-    cacheStorageClassName: "${SC:=local}"
+    cacheStorageClassName: "${SC:=block}"
     cacheAccessModes: ["ReadWriteOnce"]
     capacity: "${SIZE:=20Gi}"
     accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
