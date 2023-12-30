@@ -12,6 +12,15 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # Prometheus
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "monitoring"
+            prometheus: "kps"
+    # Tailscale connection
+    - fromEntities:
+        - cluster
+        - world
   egress:
     - toEntities:
         - world
@@ -42,6 +51,13 @@ spec:
               operator: Exists
             - key: io.kubernetes.pod.namespace
               operator: Exists
+    # NAT-PMP/UPnP/PCP
+    - toCIDR:
+        - "239.255.255.250/32"
+      toPorts:
+        - ports:
+            - port: "1900"
+              protocol: "UDP"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: "cilium.io/v2"
