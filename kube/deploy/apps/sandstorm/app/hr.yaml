@@ -28,13 +28,6 @@ spec:
       PORT: &port "27102"
       QUERYPORT: &query "27131"
       LAUNCH_SERVER_ENV: "-hostname=\"${CONFIG_SANDSTORM_NAME}\" -Log -Port=${CONFIG_SANDSTORM_PORT} -QueryPort=${CONFIG_SANDSTORM_QUERYPORT} -MapCycle=MapCycle -NoEAC -EnableCheats -Mods -mutators=${CONFIG_SANDSTORM_MUTATORS} -ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}"
-    dnsPolicy: ClusterFirstWithHostNet
-    dnsConfig:
-      options:
-        - name: ndots
-          value: "1"
-      nameservers:
-        - "${IP_HOME_DNS}"
     probes:
       liveness:
         enabled: false
