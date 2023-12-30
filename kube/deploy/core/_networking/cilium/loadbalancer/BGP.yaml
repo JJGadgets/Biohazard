@@ -19,6 +19,9 @@ spec:
       neighbors:
         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: ${ASN_ROUTER}
+          gracefulRestart:
+            enabled: true
+            restartTimeSeconds: 120
     - localASN: ${ASN_EC2_INGRESS}
       exportPodCIDR: false
       serviceSelector:
