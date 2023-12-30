@@ -158,21 +158,21 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
-      - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
-        spec:
-          failureDomain: "osd"
-          deviceClass: "ssd"
-          erasureCoded:
-            dataChunks: 2
-            codingChunks: 1
-          parameters:
-            min_size: "2"
-            compression_mode: "aggressive"
-            compression_algorithm: "lz4"
-        storageClass:
-          <<: *rbd-sc
-          name: "block-ssd-ec-2-1"
-          isDefault: false
+      # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "ssd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 1
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "lz4"
+      #   storageClass:
+      #     <<: *rbd-sc
+      #     name: "block-ssd-ec-2-1"
+      #     isDefault: false
       # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
       #   spec:
       #     failureDomain: "osd"
@@ -273,26 +273,26 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
-      - <<: *cephfs
-        name: &fs "nas"
-        spec:
-          <<: *cephfsSpec
-          dataPools:
-            - <<: *cephfsData
-              name: "nas-data0"
-          metadataServer:
-            activeCount: 3 # 3 active 3 standby
-            activeStandby: true
-            placement:
-              topologySpreadConstraints:
-                - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
-                  topologyKey: "kubernetes.io/hostname"
-                  whenUnsatisfiable: "DoNotSchedule"
-                  labelSelector:
-                    matchLabels:
-                      rook_file_system: *fs
-        storageClass:
-          enabled: false # Samba vfs_ceph &/or Ceph NFS
+      # - <<: *cephfs
+      #   name: &fs "nas"
+      #   spec:
+      #     <<: *cephfsSpec
+      #     dataPools:
+      #       - <<: *cephfsData
+      #         name: "nas-data0"
+      #     metadataServer:
+      #       activeCount: 3 # 3 active 3 standby
+      #       activeStandby: true
+      #       placement:
+      #         topologySpreadConstraints:
+      #           - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
+      #             topologyKey: "kubernetes.io/hostname"
+      #             whenUnsatisfiable: "DoNotSchedule"
+      #             labelSelector:
+      #               matchLabels:
+      #                 rook_file_system: *fs
+      #   storageClass:
+      #     enabled: false # Samba vfs_ceph &/or Ceph NFS
     cephFileSystemVolumeSnapshotClass:
       enabled: true
       name: "file"
