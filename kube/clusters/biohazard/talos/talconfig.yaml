@@ -146,13 +146,114 @@ nodes:
           devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
           devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
+patches:
+  # set all disks to no scheduler
+  - |-
+    machine:
+      udev:
+        rules:
+          - |-
+            ATTR{queue/scheduler}="none"
+
+  - &kubeletExtraArgs |-
+    - op: add
+      path: /machine/kubelet/extraArgs
+      value:
+        feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
+
+  - &machinePatch |-
+    machine:
+      install:
+        bootloader: true
+      network:
+        extraHostEntries:
+          - ip: "${IP_CLUSTER_VIP}"
+            aliases: ["c.${DNS_CLUSTER}"]
+          - ip: "${IP_ROUTER_VLAN_K8S}"
+            aliases: ["c.${DNS_CLUSTER}"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
+            aliases: ["c.${DNS_CLUSTER}"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
+            aliases: ["c.${DNS_CLUSTER}"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
+            aliases: ["c.${DNS_CLUSTER}"]
+          - ip: "${IP_HERCULES}"
+            aliases: ["hercules.mesh.cilium.io"]
+          - ip: "${IP_TRUENAS}"
+            aliases: ["nas.${DNS_MAIN}"]
+      time:
+        disabled: false
+        servers: ["${IP_ROUTER_LAN}"]
+        bootTimeout: 2m0s
+#      kernel:
+#        modules:
+#          - name: nct6683
+#            parameters: ["force=on"]
+
+  - &clusterPatch |-
+    cluster:
+      allowSchedulingOnMasters: true
+      allowSchedulingOnControlPlanes: true
+      discovery:
+        enabled: true
+        registries:
+          kubernetes:
+            disabled: false
+          service:
+            disabled: true
+      proxy:
+        disabled: true
+
+  - &kubePrism |-
+    machine:
+      features:
+        kubePrism:
+          enabled: true
+          port: 7445
+
+  - &kubeletSubnet |-
+    machine:
+      kubelet:
+        nodeIP:
+          validSubnets:
+            - "${IP_ROUTER_VLAN_K8S_CIDR}"
+
+  - &kubeletConfig |-
+    machine:
+      kubelet:
+        extraConfig:
+          maxPods: 200
+
+  # Rook Ceph encrypted OSDs
+  # TODO: https://github.com/siderolabs/talos/issues/3129
+  - |-
+    machine:
+      files:
+        - op: overwrite
+          path: /etc/lvm/lvm.conf
+          permissions: 0o644
+          content: |
+            backup {
+                    backup = 0
+                    archive = 0
+            }
+
+  # patch containerd for spegel (discard)
+  - |-
+    machine:
+      files:
+        - op: create
+          path: /etc/cri/conf.d/20-customization.part
+          permissions: 0o644
+          content: |
+            [plugins."io.containerd.grpc.v1.cri"]
+              enable_unprivileged_ports = true
+              enable_unprivileged_icmp = true
+            [plugins."io.containerd.grpc.v1.cri".containerd]
+              discard_unpacked_layers = false
+
 controlPlane:
   patches:
-    - &kubeletExtraArgs |-
-      - op: add
-        path: /machine/kubelet/extraArgs
-        value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
 
     - &apiServerExtraArgs |-
       - op: add
@@ -176,55 +277,6 @@ controlPlane:
         value:
           node-cidr-mask-size: 22
 
-    - &machinePatch |-
-      machine:
-        install:
-          bootloader: true
-        network:
-          extraHostEntries:
-            - ip: "${IP_CLUSTER_VIP}"
-              aliases: ["c.${DNS_CLUSTER}"]
-            - ip: "${IP_ROUTER_VLAN_K8S}"
-              aliases: ["c.${DNS_CLUSTER}"]
-            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
-              aliases: ["c.${DNS_CLUSTER}"]
-            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
-              aliases: ["c.${DNS_CLUSTER}"]
-            - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
-              aliases: ["c.${DNS_CLUSTER}"]
-            - ip: "${IP_HERCULES}"
-              aliases: ["hercules.mesh.cilium.io"]
-            - ip: "${IP_TRUENAS}"
-              aliases: ["nas.${DNS_MAIN}"]
-        time:
-          disabled: false
-          servers: ["${IP_ROUTER_LAN}"]
-          bootTimeout: 2m0s
-#         kernel:
-#           modules:
-#             - name: nct6683
-#               parameters: ["force=on"]
-
-    - &kubePrism |-
-      machine:
-        features:
-          kubePrism:
-            enabled: true
-            port: 7445
-
-    - &kubeletSubnet |-
-      machine:
-        kubelet:
-          nodeIP:
-            validSubnets:
-              - "${IP_ROUTER_VLAN_K8S_CIDR}"
-
-    - &kubeletConfig |-
-      machine:
-        kubelet:
-          extraConfig:
-            maxPods: 200
-
     - &etcdSubnet |-
       cluster:
         etcd:
@@ -238,20 +290,6 @@ controlPlane:
             quota-backend-bytes: 4294967296 # 4 GiB
     # https://www.talos.dev/v1.5/advanced/etcd-maintenance/#space-quota
     # maximum recommended is 8GiB, will resize to 4GiB for now so etcd won't shoot its load all at once
-
-    - &clusterPatch |-
-      cluster:
-        allowSchedulingOnMasters: true
-        allowSchedulingOnControlPlanes: true
-        discovery:
-          enabled: true
-          registries:
-            kubernetes:
-              disabled: false
-            service:
-              disabled: true
-        proxy:
-          disabled: true
 
     # - &scheduler |-
     #   cluster:
@@ -284,20 +322,6 @@ controlPlane:
     #                         topologyKey: "topology.kubernetes.io/zone"
     #                         whenUnsatisfiable: ScheduleAnyway
 
-    # Rook Ceph encrypted OSDs
-    # TODO: https://github.com/siderolabs/talos/issues/3129
-    - &encryptedOSD |-
-      machine:
-        files:
-          - op: overwrite
-            path: /etc/lvm/lvm.conf
-            permissions: 0o644
-            content: |
-              backup {
-                      backup = 0
-                      archive = 0
-              }
-
     # TODO: can't create files outside /var, maybe open FR to whitelist this?
     # - &nfsMountOptions |-
     #   machine:
@@ -314,30 +338,3 @@ controlPlane:
     #           rsize=131072
     #           wsize=131072
     #           nconnect=8
-
-    # patch containerd for spegel (discard)
-    - &containerdPatches |-
-      machine:
-        files:
-          - op: create
-            path: /etc/cri/conf.d/20-customization.part
-            permissions: 0o644
-            content: |
-              [plugins."io.containerd.grpc.v1.cri"]
-                enable_unprivileged_ports = true
-                enable_unprivileged_icmp = true
-              [plugins."io.containerd.grpc.v1.cri".containerd]
-                discard_unpacked_layers = false
-
-worker:
-  patches:
-    - *kubeletExtraArgs
-    - *machinePatch
-    - *clusterPatch
-    - *kubeletSubnet
-    # - *scheduler
-    # Rook Ceph encrypted OSDs
-    # TODO: https://github.com/siderolabs/talos/issues/3129
-    - *encryptedOSD
-    # - *nfsMountOptions
-    - *containerdPatches
