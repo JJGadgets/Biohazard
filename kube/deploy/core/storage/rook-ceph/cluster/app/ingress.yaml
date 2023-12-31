@@ -19,6 +19,9 @@ kind: Ingress
 metadata:
   name: biohazard-dashboard-cilium
   namespace: rook-ceph
+  annotations:
+    ingress.cilium.io/loadbalancer-mode: dedicated
+    ingress.cilium.io/service-type: LoadBalancer
 spec:
   ingressClassName: cilium
   rules:
