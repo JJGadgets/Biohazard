@@ -12,7 +12,11 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-      fromCIDRSet:
+      toPorts:
+        - ports:
+            - port: "45678"
+              protocol: UDP
+    - fromCIDRSet:
         - cidr: "${IP_ROUTER_LAN}/32"
       toPorts:
         - ports:
