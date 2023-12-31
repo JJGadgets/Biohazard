@@ -13,3 +13,25 @@ spec:
         name: http-dashboard
   tls:
     - hosts: [c]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: biohazard-dashboard-cilium
+  namespace: rook-ceph
+spec:
+  ingressClassName: cilium
+  rules:
+    - host: "c${APP_DNS_CEPH}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: rook-ceph-mgr-dashboard
+                port:
+                  name: http-dashboard
+            path: /
+            pathType: Prefix
+
+  tls:
+    - hosts: ["c${APP_DNS_CEPH}"]
