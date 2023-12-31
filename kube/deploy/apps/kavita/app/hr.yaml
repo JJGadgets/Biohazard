@@ -18,6 +18,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/world-https: "allow" # metadata fetching
+      tailscale.com/expose: "true"
     controller:
       type: "deployment"
       replicas: 1
