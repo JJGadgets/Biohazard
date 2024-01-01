@@ -65,6 +65,21 @@ spec:
         tls:
           - hosts:
               - *host
+      tailscale:
+        enabled: true
+        primary: false
+        className: "tailscale"
+        hosts:
+          - host: &host "files"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts:
+              - *ts
     persistence:
       config:
         enabled: true
