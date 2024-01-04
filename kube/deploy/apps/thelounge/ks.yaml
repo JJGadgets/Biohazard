@@ -28,5 +28,7 @@ spec:
       ACCESSMODE: "ReadWriteMany"
       RUID: &uid !!str |-
         ${APP_UID_THELOUNGE}
-      RGID: *uid
-      RFSG: *uid
+      RGID: |-
+        ${APP_UID_THELOUNGE}
+      RFSG: |-
+        ${APP_UID_THELOUNGE}
