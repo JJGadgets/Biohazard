@@ -26,9 +26,9 @@ spec:
       SIZE: "10Gi"
       SC: "file"
       ACCESSMODE: "ReadWriteMany"
-      RUID: &uid !!str |-
+      RUID: &uid !!str |
         ${APP_UID_THELOUNGE}
-      RGID: |-
+      RGID: !!str |
         ${APP_UID_THELOUNGE}
-      RFSG: |-
+      RFSG: !!str |
         ${APP_UID_THELOUNGE}
