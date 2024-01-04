@@ -24,8 +24,7 @@ spec:
     substitute:
       PVC: "thelounge-data"
       SIZE: "10Gi"
-      SC: "file"
-      ACCESSMODE: "ReadWriteMany"
+      SC: "block"
       RUID: &uid !!str |
         ${APP_UID_THELOUNGE}
       RGID: !!str |
