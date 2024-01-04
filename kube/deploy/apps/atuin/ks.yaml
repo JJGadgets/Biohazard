@@ -8,7 +8,8 @@ metadata:
     wait.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/deploy/apps/atuin/app
-  dependsOn: []
+  dependsOn:
+    - name: atuin-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -31,3 +32,32 @@ spec:
       PG_SC: "local"
       PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"
+  patches:
+    - # remove Cloudflare R2 backups, NAS and RGW is enough
+      patch: |-
+        - op: remove
+          path: /spec/backups/pgbackrest/repos/2
+      target:
+        group: postgres-operator.crunchydata.com
+        kind: PostgresCluster
+# TODO: switch to SQLite once Atuin server supports it, since downtime from stuck PVCs and some data loss within a day is acceptable, an `atuin sync` will bring everything back up to speed and the client isn't reliant on the sync server for basic functionality anyway
+# https://github.com/atuinsh/atuin/issues/1158 https://github.com/atuinsh/atuin/discussions/1161
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: atuin-pvc
+#   namespace: flux-system
+# spec:
+#   path: ./kube/deploy/core/storage/volsync/template
+#   targetNamespace: "atuin"
+#   dependsOn:
+#     - name: 1-core-storage-volsync-app
+#     - name: 1-core-storage-rook-ceph-cluster
+#   postBuild:
+#     substitute:
+#       PVC: "atuin-data"
+#       SIZE: "10Gi"
+#       RUID: &uid "${APP_UID_ATUIN}"
+#       RGID: *uid
+#       RFSG: *uid
