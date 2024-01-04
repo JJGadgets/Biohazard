@@ -7,5 +7,25 @@ metadata:
 spec:
   path: ./kube/deploy/apps/thelounge/app
   dependsOn:
-    # - name: 1-core-storage-rook-ceph-cluster # TODO: re-add after fixing Rook ks.yaml, which needs Rook PVE ks.yaml name to be patched by master ks.yaml
-    - name: 1-core-ingress-nginx-app
+    - name: thelounge-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: thelounge-pvc
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "thelounge"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "thelounge-data"
+      SIZE: "10Gi"
+      SC: "file"
+      ACCESSMODE: "ReadWriteMany"
+      RUID: &uid "${APP_UID_THELOUNGE}"
+      RGID: *uid
+      RFSG: *uid

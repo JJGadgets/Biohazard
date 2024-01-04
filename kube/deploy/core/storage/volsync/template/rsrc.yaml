@@ -6,7 +6,7 @@ metadata:
 spec:
   sourcePVC: "${PVC}"
   trigger:
-    schedule: "0 */12 * * *" # 8am & 8pm GMT+8
+    schedule: "${CRON:=0 */12 * * *}" # 8am & 8pm GMT+8
   restic:
     copyMethod: "Snapshot"
     pruneIntervalDays: ${PRUNE:=14}

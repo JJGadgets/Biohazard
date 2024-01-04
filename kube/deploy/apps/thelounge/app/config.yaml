@@ -23,11 +23,11 @@ stringData:
       disableMediaPreview: false,
       prefetchStorage: false,
       fileUpload: {
-        enable: false,
-        maxFileSize: 10240,
-        baseUrl: null,
+        enable: true,
+        maxFileSize: -1,
+        baseUrl: "https://${APP_DNS_THELOUNGE_UPLOADS}/tinfoil/",
       },
-      transports: ["polling", "websocket"],
+      transports: ["websocket", "polling"],
       leaveMessage: "kthxbye",
       defaults: {
         name: "${APP_DNS_KAHIRC}",
@@ -43,7 +43,7 @@ stringData:
         leaveMessage: "kthxbye",
       },
       lockNetwork: false,
-      messageStorage: ["sqlite", "text"],
+      messageStorage: ["sqlite"],
       useHexIp: false,
       webirc: null,
       identd: {
