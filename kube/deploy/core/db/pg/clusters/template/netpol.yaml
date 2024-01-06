@@ -31,10 +31,12 @@ metadata:
   name: "pg-${PG_APP_NAME}"
   namespace: &app "${PG_APP_NS}"
 spec:
-  endpointSelector:
+  endpointSelector: &crunchy
     matchLabels:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
   ingress:
+    # allow Postgres pods to talk to each other
+    - toEndpoints: [*crunchy]
     # same namespace
     - fromEndpoints:
         - matchLabels:
@@ -58,6 +60,8 @@ spec:
     - fromEndpoints: *pg
       icmps: [{}]
   egress:
+    # allow Postgres pods to talk to each other
+    - toEndpoints: [*crunchy]
     # allow access to apiserver
     # this is needed for initdb and calling back to operator
     - toEntities:
