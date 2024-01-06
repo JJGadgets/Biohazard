@@ -36,7 +36,7 @@ spec:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
   ingress:
     # allow Postgres pods to talk to each other
-    - toEndpoints: [*crunchy]
+    - fromEndpoints: [*crunchy]
     # same namespace
     - fromEndpoints:
         - matchLabels:
