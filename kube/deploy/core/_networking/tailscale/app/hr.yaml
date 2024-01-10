@@ -7,7 +7,8 @@ metadata:
 spec:
   chart:
     spec:
-      chart: ./cmd/k8s-operator/deploy/chart
+      chart: tailscale-operator
+      version: 1.56.1
       sourceRef:
         name: *app
         kind: GitRepository
@@ -16,7 +17,7 @@ spec:
     operatorConfig:
       image:
         repo: "ghcr.io/tailscale/k8s-operator"
-        tag: &v "v1.54.1"
+        tag: &v "v1.56.1"
       logging: "debug"
       hostname: "tailscale-operator-k8s"
       nodeSelector:
