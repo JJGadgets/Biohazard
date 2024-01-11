@@ -94,7 +94,7 @@ spec:
             vtysh_enable=yes
           daemons-localhost: |-
             bgpd=yes
-            bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61791 --listenon 127.0.0.1"
+            bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61791 --listenon 127.0.0.179"
             vtysh_enable=yes
           frr.conf: |
             !
@@ -103,6 +103,11 @@ spec:
             service integrated-vtysh-config
             ip forwarding
             ipv6 forwarding
+            !
+            interface lo
+              ip address 127.0.0.179/32
+            exit
+            !
             no bgp no-rib
             router bgp ${ASN_CLUSTER_NODES}
               bgp ebgp-requires-policy
@@ -116,9 +121,9 @@ spec:
               neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}1 peer-group cilium
               neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}2 peer-group cilium
               neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}3 peer-group cilium
-             address-family ipv4 unicast
-              neighbor upstream activate
-             exit-address-family
+              address-family ipv4 unicast
+                neighbor upstream activate
+              exit-address-family
             exit
             !
     defaultPodOptions:
