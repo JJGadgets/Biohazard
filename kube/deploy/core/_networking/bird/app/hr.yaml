@@ -1,0 +1,105 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app bird
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: "2.4.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: daemonset
+        initContainers:
+        containers:
+          main: &ct
+            image:
+              repository: "registry.jjgadgets.tech/jjgadgets/bird"
+              tag: "2.14-r0"
+            securityContext:
+              readOnlyRootFilesystem: true
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "100Mi"
+              limits:
+                cpu: "500m"
+                memory: "350Mi"
+    service:
+      main:
+        enabled: false
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: "bird-config"
+        globalMounts:
+          - path: "/etc/bird"
+            readOnly: true
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        advancedMounts:
+          main:
+            main:
+              - subPath: "main-tmp"
+                path: "/tmp"
+                readOnly: false
+              - subPath: "main-run"
+                path: "/run"
+                readOnly: false
+    configMaps:
+      config:
+        enabled: true
+        data:
+          bird.conf: |
+            define ASN = ${ASN_CLUSTER_NODES};
+            define CiliumLBIPs = [
+              ${IP_IP_LB_CIDR}
+            ];
+            define NodeIPs = [
+              ${IP_ROUTER_VLAN_K8S_CIDR}
+            ];
+            filter cilium {
+              if (net ~ CiliumLBIPs) then accept;
+              else reject;
+            }
+            protocol device {
+            }
+            protocol direct {
+              disabled;
+            }
+            protocol kernel {
+              ipv4 {
+                import filter cilium;
+              };
+            }
+            protocol static {
+              disabled;
+              ipv4;
+            }
+            protocol bgp cilium {
+              strict bind enabled;
+              ipv4 {
+                import filter cilium;
+                export filter cilium;
+              };
+              multihop;
+              local port 61790 as ASN;
+              neighbor range NodeIPs as ASN internal;
+            }
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile: {type: "RuntimeDefault"}
+      dnsPolicy: "ClusterFirstWithHostNet"
+      hostNetwork: true
