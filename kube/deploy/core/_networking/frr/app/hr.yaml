@@ -19,12 +19,18 @@ spec:
     controllers:
       main:
         type: daemonset
+        initContainers:
         containers:
-          main:
-            image: &img
+          main: &ct
+            image:
               repository: "quay.io/frrouting/frr"
               tag: "9.1.0@sha256:f310c2ebb3827fa03b9674ee05e70a7d5eef2123bcc3b475eb2ef14dafcb52b4"
             command: ["/usr/lib/frr/docker-start"]
+            env:
+              NODEIP:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: "spec.podIP"
             securityContext:
               readOnlyRootFilesystem: true
               privileged: true
@@ -35,6 +41,7 @@ spec:
               limits:
                 cpu: "500m"
                 memory: "350Mi"
+          localhost: *ct
     service:
       main:
         enabled: false
@@ -43,29 +50,51 @@ spec:
         enabled: true
         type: configMap
         name: "frr-config"
+        globalMounts:
+          - subPath: "frr.conf"
+            path: "/etc/frr/frr.conf"
+            readOnly: true
         advancedMounts:
           main:
             main:
-              - path: "/etc/frr"
+              - subPath: "daemons-main"
+                path: "/etc/frr/daemons"
+                readOnly: true
+            localhost:
+              - subPath: "daemons-localhost"
+                path: "/etc/frr/daemons"
                 readOnly: true
       tmp:
         enabled: true
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-            readOnly: false
-          - subPath: "run"
-            path: "/var/run/frr"
-            readOnly: false
+        advancedMounts:
+          main:
+            main:
+              - subPath: "main-tmp"
+                path: "/tmp"
+                readOnly: false
+              - subPath: "main-run"
+                path: "/var/run/frr"
+                readOnly: false
+            localhost:
+              - subPath: "localhost-tmp"
+                path: "/tmp"
+                readOnly: false
+              - subPath: "localhost-run"
+                path: "/var/run/frr"
+                readOnly: false
     configMaps:
       config:
         enabled: true
         data:
-          daemons: |-
+          daemons-main: |-
             bgpd=yes
             bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61790"
+            vtysh_enable=yes
+          daemons-localhost: |-
+            bgpd=yes
+            bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61791 --listenon 127.0.0.1"
             vtysh_enable=yes
           frr.conf: |
             !
@@ -74,6 +103,7 @@ spec:
             service integrated-vtysh-config
             ip forwarding
             ipv6 forwarding
+            no bgp no-rib
             router bgp ${ASN_CLUSTER_NODES}
               bgp ebgp-requires-policy
               bgp graceful-restart
