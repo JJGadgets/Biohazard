@@ -28,10 +28,15 @@ spec:
       neighbors:
         - peerAddress: "${IP_EC2_NON_K8S}/32"
           peerASN: *ec2
-    - localASN: &nodes ${ASN_CLUSTER_NODES}
+    - localASN: ${ASN_CLUSTER_NODES}
       exportPodCIDR: false
       serviceSelector: *all
       neighbors:
-        - peerAddress: "127.0.0.1/32"
-          peerASN: *nodes
+        - &nodes
+          peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1/32"
+          peerASN: ${ASN_CLUSTER_NODES}
           peerPort: 61790
+        - <<: *nodes
+          peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2/32"
+        - <<: *nodes
+          peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3/32"

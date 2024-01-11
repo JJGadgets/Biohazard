@@ -67,21 +67,26 @@ spec:
             bgpd=yes
             bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61790"
             vtysh_enable=yes
-          frr.conf: |-
+          frr.conf: |
+            !
             frr defaults traditional
             log stdout
             service integrated-vtysh-config
             ip forwarding
+            ipv6 forwarding
             router bgp ${ASN_CLUSTER_NODES}
               bgp ebgp-requires-policy
               bgp graceful-restart
               bgp default ipv4-unicast
-              neighbor 127.0.0.1 remote-as internal
-              neighbor 127.0.0.1 port 179
-              neighbor 127.0.0.1 update-source 127.0.0.1
-              address-family ipv4 unicast
-                neighbor 127.0.0.1 activate
-              exit-address-family
+              neighbor cilium peer-group
+              neighbor cilium remote-as ${ASN_CLUSTER_NODES}
+              neighbor cilium port 179
+              neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}1 peer-group cilium
+              neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}2 peer-group cilium
+              neighbor ${IP_ROUTER_VLAN_K8S_PREFIX}3 peer-group cilium
+             address-family ipv4 unicast
+              neighbor upstream activate
+             exit-address-family
             exit
             !
     defaultPodOptions:
