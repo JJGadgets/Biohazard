@@ -9,7 +9,7 @@ metadata:
 spec:
   path: ./kube/deploy/apps/atuin/app
   dependsOn:
-    - name: atuin-pvc
+    - name: atuin-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
