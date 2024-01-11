@@ -53,7 +53,11 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+          - subPath: "run"
+            path: "/var/run/frr"
             readOnly: false
     configMaps:
       config:
