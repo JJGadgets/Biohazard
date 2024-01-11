@@ -73,7 +73,6 @@ spec:
             service integrated-vtysh-config
             ip forwarding
             router bgp ${ASN_CLUSTER_NODES}
-              no bgp no-rib
               bgp ebgp-requires-policy
               bgp graceful-restart
               bgp default ipv4-unicast
