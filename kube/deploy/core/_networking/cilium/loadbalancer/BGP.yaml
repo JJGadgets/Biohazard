@@ -40,8 +40,8 @@ spec:
           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2/32"
         - <<: *nodes
           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3/32"
-        - <<: *nodes
-          peerAddress: "127.0.0.1/32"
+        # - <<: *nodes
+        #   peerAddress: "127.0.0.1/32"
         # - <<: *nodes
         #   peerAddress: "127.0.0.1/32"
         #   peerPort: 61791
