@@ -11,23 +11,26 @@ spec:
     matchLabels:
       kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
   virtualRouters:
-    - localASN: ${ASN_ROUTER} # ASNs are processed in uint32
+    - localASN: &router ${ASN_ROUTER} # ASNs are processed in uint32
       exportPodCIDR: false
-      serviceSelector: # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
+      serviceSelector: &all # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
         matchExpressions:
           - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
       neighbors:
         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
-          peerASN: ${ASN_ROUTER}
+          peerASN: *router
           gracefulRestart:
             enabled: true
             restartTimeSeconds: 120
-    - localASN: ${ASN_EC2_INGRESS}
+    - localASN: &ec2 ${ASN_EC2_INGRESS}
       exportPodCIDR: false
-      serviceSelector:
-        matchExpressions:
-          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
+      serviceSelector: *all
       neighbors:
         - peerAddress: "${IP_EC2_NON_K8S}/32"
-          peerASN: ${ASN_EC2_INGRESS}
-
+          peerASN: *ec2
+    - localASN: &nodes ${ASN_CLUSTER_NODES}
+      exportPodCIDR: false
+      serviceSelector: *all
+      neighbors:
+        - peerAddress: "127.0.0.1/32"
+          peerASN: *nodes

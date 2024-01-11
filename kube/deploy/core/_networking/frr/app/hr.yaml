@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app frr
+  namespace: *app
+  annotations:
+    description: "This FRR redistributes BGP routes from CNI e.g. Cilium BGP Control Plane (GoBGP) to other routing tables, such as node kernel routing table, and via routing protocols like OSPF."
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: "2.4.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: daemonset
+        containers:
+          main:
+            image: &img
+              repository: "quay.io/frrouting/frr"
+              tag: "9.1.0@sha256:f310c2ebb3827fa03b9674ee05e70a7d5eef2123bcc3b475eb2ef14dafcb52b4"
+            command: ["/usr/lib/frr/docker-start"]
+            securityContext:
+              readOnlyRootFilesystem: true
+              privileged: true
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "100Mi"
+              limits:
+                cpu: "500m"
+                memory: "350Mi"
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: "frr-config"
+        advancedMounts:
+          main:
+            main:
+              - path: "/etc/frr"
+                readOnly: true
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/tmp"
+            readOnly: false
+    configMaps:
+      config:
+        enabled: true
+        data:
+          daemons: |-
+            bgpd=yes
+            bgpd_options="--daemon -A 127.0.0.1 --bgp_port 61790"
+            vtysh_enable=yes
+          frr.conf: |-
+            frr defaults traditional
+            log stdout
+            service integrated-vtysh-config
+            ip forwarding
+            router bgp ${ASN_CLUSTER_NODES}
+              no bgp no-rib
+              bgp ebgp-requires-policy
+              bgp graceful-restart
+              bgp default ipv4-unicast
+              neighbor 127.0.0.1 remote-as internal
+              neighbor 127.0.0.1 port 179
+              neighbor 127.0.0.1 update-source 127.0.0.1
+              address-family ipv4 unicast
+                neighbor 127.0.0.1 activate
+              exit-address-family
+            exit
+            !
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile: {type: "RuntimeDefault"}
+      dnsPolicy: "ClusterFirstWithHostNet"
+      hostNetwork: true
