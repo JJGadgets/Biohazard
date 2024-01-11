@@ -33,9 +33,11 @@ spec:
       serviceSelector: *all
       neighbors:
         - &nodes
-          peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1/32"
+          peerAddress: "127.0.0.1/32"
           peerASN: ${ASN_CLUSTER_NODES}
           peerPort: 61790
+        - <<: *nodes
+          peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1/32"
         - <<: *nodes
           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2/32"
         - <<: *nodes
