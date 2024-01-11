@@ -41,7 +41,8 @@ spec:
         type: configMap
         name: "bird-config"
         globalMounts:
-          - path: "/etc/bird"
+          - subPath: "bird.conf"
+            path: "/etc/bird.conf"
             readOnly: true
       tmp:
         enabled: true
