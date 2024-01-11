@@ -35,6 +35,9 @@ spec:
               limits:
                 cpu: "500m"
                 memory: "350Mi"
+    service:
+      main:
+        enabled: false
     persistence:
       config:
         enabled: true
