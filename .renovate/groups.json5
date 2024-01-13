@@ -28,6 +28,19 @@
       "automerge": true,
       "automergeType": "pr"
     },
+    // authentik
+    {
+      "description": "authentik Group",
+      "groupName": "authentik",
+      "matchPackagePatterns": ["authentik"],
+      "labels": ["authentik"]
+      "automerge": false,
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      },
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true
+    },
     {
       "description": "Auto merge Github Actions",
       "matchManagers": ["github-actions"],
