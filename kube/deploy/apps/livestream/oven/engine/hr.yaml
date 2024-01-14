@@ -546,7 +546,7 @@ spec:
             </Server>
     initContainers:
       01-init-tls-ca-extract:
-        image: public.ecr.aws/debian/debian:12.4-slim@sha256:009c20888e8ca3c3b003117165b690e3e08ce17262a2ea988c2250cb92e62d45
+        image: public.ecr.aws/debian/debian:12.4-slim@sha256:4b025c60eb2f0ab14aa3c40057a022359a5a3a0c4abf46b1220a245207d00a10
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: tls
