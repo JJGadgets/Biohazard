@@ -7,7 +7,7 @@ configMapGenerator:
     files:
       - kube.yaml
       - prom.yaml
-      - node-exporter.yaml
+      # - alertmanager.yaml
       - kube-state-metrics.yaml
 configurations:
   - kustomizeconfig.yaml
