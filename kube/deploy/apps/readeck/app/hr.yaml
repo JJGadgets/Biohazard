@@ -96,7 +96,7 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       securityContext:
-        runAsNonRoot: false
+        runAsNonRoot: true
         runAsUser: &uid ${APP_UID_READECK}
         runAsGroup: *uid
         fsGroup: *uid
