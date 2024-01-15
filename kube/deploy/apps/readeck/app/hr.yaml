@@ -39,7 +39,7 @@ spec:
               READECK_DATABASE_SOURCE:
                 valueFrom:
                   secretKeyRef:
-                    name: "pg-default-pguser-readeck"
+                    name: "pg-default-pguser-readeck-fixed"
                     key: "pgbouncer-uri"
             securityContext:
               readOnlyRootFilesystem: true
