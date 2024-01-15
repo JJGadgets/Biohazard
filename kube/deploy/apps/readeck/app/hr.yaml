@@ -22,6 +22,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
             db.home.arpa/pg: "pg-default"
+            tailscale.com/expose: "true"
         containers:
           main:
             image: &img
@@ -78,7 +79,7 @@ spec:
         primary: false
         className: "tailscale"
         hosts:
-          - host: &ts "r"
+          - host: &ts "r.${DNS_TS}"
             paths: *path
         tls:
           - hosts: [*ts]
