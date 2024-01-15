@@ -2,41 +2,41 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ${APPNAME}-app
+  name: readeck-app
   namespace: flux-system
 spec:
-  path: ./kube/deploy/apps/${APPNAME}/app
+  path: ./kube/deploy/apps/readeck/app
   dependsOn:
-    - name: ${APPNAME}-db
-    - name: ${APPNAME}-pvc
+    - name: readeck-db
+    - name: readeck-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ${APPNAME}-pvc
+  name: readeck-pvc
   namespace: flux-system
 spec:
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "${APPNAME}"
+  targetNamespace: "readeck"
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
-      PVC: "${APPNAME}-data"
-      SIZE: "10Gi"
+      PVC: "readeck-data"
+      SIZE: "100Gi"
       SC: "block"
       RUID: &uid !!str |
-        ${APP_UID_APPNAME}
+        ${APP_UID_READECK}
       RGID: !!str |
-        ${APP_UID_APPNAME}
+        ${APP_UID_READECK}
       RFSG: !!str |
-        ${APP_UID_APPNAME}
+        ${APP_UID_READECK}
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ${APPNAME}-db
+  name: readeck-db
   namespace: flux-system
   labels:
     prune.flux.home.arpa/enabled: "true"
@@ -50,5 +50,5 @@ spec:
   postBuild:
     substitute:
       PG_NAME: "default"
-      PG_DB_USER: &app "${APPNAME}"
+      PG_DB_USER: &app "readeck"
       PG_APP_NS: *app

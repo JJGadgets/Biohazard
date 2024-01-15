@@ -1,0 +1,118 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app readeck
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: "2.4.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            db.home.arpa/pg: "pg-default"
+        containers:
+          main:
+            image: &img
+              repository: "codeberg.org/readeck/readeck"
+              tag: "0.11.2@sha256:b024e07e81eb757f4c58901dba3c882824b0113329a6b800fc387a9257c2b1b2"
+            env:
+              TZ: "${CONFIG_TZ}"
+              READECK_LOG_LEVEL: "info"
+              READECK_DEV_MODE: "false"
+              READECK_SERVER_HOST: "0.0.0.0"
+              READECK_SERVER_PORT: "8080"
+              READECK_SERVER_PREFIX: "/"
+              READECK_USE_X_FORWARDED: "true"
+              READECK_ALLOWED_HOSTS: "r.${DNS_SHORT},r.${DNS_TS}"
+              READECK_DATABASE_SOURCE:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-default-pguser-readeck"
+                    key: "pgbouncer-uri"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6000Mi"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        hosts:
+          - host: &host "r.${DNS_SHORT}"
+            paths: &path
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      main:
+        enabled: true
+        primary: false
+        className: "tailscale"
+        hosts:
+          - host: &ts "r"
+            paths: *path
+        tls:
+          - hosts: [*ts]
+    persistence:
+      config:
+        enabled: false
+      data:
+        enabled: true
+        existingClaim: "readeck-data"
+        advancedMounts:
+          main:
+            main:
+              - path: "/readeck"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: &uid ${APP_UID_READECK}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: {type: "RuntimeDefault"}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/readeck"
+                    operator: "DoesNotExist"

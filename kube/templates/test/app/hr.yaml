@@ -22,15 +22,20 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
-            db.home.arpa/pg: "pg-${APPNAME}"
+            db.home.arpa/pg: "pg-default"
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
         containers:
           main:
             image: &img
-              repository: "docker.io/${APPNAME}/server"
+              repository: "ghcr.io/${APPNAME}/${APPNAME}"
               tag: "v"
             env:
               TZ: "${CONFIG_TZ}"
+              _APPNAME_DATABASE_SOURCE:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-default-pguser-${APPNAME}"
+                    key: "pgbouncer-uri"
               GTS_STORAGE_S3_ACCESS_KEY:
                 valueFrom:
                   secretKeyRef:
@@ -139,12 +144,21 @@ spec:
           # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
         hosts:
           - host: &host "${APP_DNS_APPNAME}"
-            paths:
+            paths: &paths
               - path: /
                 pathType: Prefix
                 service:
                   name: main
                   port: http
+        tls:
+          - hosts: [*host]
+      tailscale:
+        enabled: true
+        primary: true
+        className: "tailscale"
+        hosts:
+          - host: &host "${APPNAME}"
+            paths: *paths
         tls:
           - hosts: [*host]
 #     dnsConfig:
@@ -238,3 +252,10 @@ spec:
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/${APPNAME}"
+                    operator: "DoesNotExist"
