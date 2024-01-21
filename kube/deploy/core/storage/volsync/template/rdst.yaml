@@ -16,6 +16,8 @@ spec:
     capacity: "${SIZE:=20Gi}"
     accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
     moverSecurityContext:
+      runAsNonRoot: true
       runAsUser: ${RUID:=1000}
       runAsGroup: ${RGID:=1000}
       fsGroup: ${RFSG:=1000}
+      seccompProfile: {type: "RuntimeDefault"}
