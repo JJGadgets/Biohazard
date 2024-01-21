@@ -116,7 +116,15 @@ spec:
           - hosts: [*host]
     persistence:
       config:
-        enabled: false
+        enabled: true
+        type: secret
+        name: "${APPNAME}-rclone"
+        advancedMounts:
+          main:
+            main:
+              - subPath: "rclone.conf"
+                path: "/.rclone.conf"
+                readOnly: true
       tmp:
         enabled: true
         type: emptyDir
