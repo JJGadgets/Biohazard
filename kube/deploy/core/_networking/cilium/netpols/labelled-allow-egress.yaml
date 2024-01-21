@@ -189,6 +189,30 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-github
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/github: allow
+  egress:
+    - toFQDNs:
+        - matchPattern: "github.com"
+        - matchPattern: "*.github.com"
+        - matchPattern: "*.github.dev"
+        - matchPattern: "*.github.io"
+        - matchPattern: "*.ghcr.io"
+        - matchPattern: "*.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: "TCP"
+            - port: "443"
+              protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-discord
 spec:
   endpointSelector:
@@ -203,6 +227,26 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-mullvad
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/mullvad: allow
+  egress:
+    - # SOCKS5 proxy
+      toCIDRSet:
+        - cidr: "10.8.0.1/32"
+        - cidr: "10.64.0.1/32"
+        - cidr: "10.124.0.0/23"
+      toPorts:
+        - ports:
+            - port: "1080"
+              protocol: "TCP"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
