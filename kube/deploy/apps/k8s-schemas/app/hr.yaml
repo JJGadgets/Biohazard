@@ -53,7 +53,7 @@ spec:
             image: &rcimg
               repository: "jank.ing/jjgadgets/rclone"
               tag: "1.65.1"
-            args: ["sync", "/.datree/crdSchemas", "r2:", "--progress", "--fast-list", "--checksum"]
+            args: ["sync", "/.datree/crdSchemas/", "r2:k8s-schemas/", "--progress", "--fast-list", "--checksum"]
             env:
               TZ: "${CONFIG_TZ}"
             securityContext: *sc
