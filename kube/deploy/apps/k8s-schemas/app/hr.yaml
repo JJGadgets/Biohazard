@@ -79,7 +79,7 @@ spec:
         containers:
           main:
             image: *rcimg
-            args: ["serve", "http", "rgw:", "--read-only", "--no-modtime", "--vfs-cache-mode", "full", "--cache-dir", "/tmp/cache"]
+            args: ["serve", "http", "rgw:", "--read-only", "--no-modtime", "--vfs-cache-mode", "full", "--cache-dir", "/tmp/cache", "--addr", ":8080"]
             envFrom:
               - secretRef:
                   name: "k8s-schemas-rgw"
@@ -118,7 +118,7 @@ spec:
       config:
         enabled: true
         type: secret
-        name: "${APPNAME}-rclone"
+        name: "k8s-schemas-rclone"
         advancedMounts:
           main:
             main:
