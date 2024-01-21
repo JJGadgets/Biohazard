@@ -4,6 +4,11 @@ kind: Kustomization
 metadata:
   name: k8s-schemas-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: &app k8s-schemas
 spec:
+  commonMetadata:
+    labels: *l
+  targetNamespace: *app
   path: ./kube/deploy/apps/k8s-schemas/app
   dependsOn: []
