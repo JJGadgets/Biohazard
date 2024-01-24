@@ -160,7 +160,7 @@ spec:
       # repository: "docker.io/psono/psono-client"
       # tag: "2.4.4"
       repository: public.ecr.aws/docker/library/caddy
-      tag: 2.7.6@sha256:bcf45332e3ebd42456f5fe63be2175ebfee971d85c2cd1bd837dd0beb422fa1c
+      tag: 2.7.6@sha256:30e260d85ca22c9a0e3624ec2f53ec634e57fecd2a1141095cac16d71ab72cfe
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
@@ -263,7 +263,7 @@ spec:
       # repository: "docker.io/psono/psono-admin-client"
       # tag: "1.6.11"
       repository: public.ecr.aws/docker/library/caddy
-      tag: 2.7.6@sha256:bcf45332e3ebd42456f5fe63be2175ebfee971d85c2cd1bd837dd0beb422fa1c
+      tag: 2.7.6@sha256:30e260d85ca22c9a0e3624ec2f53ec634e57fecd2a1141095cac16d71ab72cfe
     command: ["/usr/bin/caddy", "file-server", "--access-log", "--listen", ":8080", "--root", "/psono"]
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
