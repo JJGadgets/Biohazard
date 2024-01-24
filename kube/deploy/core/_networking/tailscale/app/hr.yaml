@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: tailscale-operator
-      version: 1.56.1
+      version: "1.57.90"
       sourceRef:
         name: *app
         kind: HelmRepository
@@ -17,7 +17,7 @@ spec:
     operatorConfig:
       image:
         repo: "ghcr.io/tailscale/k8s-operator"
-        tag: &v "v1.56.1"
+        tag: &v "unstable-v1.57.90"
       logging: "debug"
       hostname: "tailscale-operator-k8s"
       nodeSelector:
