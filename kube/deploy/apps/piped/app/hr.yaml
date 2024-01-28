@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: piped
-      version: 4.1.2
+      version: 5.0.0
       sourceRef:
         name: piped
         kind: HelmRepository
@@ -34,7 +34,10 @@ spec:
         database:
           connection_url: "jdbc:postgresql://pg-default-pgbouncer.pg.svc:5432/piped"
           driver_class: "org.postgresql.Driver"
-          secret: "pg-default-pguser-piped-fixed"
+          secret:
+            name: "pg-default-pguser-piped"
+            username: "username"
+            password: "password"
       podSecurityContext: &psc
         runAsUser: &uid ${APP_UID_PIPED}
         runAsGroup: *uid
