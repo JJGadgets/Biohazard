@@ -45,7 +45,7 @@
       "description": "Auto merge Github Actions",
       "matchManagers": ["github-actions"],
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "ignoreTests": true,
       "matchUpdateTypes": ["minor", "patch", "digest"]
     },
@@ -56,6 +56,23 @@
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
       "labels": ["kube-deploy-core"]
+    },
+    {
+      "description": "Auto merge all Renovate versions",
+      "matchPackagePatterns": ["renovate"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "labels": ["renovate-itself"]
+    },
+    {
+      "description": "Auto merge my own images with release dates as versions, these are images I couldn't think of a better way to do versioning because of too many moving parts",
+      "matchPackagePatterns": ["jjgadgets/k8s-crd-extractor"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "branch",
+      "labels": ["app-template"]
     },
     {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
