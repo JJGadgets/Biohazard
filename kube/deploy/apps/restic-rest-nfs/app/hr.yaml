@@ -1,0 +1,139 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app restic-rest-nfs
+  namespace: *app
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: "2.5.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            tailscale.com/expose: "true"
+        containers:
+          main:
+            image: &img
+              repository: "docker.io/restic/rest-server"
+              tag: "0.12.1@sha256:ab6a092c9ff968eb5fe66f4a855133970ddc842e02f9e51e3fdf96b95f0f816a"
+            env:
+              TZ: "${CONFIG_TZ}"
+              DISABLE_AUTHENTICATION: "true" # TODO: enable when VolSync adds support
+              OPTIONS: "--prometheus --prometheus-no-auth"
+              DATA_DIRECTORY: &data "/data"
+              #PASSWORD_FILE: &passwd "/secrets/.htpasswd"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6000Mi"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        #className: "nginx-external"
+        #annotations:
+        #  external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+        #  external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "restic.${DNS_SHORT}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      tailscale:
+        enabled: true
+        primary: true
+        className: "tailscale"
+        hosts:
+          - host: &host "restic.${DNS_TS}"
+            paths: *paths
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: false
+        #type: secret
+        #name: "restic-rest-nfs-secrets"
+        #advancedMounts:
+        #  main:
+        #    main:
+        #      - subPath: "htpasswd"
+        #        path: *htpasswd
+        #        readOnly: true
+      data:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_PERSIST_K8S}"
+        advancedMounts:
+          main:
+            main:
+              - subPath: *app
+                path: "/data"
+      tls:
+        enabled: false # TODO: install emberstack secrets copier and enable this, so it's TLS from client to pod, and change service to LB
+        #type: secret
+        #name: "restic-rest-nfs-tls"
+        #defaultMode: 0400
+        #advancedMounts:
+        #  main:
+        #    main:
+        #      - subPath: "tls.crt"
+        #        path: "/tls/fullchain.pem"
+        #        readOnly: true
+        #      - subPath: "tls.key"
+        #        path: "/tls/privkey.pem"
+        #        readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: &uid 1000 # TODO: change this
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: {type: "RuntimeDefault"}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/restic-rest-nfs"
+                    operator: "DoesNotExist"
