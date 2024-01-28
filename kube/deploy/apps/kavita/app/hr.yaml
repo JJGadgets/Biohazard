@@ -50,12 +50,12 @@ spec:
         primary: false
         ingressClassName: "tailscale"
         hosts:
-          - host: "read"
+          - host: "read.${DNS_TS}"
             paths:
               - path: /
                 pathType: Prefix
         tls:
-          - hosts: ["read"]
+          - hosts: ["read.${DNS_TS}"]
     persistence:
       config:
         enabled: true
