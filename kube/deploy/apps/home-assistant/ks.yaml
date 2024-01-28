@@ -1,0 +1,43 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: home-assistant-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "home-assistant"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/home-assistant/app
+  targetNamespace: "home-assistant"
+  dependsOn:
+    - name: home-assistant-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: home-assistant-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "home-assistant"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "home-assistant"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "home-assistant-data"
+      SIZE: "10Gi"
+      SC: "file"
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_HOME_ASSISTANT}
+      RGID: !!str |
+        ${APP_UID_HOME_ASSISTANT}
+      RFSG: !!str |
+        ${APP_UID_HOME_ASSISTANT}
