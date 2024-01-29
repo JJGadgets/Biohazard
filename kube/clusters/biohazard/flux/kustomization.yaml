@@ -13,6 +13,7 @@ resources:
   - ../../../deploy/core/_networking/tailscale/
   # - ../../../deploy/core/_networking/frr/
   - ../../../deploy/core/_networking/bird/
+  - ../../../deploy/core/spegel/
   - ../../../deploy/core/kyverno/_deps/
   - ../../../deploy/core/kyverno/
   - ../../../deploy/core/monitoring/_deps/
@@ -47,12 +48,13 @@ resources:
   - ../../../deploy/core/hardware/intel-device-plugins/
   - ../../../deploy/core/flux-system/
   - ../../../deploy/core/reloader/
+  - ../../../deploy/core/system-upgrade-controller/
+  - ../../../deploy/core/system-upgrade-controller/plans/talos/
   - ../../../deploy/apps/ # for the namespace
   - ../../../deploy/apps/tetragon/
   # - ../../../deploy/apps/renovate/
   # - ../../../deploy/apps/kubevirt/
   - ../../../deploy/apps/default/
-  - ../../../deploy/apps/spegel/
   - ../../../deploy/apps/whoogle/
   - ../../../deploy/apps/searxng/
   - ../../../deploy/apps/cyberchef/
