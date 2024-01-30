@@ -1,0 +1,42 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: findmydeviceserver-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "findmydeviceserver"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/findmydeviceserver/app
+  targetNamespace: "findmydeviceserver"
+  dependsOn:
+    - name: findmydeviceserver-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: findmydeviceserver-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "findmydeviceserver"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "findmydeviceserver"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "findmydeviceserver-data"
+      SIZE: "10Gi"
+      SC: "file"
+      RUID: !!str &uid |
+        ${APP_UID_FINDMYDEVICESERVER}
+      RGID: !!str |
+        ${APP_UID_FINDMYDEVICESERVER}
+      RFSG: !!str |
+        ${APP_UID_FINDMYDEVICESERVER}
