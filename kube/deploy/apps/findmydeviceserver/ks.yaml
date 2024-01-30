@@ -33,7 +33,8 @@ spec:
     substitute:
       PVC: "findmydeviceserver-data"
       SIZE: "10Gi"
-      SC: "file"
+      SC: &sc "file"
+      SNAP: *sc
       RUID: !!str &uid |
         ${APP_UID_FINDMYDEVICESERVER}
       RGID: !!str |
