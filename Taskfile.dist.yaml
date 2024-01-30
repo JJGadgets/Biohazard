@@ -38,6 +38,15 @@ tasks:
     silent: true
     cmds: ["task -l"]
 
+  gitconfig:
+    desc: Configure Git.
+    cmds:
+      - git config commit.gpgSign true
+      - git config pull.rebase true
+      - git config rebase.autostash true
+      - git config remote.origin.pushurl git@github.com:JJGadgets/Biohazard.git
+      - test -d $HOME/../usr/etc/termux/ && git config gpg.program $HOME/../usr/bin/okc-gpg || true
+
   n:
     desc: Create new folder and file within new folder at the same time.
     vars:
