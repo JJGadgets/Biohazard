@@ -44,6 +44,7 @@ tasks:
       - git config commit.gpgSign true
       - git config pull.rebase true
       - git config rebase.autostash true
+      - git config push.autoSetupRemote true
       - git config remote.origin.pushurl git@github.com:JJGadgets/Biohazard.git
       - test -d $HOME/../usr/etc/termux/ && git config gpg.program $HOME/../usr/bin/okc-gpg || true
 
