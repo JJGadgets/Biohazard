@@ -14,11 +14,21 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
+    image2:
+      repository: "ghcr.io/goauthentik/server"
+      tag: "2023.10.7" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
+      digest: "sha256:8ebdd51a95d3efdcb0cf3b26ed849cc0f9a8c032adb8cd595cabb59a1f321161"
+      pullPolicy: IfNotPresent
     # server is in active-active, 3 replicas seems to confuse authentik
-    replicas: 1
+    replicas: 2
     worker:
       # workers don't need leader election, thus any size works
-      replicas: 1
+      replicas: 2
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
     service:
       port: 9000
     ingress:
@@ -98,3 +108,24 @@ spec:
     redis:
       enabled: false
     blueprints: []
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: fuckoff.home.arpa/home-assistant
+              operator: DoesNotExist
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: *app
+                app.kubernetes.io/instance: *app
+                app.kubernetes.io/component: server
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: *app
+                app.kubernetes.io/instance: *app
+                app.kubernetes.io/component: worker
