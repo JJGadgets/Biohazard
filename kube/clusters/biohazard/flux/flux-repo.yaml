@@ -122,6 +122,16 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/default notin (false)
+    - patch: |
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: zzz-flux-repos-helm
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/default notin (false)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
