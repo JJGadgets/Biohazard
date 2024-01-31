@@ -1,0 +1,114 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app authentik
+spec:
+  chart:
+    spec:
+      chart: *app
+      version: &vers 2023.10.5
+      sourceRef:
+        name: *app
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    image:
+      repository: "ghcr.io/goauthentik/server"
+      tag: "2023.10.5" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
+      digest: "sha256:f019439323ae8ffb88771584641072ffb64079a895d8d15ee7ada2da210de2a1"
+      pullPolicy: IfNotPresent
+    # server is in active-active, 3 replicas seems to confuse authentik
+    replicas: 2
+    worker:
+      # workers don't need leader election, thus any size works
+      replicas: 2
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+    service:
+      port: 9000
+    ingress:
+      enabled: false
+    volumes:
+    - name: authentik-tls
+      secret:
+        secretName: authentik-tls
+        optional: false
+        items:
+        - key: tls.crt
+          path: fullchain.pem
+        - key: tls.key
+          path: privkey.pem
+    volumeMounts:
+    - name: authentik-tls
+      mountPath: /certs/${APP_DNS_AUTH}-k8s
+      readOnly: true
+    authentik:
+      log_level: debug
+      secret_key: "${SECRET_AUTHENTIK_SECRET_KEY}"
+      email:
+        host: "${SECRET_AUTHENTIK_SMTP_HOST}"
+        port: 587
+        username: "${SECRET_AUTHENTIK_SMTP_USERNAME}"
+        password: "${SECRET_AUTHENTIK_SMTP_PASSWORD}"
+        use_tls: true
+        from: "${SECRET_AUTHENTIK_SMTP_FROM}"
+      outposts:
+        container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
+      error_reporting:
+        enabled: false
+        send_pii: false
+      postgresql:
+        enabled: false
+        host: 'pg-authentik-primary.authentik.svc.cluster.local'
+        port: 5432
+        name: ""
+        user: ""
+        password: ""
+      redis:
+        host: "authentik-redis.authentik.svc.cluster.local"
+        password: ""
+    envValueFrom:
+      AUTHENTIK_POSTGRESQL__NAME:
+        secretKeyRef:
+          name: &pgsec pg-authentik-pguser-authentik
+          key: dbname
+      AUTHENTIK_POSTGRESQL__USER:
+        secretKeyRef:
+          name: *pgsec
+          key: user
+      AUTHENTIK_POSTGRESQL__PASSWORD:
+        secretKeyRef:
+          name: *pgsec
+          key: password
+      AUTHENTIK_REDIS__PASSWORD:
+        secretKeyRef:
+          name: authentik-redis
+          key: password
+    redis:
+      enabled: false
+    blueprints: []
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: fuckoff.home.arpa/home-assistant
+              operator: DoesNotExist
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: *app
+                app.kubernetes.io/instance: *app
+                app.kubernetes.io/component: server
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: *app
+                app.kubernetes.io/instance: *app
+                app.kubernetes.io/component: worker
