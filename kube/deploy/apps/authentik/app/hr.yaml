@@ -14,10 +14,15 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-    image2:
+    image:
       repository: "ghcr.io/goauthentik/server"
       tag: "2023.10.7" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
       digest: "sha256:8ebdd51a95d3efdcb0cf3b26ed849cc0f9a8c032adb8cd595cabb59a1f321161"
+      pullPolicy: IfNotPresent 
+    image2: # Renovate test
+      repository: "ghcr.io/goauthentik/server"
+      tag: "2023.10.5" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
+      digest: "sha256:f019439323ae8ffb88771584641072ffb64079a895d8d15ee7ada2da210de2a1"
       pullPolicy: IfNotPresent
     # server is in active-active, 3 replicas seems to confuse authentik
     replicas: 2
