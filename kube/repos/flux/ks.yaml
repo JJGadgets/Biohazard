@@ -4,8 +4,28 @@ kind: Kustomization
 metadata:
   name: zzz-flux-repos-helm
   namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "flux"
+    kustomization.flux.home.arpa/default: "false"
+    wait.flux.home.arpa/disabled: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
+  interval: 5m0s
   path: ./kube/repos/flux/helm
-  dependsOn: []
-  wait: true
   prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: biohazard-secrets-decrypt-sops-age
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: biohazard-vars
+        optional: false
+      - kind: Secret
+        name: biohazard-secrets
+        optional: false
