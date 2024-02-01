@@ -4,8 +4,13 @@ kind: Kustomization
 metadata:
   name: ${APPNAME}-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/${APPNAME}/app
+  targetNamespace: "${APPNAME}"
   dependsOn:
     - name: ${APPNAME}-db
     - name: ${APPNAME}-pvc
@@ -15,7 +20,11 @@ kind: Kustomization
 metadata:
   name: ${APPNAME}-pvc
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/storage/volsync/template
   targetNamespace: "${APPNAME}"
   dependsOn:
@@ -25,8 +34,9 @@ spec:
     substitute:
       PVC: "${APPNAME}-data"
       SIZE: "10Gi"
-      SC: "block"
-      RUID: &uid !!str |
+      SC: &sc "file"
+      SNAP: *sc
+      RUID: !!str &uid |
         ${APP_UID_APPNAME}
       RGID: !!str |
         ${APP_UID_APPNAME}
@@ -38,10 +48,13 @@ kind: Kustomization
 metadata:
   name: ${APPNAME}-db
   namespace: flux-system
-  labels:
+  labels: &l
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"
+    app.kubernetes.io/name: "${APPNAME}"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:

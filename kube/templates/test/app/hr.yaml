@@ -5,10 +5,11 @@ metadata:
   name: &app ${APPNAME}
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: "2.4.0"
+      version: "2.5.0"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -81,9 +82,9 @@ spec:
         initContainers:
           01-init-${APPNAME}-admin-password:
             command:
-            - /bin/sh
-            - -c
-            - '[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin'
+              - /bin/sh
+              - -c
+              - "[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin"
             image: *img
             imagePullPolicy: IfNotPresent
             # TODO: add example PVC initContainer mounts to persistence/volumeClaimTemplates
@@ -92,7 +93,7 @@ spec:
               repository: "ghcr.io/onedr0p/postgres-init"
               tag: "15.5@sha256:70b4c228f2e86de39008a35211c76c1ac6de1dcdf0e908ac09ede6a11e2344e2"
             imagePullPolicy: IfNotPresent
-            envFrom: [secretRef: {name: "${APPNAME}-pg-superuser"}]
+            envFrom: [secretRef: { name: "${APPNAME}-pg-superuser" }]
     service:
       main:
         ports:
@@ -103,7 +104,6 @@ spec:
         primary: false
         controller: main
         type: LoadBalancer
-        # eTP can be Cluster (for HA & failover) instead of Local since Cilium is configured in DSR mode, so proper source IP will still work
         externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_APPNAME}"
@@ -137,8 +137,6 @@ spec:
           nginx.ingress.kubernetes.io/server-snippet: |
             proxy_ssl_name ${APP_DNS_APPNAME};
             proxy_ssl_server_name on;
-            large_client_header_buffers 4 8k;
-            client_header_buffer_size 8k;
           # without header buffer size, will get following errors due to hardening ingress-nginx number of header buffers to 2 and header buffer size to 1k:
           # HTTP1.1 /v1/auth/valid: 400 Request Header Or Cookie Too Large
           # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
@@ -157,14 +155,14 @@ spec:
         primary: true
         className: "tailscale"
         hosts:
-          - host: &host "${APPNAME}"
+          - host: &host "${APPNAME}.${DNS_TS}"
             paths: *paths
         tls:
           - hosts: [*host]
-#     dnsConfig:
-#       options:
-#         - name: ndots
-#           value: "1"
+    #     dnsConfig:
+    #       options:
+    #         - name: ndots
+    #           value: "1"
     persistence:
       config:
         enabled: true
@@ -179,27 +177,26 @@ spec:
       data:
         enabled: true
         existingClaim: "${APPNAME}-data"
-        advancedMounts:
-          main:
-            main:
-              - path: "/data"
-            01-init-${APPNAME}-admin-password:
-              - path: "/data"
+        globalMounts:
+          - subPath: "data"
+            path: "/data"
       nfs:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/${APPNAME}"
+        path: "${PATH_NAS_PERSIST_K8S}"
         advancedMounts:
           main:
             main:
-              - path: "/nfs"
+              - subPath: "${APPNAME}"
+                path: "/nfs"
       tmp:
         enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "tmp"
+            path: "/tmp"
             readOnly: false
       tls:
         enabled: true
@@ -239,12 +236,12 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       securityContext:
-        runAsNonRoot: false
+        runAsNonRoot: true
         runAsUser: &uid ${APP_UID_APPNAME}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
-        seccompProfile: {type: "RuntimeDefault"}
+        seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
