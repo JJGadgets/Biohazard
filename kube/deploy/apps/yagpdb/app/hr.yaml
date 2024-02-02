@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "jank.ing/jjgadgets/yagpdb"
-              tag: "2.33.1"
+              tag: "2.33.1@sha256:c7bf44e149be33df739ee06967764080ab1dd2080efd049d56d666a2f4cffde7"
             env:
               TZ: "${CONFIG_TZ}"
               YAGPDB_HOST: "${APP_DNS_YAGPDB}"
