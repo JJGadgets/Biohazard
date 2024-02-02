@@ -17,6 +17,17 @@ spec:
   dependsOn:
     - name: code-server-pvc
   wait: false
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: biohazard-vars
+        optional: false
+      - kind: Secret
+        name: biohazard-secrets
+        optional: false
+      - kind: Secret
+        name: biohazard-secrets-decrypt-sops-age
+        optional: false
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -42,13 +53,3 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
-    substituteFrom:
-      - kind: Secret
-        name: biohazard-vars
-        optional: false
-      - kind: Secret
-        name: biohazard-secrets
-        optional: false
-      - kind: Secret
-        name: biohazard-secrets-decrypt-sops-age
-        optional: false
