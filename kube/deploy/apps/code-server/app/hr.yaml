@@ -80,8 +80,13 @@ spec:
         primary: true
         className: "tailscale"
         hosts:
-          - host: &host "vs.${DNS_TS}"
-            paths: *paths
+          - host: "vs.${DNS_TS}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
         tls:
           - hosts: [*host]
     persistence:
