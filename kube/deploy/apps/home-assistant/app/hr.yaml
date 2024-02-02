@@ -60,12 +60,14 @@ spec:
               - "none"
               - "--disable-telemetry"
               - "--user-data-dir"
-              - "/config/.vscode"
+              - "/home/coder/.vscode"
               - "--extensions-dir"
-              - "/config/.vscode"
+              - "/home/coder/.vscode"
+              - "--bind-addr"
+              - "0.0.0.0:8080"
               - "--port"
               - "8080"
-              - "/config"
+              - "/home/coder"
             env:
               TZ: "${CONFIG_TZ}"
             securityContext: *sc
@@ -119,15 +121,23 @@ spec:
       config:
         enabled: true
         existingClaim: "home-assistant-data"
-        globalMounts:
-          - subPath: "config"
-            path: "/config"
+        advancedMounts:
+          main:
+            main:
+              - subPath: "config"
+                path: "/config"
+                readOnly: false
+          vscode:
+            main:
+              - path: "/home/coder"
+                readOnly: false
       tmp:
         enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "tmp"
+            path: "/tmp"
             readOnly: false
     defaultPodOptions:
       automountServiceAccountToken: false
