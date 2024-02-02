@@ -106,7 +106,13 @@ spec:
           - hosts: [*host]
     persistence:
       config:
-        enabled: false
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "soundboard"
+            path: "/app/soundboard"
+            readOnly: false
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
