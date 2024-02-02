@@ -221,6 +221,12 @@ spec:
   egress:
     - toFQDNs:
         - matchPattern: "discord.com"
+        - matchPattern: "*.discord.com"
+        - matchPattern: "discordapp.com"
+        - matchPattern: "*.discordapp.com"
+        - matchPattern: "discord.gg"
+        - matchPattern: "*.discord.gg"
+        - matchPattern: "gateway.discord.gg"
       toPorts:
         - ports:
             - port: "443"
