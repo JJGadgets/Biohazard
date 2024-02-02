@@ -6,6 +6,8 @@ metadata:
   namespace: flux-system
   labels: &l
     app.kubernetes.io/name: "code-server"
+    wait.flux.home.arpa/disabled: "true"
+    wait.flux.home.arpa/enabled: "false"
 spec:
   commonMetadata:
     labels: *l
@@ -13,6 +15,7 @@ spec:
   targetNamespace: "code-server"
   dependsOn:
     - name: code-server-pvc
+  wait: false
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
