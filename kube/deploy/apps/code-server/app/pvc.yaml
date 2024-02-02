@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "code-server-misc"
+  namespace: &app "code-server"
+  annotations:
+    description: "PVC for misc files that don't need to be backed up, like Homebrew or Nix Store."
+  labels:
+    app.kubernetes.io/name: *app
+    snapshot.home.arpa/enabled: "true"
+spec:
+  storageClassName: "block"
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: "50Gi"

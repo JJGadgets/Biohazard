@@ -33,7 +33,7 @@ spec:
     substitute:
       PVC: "code-server-data"
       SIZE: "50Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
       RUID: &uid "1000"
       RGID: *uid

@@ -46,6 +46,7 @@ spec:
               - &dir "/home/coder"
             env:
               TZ: "${CONFIG_TZ}"
+              SSH_AUTH_SOCK: ""
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -97,12 +98,38 @@ spec:
         enabled: true
         existingClaim: "code-server-data"
         globalMounts:
+          - subPath: "data"
+            path: *dir
+      misc: # not backed up
+        enabled: true
+        existingClaim: "code-server-misc"
+        globalMounts:
           - subpath: "brew"
             path: "/home/linuxbrew"
           - subpath: "nix"
             path: "/nix"
-          - subPath: "data"
-            path: *dir
+      ssh:
+        enabled: true
+        type: secret
+        name: "code-server-ssh"
+        defaultMode: 0600
+        advancedMounts:
+          main:
+            main:
+              - subPath: "privkey"
+                path: "/home/coder/.ssh/id_rsa"
+                readOnly: true
+              - subPath: "pubkey"
+                path: "/home/coder/.ssh/id_rsa.pub"
+                readOnly: true
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
