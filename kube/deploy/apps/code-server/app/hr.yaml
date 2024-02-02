@@ -54,7 +54,7 @@ spec:
               limits:
                 cpu: "1000m" # I previously had a code-server that would eat cores
                 memory: "1Gi"
-          main:
+          nix:
             image:
               repository: "docker.io/nixos/nix"
               tag: "2.20.1@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769"
