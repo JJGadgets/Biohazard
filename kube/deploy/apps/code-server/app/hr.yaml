@@ -80,7 +80,7 @@ spec:
         primary: true
         className: "tailscale"
         hosts:
-          - host: "vs.${DNS_TS}"
+          - host: &host "vs.${DNS_TS}"
             paths:
               - path: /
                 pathType: Prefix
