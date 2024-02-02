@@ -1,0 +1,40 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: code-server-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "code-server"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/code-server/app
+  targetNamespace: "code-server"
+  dependsOn:
+    - name: code-server-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: code-server-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "code-server"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "code-server"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "code-server-data"
+      SIZE: "50Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
