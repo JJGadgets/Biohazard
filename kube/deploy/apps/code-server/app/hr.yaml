@@ -31,22 +31,23 @@ spec:
               repository: "ghcr.io/coder/code-server"
               tag: "4.20.1"
             command: ["dumb-init", "/usr/bin/code-server"]
-            args:
-              - "--auth"
-              - "none"
-              - "--disable-telemetry"
-              - "--user-data-dir"
-              - "/home/coder/.vscode"
-              - "--extensions-dir"
-              - "/home/coder/.vscode"
-              - "--bind-addr"
-              - "0.0.0.0:8080"
-              - "--port"
-              - &port "8080"
-              - &dir "/home/coder"
+            args: [
+              "--auth", "none",
+              "--disable-telemetry",
+              "--user-data-dir", "/home/coder/.vscode",
+              "--extensions-dir", "/home/coder/.vscode",
+              "--bind-addr", "0.0.0.0:8080",
+              "--port", "8080",
+              "/home/coder"
+            ]
             env:
               TZ: "${CONFIG_TZ}"
               SSH_AUTH_SOCK: ""
+              SOPS_AGE_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "code-server-secrets"
+                    key: "age.agekey"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -58,31 +59,18 @@ spec:
               limits:
                 cpu: "1000m" # I previously had a code-server that would eat cores
                 memory: "1Gi"
-          #nix:
-          #  image:
-          #    repository: "docker.io/nixos/nix"
-          #    tag: "2.20.1@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769"
-          #  args: ["-c", "sleep infinity"]
-          #  env:
-          #    TZ: "${CONFIG_TZ}"
-          #  securityContext: *sc
-          #  resources:
-          #    requests:
-          #      cpu: "10m"
-          #      memory: "256Mi"
-          #    limits:
-          #      cpu: "1000m" # I previously had a code-server that would eat cores
-          #      memory: "1Gi"
     service:
       main:
         ports:
           http:
-            port: *port
+            port: 8080
     ingress:
       main:
         enabled: true
         primary: true
         className: "tailscale"
+        annotations:
+          tailscale.com/tags: "tag:jjgadgets-apps"
         hosts:
           - host: &host "vs.${DNS_TS}"
             paths:
@@ -99,27 +87,29 @@ spec:
         existingClaim: "code-server-data"
         globalMounts:
           - subPath: "data"
-            path: *dir
+            path: "/home/coder"
+          - subPath: "ssh"
+            path: "/home/coder/.ssh" # override secret mount perms
       misc: # not backed up
         enabled: true
         existingClaim: "code-server-misc"
         globalMounts:
-          - subpath: "brew"
+          - subPath: "brew"
             path: "/home/linuxbrew"
-          - subpath: "nix"
+          - subPath: "nix"
             path: "/nix"
-      ssh:
+      secrets:
         enabled: true
         type: secret
-        name: "code-server-ssh"
+        name: "code-server-secrets"
         defaultMode: 0600
         advancedMounts:
           main:
             main:
-              - subPath: "privkey"
+              - subPath: "ssh-privkey"
                 path: "/home/coder/.ssh/id_rsa"
                 readOnly: true
-              - subPath: "pubkey"
+              - subPath: "ssh-pubkey"
                 path: "/home/coder/.ssh/id_rsa.pub"
                 readOnly: true
       tmp:
@@ -130,9 +120,12 @@ spec:
           - subPath: "tmp"
             path: "/tmp"
             readOnly: false
+    serviceAccount:
+      name: "code-server"
+      create: true
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
+      automountServiceAccountToken: true
+      enableServiceLinks: true
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000

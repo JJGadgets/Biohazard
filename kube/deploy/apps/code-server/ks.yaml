@@ -38,3 +38,7 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+    substituteFrom:
+      - kind: Secret
+        name: biohazard-secrets-decrypt-sops-age
+        optional: false
