@@ -36,12 +36,14 @@ spec:
               - "none"
               - "--disable-telemetry"
               - "--user-data-dir"
-              - "/home/jjgadgets/.vscode"
+              - "/home/coder/.vscode"
               - "--extensions-dir"
-              - "/home/jjgadgets/.vscode"
+              - "/home/coder/.vscode"
+              - "--bind-addr"
+              - "0.0.0.0:8080"
               - "--port"
               - &port "8080"
-              - &dir "/home/jjgadgets"
+              - &dir "/home/coder"
             env:
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
@@ -55,21 +57,21 @@ spec:
               limits:
                 cpu: "1000m" # I previously had a code-server that would eat cores
                 memory: "1Gi"
-          nix:
-            image:
-              repository: "docker.io/nixos/nix"
-              tag: "2.20.1@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769"
-            args: ["-c", "sleep infinity"]
-            env:
-              TZ: "${CONFIG_TZ}"
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-                memory: "256Mi"
-              limits:
-                cpu: "1000m" # I previously had a code-server that would eat cores
-                memory: "1Gi"
+          #nix:
+          #  image:
+          #    repository: "docker.io/nixos/nix"
+          #    tag: "2.20.1@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769"
+          #  args: ["-c", "sleep infinity"]
+          #  env:
+          #    TZ: "${CONFIG_TZ}"
+          #  securityContext: *sc
+          #  resources:
+          #    requests:
+          #      cpu: "10m"
+          #      memory: "256Mi"
+          #    limits:
+          #      cpu: "1000m" # I previously had a code-server that would eat cores
+          #      memory: "1Gi"
     service:
       main:
         ports:
