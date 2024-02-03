@@ -56,9 +56,10 @@ spec:
             resources:
               requests:
                 cpu: "10m"
+                memory: "512Mi"
               limits:
                 cpu: "1000m" # I previously had a code-server that would eat cores
-                memory: "1Gi"
+                memory: "4Gi"
     service:
       main:
         ports:
@@ -68,17 +69,29 @@ spec:
       main:
         enabled: true
         primary: true
-        className: "tailscale"
+        className: "nginx-internal"
         annotations:
-          tailscale.com/tags: "tag:jjgadgets-apps"
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            ${IP_JJ_V4}
         hosts:
-          - host: &host "vs.${DNS_TS}"
-            paths:
+          - host: &host "vs.${DNS_SHORT}"
+            paths: &paths
               - path: /
                 pathType: Prefix
                 service:
                   name: main
                   port: http
+        tls:
+          - hosts: [*host]
+      tailscale:
+        enabled: true
+        primary: false
+        className: "tailscale"
+        annotations:
+          tailscale.com/tags: "tag:jjgadgets-apps"
+        hosts:
+          - host: &host "vs.${DNS_TS}"
+            paths: *paths
         tls:
           - hosts: [*host]
     persistence:
