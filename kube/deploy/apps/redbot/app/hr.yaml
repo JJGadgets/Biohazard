@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: "jank.ing/jjgadgets/redbot"
-              tag: "3.5.5@sha256:969550b243870ba9bde551fb1e3a5bc22b84d347529940d39b2c900855dd5646"
+              tag: "3.5.5@sha256:d13749a827d654733dc98c753ed3ad690e235071adac71b95723d42fc7b4d33f"
             env:
               TZ: "${CONFIG_TZ}"
               NAME: "JJGadgets"
@@ -83,10 +83,10 @@ spec:
         advancedMounts:
           main:
             main:
-              - subPath: "token"
+              - subPath: "TOKEN"
                 path: *token
                 readOnly: true
-              - subPath: "owner"
+              - subPath: "OWNER"
                 path: *owner
                 readOnly: true
       pg:
