@@ -4,13 +4,39 @@ kind: Kustomization
 metadata:
   name: jellyfin-app
   namespace: flux-system
-  labels:
-    prune.flux.home.arpa/enabled: "true"
+  labels: &l
+    app.kubernetes.io/name: "jellyfin"
 spec:
-  prune: true
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/jellyfin/app
+  targetNamespace: "jellyfin"
   dependsOn:
-    - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-ingress-nginx-app
-    - name: 1-core-hardware-intel-device-plugins-app
+    - name: jellyfin-db
+    - name: jellyfin-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: jellyfin-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "jellyfin"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "jellyfin"
+  dependsOn:
     - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "jellyfin-data"
+      SIZE: "50Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: &uid "568"
+      RGID: *uid
+      RFSG: *uid
