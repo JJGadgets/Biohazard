@@ -45,6 +45,7 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
+                gpu.intel.com/i915: "1"
     service:
       main:
         ports:
