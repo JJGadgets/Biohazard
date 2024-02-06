@@ -4,15 +4,15 @@ kind: Kustomization
 resources:
   - ./externalsecret-secrets.yaml
   - ./externalsecret-vars.yaml
-secretGenerator:
-  - name: biohazard-secrets
-    namespace: flux-system
-    envs:
-      - ./secrets.sops.env
-  - name: biohazard-vars
-    namespace: flux-system
-    envs:
-      - ./vars.sops.env
+#secretGenerator:
+#  - name: biohazard-secrets
+#    namespace: flux-system
+#    envs:
+#      - ./secrets.sops.env
+#  - name: biohazard-vars
+#    namespace: flux-system
+#    envs:
+#      - ./vars.sops.env
 generatorOptions:
   disableNameSuffixHash: true
   labels:
