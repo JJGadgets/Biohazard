@@ -1,0 +1,106 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app homebox
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.5.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+        containers:
+          main:
+            image: &img
+              repository: "ghcr.io/hay-kot/homebox"
+              tag: "v0.10.3-rootless@sha256:cc6e3b7fa40e3259cb8cac8e5d3e594eb63a68abd16c51029d59460f7fed1212"
+            env:
+              TZ: "${CONFIG_TZ}"
+              HBOX_MODE: "production"
+              HBOX_WEB_PORT: &http "7745"
+              HBOX_WEB_MAX_UPLOAD_SIZE: "100" # in MB
+              HBOX_OPTIONS_ALLOW_REGISTRATION: "${CONFIG_HOMEBOX_ALLOW_REGISTRATION}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6000Mi"
+    service:
+      main:
+        ports:
+          http:
+            port: *http
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        hosts:
+          - host: &host "${APP_DNS_HOMEBOX}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: true
+        existingClaim: "homebox-data"
+        globalMounts:
+          - subPath: "data"
+            path: "/data"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_HOMEBOX}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/homebox"
+                    operator: "DoesNotExist"
