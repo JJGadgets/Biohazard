@@ -15,3 +15,6 @@ secretGenerator:
       - ./vars.sops.env
 generatorOptions:
   disableNameSuffixHash: true
+  labels:
+    kustomize.toolkit.fluxcd.io/ssa: "merge"
+    kustomize.toolkit.fluxcd.io/prune: "disabled"
