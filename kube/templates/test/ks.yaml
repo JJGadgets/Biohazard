@@ -36,6 +36,7 @@ spec:
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
       RUID: !!str &uid |
         ${APP_UID_APPNAME}
       RGID: !!str |

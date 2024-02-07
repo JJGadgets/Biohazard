@@ -50,7 +50,7 @@ spec:
             envFrom:
               - secretRef:
                   name: "${APPNAME}-secrets"
-            securityContext:
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
