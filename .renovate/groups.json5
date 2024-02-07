@@ -39,7 +39,9 @@
         "commitMessageTopic": "{{{groupName}}} group"
       },
       "separateMultipleMajor": true,
-      "separateMinorPatch": true
+      "separateMinorPatch": true,
+      // TODO: Helm chart uses separate key for digests, which Renovate seems to not recognize? maybe patching the image would be better?
+      "pinDigests": false
     },
     {
       "description": "Auto merge Github Actions",
