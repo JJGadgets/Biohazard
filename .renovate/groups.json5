@@ -100,6 +100,13 @@
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true
     },
+    // manually approve app-template major releases
+    {
+      "matchPackagePatterns": ["app-template"],
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": false
+      "automerge": false,
+    },
     // Miniflux enforce distroless images
     {
       "matchDatasources": ["docker"],
