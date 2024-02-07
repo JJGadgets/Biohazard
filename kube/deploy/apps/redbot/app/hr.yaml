@@ -75,6 +75,15 @@ spec:
         globalMounts:
           - subPath: "config"
             path: *path
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+          - subPath: "cache"
+            path: "/.cache"
       secrets:
         enabled: true
         type: secret
