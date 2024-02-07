@@ -12,7 +12,6 @@ spec:
   path: ./kube/deploy/apps/jellyfin/app
   targetNamespace: "jellyfin"
   dependsOn:
-    - name: jellyfin-db
     - name: jellyfin-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
