@@ -29,7 +29,7 @@ spec:
       mon_data_avail_warn = 10
     cephClusterSpec:
       cephVersion:
-        image: "quay.io/ceph/ceph:v18.2.0" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
+        image: "quay.io/ceph/ceph:v18.2.1@sha256:dd9f859e0dd1307841f0427a1935ff6349b16923b08c5d6f5dea913149f2f12d" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
       network:
         #provider: host
         connections:
