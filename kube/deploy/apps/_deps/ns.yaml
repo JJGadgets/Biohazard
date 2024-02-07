@@ -12,8 +12,9 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "${USERS_1_ID}"
+  name: &name "${USERS_1_ID:=user}"
   labels:
+    user.home.arpa/id: *name
     kustomize.toolkit.fluxcd.io/prune: disabled
     pod-security.kubernetes.io/enforce: &ps restricted
     pod-security.kubernetes.io/audit: *ps
@@ -22,8 +23,9 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "${USERS_1_ID}"
+  name: &name "${USERS_2_ID:=user}"
   labels:
+    user.home.arpa/id: *name
     kustomize.toolkit.fluxcd.io/prune: disabled
     pod-security.kubernetes.io/enforce: &ps restricted
     pod-security.kubernetes.io/audit: *ps
@@ -32,8 +34,9 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "${USERS_1_ID}"
+  name: &name "${USERS_3_ID:=user}"
   labels:
+    user.home.arpa/id: *name
     kustomize.toolkit.fluxcd.io/prune: disabled
     pod-security.kubernetes.io/enforce: &ps restricted
     pod-security.kubernetes.io/audit: *ps

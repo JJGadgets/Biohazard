@@ -1,0 +1,57 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: "${USERS_1_ID:=user1}-deps"
+  namespace: flux-system
+  labels: &l
+    user.home.arpa/id: &user "${USERS_1_ID:=user1}"
+spec:
+  commonMetadata:
+    labels: *l
+  path: "./kube/deploy/apps/_deps"
+  targetNamespace: *user
+  dependsOn:
+    - name: "0-${CLUSTER_NAME:=biohazard}-config"
+  postBuild:
+    substitute:
+      USER: *user
+      USERNUM: "1"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: "${USERS_2_ID:=user2}-deps"
+  namespace: flux-system
+  labels: &l
+    user.home.arpa/id: &user "${USERS_2_ID:=user2}"
+spec:
+  commonMetadata:
+    labels: *l
+  path: "./kube/deploy/apps/_deps"
+  targetNamespace: *user
+  dependsOn:
+    - name: "0-${CLUSTER_NAME:=biohazard}-config"
+  postBuild:
+    substitute:
+      USER: *user
+      USERNUM: "2"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: "${USERS_3_ID:=user3}-deps"
+  namespace: flux-system
+  labels: &l
+    user.home.arpa/id: &user "${USERS_3_ID:=user3}"
+spec:
+  commonMetadata:
+    labels: *l
+  path: "./kube/deploy/apps/_deps"
+  targetNamespace: *user
+  dependsOn:
+    - name: "0-${CLUSTER_NAME:=biohazard}-config"
+  postBuild:
+    substitute:
+      USER: *user
+      USERNUM: "3"

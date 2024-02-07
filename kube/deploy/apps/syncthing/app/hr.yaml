@@ -1,0 +1,135 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app syncthing
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.5.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+        containers:
+          main:
+            image: &img
+              repository: "docker.io/syncthing/syncthing"
+              tag: "1.27.2@sha256:72d4569a11371e1eac4aa9351f7e07c6ff96f384e59e96dce9458e3a7bbd3627"
+            env:
+              TZ: "Asia/Singapore"
+              PUID: "${USER_UID}"
+              PGID: "${USER_UID}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+    service:
+      main:
+        primary: false
+        ports:
+          http:
+            port: 8080
+      sync:
+        enabled: true
+        primary: true
+        controller: main
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${USER_DNS_SYNCTHING}"
+          "io.cilium/lb-ipam-ips": "${USER_IP_SYNCTHING}"
+        ports:
+          datatcp:
+            enabled: true
+            port: 22000
+            protocol: TCP
+            targetPort: 22000
+          dataquic:
+            enabled: true
+            port: 22000
+            protocol: UDP
+            targetPort: 22000
+          discovery:
+            enabled: true
+            port: 21027
+            protocol: UDP
+            targetPort: 21027
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        hosts:
+          - host: &host "${USER_DNS_SYNCTHING}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: true
+        existingClaim: "syncthing-data"
+        globalMounts:
+          - subPath: "syncthing"
+            path: "/var/syncthing"
+      nfs:
+        enabled: true
+        existingClaim: "${USER}-nfs"
+        globalMounts:
+          - subPath: "syncthing"
+            path: "/nas"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${USER_UID:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/syncthing"
+                    operator: "DoesNotExist"
