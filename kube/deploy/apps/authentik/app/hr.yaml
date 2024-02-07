@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: "ghcr.io/goauthentik/server"
-      tag: "2023.10.7" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
+      tag: "2023.10.7@sha256:8ebdd51a95d3efdcb0cf3b26ed849cc0f9a8c032adb8cd595cabb59a1f321161" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
       digest: "sha256:8ebdd51a95d3efdcb0cf3b26ed849cc0f9a8c032adb8cd595cabb59a1f321161" # TODO: apparently Renovate doesn't see this as a digest?
       pullPolicy: IfNotPresent 
     # server is in active-active, 3 replicas seems to confuse authentik
