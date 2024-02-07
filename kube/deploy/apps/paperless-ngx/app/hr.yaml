@@ -133,7 +133,7 @@ spec:
           main:
             image:
               repository: "docker.io/gotenberg/gotenberg"
-              tag: "8.0.2@sha256:50ddab5dd5fbd152b55497ee7978efc34f7e00e4326b70140401859155cf1f8f"
+              tag: "8.0.3@sha256:88f5b04a500c17729fcd127d19eb4e96b805e0c3976570d908f3fdf8a1da7e09"
             command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
             securityContext: *sc
             resources: # TODO: adjust (Go app)
