@@ -12,3 +12,15 @@ spec:
   dataFrom:
     - extract:
         key: "Code Server (${CLUSTER_NAME})"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    template:
+      mergePolicy: Replace
+      engineVersion: v2
+      type: Opaque
+      data:
+        # need that newline, can't figure out how to keep the newline other than YAML block with newline and base64 encoding the key with the newline in it
+        ssh-privkey: |
+          {{ .sshPrivKeyB64 | b64dec }}
+        ssh-pubkey: "{{ .sshPubKey }}"
