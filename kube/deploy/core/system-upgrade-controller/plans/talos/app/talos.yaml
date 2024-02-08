@@ -25,7 +25,7 @@ spec:
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
       - |
-        --for=jsonpath='{.status.ceph.health}'='HEALTH_OK'
+        --for=jsonpath=.status.ceph.health=HEALTH_OK
       - "cephcluster"
       - "--all"
       - "--all-namespaces"
