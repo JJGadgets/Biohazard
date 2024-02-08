@@ -21,18 +21,35 @@ spec:
     matchLabels:
       kubernetes.io/os: "linux"
   prepare: &prepare
+    image: "registry.k8s.io/kubectl:v1.29.1@sha256:59b3035b8826b0a1d5d950588ecc3f33cbc3bb9b5a70735245691a211821a22f"
+    envs:
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: status.nodeName
+    args:
+      - "wait"
+      - "--for=condition=Ready"
+      - "--timeout=1h"
+      - "node/$(NODE_NAME)"
+    #image: "ghcr.io/siderolabs/talosctl:${TALOS_VERSION}"
+    #envs:
+    #  - name: NODE_IP
+    #    valueFrom:
+    #      fieldRef:
+    #        fieldPath: status.hostIP
+    #args:
+    #  - "--nodes=$(NODE_IP)"
+    #  - "health"
+    #  - "--server=false"
+    #    kubectl wait --for=condition=Ready --timeout=1h node/charlotte
+  upgrade:
     image: "ghcr.io/siderolabs/talosctl:${TALOS_VERSION}"
     envs:
       - name: NODE_IP
         valueFrom:
           fieldRef:
             fieldPath: status.hostIP
-    args:
-      - "--nodes=$(NODE_IP)"
-      - "health"
-      - "--server=false"
-  upgrade:
-    <<: *prepare
     args:
       - "--nodes=$(NODE_IP)"
       - "upgrade"
