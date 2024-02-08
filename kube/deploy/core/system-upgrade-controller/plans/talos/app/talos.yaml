@@ -26,6 +26,7 @@ spec:
       - "wait"
       - "--for=condition=Ready"
       - "--timeout=3600s"
+      - "node"
       - "--all"
     #image: "ghcr.io/siderolabs/talosctl:${TALOS_VERSION}"
     #envs:
