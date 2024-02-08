@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -15,5 +16,5 @@ spec:
   commonName: ${DNS_MAIN}
   dnsNames:
     - ${DNS_MAIN}
-    - '*.${DNS_MAIN}'
-    - '*.tinfoil.${DNS_MAIN}'
+    - "*.${DNS_MAIN}"
+    - "*.tinfoil.${DNS_MAIN}"

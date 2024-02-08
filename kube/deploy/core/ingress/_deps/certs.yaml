@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -6,6 +7,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "short-domain-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
@@ -21,6 +26,7 @@ spec:
     - "${DNS_SHORT}"
     - "*.${DNS_SHORT}"
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -28,6 +34,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "long-domain-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
@@ -43,6 +53,7 @@ spec:
     - "${DNS_MAIN}"
     - "*.${DNS_MAIN}"
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -50,6 +61,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "vpn-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
@@ -64,6 +79,7 @@ spec:
     - "${DNS_VPN}"
     - "*.${DNS_VPN}"
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -71,6 +87,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "stream-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
@@ -85,6 +105,7 @@ spec:
     - "${DNS_STREAM}"
     - "*.${DNS_STREAM}"
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -92,6 +113,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "me-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
@@ -106,6 +131,7 @@ spec:
     - "${DNS_ME}"
     - "*.${DNS_ME}"
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -113,6 +139,10 @@ metadata:
   namespace: ingress
 spec:
   secretName: "home-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER

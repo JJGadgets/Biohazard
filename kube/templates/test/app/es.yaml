@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name ${APPNAME}-secrets
+  namespace: ${APPNAME}
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "${APPNAME} (${CLUSTER_NAME})"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
