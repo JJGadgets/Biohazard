@@ -22,12 +22,7 @@ spec:
       kubernetes.io/os: "linux"
   prepare: &prepare
     image: "registry.k8s.io/kubectl:v1.29.1@sha256:59b3035b8826b0a1d5d950588ecc3f33cbc3bb9b5a70735245691a211821a22f"
-    args:
-      - "wait"
-      - "--for=condition=Ready"
-      - "--timeout=3600s"
-      - "node"
-      - "--all"
+    args: ["wait", "--for=jsonpath='{.status.ceph.health}'='HEALTH_OK'", "cephcluster", "--all", "--all-namespaces"] # if Ceph is completely healthy, surely k8s is healthy, right?
     #image: "ghcr.io/siderolabs/talosctl:${TALOS_VERSION}"
     #envs:
     #  - name: NODE_IP
