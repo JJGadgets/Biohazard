@@ -24,6 +24,7 @@ spec:
     image: "registry.k8s.io/kubectl:v1.29.1@sha256:59b3035b8826b0a1d5d950588ecc3f33cbc3bb9b5a70735245691a211821a22f"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
+      - "--timeout=300s"
       - |
         --for=jsonpath=.status.ceph.health=HEALTH_OK
       - "cephcluster"
