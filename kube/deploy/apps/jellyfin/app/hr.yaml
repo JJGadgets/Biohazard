@@ -26,6 +26,7 @@ spec:
             egress.home.arpa/dlna: "allow"
             authentik.home.arpa/ldap: "allow"
             egress.home.arpa/r2: "allow"
+            tailscale.com/expose: "true"
         containers:
           main:
             image: &img
@@ -109,7 +110,7 @@ spec:
         fsGroupChangePolicy: "Always"
         supplementalGroups: [
           44, 104, 109, # GPU
-          6969 # NAS
+          ${UID_NAS_MEDIA} # NAS
         ]
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
