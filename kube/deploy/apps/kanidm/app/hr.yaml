@@ -47,7 +47,7 @@ spec:
             command:
               - /bin/sh
               - -c
-              - "[ -s /data/kanidm.db ] || /sbin/kanidmd recover_account -c /data/server.toml admin"
+              - "[ -s /data/kanidm.db ] || /sbin/kanidmd recover-account -c /data/server.toml admin"
             image: *img
             securityContext: *sc
             resources:
