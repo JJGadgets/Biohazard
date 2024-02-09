@@ -86,12 +86,10 @@ spec:
         enabled: true
         type: configMap
         name: "kanidm-config"
-        advancedMounts:
-          main:
-            main:
-              - subPath: "server.toml"
-                path: "/data/server.toml"
-                readOnly: true
+        globalMounts:
+          - subPath: "server.toml"
+            path: "/data/server.toml"
+            readOnly: true
       data:
         enabled: true
         existingClaim: "kanidm-data"
@@ -103,15 +101,13 @@ spec:
         type: secret
         name: "short-domain-tls"
         defaultMode: 0400
-        advancedMounts:
-          main:
-            main:
-              - subPath: "tls.crt"
-                path: "/tls/fullchain.pem"
-                readOnly: true
-              - subPath: "tls.key"
-                path: "/tls/privkey.pem"
-                readOnly: true
+        globalMounts:
+          - subPath: "tls.crt"
+            path: "/tls/fullchain.pem"
+            readOnly: true
+          - subPath: "tls.key"
+            path: "/tls/privkey.pem"
+            readOnly: true
     configMaps:
       config:
         enabled: true
