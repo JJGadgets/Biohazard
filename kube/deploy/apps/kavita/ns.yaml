@@ -3,3 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: kavita
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    pod-security.kubernetes.io/enforce: &ps baseline # NFS pod-level volumeMount
+    pod-security.kubernetes.io/audit: *ps
+    pod-security.kubernetes.io/warn: *ps

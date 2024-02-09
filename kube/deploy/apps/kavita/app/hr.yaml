@@ -2,31 +2,47 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: kavita
-  namespace: kavita
+  name: &app kavita
+  namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: "2.5.0"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    automountServiceAccountToken: false
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      egress.home.arpa/world-https: "allow" # metadata fetching
-      tailscale.com/expose: "true"
-    controller:
-      type: "deployment"
-      replicas: 1
-    image:
-      repository: kizaing/kavita
-      tag: 0.7.8
-    env:
-      TZ: "${CONFIG_TZ}"
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            egress.home.arpa/internet: "allow" # metadata fetching
+            tailscale.com/expose: "true"
+        containers:
+          main:
+            image: &img
+              repository: "docker.io/kizaing/kavita"
+              tag: "0.7.8"
+            env:
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "20m"
+                memory: "250Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
     service:
       main:
         ports:
@@ -36,48 +52,70 @@ spec:
       main:
         enabled: true
         primary: true
-        ingressClassName: "nginx-internal"
+        className: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_KAVITA}"
-            paths:
+            paths: &paths
               - path: /
                 pathType: Prefix
+                service:
+                  name: main
+                  port: http
         tls:
-          - hosts:
-              - *host
+          - hosts: [*host]
       tailscale:
         enabled: true
-        primary: false
-        ingressClassName: "tailscale"
+        primary: true
+        className: "tailscale"
         hosts:
-          - host: "read.${DNS_TS}"
-            paths:
-              - path: /
-                pathType: Prefix
+          - host: &host "${APP_DNS_TS_KAVITA}"
+            paths: *paths
         tls:
-          - hosts: ["read.${DNS_TS}"]
+          - hosts: [*host]
     persistence:
       config:
         enabled: true
         existingClaim: "kavita-config"
-        mountPath: "/kavita/config"
+        globalMounts:
+          - path: "/kavita/config"
       media:
         enabled: true
-        type: "nfs"
+        type: nfs
         server: "${IP_TRUENAS}"
         path: "${PATH_NAS_MEDIA}"
-        mountPath: "/media"
-        readOnly: true
+        globalMounts:
+          - path: "/media"
+            readOnly: true
       backups:
         enabled: true
-        type: "nfs"
+        type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_BACKUPS_K8S}/kavita"
-        mountPath: "/kavita/config/backups"
-    resources:
-      requests:
-        cpu: "20m"
-        memory: "250Mi"
-      limits:
-        cpu: "3000m"
-        memory: "1Gi"
+        path: "${PATH_NAS_PERSIST_K8S}"
+        globalMounts:
+          - subPath: "kavita-backups"
+            path: "/kavita/config/backups"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_KAVITA}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        supplementalGroups: [${UID_NAS_MEDIA}]
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/kavita"
+                    operator: "DoesNotExist"
