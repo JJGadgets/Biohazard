@@ -2,27 +2,43 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: kanidm-deps
+  name: kanidm-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "kanidm"
 spec:
-  path: ./kube/deploy/apps/kanidm/deps
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/kanidm/app
+  targetNamespace: "kanidm"
   dependsOn:
-    - name: 1-core-tls-cert-manager-config
+    - name: kanidm-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: kanidm-app
+  name: kanidm-pvc
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "kanidm"
 spec:
-  path: ./kube/deploy/apps/kanidm/app
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "kanidm"
   dependsOn:
-    - name: kanidm-deps
+    - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-ingress-nginx-app
-    #- name: 1-core-storage-volsync-app
-  healthChecks:
-    - name: kanidm
-      namespace: kanidm
-      kind: HelmRelease
-      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+  postBuild:
+    substitute:
+      PVC: "kanidm-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_KANIDM}
+      RGID: !!str |
+        ${APP_UID_KANIDM}
+      RFSG: !!str |
+        ${APP_UID_KANIDM}
