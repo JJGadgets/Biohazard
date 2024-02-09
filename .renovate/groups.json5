@@ -94,6 +94,9 @@
       "dependencyDashboardApproval": false,
       "automerge": true,
       "automergeType": "pr",
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true,
       "labels": ["app-template"]
     },
     // manually approve app-template major releases
@@ -103,6 +106,9 @@
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true,
       "automerge": false,
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true,
       "labels": ["app-template"]
     },
     // don't automerge app-template minor releases
@@ -112,6 +118,9 @@
       "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": false,
       "automerge": false,
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true,
       "labels": ["app-template"]
     },
     // Miniflux enforce distroless images
