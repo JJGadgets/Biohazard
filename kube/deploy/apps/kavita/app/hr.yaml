@@ -90,9 +90,9 @@ spec:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}"
+        path: "${PATH_NAS_BACKUPS_K8S}"
         globalMounts:
-          - subPath: "kavita-backups"
+          - subPath: "kavita"
             path: "/kavita/config/backups"
     defaultPodOptions:
       automountServiceAccountToken: false
