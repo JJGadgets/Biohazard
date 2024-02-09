@@ -110,7 +110,7 @@ spec:
         fsGroupChangePolicy: "Always"
         supplementalGroups: [
           44, 104, 109, # GPU
-          ${UID_NAS_MEDIA} # NAS
+          ${UID_NAS_MEDIA:=1000} # NAS
         ]
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:

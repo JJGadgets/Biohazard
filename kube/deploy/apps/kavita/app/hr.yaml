@@ -103,7 +103,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
-        supplementalGroups: [${UID_NAS_MEDIA}]
+        supplementalGroups: [${UID_NAS_MEDIA:=1000}]
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
