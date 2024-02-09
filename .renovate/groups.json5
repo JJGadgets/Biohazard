@@ -89,7 +89,9 @@
     {
       "description": "Auto merge patch app-template versions",
       "matchPackagePatterns": ["app-template"],
+      "versioning": "semver",
       "matchUpdateTypes": ["patch"],
+      "dependencyDashboardApproval": false,
       "automerge": true,
       "automergeType": "pr",
       "labels": ["app-template"]
@@ -97,15 +99,20 @@
     // manually approve app-template major releases
     {
       "matchPackagePatterns": ["app-template"],
+      "versioning": "semver",
       "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "automerge": false,
+      "labels": ["app-template"]
     },
-    // manually approve app-template major releases
+    // don't automerge app-template minor releases
     {
       "matchPackagePatterns": ["app-template"],
+      "versioning": "semver",
       "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": false,
-      "automerge": false
+      "automerge": false,
+      "labels": ["app-template"]
     },
     // Miniflux enforce distroless images
     {
