@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-https-in-cluster
+  namespace: authentik
+  annotations:
+    # this is for in-cluster apps only, DNS is configured via hostAliases
+    io.cilium/internal: "true"
+    io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK}"
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/instance: authentik
+    app.kubernetes.io/component: server
+  ports:
+    - name: https
+      port: 443
+      targetPort: 9443
+      protocol: TCP
+  allocateLoadBalancerNodePorts: false

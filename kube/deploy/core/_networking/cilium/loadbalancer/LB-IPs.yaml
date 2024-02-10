@@ -34,3 +34,14 @@ spec:
   serviceSelector:
     matchLabels:
       exposeSvc: dns
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: internal-only
+spec:
+  cidrs:
+    - cidr: "${IP_LB_INTERNAL_CIDR}"
+  serviceSelector:
+    matchLabels:
+      io.cilium/internal: "true"

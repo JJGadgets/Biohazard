@@ -15,7 +15,8 @@ spec:
       exportPodCIDR: false
       serviceSelector: &all # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
         matchExpressions:
-          - {key: thisFakeSelector, operator: NotIn, values: ['will-match-and-announce-all-services']}
+          - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
+          - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
       neighbors:
         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: *router

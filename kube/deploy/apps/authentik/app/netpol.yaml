@@ -23,6 +23,16 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: ingress
             app.kubernetes.io/name: ingress-nginx
+    # allow HTTPS traffic in-cluster
+    - fromEndpoints:
+        - matchLabels:
+            authentik.home.arpa/https: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9443"
   egress:
     # same namespace
     - toEndpoints:
@@ -35,13 +45,33 @@ spec:
             app.kubernetes.io/name: ingress-nginx
     # allow Duo
     - toFQDNs:
-        - matchPattern: api-*.duosecurity.com
+        - matchPattern: "api-*.duosecurity.com"
       toPorts:
         - ports:
             - port: "443"
     # allow AWS SES
     - toFQDNs:
-        - matchPattern: email-smtp.*.amazonaws.com
+        - matchPattern: "email-smtp.*.amazonaws.com"
       toPorts:
         - ports:
             - port: "587"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &app authentik-https-in-cluster
+spec:
+  endpointSelector:
+    matchLabels:
+      authentik.home.arpa/https: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: authentik
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/instance: authentik
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "9443"
