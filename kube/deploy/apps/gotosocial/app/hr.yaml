@@ -120,8 +120,7 @@ spec:
       main:
         enabled: true
         primary: true
-        # className: "nginx-public" # TODO: if GtS is ever taken off of Cloudflare + cloudflared, switch back to nginx-public
-        className: "nginx-internal"
+        className: "nginx-public"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -166,9 +165,3 @@ spec:
     serviceMonitor:
       main:
         enabled: true
-        endpoints:
-          - port: *http
-            scheme: http
-            path: /metrics
-            interval: 1m
-            scrapeTimeout: 30s
