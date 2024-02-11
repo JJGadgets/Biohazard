@@ -94,6 +94,14 @@ spec:
         globalMounts:
           - subPath: "kavita"
             path: "/kavita/config/backups"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
