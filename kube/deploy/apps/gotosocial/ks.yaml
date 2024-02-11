@@ -4,18 +4,29 @@ kind: Kustomization
 metadata:
   name: gotosocial-app
   namespace: flux-system
-  labels:
+  labels: &l
+    app.kubernetes.io/name: "gotosocial"
     wait.flux.home.arpa/disabled: "true"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/gotosocial/app
-  dependsOn: []
+  targetNamespace: "gotosocial"
+  dependsOn:
+    - name: gotosocial-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: gotosocial-db
   namespace: flux-system
+  labels: &l
+    db.home.arpa/pg: "pg-default"
+    app.kubernetes.io/name: "gotosocial"
 spec:
+  commonMetadata:
+    labels: *l
+  targetNamespace: "gotosocial"
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
     - name: 1-core-db-pg-app
@@ -31,13 +42,3 @@ spec:
       PG_SC: "local"
       PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"
-  patches:
-    - patch: |
-        $patch: delete
-        apiVersion: postgresql.cnpg.io/v1
-        kind: Cluster
-        metadata:
-          name: not-used
-      target:
-        group: postgresql.cnpg.io/v1
-        kind: Cluster
