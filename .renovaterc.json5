@@ -26,7 +26,7 @@
   "rebaseWhen": "behind-base-branch", // automerge needs this, and because I keep breaking my shit lol
   // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
   // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
-  "ignorePaths": ["**/archive/**", "**/**.sops.**"],
+  "ignorePaths": ["**/archive/**", "**/.archive/**", "**/**.sops.**"],
   "flux": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
   },
