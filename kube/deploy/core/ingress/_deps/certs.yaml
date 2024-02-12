@@ -46,12 +46,36 @@ spec:
     kind: ClusterIssuer
   privateKey:
     algorithm: ECDSA
-    size: 384
+    size: 521
     rotationPolicy: Always
-  commonName: "${DNS_MAIN}"
   dnsNames:
-    - "${DNS_MAIN}"
     - "*.${DNS_MAIN}"
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jjgadgets-tech
+  namespace: ingress
+spec:
+  secretName: "jjgadgets-tech-tls"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+  additionalOutputFormats:
+    - type: CombinedPEM
+    - type: DER
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  dnsNames:
+    - "jjgadgets.tech"
+    - "*.jjgadgets.tech"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
