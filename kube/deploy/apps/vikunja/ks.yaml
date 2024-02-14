@@ -1,0 +1,68 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vikunja-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "vikunja"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/vikunja/app
+  targetNamespace: "vikunja"
+  dependsOn:
+    - name: vikunja-db
+    # - name: vikunja-pvc
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: vikunja-pvc
+#   namespace: flux-system
+#   labels: &l
+#     app.kubernetes.io/name: "vikunja"
+# spec:
+#   commonMetadata:
+#     labels: *l
+#   path: ./kube/deploy/core/storage/volsync/template
+#   targetNamespace: "vikunja"
+#   dependsOn:
+#     - name: 1-core-storage-volsync-app
+#     - name: 1-core-storage-rook-ceph-cluster
+#   postBuild:
+#     substitute:
+#       PVC: "vikunja-data"
+#       SIZE: "10Gi"
+#       SC: &sc "file"
+#       SNAP: *sc
+#       ACCESSMODE: "ReadWriteMany"
+#       RUID: !!str &uid |
+#         ${APP_UID_VIKUNJA}
+#       RGID: !!str |
+#         ${APP_UID_VIKUNJA}
+#       RFSG: !!str |
+#         ${APP_UID_VIKUNJA}
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vikunja-db
+  namespace: flux-system
+  labels: &l
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-home"
+    app.kubernetes.io/name: "vikunja"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
+  dependsOn:
+    - name: 1-core-db-pg-clusters-home
+    - name: 1-core-secrets-es-k8s
+  postBuild:
+    substitute:
+      PG_NAME: "home"
+      PG_DB_USER: &app "vikunja"
+      PG_APP_NS: *app

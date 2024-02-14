@@ -1,0 +1,34 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name vikunja-secrets
+  namespace: vikunja
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Vikunja - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      engineVersion: v2
+      mergePolicy: Merge
+      data:
+        VIKUNJA_SERVICE_JWTSECRET: "{{ .VIKUNJA_SERVICE_JWTSECRET }}"
+        config.yml: |
+          auth:
+            local:
+              enabled: false
+            openid:
+              enabled: true
+              providers:
+                - name: "JJGadgets Auth"
+                  authurl: {{ .OIDC_URL }}
+                  clientid: {{ .OIDC_ID }}
+                  clientsecret: {{ .OIDC_SECRET }}

@@ -39,6 +39,10 @@ spec:
               databases: ["paperless-ngx"]
             - name: "joplin"
               databases: ["joplin"]
+            - name: "vikunja"
+              databases: ["vikunja"]
+            - name: "kanboard"
+              databases: ["kanboard"]
       target:
         group: postgres-operator.crunchydata.com
         kind: PostgresCluster
