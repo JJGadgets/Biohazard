@@ -86,6 +86,19 @@
       "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
       "labels": ["kube-deploy-apps"]
     },
+    // manually approve app-template major releases
+    {
+      "matchPackagePatterns": ["app-template"],
+      "matchDatasources": ["helm"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "automerge": false,
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true,
+      "commitMessagePrefix": "feat(app-template/major)!: "
+      "labels": ["app-template", "major"]
+    },
     {
       "description": "Auto merge patch app-template versions",
       "matchPackagePatterns": ["app-template"],
@@ -97,19 +110,8 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "labels": ["app-template"]
-    },
-    // manually approve app-template major releases
-    {
-      "matchPackagePatterns": ["app-template"],
-      "matchDatasources": ["helm"],
-      "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true,
-      "automerge": false,
-      "separateMajorMinor": true,
-      "separateMultipleMajor": true,
-      "separateMinorPatch": true,
-      "labels": ["app-template"]
+      "commitMessagePrefix": "fix(app-template/patch): "
+      "labels": ["app-template", "patch"]
     },
     // don't automerge app-template minor releases
     {
@@ -121,7 +123,8 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "labels": ["app-template"]
+      "commitMessagePrefix": "feat(app-template/minor): "
+      "labels": ["app-template", "major"]
     },
     // Miniflux enforce distroless images
     {
