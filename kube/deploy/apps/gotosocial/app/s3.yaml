@@ -4,6 +4,8 @@ kind: ObjectBucketClaim
 metadata:
   name: gotosocial-media-s3
   namespace: gotosocial
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
   bucketName: "gotosocial-media"
   storageClassName: "rgw-${CLUSTER_NAME}"
