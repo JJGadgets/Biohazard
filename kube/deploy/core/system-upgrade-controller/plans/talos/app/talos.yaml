@@ -21,7 +21,7 @@ spec:
     matchLabels:
       kubernetes.io/os: "linux"
   prepare: &prepare
-    image: "registry.k8s.io/kubectl:v1.29.1@sha256:59b3035b8826b0a1d5d950588ecc3f33cbc3bb9b5a70735245691a211821a22f"
+    image: "registry.k8s.io/kubectl:v1.29.2@sha256:ac66c804f411269a1caa8cc907447fcd00a4476cfb627a4756845c85e685a671"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
       - "--timeout=300s"
