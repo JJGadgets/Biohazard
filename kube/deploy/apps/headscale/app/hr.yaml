@@ -27,7 +27,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/juanfont/headscale"
-              tag: "0.22.3"
+              tag: "0.23.0@sha256:fd2a5326d0742a98597e33acbb33a6055afbe9c98b05919a7ff65bb0715f9bb4"
             command: ["headscale", "serve"]
             env:
               TZ: "${CONFIG_TZ}"
