@@ -28,7 +28,7 @@ prometheus:
         cpu: 250m
         memory: 2048M
       limits:
-        cpu: 350m
+        # cpu: 350m # TODO: 2024-02-18 testing CPU usage
         memory: 8192M
     # scheduling
     topologySpreadConstraints:
