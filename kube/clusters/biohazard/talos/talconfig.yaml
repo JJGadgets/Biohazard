@@ -291,6 +291,12 @@ controlPlane:
     # https://www.talos.dev/v1.5/advanced/etcd-maintenance/#space-quota
     # maximum recommended is 8GiB, will resize to 4GiB for now so etcd won't shoot its load all at once
 
+    - &metrics |-
+      cluster:
+        etcd:
+          extraArgs:
+            listen-metrics-urls: "http://0.0.0.0:2381"
+
     # - &scheduler |-
     #   cluster:
     #     scheduler:
