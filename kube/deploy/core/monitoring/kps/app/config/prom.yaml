@@ -26,10 +26,10 @@ prometheus:
     resources:
       requests:
         cpu: 250m
-        memory: 2048M
+        memory: 2Gi
       limits:
-        # cpu: 350m # TODO: 2024-02-18 testing CPU usage
-        memory: 8192M
+        cpu: 1000m # it uses less than this, just to be safe
+        memory: 8Gi
     # scheduling
     topologySpreadConstraints:
       - maxSkew: 1
