@@ -25,8 +25,8 @@ spec:
         containers:
           main:
             image: &img
-              repository: "public.ecr.aws/debian/debian"
-              tag: "12.4-slim@sha256:4b025c60eb2f0ab14aa3c40057a022359a5a3a0c4abf46b1220a245207d00a10"
+              repository: "ghcr.io/nicolaka/netshoot"
+              tag: "v0.12@sha256:b569665f0c32391b93f4de344f07bf6353ddff9d8c801ac3318d996db848a64c"
             command: ["/bin/bash", "-c"]
             args: ["sleep infinity"]
             env:
@@ -61,7 +61,8 @@ spec:
               - secretRef:
                   name: "media-edit-gluetun"
             securityContext: &sc
-              readOnlyRootFilesystem: true
+              runAsUser: 0
+              readOnlyRootFilesystem: false
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
@@ -97,15 +98,12 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-          - subPath: "run"
-            path: "/run"
+          - path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: false
         runAsUser: &uid 6969 # NAS media user
         runAsGroup: *uid
         fsGroup: *uid
