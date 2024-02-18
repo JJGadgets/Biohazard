@@ -42,6 +42,13 @@ spec:
                 cpu: "2000m"
                 memory: "8Gi"
                 gpu.intel.com/i915: "1"
+            probes: &p
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
           gluetun:
             image:
               repository: "ghrc.io/qdm12/gluetun"
@@ -64,6 +71,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "1Gi"
+            probes: *p
+    service:
+      main:
+        enabled: false
+        primary: false
     persistence:
       config:
         enabled: true
