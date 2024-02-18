@@ -6,12 +6,13 @@ metadata:
   name: &name ${APPNAME}-secrets
   namespace: ${APPNAME}
 spec:
+  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p
   dataFrom:
     - extract:
-        key: "${APPNAME} (${CLUSTER_NAME})"
+        key: "${APPNAME} - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain

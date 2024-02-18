@@ -25,6 +25,7 @@ spec:
             ingress.home.arpa/nginx-internal: "allow"
             db.home.arpa/pg: "pg-default"
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            # egress.home.arpa/internet: "allow"
         containers:
           main:
             image: &img
@@ -61,13 +62,13 @@ spec:
                 memory: "128Mi"
               limits:
                 cpu: "3000m"
-                memory: "6000Mi"
+                memory: "6Gi"
         # statefulset:
         #   volumeClaimTemplates:
         #     - name: data
-        #       accessMode: ReadWriteOnce
         #       size: 20Gi
         #       storageClass: block
+        #       accessMode: ReadWriteOnce
         #       advancedMounts:
         #         main: # only container name here
         #           - path: "/data"
@@ -130,7 +131,7 @@ spec:
         primary: true
         className: "nginx-internal"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           # https://github.com/kubernetes/ingress-nginx/issues/6728
