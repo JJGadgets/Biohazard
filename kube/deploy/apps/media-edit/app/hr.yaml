@@ -57,6 +57,8 @@ spec:
               tag: "v3.37.0@sha256:ba9688ff9abaf73bbc0b257be547b51a097ca74324fedddeeb709732c2692eef"
             env:
               TZ: "${CONFIG_TZ}"
+              DOT: "off"
+              DOT_PROVIDERS: ""
             envFrom:
               - secretRef:
                   name: "media-edit-gluetun"
@@ -66,7 +68,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_ADMIN"]
+                add: ["NET_ADMIN", "CHOWN"]
             resources:
               requests:
                 cpu: "10m"
@@ -98,14 +100,15 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "tmp"
+            path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: false
         runAsUser: &uid 6969 # NAS media user
-        runAsGroup: *uid
+        runAsGroup: &uid 6969
         fsGroup: *uid
         fsGroupChangePolicy: "OnRootMismatch"
         supplementalGroups: [
