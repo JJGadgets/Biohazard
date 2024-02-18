@@ -27,6 +27,8 @@ spec:
             image: &img
               repository: "public.ecr.aws/debian/debian"
               tag: "12.4-slim@sha256:4b025c60eb2f0ab14aa3c40057a022359a5a3a0c4abf46b1220a245207d00a10"
+            command: ["/bin/bash", "-c"]
+            args: ["sleep infinity"]
             env:
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
@@ -51,7 +53,7 @@ spec:
                 enabled: false
           gluetun:
             image:
-              repository: "ghrc.io/qdm12/gluetun"
+              repository: "ghcr.io/qdm12/gluetun"
               tag: "v3.37.0@sha256:ba9688ff9abaf73bbc0b257be547b51a097ca74324fedddeeb709732c2692eef"
             env:
               TZ: "${CONFIG_TZ}"
@@ -95,7 +97,10 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/tmp"
+          - subPath: "tmp"
+            path: "/tmp"
+          - subPath: "run"
+            path: "/run"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
