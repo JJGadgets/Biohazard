@@ -1,0 +1,41 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-edit-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "media-edit"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/media-edit/app
+  targetNamespace: "media-edit"
+  dependsOn:
+    - name: media-edit-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-edit-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "media-edit"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "media-edit"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "media-edit-data"
+      SIZE: "100Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: "6969"
+      RGID: "6969"
+      RFSG: "6969"

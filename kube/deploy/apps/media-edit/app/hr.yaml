@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app media-edit
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            egress.home.arpa/internet: "allow"
+        containers:
+          main:
+            image: &img
+              repository: "public.ecr.aws/debian/debian"
+              tag: "12.4-slim@sha256:4b025c60eb2f0ab14aa3c40057a022359a5a3a0c4abf46b1220a245207d00a10"
+            env:
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "2000m"
+                memory: "8Gi"
+                gpu.intel.com/i915: "1"
+          gluetun:
+            image:
+              repository: "ghrc.io/qdm12/gluetun"
+              tag: "v3.37.0@sha256:ba9688ff9abaf73bbc0b257be547b51a097ca74324fedddeeb709732c2692eef"
+            env:
+              TZ: "${CONFIG_TZ}"
+            envFrom:
+              - secretRef:
+                  name: "media-edit-gluetun"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_ADMIN"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "1Gi"
+    persistence:
+      config:
+        enabled: true
+        existingClaim: "media-edit-data"
+        globalMounts:
+          - subPath: "home"
+            path: "/home"
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_MEDIA}"
+        globalMounts:
+          - path: "/media"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/tmp"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 6969 # NAS media user
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "OnRootMismatch"
+        supplementalGroups: [
+            44,
+            104,
+            109, # GPU
+          ]
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/media-edit"
+                    operator: "DoesNotExist"
