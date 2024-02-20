@@ -21,7 +21,6 @@ alertmanager:
         egress.home.arpa/discord: "allow"
     useExistingSecret: true
     configSecret: "alertmanager-config"
-    secrets: []
     retention: "336h" # 2 weeks, because procrastination
     storage:
       volumeClaimTemplate:

@@ -24,4 +24,4 @@ spec:
         - configMap:
             name: alertmanager-config-template
             items:
-              - key: config.yaml
+              - key: alertmanager.yaml # name changes from config.yaml in kustomization.yaml

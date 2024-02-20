@@ -7,6 +7,6 @@ configMapGenerator:
   - name: alertmanager-config-template
     namespace: monitoring
     files:
-      - config.yaml
+      - alertmanager.yaml=config.yaml
 generatorOptions:
   disableNameSuffixHash: true
