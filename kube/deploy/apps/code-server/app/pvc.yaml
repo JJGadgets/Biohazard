@@ -9,6 +9,7 @@ metadata:
   labels:
     app.kubernetes.io/name: *app
     snapshot.home.arpa/enabled: "true"
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
   storageClassName: "block"
   accessModes: ["ReadWriteOnce"]
