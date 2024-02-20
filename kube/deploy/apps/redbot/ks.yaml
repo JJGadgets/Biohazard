@@ -12,56 +12,32 @@ spec:
   path: ./kube/deploy/apps/redbot/app
   targetNamespace: "redbot"
   dependsOn:
-    - name: redbot-db
-    # - name: redbot-pvc
-# ---
-# apiVersion: kustomize.toolkit.fluxcd.io/v1
-# kind: Kustomization
-# metadata:
-#   name: redbot-pvc
-#   namespace: flux-system
-#   labels: &l
-#     app.kubernetes.io/name: "redbot"
-# spec:
-#   commonMetadata:
-#     labels: *l
-#   path: ./kube/deploy/core/storage/volsync/template
-#   targetNamespace: "redbot"
-#   dependsOn:
-#     - name: 1-core-storage-volsync-app
-#     - name: 1-core-storage-rook-ceph-cluster
-#   postBuild:
-#     substitute:
-#       PVC: "redbot-data"
-#       SIZE: "10Gi"
-#       SC: &sc "file"
-#       SNAP: *sc
-#       RUID: !!str &uid |
-#         ${APP_UID_REDBOT}
-#       RGID: !!str |
-#         ${APP_UID_REDBOT}
-#       RFSG: !!str |
-#         ${APP_UID_REDBOT}
+    - name: redbot-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: redbot-db
+  name: redbot-pvc
   namespace: flux-system
   labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
     app.kubernetes.io/name: "redbot"
 spec:
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "redbot"
   dependsOn:
-    - name: 1-core-db-pg-clusters-default
-    - name: 1-core-secrets-es-k8s
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
-      PG_NAME: "default"
-      PG_DB_USER: &app "redbot"
-      PG_APP_NS: *app
+      PVC: "redbot-data"
+      SIZE: "20Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      RUID: !!str &uid |
+        ${APP_UID_REDBOT}
+      RGID: !!str |
+        ${APP_UID_REDBOT}
+      RFSG: !!str |
+        ${APP_UID_REDBOT}

@@ -21,37 +21,26 @@ spec:
         replicas: 1
         pod:
           labels:
-            db.home.arpa/pg: "pg-default"
             egress.home.arpa/discord: "allow"
         containers:
           main:
             image: &img
               repository: "jank.ing/jjgadgets/redbot"
               tag: "3.5.5@sha256:07da705d7113fe2c7e7f48aa5f2d5105fbf23c01b27b2808f457898c19636a00"
+            args: [
+              # args specific to my image
+              "--init",
+              # RedBot args
+              "--mentionable"
+            ]
             env:
               TZ: "${CONFIG_TZ}"
               NAME: "JJGadgets"
-              PREFIX: "yui."
+              PREFIXES: "yui. y."
               TOKEN_FILE: &token "/secrets/token"
               OWNER_FILE: &owner "/secrets/owner"
               BASE_PATH: &path "/config"
-              STORAGE_TYPE: "Postgres"
-              PGHOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: &pgsec "pg-default-pguser-redbot"
-                    key: "pgbouncer-host"
-              PGDATABASE:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pgsec
-                    key: "dbname"
-              PGUSER:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pgsec
-                    key: "user"
-              PGPASSFILE: &pgpass "/secrets/pgpass"
+              STORAGE_TYPE: "JSON"
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -70,8 +59,7 @@ spec:
     persistence:
       config:
         enabled: true
-        type: emptyDir
-        medium: Memory
+        existingClaim: "redbot-data"
         globalMounts:
           - subPath: "config"
             path: *path
@@ -97,17 +85,6 @@ spec:
                 readOnly: true
               - subPath: "OWNER"
                 path: *owner
-                readOnly: true
-      pg:
-        enabled: true
-        type: secret
-        name: *pgsec
-        defaultMode: 0400
-        advancedMounts:
-          main:
-            main:
-              - subPath: "password"
-                path: *pgpass
                 readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
