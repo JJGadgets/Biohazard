@@ -1,10 +1,6 @@
 ---
 alertmanager:
   enabled: true
-  podDisruptionBudget:
-    enabled: true
-    minAvailable: 1
-    maxUnavailable: 1
   ingress:
     enabled: true
     pathType: "Prefix"
@@ -14,7 +10,7 @@ alertmanager:
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
     hosts: &hosts ["${APP_DNS_ALERTMANAGER}"]
     paths: ["/"]
-    tls: { hosts: *hosts }
+    tls: [hosts: *hosts]
   serviceMonitor:
     selfMonitor: true
   alertmanagerSpec:
