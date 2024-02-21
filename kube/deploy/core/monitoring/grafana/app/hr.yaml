@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: grafana
-      version: 7.3.0
+      version: 7.3.1
       sourceRef:
         name: grafana
         kind: HelmRepository
@@ -34,7 +34,7 @@ spec:
         check_for_plugin_updates: false
         reporting_enabled: false
       auth:
-        oauth_auto_login: true
+        oauth_auto_login: false # can't enable with header auth
       auth.generic_oauth:
         enabled: true
         name: "JJGadgets Auth"
@@ -45,9 +45,20 @@ spec:
         name_attribute_path: name
         # use_pkce: true # not sure if Authentik supports it
       auth.generic_oauth.group_mapping:
+        org_id: 1
         role_attribute_path: |
           contains(groups[*], 'Role-Grafana-Admin') && 'Admin' || contains(groups[*], 'Role-Grafana-Viewer') && 'Viewer'
+      auth.proxy:
+        enabled: true
+        auto_sign_up: true
+        whitelist: "${IP_POD_CIDR_V4}"
+        header_name: Tailscale-User-Login
+        header_property: username
+        headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login Groups:Tailscale-User-Login"
+      auth.proxy.group_mapping:
         org_id: 1
+        role_attribute_path: |
+          contains(groups[*], '${CONFIG_GRAFANA_TS_ADMIN_USERNAME}') && 'Admin'
       auth.basic:
         enabled: false
         disable_login_form: true
@@ -189,11 +200,8 @@ spec:
     ingress:
       enabled: true
       ingressClassName: "nginx-internal"
-      hosts:
-        - &host "${APP_DNS_GRAFANA}"
-      tls:
-        - hosts:
-            - *host
+      hosts: &host ["${APP_DNS_GRAFANA}"]
+      tls: [hosts: *host]
     persistence:
       enabled: false
     testFramework:
