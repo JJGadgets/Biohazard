@@ -5,10 +5,10 @@ metadata:
   name: 1-core-monitoring-smartctl-exporter-app
   namespace: flux-system
   labels: &l
-    app.kubernetes.io/name: "smartctl-exporter"
+    app.kubernetes.io/name: &app "smartctl-exporter"
 spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/monitoring/smartctl-exporter/app
-  targetNamespace: "monitoring"
+  targetNamespace: *app
   dependsOn: []

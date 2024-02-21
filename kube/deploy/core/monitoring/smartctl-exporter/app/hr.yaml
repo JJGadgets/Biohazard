@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app smartctl-exporter
-  namespace: monitoring
+  namespace: *app
 spec:
   interval: 5m
   chart:
