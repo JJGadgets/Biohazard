@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: karma-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "karma"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/karma/app
+  targetNamespace: "monitoring"
+  dependsOn: []

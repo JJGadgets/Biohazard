@@ -8,6 +8,7 @@ alertmanager:
     annotations:
       external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      # external auth managed by Cloudflare Zero Trust, so authentik won't be SPoF if internal access not working
     hosts: &hosts ["${APP_DNS_ALERTMANAGER}"]
     paths: ["/"]
     tls: [hosts: *hosts]
