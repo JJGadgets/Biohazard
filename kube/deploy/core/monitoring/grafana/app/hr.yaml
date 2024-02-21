@@ -35,7 +35,7 @@ spec:
         check_for_plugin_updates: false
         reporting_enabled: false
       auth:
-        oauth_auto_login: false # can't enable with header auth
+        oauth_auto_login: true
       auth.generic_oauth:
         enabled: true
         name: "JJGadgets Auth"
@@ -48,18 +48,15 @@ spec:
       auth.generic_oauth.group_mapping:
         org_id: 1
         role_attribute_path: |
-          contains(groups[*], 'Role-Grafana-Admin') && 'Admin' || contains(groups[*], 'Role-Grafana-Viewer') && 'Viewer'
+          contains(groups[*], 'Role-Grafana-Admin') && 'GrafanaAdmin' || contains(groups[*], 'Role-Grafana-Viewer') && 'Viewer'
       auth.proxy:
         enabled: true
         auto_sign_up: true
         whitelist: "${IP_POD_CIDR_V4}"
         header_name: Tailscale-User-Login
         header_property: username
-        headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login Groups:Tailscale-User-Login"
-      auth.proxy.group_mapping:
-        org_id: 1
-        role_attribute_path: |
-          contains(groups[*], '${CONFIG_GRAFANA_TS_ADMIN_USERNAME}') && 'Admin'
+        headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login"
+        # default to viewer role, privileged access needs OIDC
       auth.basic:
         enabled: false
         disable_login_form: true
