@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app fstrim
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: cronjob
+        cronjob:
+          schedule: "@weekly"
+          parallelism: 3 # number of nodes
+        containers:
+          main:
+            image: &img
+              repository: "public.ecr.aws/docker/library/alpine"
+              tag: "3.19.1@sha256:c5b1261d6d3e43071626931fc004f70149baeba2c8ec672bd4f27761f8e1ad6b"
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c "fstrim --verbose --quiet-unsupported --all"
+            securityContext: &sc
+              privileged: true
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+    service:
+      main:
+        enabled: false
+    persistence:
+      config:
+        enabled: false
+      procfs:
+        type: hostPath
+        hostPath: /proc
+        hostPathType: Directory
+        globalMounts:
+          - path: /host/proc
+            readOnly: true
+      netfs:
+        type: hostPath
+        hostPath: /sys
+        hostPathType: Directory
+        globalMounts:
+          - path: /host/net
+            readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostNetwork: true
+      hostPID: true
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/fstrim"
+                    operator: "DoesNotExist"
