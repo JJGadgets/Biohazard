@@ -48,4 +48,9 @@ alertmanager:
       runAsGroup: 2000
       fsGroup: 2000
       runAsNonRoot: true
-      seccompProfile: { type: RuntimeDefault }
+      seccompProfile: { type: "RuntimeDefault" }
+    image:
+      registry: "quay.io"
+      repository: "prometheus/alertmanager"
+      tag: "v0.27.0-rc.0" # https://github.com/prometheus/alertmanager/pull/3597 https://github.com/prometheus/alertmanager/releases/tag/v0.27.0-rc.0
+      sha: "sha256:2d93a071789ef3be048b1faf97ce69efbb47a638def64a8aaf2d1c38f56c3a8f"
