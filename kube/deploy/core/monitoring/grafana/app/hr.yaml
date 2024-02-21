@@ -18,6 +18,7 @@ spec:
     replicas: 1 # OIDC needs specific session, thus 1 replica
     podLabels:
       egress.home.arpa/nginx-external: "allow" # authentik
+      tailscale.com/expose: "true"
     env:
       GF_EXPLORE_ENABLED: true
       GF_LOG_MODE: console

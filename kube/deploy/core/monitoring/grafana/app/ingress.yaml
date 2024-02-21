@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   name: grafana-tailscale
   namespace: monitoring
+  annotations:
+    tailscale.com/tags: "tag:k8s-grafana"
 spec:
   ingressClassName: "tailscale"
   rules:
