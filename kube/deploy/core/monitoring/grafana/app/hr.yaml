@@ -26,6 +26,7 @@ spec:
       GF_SECURITY_ALLOW_EMBEDDING: true
       GF_SECURITY_COOKIE_SAMESITE: grafana
       GF_DATE_FORMATS_USE_BROWSER_LOCALE: true
+      GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP: true # needed for enabling both proxy and OIDC auth methods, https://github.com/grafana/grafana/issues/70203#issuecomment-1609850174
     envFromSecret: grafana-secrets
     grafana.ini:
       server:
@@ -49,14 +50,14 @@ spec:
         org_id: 1
         role_attribute_path: |
           contains(groups[*], 'Role-Grafana-Admin') && 'GrafanaAdmin' || contains(groups[*], 'Role-Grafana-Viewer') && 'Viewer'
-      auth.proxy:
+      auth.proxy: # if Tailscale headers exist, it'll be used first, else use OIDC
         enabled: true
         auto_sign_up: true
         whitelist: "${IP_POD_CIDR_V4}"
-        header_name: Tailscale-User-Login
+        header_name: Tailscale-User-Login # email is immutable to account for Tailscale, used for person identity
         header_property: username
         headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login"
-        # default to viewer role, privileged access needs OIDC
+        # defaults to viewer role, privileged access needs OIDC
       auth.basic:
         enabled: false
         disable_login_form: true
