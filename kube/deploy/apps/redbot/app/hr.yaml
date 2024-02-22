@@ -22,6 +22,8 @@ spec:
         pod:
           labels:
             egress.home.arpa/discord: "allow"
+            egress.home.arpa/github: "allow"
+            egress.home.arpa/pypi: "allow"
         containers:
           main:
             image: &img

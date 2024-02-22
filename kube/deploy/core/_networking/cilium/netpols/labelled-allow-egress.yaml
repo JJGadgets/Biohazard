@@ -238,6 +238,25 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-pypi
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/pypi: allow
+  egress:
+    - toFQDNs:
+        - matchPattern: "pypi.org"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: "TCP"
+            - port: "443"
+              protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-mullvad
 spec:
   endpointSelector:
