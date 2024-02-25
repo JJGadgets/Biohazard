@@ -33,32 +33,33 @@ receivers:
   # - name: heartbeat
   #   webhook_configs:
   #     - send_resolved: true
-  #       url: "{{ .CLOUD_GATUS_HEARTBEAT_URL }}"
+  #       url: "${CLOUD_GATUS_HEARTBEAT_URL}"
   - name: "null"
   - name: discord
     discord_configs:
       - send_resolved: true
-        webhook_url: "{{ .DISCORD_WEBHOOK_URL }}"
+        webhook_url: "${SECRET_ALERTMANAGER_DISCORD_WEBHOOK_URL}"
         # yoinked below from onedr0p, blame him if something doesn't work
         title: >-
-          {{ "{{" }} .CommonLabels.alertname {{ "}}" }}
-          [{{ "{{" }} .Status | toUpper {{ "}}" }}{{ "{{" }} if eq .Status "firing" {{ "}}" }}:{{ "{{" }} .Alerts.Firing | len {{ "}}" }}{{ "{{" }} end {{ "}}" }}]
+          {{ .CommonLabels.alertname }}
+          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
-          {{ "{{-" }} range .Alerts {{ "}}" }}
-            {{ "{{-" }} if ne .Annotations.description "" {{ "}}" }}
-              {{ "{{" }} .Annotations.description {{ "}}" }}
-            {{ "{{-" }} else if ne .Annotations.summary "" {{ "}}" }}
-              {{ "{{" }} .Annotations.summary {{ "}}" }}
-            {{ "{{-" }} else if ne .Annotations.message "" {{ "}}" }}
-              {{ "{{" }} .Annotations.message {{ "}}" }}
-            {{ "{{-" }} else {{ "}}" }}
+          {{- range .Alerts }}
+            {{- if ne .Annotations.description "" }}
+              {{ .Annotations.description }}
+            {{- else if ne .Annotations.summary "" }}
+              {{ .Annotations.summary }}
+            {{- else if ne .Annotations.message "" }}
+              {{ .Annotations.message }}
+            {{- else }}
               Alert description not available
-            {{ "{{-" }} end {{ "}}" }}
-            {{ "{{-" }} if gt (len .Labels.SortedPairs) 0 {{ "}}" }}
-              <small>
-              {{ "{{-" }} range .Labels.SortedPairs {{ "}}" }}
-                <b>{{ "{{" }} .Name {{ "}}" }}:</b> {{ "{{" }} .Value {{ "}}" }}
-              {{ "{{-" }} end {{ "}}" }}
-              </small>
-            {{ "{{-" }} end {{ "}}" }}
-          {{ "{{-" }} end {{ "}}" }}
+              {{- if gt (len .Labels.SortedPairs) 0 }}
+                <small>
+                {{- range .Labels.SortedPairs }}
+                  <b>{{ .Name }}:</b> {{ .Value }}
+                {{- end }}
+                </small>
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{ .ExternalURL }}
