@@ -1,6 +1,41 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
+    // NOTE: Renovate processes rules from top to bottom, so the rules below take precedence over rules above it
+    {
+      "description": "Auto merge Github Actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "automergeType": "pr",
+      "ignoreTests": true,
+      "matchUpdateTypes": ["minor", "patch", "digest"]
+    },
+    {
+      "description": "Auto merge all Renovate versions",
+      "matchPackagePatterns": ["renovate"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "labels": ["renovate-itself"]
+    },
+    {
+      "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
+      // "matchDatasources": ["docker"],
+      "automerge": true,
+      "automergeType": "pr",
+      "matchFileNames": ["kube/deploy/apps/**"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
+      "labels": ["kube-deploy-apps"]
+    },
+    {
+      "description": "Don't auto merge specific apps in path ./kube/deploy/apps",
+      "matchPackagePatterns": ["reactive-resume", "home-assistant"],
+      "automerge": false,
+      "matchFileNames": ["kube/deploy/apps/**"],
+      "labels": ["kube-deploy-apps"]
+    },
     // FluxCD
     {
       "description": "Flux Group",
@@ -42,49 +77,6 @@
       "separateMinorPatch": true,
       // TODO: Helm chart uses separate key for digests, which Renovate seems to not recognize? maybe patching the image would be better?
       "pinDigests": false
-    },
-    {
-      "description": "Auto merge Github Actions",
-      "matchManagers": ["github-actions"],
-      "automerge": true,
-      "automergeType": "pr",
-      "ignoreTests": true,
-      "matchUpdateTypes": ["minor", "patch", "digest"]
-    },
-    // configure more granular control for apps in ./kube/deploy/core
-    {
-      "matchFileNames": ["kube/deploy/core/**"],
-      "automerge": false, // enforce no automerge
-      "separateMultipleMajor": true,
-      "separateMinorPatch": true,
-      "labels": ["kube-deploy-core"]
-    },
-    {
-      "description": "Auto merge all Renovate versions",
-      "matchPackagePatterns": ["renovate"],
-      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
-      "automerge": true,
-      "automergeType": "branch",
-      "ignoreTests": true,
-      "labels": ["renovate-itself"]
-    },
-    {
-      "description": "Auto merge my own images with release dates as versions, these are images I couldn't think of a better way to do versioning because of too many moving parts",
-      "matchPackagePatterns": ["jjgadgets/k8s-crd-extractor"],
-      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
-      "automerge": true,
-      "automergeType": "branch",
-      "labels": ["app-template"]
-    },
-    {
-      "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
-      // "matchDatasources": ["docker"],
-      "automerge": true,
-      "automergeType": "pr",
-      "matchFileNames": ["kube/deploy/apps/**"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
-      "labels": ["kube-deploy-apps"]
     },
     // manually approve app-template major releases
     {
@@ -135,6 +127,21 @@
       "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$",
       "versioning": "semver",
       "matchPackagePatterns": ["miniflux"]
+    },
+    // configure more granular control for apps in ./kube/deploy/core
+    {
+      "matchFileNames": ["kube/deploy/core/**"],
+      "automerge": false, // enforce no automerge
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true,
+      "labels": ["kube-deploy-core"]
+    },
+    {
+      "description": "Auto merge my own images with release dates as versions, these are images I couldn't think of a better way to do versioning because of too many moving parts",
+      "matchPackagePatterns": ["jjgadgets/k8s-crd-extractor"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "branch",
     }
   ]
 }

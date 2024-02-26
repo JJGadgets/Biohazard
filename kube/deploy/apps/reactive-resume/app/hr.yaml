@@ -1,0 +1,186 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app reactive-resume
+  namespace: flux-system
+spec:
+  targetNamespace: *app
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            tailscale.com/expose: "true"
+            db.home.arpa/pg: "pg-home"
+            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+        containers:
+          main:
+            image:
+              repository: "ghcr.io/amruthpillai/reactive-resume"
+              tag: "server-v3.6.0"
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              PUBLIC_URL: "https://${APP_DNS_REACTIVE_RESUME}"
+              PUBLIC_SERVER_URL: "https://${APP_DNS_REACTIVE_RESUME}/api"
+              STORAGE_URL_PREFIX: "https://${APP_DNS_RGW_S3}/reactive-resume-media"
+              POSTGRES_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-reactive-resume"
+                    key: "pgbouncer-host"
+              POSTGRES_DB:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-reactive-resume"
+                    key: "dbname"
+              POSTGRES_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-reactive-resume"
+                    key: "user"
+              POSTGRES_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-reactive-resume"
+                    key: "password"
+              SECRET_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "reactive-resume-secrets"
+                    key: "SECRET_KEY"
+              JWT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "reactive-resume-secrets"
+                    key: "JWT_SECRET"
+              JWT_EXPIRY_TIME: "604800"
+              STORAGE_ENDPOINT: "http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc:6953"
+              STORAGE_BUCKET: "reactive-resume-media"
+              STORAGE_REGION: "us-east-1"
+              STORAGE_ACCESS_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "reactive-resume-media-s3"
+                    key: "AWS_ACCESS_KEY_ID"
+              STORAGE_SECRET_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "reactive-resume-media-s3"
+                    key: "AWS_SECRET_ACCESS_KEY"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+          frontend:
+            image:
+              repository: "ghcr.io/amruthpillai/reactive-resume"
+              tag: "client-v3.6.0"
+            env: *env
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3100
+          frontend:
+            port: 3000
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+        hosts:
+          - host: &host "${APP_DNS_REACTIVE_RESUME}"
+            paths:
+              - path: "/api(/|$)(.*)"
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      backend:
+        enabled: true
+        primary: false
+        className: "nginx-internal"
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: frontend
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: false
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_REACTIVE_RESUME}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/reactive-resume"
+                    operator: "DoesNotExist"
