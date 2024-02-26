@@ -333,9 +333,13 @@ spec:
                 memory: 2Gi
         ingress:
           enabled: true
-          ingressClassName: "tailscale"
+          ingressClassName: "nginx-internal"
+          annotations:
+            nginx.ingress.kubernetes.io/custom-http-errors: "404,502"
+            nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
           host:
-            name: &rgw-host "rgw-biohazard"
+            name: &rgw-host "${APP_DNS_RGW_S3}"
             path: "/"
           tls:
             - hosts: [*rgw-host]

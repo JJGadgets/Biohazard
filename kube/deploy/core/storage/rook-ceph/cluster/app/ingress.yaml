@@ -12,7 +12,7 @@ spec:
       port:
         name: http-dashboard
   tls:
-    - hosts: [c]
+    - hosts: ["c.${DNS_TS}"]
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -38,3 +38,24 @@ spec:
 
   tls:
     - hosts: ["c${APP_DNS_CEPH}"]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "${CLUSTER_NAME}-rgw-tailscale"
+  namespace: rook-ceph
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: &host "rgw-${CLUSTER_NAME}.${DNS_TS}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "rook-ceph-rgw-${CLUSTER_NAME}"
+                port:
+                  number: 6953
+  tls:
+    - hosts: [*host]
