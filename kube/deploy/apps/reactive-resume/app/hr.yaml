@@ -6,6 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: *app
+  releaseName: *app
   interval: 5m
   chart:
     spec:
@@ -159,7 +160,8 @@ spec:
         globalMounts:
           - subPath: "tmp"
             path: "/tmp"
-            readOnly: false
+          - subPath: "nodecache"
+            path: "/app/node_modules/.cache"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
