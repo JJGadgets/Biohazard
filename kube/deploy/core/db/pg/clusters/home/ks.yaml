@@ -45,6 +45,14 @@ spec:
               databases: ["kanboard"]
             - name: "reactive-resume"
               databases: ["reactive-resume"]
+          patroni:
+            dynamicConfiguration:
+              synchronous_mode: true
+              postgresql:
+                synchronous_commit: "on"
+                pg_hba:
+                  - hostnossl reactive-resume reactive-resume all md5
+                  - hostssl all all all md5
       target:
         group: postgres-operator.crunchydata.com
         kind: PostgresCluster
