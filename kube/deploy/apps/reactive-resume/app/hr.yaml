@@ -41,7 +41,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: "pg-home-pguser-reactive-resume"
-                    key: "pgbouncer-host"
+                    key: "host"
               POSTGRES_DB:
                 valueFrom:
                   secretKeyRef:
@@ -162,6 +162,8 @@ spec:
             path: "/tmp"
           - subPath: "nodecache"
             path: "/app/node_modules/.cache"
+          - subPath: "client"
+            path: "/app/client/public"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
