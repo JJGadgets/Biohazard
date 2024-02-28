@@ -27,6 +27,7 @@ spec:
             tailscale.com/expose: "true"
             db.home.arpa/pg: "pg-home"
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            ingress.home.arpa/jjgadgets: "allow"
         containers:
           main:
             image:
@@ -116,36 +117,41 @@ spec:
             port: 3000
     ingress:
       main:
-        enabled: false
-        # primary: true
-        # className: "nginx-internal"
-        # annotations:
-        #   nginx.ingress.kubernetes.io/use-regex: "true"
-        #   nginx.ingress.kubernetes.io/rewrite-target: "/$2"
-        # hosts:
-        #   - host: &host "${APP_DNS_REACTIVE_RESUME}"
-        #     paths:
-        #       - path: "/api(/|$)(.*)"
-        #         pathType: ImplementationSpecific
-        #         service:
-        #           name: main
-        #           port: http
-        # tls:
-        #   - hosts: [*host]
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            ${IP_JJ_V4}
+        hosts:
+          - host: &host "${APP_DNS_REACTIVE_RESUME}"
+            paths:
+              - path: "/api(/|$)(.*)"
+                pathType: ImplementationSpecific
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
       backend:
-        enabled: false
-        # primary: false
-        # className: "nginx-internal"
-        # hosts:
-        #   - host: *host
-        #     paths:
-        #       - path: /
-        #         pathType: Prefix
-        #         service:
-        #           name: main
-        #           port: frontend
-        # tls:
-        #   - hosts: [*host]
+        enabled: true
+        primary: false
+        className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            ${IP_JJ_V4}
+        hosts:
+          - host: *host
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: frontend
+        tls:
+          - hosts: [*host]
     persistence:
       config:
         enabled: false
