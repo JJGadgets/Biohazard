@@ -31,46 +31,40 @@ spec:
           main:
             image:
               repository: "ghcr.io/amruthpillai/reactive-resume"
-              tag: "server-v3.6.0"
+              tag: "v4.0.5"
             env: &env
               TZ: "${CONFIG_TZ}"
+              PORT: "3100"
+              NODE_ENV: "production"
               PUBLIC_URL: "https://${APP_DNS_REACTIVE_RESUME}"
-              PUBLIC_SERVER_URL: "https://${APP_DNS_REACTIVE_RESUME}/api"
-              STORAGE_URL_PREFIX: "https://${APP_DNS_RGW_S3}/reactive-resume-media"
-              POSTGRES_HOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "host"
-              POSTGRES_DB:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "dbname"
-              POSTGRES_USER:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "user"
-              POSTGRES_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "password"
-              SECRET_KEY:
+              STORAGE_URL: "https://${APP_DNS_RGW_S3}/reactive-resume-media"
+              REDIS_URL: "redis://127.0.0.1:6379"
+              CHROME_URL: "wss://${APP_DNS_REACTIVE_RESUME_PRINTER}"
+              CHROME_TOKEN: &chrome
                 valueFrom:
                   secretKeyRef:
                     name: "reactive-resume-secrets"
-                    key: "SECRET_KEY"
-              JWT_SECRET:
+                    key: "CHROME_TOKEN"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-reactive-resume"
+                    key: "uri"
+              ACCESS_TOKEN_SECRET:
                 valueFrom:
                   secretKeyRef:
                     name: "reactive-resume-secrets"
-                    key: "JWT_SECRET"
-              JWT_EXPIRY_TIME: "604800"
-              STORAGE_ENDPOINT: "http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc:6953"
+                    key: "ACCESS_TOKEN_SECRET"
+              REFRESH_TOKEN_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "reactive-resume-secrets"
+                    key: "REFRESH_TOKEN_SECRET"
+              STORAGE_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc"
+              STORAGE_PORT: "6953"
               STORAGE_BUCKET: "reactive-resume-media"
               STORAGE_REGION: "us-east-1"
+              STORAGE_USE_SSL: "false"
               STORAGE_ACCESS_KEY:
                 valueFrom:
                   secretKeyRef:
@@ -93,16 +87,41 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
-          frontend:
+          redis:
             image:
-              repository: "ghcr.io/amruthpillai/reactive-resume"
-              tag: "client-v3.6.0"
-            env: *env
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
+              repository: "public.ecr.aws/docker/library/redis"
+              tag: "7.2.4-bookworm@sha256:e647cfe134bf5e8e74e620f66346f93418acfc240b71dd85640325cb7cd01402"
+            command: [
+                "redis-server",
+                "--save",
+                "''",
+                "--appendonly",
+                "no",
+                "--port",
+                "6379",
+                "--bind",
+                "127.0.0.1",
+              ] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "32Mi"
+              limits:
+                cpu: "1000m"
+                memory: "512Mi"
+          chrome:
+            image:
+              repository: "docker.io/browserless/chrome"
+              tag: "1.61.0-puppeteer-21.4.1"
+            env:
+              TOKEN: *chrome
+              EXIT_ON_HEALTH_FAILURE: "true"
+              PRE_REQUEST_HEALTH_CHECK: "true"
+              PROXY_HOST: "${APP_DNS_REACTIVE_RESUME_PRINTER}"
+              PROXY_PORT: "443"
+              PROXY_SSL: "true"
+            securityContext: *sc
             resources:
               requests:
                 cpu: "10m"
@@ -112,42 +131,38 @@ spec:
                 memory: "6Gi"
     service:
       main:
-        controller: main
         ports:
           http:
             port: 3100
-          frontend:
-            port: 3000
+          chrome:
+            port: 3000 # listens on 3000 by default
     ingress:
       main:
         enabled: true
         primary: true
         className: "nginx-internal"
-        annotations:
-          nginx.ingress.kubernetes.io/use-regex: "true"
-          nginx.ingress.kubernetes.io/rewrite-target: "/$2"
         hosts:
           - host: &host "${APP_DNS_REACTIVE_RESUME}"
-            paths:
-              - path: "/api(/|$)(.*)"
-                pathType: ImplementationSpecific
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts: [*host]
-      backend:
-        enabled: true
-        primary: false
-        className: "nginx-internal"
-        hosts:
-          - host: *host
             paths:
               - path: /
                 pathType: Prefix
                 service:
                   name: main
-                  port: frontend
+                  port: http
+        tls:
+          - hosts: [*host]
+      chrome:
+        enabled: true
+        primary: false
+        className: "nginx-internal"
+        hosts:
+          - host: "${APP_DNS_REACTIVE_RESUME_PRINTER}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: chrome
         tls:
           - hosts: [*host]
     persistence:
@@ -162,8 +177,6 @@ spec:
             path: "/tmp"
           - subPath: "nodecache"
             path: "/app/node_modules/.cache"
-          - subPath: "client"
-            path: "/app/client/public"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

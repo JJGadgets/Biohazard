@@ -5,6 +5,6 @@ metadata:
   name: reactive-resume
   labels:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    pod-security.kubernetes.io/enforce: &ps restricted
+    pod-security.kubernetes.io/enforce: &ps baseline # 3.6.0 client/frontend is... weird lol, needs root and RW rootfs for /app/client/public/__ENV.js and tmpfs won't work because it will replace existing files
     pod-security.kubernetes.io/audit: *ps
     pod-security.kubernetes.io/warn: *ps
