@@ -39,7 +39,7 @@ jobs:
           echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-oauth-token@e8e39f73bb84fdf315a015fa3104f314c0a258b4 # v1.8.1
+        uses: actions/create-github-app-token@e8e39f73bb84fdf315a015fa3104f314c0a258b4 # v1.8.1
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
@@ -58,10 +58,10 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
-          tag: "v${{ env. }}"
-          artifacts: "./vyos-build/build/vyos-${{ steps.vars.outputs.iso-name }}.iso"
+          tag: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
+          artifacts: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
           artifactErrorsFailBuild: true
-          prerelease: true
+          makeLatest: true
           body: |
             Official VyOS Changelog:
             https://docs.vyos.io/en/latest/changelog
@@ -72,7 +72,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         with:
-          tag_name: "v${{ steps.vars.outputs.tag-name }}"
+          tag_name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
           delete_release: true
 
       - name: Prune old releases
