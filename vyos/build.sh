@@ -11,7 +11,7 @@ VYOS_ARCH="${VYOS_ARCH:=amd64}"
 VYOS_BUILD_TIME="${VYOS_BUILD_TIME:="$(date +%Y%m%d%H%M)"}"
 
 # renovate: datasource=github-releases depName=getsops/sops
-SOPS_VERSION="v3.8.0"
+SOPS_VERSION="v3.8.1"
 SOPS_VERSION="${SOPS_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=p3lim/vyaml
