@@ -24,7 +24,7 @@ env:
   # renovate: datasource=github-releases depName=getsops/sops
   SOPS_VERSION: "v3.8.1"
   # renovate: datasource=github-releases depName=p3lim/vyaml
-  VYAML_VERSION: "0.2.4"
+  VYAML_VERSION: "0.2.5"
   # renovate: datasource=github-releases depName=atuinsh/atuin
   ATUIN_VERSION: "v18.0.1"
   # renovate: datasource=github-releases depName=go-task/task
@@ -60,7 +60,7 @@ jobs:
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
 
-      - name: Configure
+      - name: Build
         shell: bash
         run: |
           sudo \
@@ -97,6 +97,7 @@ jobs:
 
             # Extra package versions
             SOPS: ${{ env.SOPS_VERSION }}
+            vyaml: ${{ env.VYAML_VERSION }}
             Atuin: ${{ env.ATUIN_VERSION }}
             Task: ${{ env.TASK_VERSION }}
             Duo Unix: ${{ env.DUO_VERSION }}
