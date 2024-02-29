@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# if [[ -z "${VYOS_VERSION}" ]]; then
+#     export VYOS_VERSION="1.3.6"
+# fi
+
 # renovate: datasource=github-tags depName=vyos/vyos-1x
 VYOS_VERSION="${VYOS_VERSION:="1.3.6"}"
 VYOS_URL="${VYOS_URL:=https://github.com/vyos/vyos-build}"
@@ -7,12 +11,14 @@ VYOS_ARCH="${VYOS_ARCH:=amd64}"
 VYOS_BUILD_TIME="${VYOS_BUILD_TIME:="$(date +%Y%m%d%H%M)"}"
 
 # renovate: datasource=github-releases depName=getsops/sops
-SOPS_VERSION="v3.8.1"
+SOPS_VERSION="v3.8.0"
 SOPS_VERSION="${SOPS_VERSION#*v}"
-#VYAML_VERSION="v
+
+# renovate: datasource=github-releases depName=p3lim/vyaml
+VYAML_VERSION="0.2.4"
 
 # renovate: datasource=github-releases depName=atuinsh/atuin
-ATUIN_VERSION="v18.0.1"
+ATUIN_VERSION="v18.0.0"
 ATUIN_VERSION="${ATUIN_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=go-task/task
@@ -20,7 +26,7 @@ TASK_VERSION="v3.35.0"
 TASK_VERSION="${TASK_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=duosecurity/duo_unix
-DUO_VERSION="duo_unix-2.0.3"
+DUO_VERSION="duo_unix-2.0.2"
 DUO_VERSION="${DUO_VERSION#*duo_unix-}"
 
 pwd
@@ -31,6 +37,7 @@ pwd
 ls -AlhR . # debug
 
 curl -vL -o ./packages/sops.deb "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
+curl -vL -o ./packages/vyaml.deb "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
 curl -vL -o ./packages/atuin.deb "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
 curl -vL -o ./packages/task.deb "https://github.com/atuinsh/atuin/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
 curl -v -o ./packages/1password.deb "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-latest.deb"

@@ -23,6 +23,8 @@ env:
   VYOS_ARCH: "amd64"
   # renovate: datasource=github-releases depName=getsops/sops
   SOPS_VERSION: "v3.8.1"
+  # renovate: datasource=github-releases depName=p3lim/vyaml
+  VYAML_VERSION: "0.2.4"
   # renovate: datasource=github-releases depName=atuinsh/atuin
   ATUIN_VERSION: "v18.0.1"
   # renovate: datasource=github-releases depName=go-task/task
@@ -67,11 +69,11 @@ jobs:
             VYOS_BUILDER=${{ env.VYOS_BUILDER }} \
             VYOS_BUILD_TIME=${{ env.VYOS_BUILD_TIME }} \
             SOPS_VERSION=${{ env.SOPS_VERSION }} \
+            VYAML_VERSION=${{ env.VYAML_VERSION }} \
             ATUIN_VERSION=${{ env.ATUIN_VERSION }} \
             TASK_VERSION=${{ env.TASK_VERSION }} \
             DUO_VERSION=${{ env.DUO_VERSION }} \
-            bash ./vyos/build.sh"
-
+            bash ./vyos/build.sh
 
       - name: Create release with artifact
         uses: ncipollo/release-action@v1
