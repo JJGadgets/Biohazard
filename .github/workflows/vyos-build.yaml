@@ -1,0 +1,86 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "VyOS Build - 1.4 LTS"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: VyOS version to build
+        # renovate: datasource=github-tags depName=vyos/vyos-1x
+        default: "1.4.0-epa1"
+        required: true
+  push:
+    branches: ["main"]
+    paths:
+      - vyos/build.sh
+      - .github/workflows/vyos-build.yaml
+
+env:
+  VYOS_BUILDER: "${{ github.repository }}"
+  # renovate: datasource=github-tags depName=vyos/vyos-1x
+  VYOS_VERSION: "1.4.0-epa1"
+  VYOS_ARCH: "amd64"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    container:
+      image: vyos/vyos-build:current
+      options: --privileged
+    steps:
+      - name: "Setup variables"
+        id: "vars"
+        shell: "bash"
+        run: |
+          echo "VYOS_BUILD_TIME=$(date +%Y%m%d%H%M)" >> "${GITHUB_ENV}"
+          echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
+
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-oauth-token@e8e39f73bb84fdf315a015fa3104f314c0a258b4 # v1.8.1
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+
+      - name: Configure
+        shell: bash
+        run: "sudo ./vyos/build.sh"
+
+      - name: Create release with artifact
+        uses: ncipollo/release-action@v1
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+          tag: "v${{ env. }}"
+          artifacts: "./vyos-build/build/vyos-${{ steps.vars.outputs.iso-name }}.iso"
+          artifactErrorsFailBuild: true
+          prerelease: true
+          body: |
+            Official VyOS Changelog:
+            https://docs.vyos.io/en/latest/changelog
+
+      - name: Delete orphaned release
+        if: "${{ failure() }}"
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        with:
+          tag_name: "v${{ steps.vars.outputs.tag-name }}"
+          delete_release: true
+
+      - name: Prune old releases
+        if: "${{ always() }}"
+        uses: dev-drprasad/delete-older-releases@v0.3.2
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        with:
+          keep_latest: 90
+          delete_tags: true
+          delete_tag_pattern: rolling
