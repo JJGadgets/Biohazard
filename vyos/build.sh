@@ -19,8 +19,12 @@ ATUIN_VERSION="${ATUIN_VERSION#*v}"
 TASK_VERSION="v3.35.0"
 TASK_VERSION="${TASK_VERSION#*v}"
 
+pwd
 git clone --depth=1 --branch "${VYOS_VERSION}" --single-branch "${VYOS_URL}" ./vyos-build
 cd ./vyos-build
+mkdir -p ./build ./packages
+pwd
+ls -AlhR . # debug
 
 curl -vL -o ./packages/sops.deb "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
 curl -vL -o ./packages/atuin.deb "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"

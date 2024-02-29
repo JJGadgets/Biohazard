@@ -17,7 +17,7 @@ on:
       - .github/workflows/vyos-build.yaml
 
 env:
-  VYOS_BUILDER: "${{ github.repository }}"
+  VYOS_BUILDER: "${{ github.repository_owner }}"
   # renovate: datasource=github-tags depName=vyos/vyos-1x
   VYOS_VERSION: "1.4.0-epa1"
   VYOS_ARCH: "amd64"
@@ -52,7 +52,7 @@ jobs:
 
       - name: Configure
         shell: bash
-        run: "sudo ./vyos/build.sh"
+        run: "sudo VYOS_VERSION=${{ env.VYOS_VERSION }} VYOS_ARCH=${{ env.VYOS_ARCH }} VYOS_BUILDER=${{ env.VYOS_BUILDER }} VYOS_BUILD_TIME=${{ env.VYOS_BUILD_TIME }} bash ./vyos/build.sh"
 
       - name: Create release with artifact
         uses: ncipollo/release-action@v1
