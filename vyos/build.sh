@@ -13,7 +13,7 @@ SOPS_VERSION="v3.8.1"
 SOPS_VERSION="${SOPS_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=p3lim/vyaml
-VYAML_VERSION="0.2.4"
+VYAML_VERSION="0.2.5"
 
 # renovate: datasource=github-releases depName=atuinsh/atuin
 ATUIN_VERSION="v18.0.1"
@@ -39,7 +39,7 @@ curl -vLO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/so
 curl -vLO "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
-curl -vO "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-latest.deb"
+curl -v -o ./1password-0.0.1-amd64.deb "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-latest.deb"
 curl -vO "https://pkg.duosecurity.com/Debian/dists/bullseye/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
 cd ../
 
