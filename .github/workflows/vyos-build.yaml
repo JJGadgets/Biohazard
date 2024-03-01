@@ -8,7 +8,7 @@ on:
       version:
         description: VyOS version to build
         # renovate: datasource=github-tags depName=vyos/vyos-1x
-        default: "1.4.0-epa1"
+        default: "1.4.0-rc3"
         required: true
   push:
     branches: ["main"]
@@ -19,7 +19,7 @@ on:
 env:
   VYOS_BUILDER: "${{ github.repository_owner }}"
   # renovate: datasource=github-tags depName=vyos/vyos-1x
-  VYOS_VERSION: "1.4.0-epa1"
+  VYOS_VERSION: "1.4.0-rc3"
   VYOS_ARCH: "amd64"
   # renovate: datasource=github-releases depName=getsops/sops
   SOPS_VERSION: "v3.8.1"
