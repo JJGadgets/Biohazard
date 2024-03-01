@@ -53,7 +53,7 @@ ls -AlhR ./packages # debug
     --build-by "${VYOS_BUILDER:=custom}" \
     --build-type "${VYOS_BUILD_TYPE:=release}" \
     --build-comment "Biohazardous VyOS" \
-    --version "${VYOS_VERSION}+${VYOS_BUILDER:=custom}-${VYOS_BUILD_TIME}" \
+    --version "${VYOS_VERSION}-${VYOS_BUILDER:=custom}-${VYOS_BUILD_TIME}" \
     --custom-package "iptables" \
     --custom-package "jo" \
     --custom-package "moreutils" \
