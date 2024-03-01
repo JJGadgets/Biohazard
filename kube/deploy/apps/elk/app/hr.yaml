@@ -19,11 +19,11 @@ spec:
       type: deployment
       replicas: 1
     image:
-      repository: "registry.jjgadgets.tech/jjgadgets/elk"
+      repository: "jank.ing/jjgadgets/elk"
       tag: "0.11.0@sha256:e7be5d9cddf88a24a18a56731014782d194ea948d148c45eac35170ef3e34c9f"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
-      egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/nginx-internal: "allow"
     env:
       TZ: "${CONFIG_TZ}"
       NUXT_PUBLIC_DEFAULT_SERVER: "social.jjgadgets.tech"
