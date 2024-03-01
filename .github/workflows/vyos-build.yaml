@@ -79,10 +79,10 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
-          tag: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
-          artifacts: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
+          tag: "vyos-v${{ env.VYOS_VERSION }}+${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
+          artifacts: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}+${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
           artifactErrorsFailBuild: true
-          makeLatest: true
+          prerelease: true
           body: |
             # WARNING
             PLEASE **DO NOT USE** MY IMAGES/ISO UNLESS YOU WANT SOME POTENTIALLY JANKY STUFF!
@@ -108,7 +108,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         with:
-          tag_name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
+          tag_name: "vyos-v${{ env.VYOS_VERSION }}+${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
           delete_release: true
 
       - name: Prune old releases

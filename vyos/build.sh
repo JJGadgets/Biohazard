@@ -34,21 +34,24 @@ mkdir -p ./build ./packages
 pwd
 ls -AlhR . # debug
 
-curl -vL -o ./packages/sops.deb "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
-curl -vL -o ./packages/vyaml.deb "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
-curl -vL -o ./packages/atuin.deb "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
-curl -vL -o ./packages/task.deb "https://github.com/atuinsh/atuin/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
-curl -v -o ./packages/1password.deb "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-latest.deb"
-curl -v -o ./packages/duo-unix.deb "https://pkg.duosecurity.com/Debian/dists/bullseye/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
+cd ./packages
+curl -vLO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
+curl -vLO "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
+curl -vLO "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
+curl -vLO "https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
+curl -vO "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-latest.deb"
+curl -vO "https://pkg.duosecurity.com/Debian/dists/bullseye/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
+cd ../
 
 # script assumes running as sudo/root
 make clean
+ls -AlhR ./packages # debug
 ./build-vyos-image iso \
     --architecture "${VYOS_ARCH}" \
-    --build-by "${VYOS_BUILDER:=root}" \
+    --build-by "${VYOS_BUILDER:=custom}" \
     --build-type "${VYOS_BUILD_TYPE:=release}" \
     --build-comment "Biohazardous VyOS" \
-    --version "${VYOS_VERSION}-${VYOS_BUILD_TIME}" \
+    --version "${VYOS_VERSION}+${VYOS_BUILDER:=custom}-${VYOS_BUILD_TIME}" \
     --custom-package "iptables" \
     --custom-package "jo" \
     --custom-package "moreutils" \
@@ -58,5 +61,6 @@ make clean
     --custom-package "iotop" \
     --custom-package "btop" \
     --custom-package "neovim" \
-    --custom-package "zram-tools" \
-    --custom-package "systemd-zram-generator" # jank city
+    # VyOS doesn't build kernel with zram :(
+    # --custom-package "zram-tools" \
+    # --custom-package "systemd-zram-generator" # jank city
