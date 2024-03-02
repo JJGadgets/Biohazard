@@ -101,6 +101,14 @@ spec:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/nginx
+          - name: windows
+            orgId: 1
+            folder: Windows
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/windows
     datasources:
       datasources.yaml:
         apiVersion: 1
@@ -133,10 +141,6 @@ spec:
           gnetId: 1860 # https://grafana.com/grafana/dashboards/1860?tab=revisions
           revision: 31
           datasource: Prometheus
-        nvidia-gpu:
-          gnetId: 14574
-          revision: 8
-          datasource: Prometheus
         spegel:
           # renovate: depName="Spegel"
           gnetId: 18089
@@ -154,10 +158,6 @@ spec:
           datasource:
             - name: DS_PROMETHEUS
               value: Prometheus
-        windows-exporter:
-          gnetId: 12422
-          revision: 1
-          datasource: Prometheus
       flux:
         flux-cluster:
           url: https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/monitoring/monitoring-config/dashboards/cluster.json
@@ -190,6 +190,31 @@ spec:
           datasource: Prometheus
         nginx-request-handling-performance:
           url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/request-handling-performance.json
+          datasource: Prometheus
+      windows:
+        nvidia-gpu:
+          gnetId: 14574
+          revision: 8
+          datasource: Prometheus
+        windows-node-gerard3:
+          gnetId: 12422
+          revision: 1
+          datasource: Prometheus
+        windows-exporter-girb90:
+          gnetId: 14694
+          revision: 2
+          datasource: Prometheus
+        windows-exporter-gefidalgo:
+          gnetId: 14451
+          revision: 1
+          datasource: Prometheus
+        windows-status-prometheus-gattancha:
+          gnetId: 16523
+          revision: 1
+          datasource: Prometheus
+        windows-node-jakub-pinkas:
+          gnetId: 
+          revision: 3
           datasource: Prometheus
     sidecar:
       dashboards:
