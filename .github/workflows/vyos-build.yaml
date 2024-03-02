@@ -38,7 +38,7 @@ jobs:
     permissions:
       contents: write
     container:
-      image: vyos/vyos-build:current
+      image: vyos/vyos-build:sagitta # 1.4, don't pin digest to reduce number of ISOs built
       options: --privileged
     steps:
       - name: "Setup variables"
@@ -49,14 +49,14 @@ jobs:
           echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@f2acddfb5195534d487896a656232b016a682f3c # v1.9.0
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
           private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
 
@@ -75,48 +75,57 @@ jobs:
             DUO_VERSION=${{ env.DUO_VERSION }} \
             bash ./vyos/build.sh
 
-      - name: Create release with artifact
-        uses: ncipollo/release-action@v1
+      - name: Upload output ISO as artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          token: "${{ steps.oauth-token.outputs.token }}"
-          tag: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
-          artifacts: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
-          artifactErrorsFailBuild: true
-          prerelease: true
-          body: |
-            # WARNING
-            PLEASE **DO NOT USE** MY IMAGES/ISO UNLESS YOU WANT SOME POTENTIALLY JANKY STUFF!
-            I **WILL NOT** BE PROVIDING ANY HELP OR SUPPORT OR WARRANTY, **YOU'RE ON YOUR OWN**!
-            This is for my own consumption only.
+          name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
+          path: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
 
-            **YOU HAVE BEEN WARNED!**
-
-            # Changelog
-            Official VyOS Changelog:
-            https://docs.vyos.io/en/latest/changelog/1.4.html
-
-            # Extra package versions
-            SOPS: ${{ env.SOPS_VERSION }}
-            vyaml: ${{ env.VYAML_VERSION }}
-            Atuin: ${{ env.ATUIN_VERSION }}
-            Task: ${{ env.TASK_VERSION }}
-            Duo Unix: ${{ env.DUO_VERSION }}
-
-      - name: Delete orphaned release
-        if: "${{ failure() }}"
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+  upload:
+    runs-on: ubuntu-latest
+    container:
+      image: "docker.io/rclone/rclone:1.65.2@sha256:df19eb113773539c45fdce109e09aa51f222cd0e32f08a3116eebfef2556bf29" # must be at least Alpine base, because of scripting
+    steps:
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+      - name: "Upload to Cloudflare R2"
         env:
-          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
-        with:
-          tag_name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
-          delete_release: true
+          # backend config
+          RCLONE_CONFIG_R2_TYPE: "s3"
+          RCLONE_CONFIG_R2_PROVIDER: "Cloudflare"
+          RCLONE_CONFIG_R2_ENV_AUTH: "true"
+          RCLONE_CONFIG_R2_ENDPOINT: "${{ secrets.R2_ENDPOINT }}"
+          AWS_ACCESS_KEY_ID: "${{ secrets.VYOS_BUILD_R2_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.VYOS_BUILD_R2_KEY }}"
+          # verbosity
+          RCLONE_PROGRESS: "true"
+          # reducing S3 API costs
+          RCLONE_FAST_LIST: "true"
+          RCLONE_UPDATE: "true"
+          RCLONE_USE_SERVER_MODTIME: "true"
+        run:
+          | # first copies ISO as is, then copies ISO with common "latest" filename (with some filters to avoid hardcoding and safeguard against uploading the wrong thing if somehow >1 file), then deletes files older than the past 5 number of files under that arch and builder name
+          rclone copy ./ r2:vyos-build/
+          rclone copyto --max-age 1h --include "*${{ env.VYOS_BUILDER }}*.iso" r2:vyos-build/${{ env.VYOS_ARCH }}.iso
+          rclone lsf --format=p r2:vyos-build | grep "${{ env.VYOS_BUILDER }}" | grep "${{ env.VYOS_ARCH }}" | tail -n +5 | rclone delete --files-from - r2:vyos-build
+          rclone cleanup r2:vyos-build
 
-      - name: Prune old releases
-        if: "${{ always() }}"
-        uses: dev-drprasad/delete-older-releases@v0.3.2
-        env:
-          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
-        with:
-          keep_latest: 90
-          delete_tags: true
-          delete_tag_pattern: rolling
+      # OLD CHANGELOG, TODO: maybe add this as a CHANGELOG.md to R2 bucket?
+      #     body: |
+      #       # WARNING
+      #       PLEASE **DO NOT USE** MY IMAGES/ISO UNLESS YOU WANT SOME POTENTIALLY JANKY STUFF!
+      #       I **WILL NOT** BE PROVIDING ANY HELP OR SUPPORT OR WARRANTY, **YOU'RE ON YOUR OWN**!
+      #       This is for my own consumption only.
+
+      #       **YOU HAVE BEEN WARNED!**
+
+      #       # Changelog
+      #       Official VyOS Changelog:
+      #       https://docs.vyos.io/en/latest/changelog/1.4.html
+
+      #       # Extra package versions
+      #       SOPS: ${{ env.SOPS_VERSION }}
+      #       vyaml: ${{ env.VYAML_VERSION }}
+      #       Atuin: ${{ env.ATUIN_VERSION }}
+      #       Task: ${{ env.TASK_VERSION }}
+      #       Duo Unix: ${{ env.DUO_VERSION }}
