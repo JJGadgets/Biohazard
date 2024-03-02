@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app redbot
+  namespace: *app
+spec:
+  endpointSelector: {}
+  egress:
+    # Lavalink (Audio cog)
+    - toFQDNs:
+        ## Discord media (???)
+        - matchPattern: "*.discord.media"
+        ## YouTube
+        - matchName: "youtube.com"
+        - matchPattern: "*.youtube.com"
+        - matchName: "youtubei.googleapis.com"
+        - matchPattern: "*.googlevideo.com"
+        ## Twitch
+        - matchName: "twitch.tv"
+        - matchPattern: "*.twitch.tv"
+    ## UDP ports for streaming
+    - toCIDRSet:
+        - cidr: "0.0.0.0/0"
+          except:
+            - "10.0.0.0/8"
+            - "172.16.0.0/12"
+            - "192.168.0.0/16"
+            - "100.64.0.0/10"
+      toPorts:
+        - ports:
+            - port: "50001"
+              protocol: "UDP"
+            - port: "50002"
+              protocol: "UDP"
+            - port: "50003"
+              protocol: "UDP"
+            - port: "50004"
+              protocol: "UDP"
+            - port: "50005"
+              protocol: "UDP"
+            - port: "50006"
+              protocol: "UDP"
+            - port: "50007"
+              protocol: "UDP"
+            - port: "50008"
+              protocol: "UDP"
+            - port: "50009"
+              protocol: "UDP"
