@@ -32,8 +32,9 @@ TAILSCALE_VERSION="v1.60.1"
 TAILSCALE_VERSION="${TAILSCALE_VERSION#*v}"
 
 pwd
-git clone --depth=1 --branch "${VYOS_VERSION}" --single-branch "${VYOS_URL}" ./vyos-build
+git clone --depth=1 --branch "${VYOS_VERSION}" "${VYOS_URL}" ./vyos-build
 cd ./vyos-build
+git switch -c "${VYOS_VERSION}" # T6064
 mkdir -p ./build ./packages
 pwd
 ls -AlhR . # debug
@@ -43,7 +44,7 @@ curl -vLO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/so
 curl -vL -o ./vyaml_${VYAML_VERSION}_${VYOS_ARCH}.deb "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
-# curl -vO "https://pkgs.tailscale.com/stable/debian/pool/tailscale_${TAILSCALE_VERSION}_${VYOS_ARCH}.deb"
+curl -vO "https://pkgs.tailscale.com/stable/debian/pool/tailscale_${TAILSCALE_VERSION}_${VYOS_ARCH}.deb"
 curl -vO "https://pkg.duosecurity.com/Debian/dists/bullseye/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
 curl -vO "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-cli-${VYOS_ARCH}-latest.deb"
 OP_VERSION=$(dpkg-deb --field ./1password-cli-${VYOS_ARCH}-latest.deb version)
