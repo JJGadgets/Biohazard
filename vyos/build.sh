@@ -80,4 +80,9 @@ ls -AlhR ${VYOSDIR}/packages # debug
     # --custom-package "zram-tools" \
     # --custom-package "systemd-zram-generator" # jank city
 
+ls -AlhR .
+
+echo "STAGE 3: Post-Build"
+echo "=========="
+ls -AlhR ${VYOSDIR}/build
 cp -r ${VYOSDIR}/build/*.iso ${VYOSDIR}/build/${VYOS_VERSION_TYPE}-${VYOS_ARCH}.iso

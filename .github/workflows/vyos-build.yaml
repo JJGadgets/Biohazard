@@ -21,6 +21,12 @@ on:
           (only used by custom packages' APT repos)
         default: "bookworm"
         required: true
+      docker:
+        description: vyos-build image tag (`sagitta`/`current`/custom)
+        # type: choice
+        # options: ["sagitta", "current"]
+        type: string
+        required: false
   push:
     branches: ["main"]
     paths:
@@ -41,7 +47,7 @@ jobs:
     permissions:
       contents: write
     container:
-      image: vyos/vyos-build:sagitta # 1.4, don't pin digest to reduce number of ISOs built
+      image: "docker.io/vyos/vyos-build:${{ github.event.inputs.docker || 'sagitta' }}"
       options: --privileged
     steps:
       - name: "Setup variables"
