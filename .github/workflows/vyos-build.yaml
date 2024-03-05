@@ -10,6 +10,12 @@ on:
         # renovate: datasource=github-tags depName=vyos/vyos-1x
         default: "1.4.0-epa1"
         required: true
+      debian:
+        description: |
+          Debian version codename
+          (only used by custom packages' APT repos)
+        default: "bookworm"
+        required: true
   push:
     branches: ["main"]
     paths:
@@ -21,6 +27,7 @@ env:
   # renovate: datasource=github-tags depName=vyos/vyos-1x
   VYOS_VERSION: "1.4.0-epa1"
   VYOS_ARCH: "amd64"
+  DEBIAN_CODENAME: "bookworm"
   # renovate: datasource=github-releases depName=getsops/sops
   SOPS_VERSION: "v3.8.1"
   # renovate: datasource=github-releases depName=p3lim/vyaml
@@ -31,6 +38,8 @@ env:
   TASK_VERSION: "v3.35.0"
   # renovate: datasource=github-releases depName=duosecurity/duo_unix
   DUO_VERSION: "duo_unix-2.0.3"
+  # renovate: datasource=github-releases depName=tailscale/tailscale
+  TAILSCALE_VERSION: "v1.60.1"
 
 jobs:
   build:
@@ -47,6 +56,7 @@ jobs:
         run: |
           echo "VYOS_BUILD_TIME=$(date +%Y%m%d%H%M)" >> "${GITHUB_ENV}"
           echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
+          echo "DEBIAN_CODENAME=${{ github.event.inputs.debian || env.DEBIAN_CODENAME }}" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
         uses: actions/create-github-app-token@f2acddfb5195534d487896a656232b016a682f3c # v1.9.0

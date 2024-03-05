@@ -7,6 +7,7 @@ fi
 VYOS_URL="${VYOS_URL:=https://github.com/vyos/vyos-build}"
 VYOS_ARCH="${VYOS_ARCH:=amd64}"
 VYOS_BUILD_TIME="${VYOS_BUILD_TIME:="$(date +%Y%m%d%H%M)"}"
+DEBIAN_CODENAME=${DEBIAN_CODENAME:=bookworm} # only used by custom packages' APT repos like Duo Unix
 
 # renovate: datasource=github-releases depName=getsops/sops
 SOPS_VERSION="v3.8.1"
@@ -34,26 +35,36 @@ TAILSCALE_VERSION="${TAILSCALE_VERSION#*v}"
 pwd
 git clone --depth=1 --branch "${VYOS_VERSION}" "${VYOS_URL}" ./vyos-build
 cd ./vyos-build
+VYOSDIR=$(pwd)
 git switch -c "${VYOS_VERSION}" # T6064
-mkdir -p ./build ./packages
-pwd
-ls -AlhR . # debug
+mkdir -p ${VYOSDIR}/build ${VYOSDIR}/packages
+ls -AlhR ${VYOSDIR} # debug
 
-cd ./packages
+cd ${VYOSDIR}/packages
 curl -vLO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
 curl -vL -o ./vyaml_${VYAML_VERSION}_${VYOS_ARCH}.deb "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin_${ATUIN_VERSION}_${VYOS_ARCH}.deb"
 curl -vLO "https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_linux_${VYOS_ARCH}.deb"
-#curl -vO "https://pkgs.tailscale.com/stable/debian/pool/tailscale_${TAILSCALE_VERSION}_${VYOS_ARCH}.deb"
-curl -vO "https://pkg.duosecurity.com/Debian/dists/bullseye/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
-curl -vO "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-cli-${VYOS_ARCH}-latest.deb"
+curl -vO "https://pkgs.tailscale.com/stable/debian/pool/tailscale_${TAILSCALE_VERSION}_${VYOS_ARCH}.deb"
+curl -vO "https://pkg.duosecurity.com/Debian/dists/${DEBIAN_CODENAME}/main/binary-${VYOS_ARCH}/duo-unix_${DUO_VERSION}-0_amd64.deb" # TODO: better solution to this than assuming the -0 version suffix
+curl -vO "https://downloads.1password.com/linux/debian/${VYOS_ARCH}/stable/1password-cli-${VYOS_ARCH}-latest.deb" # always use latest 1Password CLI version for security reasons
 OP_VERSION=$(dpkg-deb --field ./1password-cli-${VYOS_ARCH}-latest.deb version)
 mv ./1password-cli-${VYOS_ARCH}-latest.deb ./1password-cli_${OP_VERSION}_${VYOS_ARCH}.deb
-cd ../
+cd ${VYOSDIR}
+
+# build out-of-tree modules (because upstream VyOS APT repos don't align kernel version dependency with version tag branch's kernel version)
+cd ${VYOSDIR}/packages/linux-kernel
+git clone --depth=1 https://github.com/accel-ppp/accel-ppp.git
+./build-accel-ppp.sh
+./build-intel-drivers.sh
+./build-intel-qat.sh
+ls -AlhR ./*.deb
+mv ./*.deb ${VYOSDIR}/packages/
+cd ${VYOSDIR}
 
 # script assumes running as sudo/root
 make clean
-ls -AlhR ./packages # debug
+ls -AlhR ${VYOSDIR}/packages # debug
 ./build-vyos-image iso \
     --architecture "${VYOS_ARCH}" \
     --build-by "${VYOS_BUILDER:=custom}" \
