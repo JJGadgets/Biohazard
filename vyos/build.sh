@@ -4,6 +4,7 @@ if [[ -z "${VYOS_VERSION}" ]]; then
     # renovate: datasource=github-tags depName=vyos/vyos-1x
     export VYOS_VERSION="1.3.6"
 fi
+VYOS_VERSION_TYPE="${VYOS_VERSION_TYPE:=lts}"
 VYOS_URL="${VYOS_URL:=https://github.com/vyos/vyos-build}"
 VYOS_ARCH="${VYOS_ARCH:=amd64}"
 VYOS_BUILD_TIME="${VYOS_BUILD_TIME:="$(date +%Y%m%d%H%M)"}"
@@ -65,7 +66,7 @@ ls -AlhR ${VYOSDIR}/packages # debug
     --build-by "${VYOS_BUILDER:=custom}" \
     --build-type "${VYOS_BUILD_TYPE:=release}" \
     --build-comment "Biohazardous VyOS" \
-    --version "${VYOS_VERSION}-${VYOS_BUILDER:=custom}-${VYOS_BUILD_TIME}" \
+    --version "${VYOS_VERSION}-${VYOS_VERSION_TYPE}-${VYOS_BUILDER:=custom}-${VYOS_BUILD_TIME}" \
     --custom-package "iptables" \
     --custom-package "jo" \
     --custom-package "moreutils" \
@@ -79,4 +80,4 @@ ls -AlhR ${VYOSDIR}/packages # debug
     # --custom-package "zram-tools" \
     # --custom-package "systemd-zram-generator" # jank city
 
-cp -r ${VYOSDIR}/build/*.iso ${VYOSDIR}/build/${VYOS_VERSION_TYPE:=lts}-${VYOS_ARCH}.iso
+cp -r ${VYOSDIR}/build/*.iso ${VYOSDIR}/build/${VYOS_VERSION_TYPE}-${VYOS_ARCH}.iso

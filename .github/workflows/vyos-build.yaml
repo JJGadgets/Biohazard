@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: "VyOS Build - 1.4 LTS"
+name: "VyOS Build"
 
 on:
   workflow_dispatch:
@@ -9,6 +9,11 @@ on:
         description: VyOS version to build
         # renovate: datasource=github-tags depName=vyos/vyos-1x
         default: "1.4.0-epa1"
+        required: true
+      type:
+        description: VyOS version type
+        type: choice
+        options: ["lts", "rolling"]
         required: true
       debian:
         description: |
@@ -26,20 +31,9 @@ env:
   VYOS_BUILDER: "${{ github.repository_owner }}"
   # renovate: datasource=github-tags depName=vyos/vyos-1x
   VYOS_VERSION: "1.4.0-epa1"
+  VYOS_VERSION_TYPE: "lts"
   VYOS_ARCH: "amd64"
   DEBIAN_CODENAME: "bookworm"
-  # renovate: datasource=github-releases depName=getsops/sops
-  SOPS_VERSION: "v3.8.1"
-  # renovate: datasource=github-releases depName=p3lim/vyaml
-  VYAML_VERSION: "0.2.5"
-  # renovate: datasource=github-releases depName=atuinsh/atuin
-  ATUIN_VERSION: "v18.0.1"
-  # renovate: datasource=github-releases depName=go-task/task
-  TASK_VERSION: "v3.35.0"
-  # renovate: datasource=github-releases depName=duosecurity/duo_unix
-  DUO_VERSION: "duo_unix-2.0.3"
-  # renovate: datasource=github-releases depName=tailscale/tailscale
-  TAILSCALE_VERSION: "v1.60.1"
 
 jobs:
   build:
@@ -56,6 +50,7 @@ jobs:
         run: |
           echo "VYOS_BUILD_TIME=$(date +%Y%m%d%H%M)" >> "${GITHUB_ENV}"
           echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
+          echo "VYOS_VERSION_TYPE=${{ github.event.inputs.type || env.VYOS_VERSION_TYPE }}" >> "${GITHUB_ENV}"
           echo "DEBIAN_CODENAME=${{ github.event.inputs.debian || env.DEBIAN_CODENAME }}" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
@@ -75,27 +70,24 @@ jobs:
         run: |
           sudo \
             VYOS_VERSION=${{ env.VYOS_VERSION }} \
+            VYOS_VERSION_TYPE=${{ env.VYOS_VERSION_TYPE }} \
             VYOS_ARCH=${{ env.VYOS_ARCH }} \
             VYOS_BUILDER=${{ env.VYOS_BUILDER }} \
             VYOS_BUILD_TIME=${{ env.VYOS_BUILD_TIME }} \
-            SOPS_VERSION=${{ env.SOPS_VERSION }} \
-            VYAML_VERSION=${{ env.VYAML_VERSION }} \
-            ATUIN_VERSION=${{ env.ATUIN_VERSION }} \
-            TASK_VERSION=${{ env.TASK_VERSION }} \
-            DUO_VERSION=${{ env.DUO_VERSION }} \
+            DEBIAN_CODENAME=${{ env.DEBIAN_CODENAME }} \
             bash ./vyos/build.sh
 
       - name: Upload output ISO as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
-          path: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
+          name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
+          path: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
 
       - name: Upload output ISO as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
-          name: "lts-${{ env.VYOS_ARCH }}"
-          path: "./vyos-build/build/lts-${{ env.VYOS_ARCH }}.iso"
+          name: "${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_ARCH }}"
+          path: "./vyos-build/build/${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_ARCH }}.iso"
 
   upload:
     needs: build
@@ -125,7 +117,7 @@ jobs:
           for i in $(find . -type f -iname "*.iso"); do mv $i ./; done
           ls -AlhR .
           rclone copy ./ r2:vyos-build/ --s3-no-check-bucket
-          rclone lsf --format=p r2:vyos-build | grep "${{ env.VYOS_BUILDER }}" | grep "${{ env.VYOS_ARCH }}" | tail -n +3 | rclone delete --files-from - r2:vyos-build
+          rclone lsf --format=p r2:vyos-build | grep "${{ env.VYOS_VERSION_TYPE }}" | grep "${{ env.VYOS_BUILDER }}" | grep "${{ env.VYOS_ARCH }}" | tail -n +3 | rclone delete --files-from - r2:vyos-build
           rclone cleanup r2:vyos-build
         # --s3-no-list-bucket needed for single file copyto bucket root, https://github.com/rclone/rclone/issues/5271 https://forum.rclone.org/t/issue-using-copyto-for-single-files/38842
 
