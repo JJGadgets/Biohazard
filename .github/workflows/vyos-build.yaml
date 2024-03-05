@@ -37,9 +37,9 @@ env:
   VYOS_BUILDER: "${{ github.repository_owner }}"
   # renovate: datasource=github-tags depName=vyos/vyos-1x
   VYOS_VERSION: "1.4.0-epa1"
-  VYOS_VERSION_TYPE: "lts"
+  VYOS_VERSION_TYPE: "${{ github.event.inputs.type || 'lts' }}"
   VYOS_ARCH: "amd64"
-  DEBIAN_CODENAME: "bookworm"
+  DEBIAN_CODENAME: "${{ github.event.inputs.debian || 'bookworm' }}"
 
 jobs:
   build:
@@ -56,8 +56,6 @@ jobs:
         run: |
           echo "VYOS_BUILD_TIME=$(date +%Y%m%d%H%M)" >> "${GITHUB_ENV}"
           echo "VYOS_VERSION=${{ github.event.inputs.version || env.VYOS_VERSION }}" >> "${GITHUB_ENV}"
-          echo "VYOS_VERSION_TYPE=${{ github.event.inputs.type || env.VYOS_VERSION_TYPE }}" >> "${GITHUB_ENV}"
-          echo "DEBIAN_CODENAME=${{ github.event.inputs.debian || env.DEBIAN_CODENAME }}" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
         uses: actions/create-github-app-token@f2acddfb5195534d487896a656232b016a682f3c # v1.9.0
@@ -89,12 +87,6 @@ jobs:
           name: "vyos-v${{ env.VYOS_VERSION }}-${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}-iso"
           path: "./vyos-build/build/vyos-${{ env.VYOS_VERSION }}-${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_BUILDER }}-${{ env.VYOS_BUILD_TIME }}-${{ env.VYOS_ARCH }}.iso"
 
-      - name: Upload output ISO as artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        with:
-          name: "${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_ARCH }}"
-          path: "./vyos-build/build/${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_ARCH }}.iso"
-
   upload:
     needs: build
     runs-on: ubuntu-latest
@@ -110,6 +102,7 @@ jobs:
           RCLONE_CONFIG_R2_PROVIDER: "Cloudflare"
           RCLONE_CONFIG_R2_ENV_AUTH: "true"
           RCLONE_CONFIG_R2_ENDPOINT: "${{ secrets.R2_ENDPOINT }}"
+          RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true" # needed for single file copyto bucket root, https://github.com/rclone/rclone/issues/5271 https://forum.rclone.org/t/issue-using-copyto-for-single-files/38842
           AWS_ACCESS_KEY_ID: "${{ secrets.VYOS_BUILD_R2_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.VYOS_BUILD_R2_KEY }}"
           # verbosity
@@ -122,10 +115,13 @@ jobs:
           | # first copies ISO as is, then copies ISO with common "latest" filename (with some filters to avoid hardcoding and safeguard against uploading the wrong thing if somehow >1 file), then deletes files older than the past 5 number of files under that arch and builder name
           for i in $(find . -type f -iname "*.iso"); do mv $i ./; done
           ls -AlhR .
-          rclone copy ./ r2:vyos-build/ --s3-no-check-bucket
+          export FILE=$(find . -type f | tail -n 1)
+          echo "File to upload:"
+          echo "${FILE}"
+          rclone copy ./ r2:vyos-build/
+          rclone copyto r2:vyos-build/${FILE} r2:vyos-build/${{ env.VYOS_VERSION_TYPE }}-${{ env.VYOS_ARCH }}.iso
           rclone lsf --format=p r2:vyos-build | grep "${{ env.VYOS_VERSION_TYPE }}" | grep "${{ env.VYOS_BUILDER }}" | grep "${{ env.VYOS_ARCH }}" | tail -n +3 | rclone delete --files-from - r2:vyos-build
           rclone cleanup r2:vyos-build
-        # --s3-no-list-bucket needed for single file copyto bucket root, https://github.com/rclone/rclone/issues/5271 https://forum.rclone.org/t/issue-using-copyto-for-single-files/38842
 
       # OLD CHANGELOG, TODO: maybe add this as a CHANGELOG.md to R2 bucket?
       #     body: |
