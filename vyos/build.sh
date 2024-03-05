@@ -32,7 +32,8 @@ DUO_VERSION="${DUO_VERSION#*duo_unix-}"
 TAILSCALE_VERSION="v1.60.1"
 TAILSCALE_VERSION="${TAILSCALE_VERSION#*v}"
 
-pwd
+echo "STAGE 1: Clone vyos-build Git repository, with ${VYOS_VERSION} tag"
+echo "=========="
 git clone --depth=1 --branch "${VYOS_VERSION}" "${VYOS_URL}" ./vyos-build
 cd ./vyos-build
 VYOSDIR=$(pwd)
@@ -40,6 +41,8 @@ git switch -c "${VYOS_VERSION}" # T6064
 mkdir -p ${VYOSDIR}/build ${VYOSDIR}/packages
 ls -AlhR ${VYOSDIR} # debug
 
+echo "STAGE 2: Download packages outside of Debian & VyOS repos"
+echo "=========="
 cd ${VYOSDIR}/packages
 curl -vLO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops_${SOPS_VERSION}_${VYOS_ARCH}.deb"
 curl -vL -o ./vyaml_${VYAML_VERSION}_${VYOS_ARCH}.deb "https://github.com/p3lim/vyaml/releases/download/${VYAML_VERSION}/vyaml-${VYOS_ARCH}.deb"
@@ -52,17 +55,9 @@ OP_VERSION=$(dpkg-deb --field ./1password-cli-${VYOS_ARCH}-latest.deb version)
 mv ./1password-cli-${VYOS_ARCH}-latest.deb ./1password-cli_${OP_VERSION}_${VYOS_ARCH}.deb
 cd ${VYOSDIR}
 
-# build out-of-tree modules (because upstream VyOS APT repos don't align kernel version dependency with version tag branch's kernel version)
-cd ${VYOSDIR}/packages/linux-kernel
-git clone --depth=1 https://github.com/accel-ppp/accel-ppp.git
-./build-accel-ppp.sh
-./build-intel-drivers.sh
-./build-intel-qat.sh
-ls -AlhR ./*.deb
-mv ./*.deb ${VYOSDIR}/packages/
-cd ${VYOSDIR}
-
 # script assumes running as sudo/root
+echo "STAGE 3: Build VyOS ISO"
+echo "=========="
 make clean
 ls -AlhR ${VYOSDIR}/packages # debug
 ./build-vyos-image iso \
@@ -83,3 +78,5 @@ ls -AlhR ${VYOSDIR}/packages # debug
     # VyOS doesn't build kernel with zram :(
     # --custom-package "zram-tools" \
     # --custom-package "systemd-zram-generator" # jank city
+
+cp -r ${VYOSDIR}/build/*.iso ${VYOSDIR}/build/${VYOS_VERSION_TYPE:=lts}-${VYOS_ARCH}.iso
