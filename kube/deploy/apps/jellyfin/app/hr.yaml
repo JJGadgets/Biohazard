@@ -22,6 +22,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
+            ingress.home.arpa/nginx-external: "allow"
             egress.home.arpa/internet: "allow"
             egress.home.arpa/dlna: "allow"
             authentik.home.arpa/ldap: "allow"
