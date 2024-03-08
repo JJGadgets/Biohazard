@@ -22,7 +22,7 @@ ATUIN_VERSION="v18.0.1"
 ATUIN_VERSION="${ATUIN_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=go-task/task
-TASK_VERSION="v3.35.0"
+TASK_VERSION="v3.35.1"
 TASK_VERSION="${TASK_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=duosecurity/duo_unix
