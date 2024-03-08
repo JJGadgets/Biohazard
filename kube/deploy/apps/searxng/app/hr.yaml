@@ -192,8 +192,6 @@ spec:
               issue_url: ""
             search:
               safe_search: 0
-              autocomplete: "duckduckgo"
-              autocomplete_min: 2
               default_lang: "en"
               max_page: 0
             server:
@@ -219,6 +217,12 @@ spec:
               - 'Tracker URL remover'
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
+              - 'Hostname replace'
+            hostname_replace:
+              '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
+              '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
+              '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
+              '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
     # NOTE: Search engines disabled:
     # - archive.is (too many requests)
     resources:
