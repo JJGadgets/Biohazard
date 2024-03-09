@@ -4,22 +4,22 @@ kind: Plan
 metadata:
   name: talos
 spec:
-  version: "${TALOS_VERSION}"
+  version: &v "${TALOS_VERSION}"
   serviceAccountName: system-upgrade
   secrets:
     - name: talos
       path: /var/run/secrets/talos.dev
       ignoreUpdates: true
   concurrency: 1
-  cordon: false # let `talosctl upgrade` handle cordon
-  drain:
-    deleteLocalData: true
-    disableEviction: false
-    ignoreDaemonSets: true
   exclusive: true
   nodeSelector:
-    matchLabels:
-      kubernetes.io/os: "linux"
+    matchExpressions:
+      - key: feature.node.kubernetes.io/system-os_release.ID
+        operator: In
+        values: ["talos"]
+      - key: feature.node.kubernetes.io/system-os_release.VERSION_ID
+        operator: NotIn
+        values: [*v]
   prepare: &prepare
     image: "registry.k8s.io/kubectl:v1.29.2@sha256:ac66c804f411269a1caa8cc907447fcd00a4476cfb627a4756845c85e685a671"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
