@@ -91,7 +91,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     container:
-      image: "docker.io/rclone/rclone:1.65.2@sha256:df19eb113773539c45fdce109e09aa51f222cd0e32f08a3116eebfef2556bf29" # must be at least Alpine base, because of scripting
+      image: "docker.io/rclone/rclone:1.66.0@sha256:c89de48cf43e665006077db2ebe47a52ab0f1d6846659f0ca6a0cb01b5559b85" # must be at least Alpine base, because of scripting
     steps:
       - name: Download ISO artifact
         uses: actions/download-artifact@v4
