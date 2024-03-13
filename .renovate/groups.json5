@@ -36,6 +36,17 @@
       "matchFileNames": ["kube/deploy/apps/**"],
       "labels": ["kube-deploy-apps"]
     },
+    {
+      "description": "Cilium Group",
+      "groupName": "Cilium",
+      "matchPackagePatterns": ["cilium"],
+      "versioning": "semver",
+      "separateMinorPatch": true,
+      "pinDigests": false,
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      }
+    },
     // FluxCD
     {
       "description": "Flux Group",

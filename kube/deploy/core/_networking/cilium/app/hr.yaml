@@ -23,9 +23,12 @@ spec:
   valuesFrom:
     - kind: "ConfigMap"
       name: "cilium-helm-values"
-      valuesKey: "${CLUSTER_NAME}.yaml"
+      valuesKey: "${CLUSTER_NAME:=biohazard}.yaml"
       optional: false
   values:
+    image: # for Renovate changelog
+      repository: "quay.io/cilium/cilium"
+      tag: "v1.15.1"
     ## NOTE: Cilium Agent API rate limit configuration
     ### upon reboot/untaint/uncordon, burst(s) of pod creations causes Cilium to 429 rate limit pods from getting their network configuration
     ### current config stolen from https://github.com/cilium/cilium/issues/24361#issuecomment-1564825275
