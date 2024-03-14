@@ -94,7 +94,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.2.4-bookworm@sha256:3e2b0d0d7a7d0340aabc9af452b7eaf5a3d5869bc803a4c5a8a92fa78a30f156"
+              tag: "7.2.4-bookworm@sha256:3134997edb04277814aa51a4175a588d45eb4299272f8eff2307bbf8b39e4d43"
             command: ["redis-server", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"]
             securityContext: *sc
             resources:
