@@ -3,10 +3,16 @@
   "packageRules": [
     // NOTE: Renovate processes rules from top to bottom, so the rules below take precedence over rules above it
     {
+      "description": "Default options",
+      "rebaseWhen": "conflicted",
+      "automerge": false
+    },
+    {
       "description": "Auto merge Github Actions",
       "matchManagers": ["github-actions"],
       "automerge": true,
       "automergeType": "pr",
+      "rebaseWhen": "behind-base-branch",
       "ignoreTests": true,
       "matchUpdateTypes": ["minor", "patch", "digest"]
     },
@@ -24,6 +30,7 @@
       // "matchDatasources": ["docker"],
       "automerge": true,
       "automergeType": "pr",
+      "rebaseWhen": "behind-base-branch",
       "matchFileNames": ["kube/deploy/apps/**"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
@@ -41,56 +48,57 @@
       "groupName": "Cilium",
       "matchPackagePatterns": ["cilium"],
       "versioning": "semver",
+      "customChangelogUrl": "https://github.com/cilium/cilium",
       "separateMinorPatch": true,
       "pinDigests": false,
       "group": {
         "commitMessageTopic": "{{{groupName}}} group"
       }
     },
-    // FluxCD
     {
       "description": "Flux Group",
       "groupName": "Flux",
       "matchPackagePatterns": ["fluxcd"],
       "matchDatasources": ["docker", "github-tags"],
       "versioning": "semver",
+      "separateMinorPatch": true,
+      "customChangelogUrl": "https://github.com/fluxcd/flux2",
       "group": {
         "commitMessageTopic": "{{{groupName}}} group"
-      },
-      "separateMinorPatch": true
+      }
     },
-    // automerge patch Flux versions
     {
-      "description": "Flux Group",
+      "description": "Flux Group (Automerge Patch)",
       "groupName": "Flux",
       "matchPackagePatterns": ["fluxcd"],
       "matchDatasources": ["docker", "github-tags"],
       "versioning": "semver",
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      },
       "separateMinorPatch": true,
       "matchUpdateTypes": ["patch"],
       "automerge": true,
-      "automergeType": "pr"
+      "automergeType": "pr",
+      "rebaseWhen": "behind-base-branch",
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      }
     },
-    // authentik
     {
       "description": "authentik Group",
       "groupName": "authentik",
       "matchPackagePatterns": ["authentik"],
       "labels": ["authentik"],
+      "customChangelogUrl": "https://github.com/goauthentik/authentik",
       "automerge": false,
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      },
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
       // TODO: Helm chart uses separate key for digests, which Renovate seems to not recognize? maybe patching the image would be better?
-      "pinDigests": false
+      "pinDigests": false,
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      }
     },
-    // manually approve app-template major releases
     {
+      "description": "Manually approve app-template major releases",
       "matchPackagePatterns": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["major"],
@@ -111,6 +119,7 @@
       "dependencyDashboardApproval": false,
       "automerge": true,
       "automergeType": "pr",
+      "rebaseWhen": "behind-base-branch",
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
@@ -118,8 +127,8 @@
       "commitMessagePrefix": "fix(app-template/patch): ",
       "labels": ["app-template", "patch"]
     },
-    // don't automerge app-template minor releases
     {
+      "description": "Don't automerge app-template minor releases",
       "matchPackagePatterns": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["minor"],
@@ -132,15 +141,21 @@
       "commitMessagePrefix": "feat(app-template/minor): ",
       "labels": ["app-template", "major"]
     },
-    // Miniflux enforce distroless images
     {
+      "description": "Miniflux enforce distroless images",
+      "matchPackagePatterns": ["miniflux"],
       "matchDatasources": ["docker"],
-      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$",
       "versioning": "semver",
-      "matchPackagePatterns": ["miniflux"]
+      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$"
     },
-    // configure more granular control for apps in ./kube/deploy/core
     {
+      "description": "SearXNG versioning",
+      "matchPackagePatterns": ["searxng"],
+      "matchDatasources": ["docker"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$"
+    },
+    {
+      "description": "Configure more granular control for apps in ./kube/deploy/core",
       "matchFileNames": ["kube/deploy/core/**"],
       "automerge": false, // enforce no automerge
       "separateMultipleMajor": true,
@@ -152,7 +167,7 @@
       "matchPackagePatterns": ["jjgadgets/k8s-crd-extractor"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest"],
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "branch"
     }
   ]
 }

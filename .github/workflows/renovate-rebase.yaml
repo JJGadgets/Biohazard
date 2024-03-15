@@ -1,0 +1,14 @@
+---
+# yoinked from onedr0p and modified
+# info in comments is accurate as of 2023-11-25
+name: "Renovate (Manual Rebase Re-run)"
+
+on:
+  push:
+    branches: ["renovate/**"]
+
+jobs:
+  renovate:
+    name: Renovate
+    uses: ./.github/workflows/renovate.yaml
+    secrets: inherit
