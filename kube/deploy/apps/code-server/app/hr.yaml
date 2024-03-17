@@ -22,6 +22,7 @@ spec:
         pod:
           labels:
             tailscale.com/expose: "true"
+            ingress.home.arpa/jjgadgets: "allow"
             ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/apiserver: "allow"
             egress.home.arpa/world: "allow"
@@ -30,16 +31,8 @@ spec:
             image:
               repository: "ghcr.io/coder/code-server"
               tag: "4.22.1@sha256:62e1d2596d564f2f44c0ca710c8790cf4267fdfb183c9c761d272778ad51b217"
-            command: ["dumb-init", "/usr/bin/code-server"]
-            args: [
-              "--auth", "none",
-              "--disable-telemetry",
-              "--user-data-dir", "/home/coder/.vscode",
-              "--extensions-dir", "/home/coder/.vscode",
-              "--bind-addr", "0.0.0.0:8080",
-              "--port", "8080",
-              "/home/coder"
-            ]
+            command: ["dumb-init", "/bin/bash", "-c"]
+            args: ["/home/linuxbrew/.linuxbrew/sbin/sshd -p 2222 || true; /usr/bin/code-server --auth none --disable-telemetry --user-data-dir /home/coder/.vscode --extensions-dir /home/coder/.vscode --bind-addr 0.0.0.0:8080 --port 8080 /home/coder"]
             env:
               TZ: "${CONFIG_TZ}"
               SSH_AUTH_SOCK: ""
@@ -65,6 +58,29 @@ spec:
         ports:
           http:
             port: 8080
+          hugo:
+            port: 1313
+          test:
+            port: 8081
+      ssh:
+        enabled: true
+        primary: false
+        controller: main
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "vs-ssh.${DNS_SHORT}"
+          io.cilium/lb-ipam-ips: "${APP_IP_CODE_SERVER_SSH}"
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "vs-ssh"
+        labels:
+          io.cilium/l2: "true"
+        ports:
+          http:
+            enabled: true
+            port: 22
+            targetPort: 2222
+            protocol: TCP
     ingress:
       main:
         enabled: true
@@ -75,12 +91,25 @@ spec:
             ${IP_JJ_V4}
         hosts:
           - host: &host "vs.${DNS_SHORT}"
-            paths: &paths
-              - path: /
+            paths:
+              - &path
+                path: /
                 pathType: Prefix
-                service:
+                service: &http
                   name: main
                   port: http
+          - host: &host "hugo.${DNS_SHORT}"
+            paths:
+              - <<: *path
+                service: &hugo
+                  name: main
+                  port: hugo
+          - host: &host "vs-test.${DNS_SHORT}"
+            paths:
+              - <<: *path
+                service: &test
+                  name: main
+                  port: test
         tls:
           - hosts: [*host]
       tailscale:
@@ -91,7 +120,15 @@ spec:
           tailscale.com/tags: "tag:jjgadgets-apps"
         hosts:
           - host: &host "vs.${DNS_TS}"
-            paths: *paths
+            paths:
+              - <<: *path
+                service: *http
+              - <<: *path
+                path: /hugo
+                service: *http
+              - <<: *path
+                path: /test
+                service: *http
         tls:
           - hosts: [*host]
     persistence:
@@ -143,7 +180,7 @@ spec:
       enableServiceLinks: true
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 1000 # `coder` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "OnRootMismatch"
