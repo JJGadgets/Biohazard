@@ -54,3 +54,7 @@ prometheus:
     externalLabels:
       cluster: "${CLUSTER_NAME}"
     replicaExternalLabelName: "__replica__" # must match with thanos value `.query.replicaLabel[0]`
+    image: # testing out dedupe labels https://github.com/prometheus/prometheus/releases/tag/v2.51.0-rc.0%2Bdedupelabels
+      registry: quay.io
+      repository: prometheus/prometheus
+      tag: v2.51.0-rc.0-dedupelabels
