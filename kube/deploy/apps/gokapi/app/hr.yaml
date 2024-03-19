@@ -30,7 +30,7 @@ spec:
     ingress:
       main:
         enabled: true
-        ingressClassName: "nginx-internal"
+        ingressClassName: "nginx-external"
         hosts:
           - host: "${APP_DNS_GOKAPI}"
             paths:
@@ -38,7 +38,7 @@ spec:
               pathType: Prefix
         tls:
           - hosts:
-            - "${APP_DNS_GOKAPI}"
+              - "${APP_DNS_GOKAPI}"
             secretName: long-domain-tls
     persistence:
       config:
