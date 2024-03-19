@@ -30,8 +30,9 @@ spec:
     prometheus:
       monitor:
         enabled: true
-        interval: "10s"
-        scrapeTimeout: "5s"
+        # TODO: set default intervals to debug memory spikes
+        interval: "30s"
+        scrapeTimeout: "15s"
         relabelings:
           # replaces other node identifiers with hostname
           - action: replace
