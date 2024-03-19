@@ -6,8 +6,9 @@ metadata:
   name: nighthawk-windows-exporter
   namespace: monitoring
 spec:
+  # TODO: set default intervals to debug memory spikes
   scrapeInterval: "30s"
-  scrapeTimeout: "5s"
+  scrapeTimeout: "15s"
   staticConfigs:
     - targets: ["${IP_NIGHTHAWK}:9182"]
   metricsPath: "/metrics"
@@ -21,7 +22,7 @@ spec:
   # scrapeInterval: "2s"
   # scrapeTimeout: "1s"
   scrapeInterval: "30s"
-  scrapeTimeout: "5s"
+  scrapeTimeout: "15s"
   staticConfigs:
     - targets: ["${IP_NIGHTHAWK}:9835"]
   metricsPath: "/metrics"
