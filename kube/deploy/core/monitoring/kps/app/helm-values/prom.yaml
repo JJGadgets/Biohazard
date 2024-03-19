@@ -10,8 +10,8 @@ prometheus:
     pathType: Prefix
   prometheusSpec:
     # Prometheus resource allocation
-    # scrapeInterval: "10s"
-    # scrapeTimeout: "5s"
+    scrapeInterval: "30s"
+    scrapeTimeout: "5s"
     replicas: 3
     retention: 14d
     retentionSize: 30GB
