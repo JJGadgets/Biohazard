@@ -6,7 +6,7 @@ metadata:
   name: nighthawk-windows-exporter
   namespace: monitoring
 spec:
-  scrapeInterval: "10s"
+  scrapeInterval: "30s"
   scrapeTimeout: "5s"
   staticConfigs:
     - targets: ["${IP_NIGHTHAWK}:9182"]
@@ -20,7 +20,7 @@ metadata:
 spec:
   # scrapeInterval: "2s"
   # scrapeTimeout: "1s"
-  scrapeInterval: "10s"
+  scrapeInterval: "30s"
   scrapeTimeout: "5s"
   staticConfigs:
     - targets: ["${IP_NIGHTHAWK}:9835"]
