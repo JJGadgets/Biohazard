@@ -2,6 +2,15 @@
 kubeApiServer:
   enabled: true
   endpoints: &cp ["${IP_ROUTER_VLAN_K8S_PREFIX}1", "${IP_ROUTER_VLAN_K8S_PREFIX}2", "${IP_ROUTER_VLAN_K8S_PREFIX}3"]
+  serviceMonitor:
+    metricRelabelings:
+      # Drop high cardinality labels
+      - action: drop
+        sourceLabels: ["__name__"]
+        regex: (apiserver|etcd|rest_client)_request(|_sli|_slo)_duration_seconds_bucket
+      - action: drop
+        sourceLabels: ["__name__"]
+        regex: (apiserver_response_sizes_bucket|apiserver_watch_events_sizes_bucket)
 kubeScheduler:
   enabled: false
   # endpoints: *cp
@@ -27,5 +36,13 @@ kubelet:
       - sourceLabels: ["node"]
         targetLabel: instance
         action: replace
+      # Drop high cardinality labels
+      - action: labeldrop
+        regex: (uid)
+      - action: labeldrop
+        regex: (id|name)
+      - action: drop
+        sourceLabels: ["__name__"]
+        regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
 kubeProxy:
   enabled: false # Disabled due to eBPF
