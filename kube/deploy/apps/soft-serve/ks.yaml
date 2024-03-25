@@ -4,23 +4,58 @@ kind: Kustomization
 metadata:
   name: soft-serve-app
   namespace: flux-system
-  labels:
-    prune.flux.home.arpa/enabled: "true"
+  labels: &l
+    app.kubernetes.io/name: "soft-serve"
 spec:
-  prune: true
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/soft-serve/app
+  targetNamespace: "soft-serve"
   dependsOn:
     - name: soft-serve-db
+    - name: soft-serve-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: soft-serve-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "soft-serve"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "soft-serve"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "soft-serve-data"
+      SIZE: "20Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_SOFT_SERVE}
+      RGID: !!str |
+        ${APP_UID_SOFT_SERVE}
+      RFSG: !!str |
+        ${APP_UID_SOFT_SERVE}
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: soft-serve-db
   namespace: flux-system
-  labels:
+  labels: &l
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"
+    app.kubernetes.io/name: "soft-serve"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:

@@ -5,64 +5,77 @@ metadata:
   name: &app soft-serve
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: "2.6.0"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: ghcr.io/charmbracelet/soft-serve
-      tag: v0.7.4@sha256:1e89075219cb95f62e912fb1831b170bcec73a30e2bb6431533e12dfca2666b0
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      db.home.arpa/pg: "pg-default"
-    env:
-      TZ: "${CONFIG_TZ}"
-      SOFT_SERVE_NAME: "BioFlurry"
-      SOFT_SERVE_LOG_FORMAT: "json"
-      SOFT_SERVE_SSH_LISTEN_ADDR: ":23231"
-      SOFT_SERVE_SSH_PUBLIC_URL: "ssh://${APP_DNS_SOFT_SERVE}:22"
-      SOFT_SERVE_SSH_KEY_PATH: "/ssh/host-priv"
-      SOFT_SERVE_SSH_CLIENT_KEY_PATH: "/ssh/client-priv"
-      SOFT_SERVE_GIT_LISTEN_ADDR: ":9418"
-      SOFT_SERVE_HTTP_LISTEN_ADDR: ":23232"
-      SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE_HTTPS}"
-      SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
-      SOFT_SERVE_DB_DRIVER: "postgres"
-      SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
-      SOFT_SERVE_INITIAL_ADMIN_KEYS: |
-        ${SECRET_ADMIN_SSH_PUBKEY_1}
-        ${SECRET_ADMIN_SSH_PUBKEY_2}
-        ${SECRET_ADMIN_SSH_PUBKEY_3}
-        ${SECRET_ADMIN_SSH_PUBKEY_4}
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            db.home.arpa/pg: "pg-default"
+            ingress.home.arpa/world: "allow"
+            ingress.home.arpa/cluster: "allow"
+        containers:
+          main:
+            image: &img
+              repository: "ghcr.io/charmbracelet/soft-serve"
+              tag: "v0.7.4@sha256:1e89075219cb95f62e912fb1831b170bcec73a30e2bb6431533e12dfca2666b0"
+            env:
+              TZ: "${CONFIG_TZ}"
+              SOFT_SERVE_NAME: "BioFlurry"
+              SOFT_SERVE_LOG_FORMAT: "json"
+              SOFT_SERVE_SSH_LISTEN_ADDR: ":23231"
+              SOFT_SERVE_SSH_PUBLIC_URL: "ssh://${APP_DNS_SOFT_SERVE}:22"
+              SOFT_SERVE_SSH_KEY_PATH: "/secrets/host-priv"
+              SOFT_SERVE_SSH_CLIENT_KEY_PATH: "/secrets/client-priv"
+              SOFT_SERVE_GIT_LISTEN_ADDR: ":9418"
+              SOFT_SERVE_HTTP_LISTEN_ADDR: ":23232"
+              SOFT_SERVE_HTTP_PUBLIC_URL: "https://${APP_DNS_SOFT_SERVE}"
+              SOFT_SERVE_HTTP_TLS_CERT_PATH: "/tls/tls.crt"
+              SOFT_SERVE_HTTP_TLS_KEY_PATH: "/tls/tls.key"
+              SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
+              SOFT_SERVE_LFS_ENABLED: "true"
+              SOFT_SERVE_LFS_SSH_ENABLED: "true"
+              SOFT_SERVE_DB_DRIVER: "postgres"
+              SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
+              SOFT_SERVE_INITIAL_ADMIN_KEYS: {valueFrom: {secretKeyRef: {name: soft-serve-secrets, key: admin-keys}}}
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
     service:
       main:
         enabled: true
         primary: true
-        type: ClusterIP
-        ports:
-          http:
-            port: 23232
-          stats:
-            port: 23233
-      expose:
-        enabled: true
+        controller: main
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_SOFT_SERVE}"
           "io.cilium/lb-ipam-ips": "${APP_IP_SOFT_SERVE}"
         ports:
+          http:
+            enabled: true
+            port: 443
+            targetPort: 23232
+            protocol: HTTPS
           ssh:
             enabled: true
             port: 22
@@ -73,41 +86,50 @@ spec:
             port: 9418
             targetPort: 9418
             protocol: TCP
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_SOFT_SERVE_HTTPS}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_SOFT_SERVE}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
+          stats:
+            port: 23233
     persistence:
-      data:
-        enabled: true
-        type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/soft-serve"
-        mountPath: "/soft-serve"
-      ssh:
+      config:
         enabled: true
         type: secret
-        name: soft-serve-ssh
-        mountPath: /ssh
-        readOnly: true
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        cpu: 3000m
-        memory: 6000Mi
+        name: "soft-serve-secrets"
+        globalMounts:
+          - path: "/secrets"
+      data:
+        enabled: true
+        existingClaim: "soft-serve-data"
+        globalMounts:
+          - subPath: "data"
+            path: "/soft-serve"
+      tls:
+        enabled: true
+        type: secret
+        name: "short-domain-tls"
+        defaultMode: 0400
+        globalMounts:
+          - path: "/tls"
+            readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_SOFT_SERVE}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/soft-serve"
+                    operator: "DoesNotExist"
