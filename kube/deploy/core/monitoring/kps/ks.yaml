@@ -8,3 +8,90 @@ spec:
   path: ./kube/deploy/core/monitoring/kps/app
   dependsOn:
     - name: 1-core-monitoring-deps
+    - name: 1-core-monitoring-kps-alertmanager-pvc-0
+    - name: 1-core-monitoring-kps-alertmanager-pvc-1
+    - name: 1-core-monitoring-kps-alertmanager-pvc-2
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-kps-alertmanager-pvc-0
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "alertmanager"
+    alertmanager: "kps"
+    kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
+  postBuild:
+    substitute:
+      PVC: "alertmanager-kps-db-alertmanager-kps-0"
+      SIZE: "1Gi"
+      SC: &sc "local"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteOnce"
+      RUID: "1000"
+      RGID: "2000"
+      RFSG: "2000"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-kps-alertmanager-pvc-1
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "alertmanager"
+    alertmanager: "kps"
+    kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
+  postBuild:
+    substitute:
+      PVC: "alertmanager-kps-db-alertmanager-kps-1"
+      SIZE: "1Gi"
+      SC: &sc "local"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteOnce"
+      RUID: "1000"
+      RGID: "2000"
+      RFSG: "2000"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-kps-alertmanager-pvc-2
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "alertmanager"
+    alertmanager: "kps"
+    kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
+  postBuild:
+    substitute:
+      PVC: "alertmanager-kps-db-alertmanager-kps-2"
+      SIZE: "1Gi"
+      SC: &sc "local"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteOnce"
+      RUID: "1000"
+      RGID: "2000"
+      RFSG: "2000"
