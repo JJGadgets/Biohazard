@@ -45,3 +45,15 @@ spec:
         version: v1
         kind: Deployment
         name: snapshot-controller
+    - patch: | # democratic-csi local-hostpath snapshots
+        - op: add
+          path: /rules/-
+          value:
+            apiGroups: [""]
+            resources: ["nodes"]
+            verbs: ["get", "list", "watch"]
+      target:
+        group: rbac.authorization.k8s.io
+        version: v1
+        kind: ClusterRole
+        name: snapshot-controller-runner
