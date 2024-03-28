@@ -1,0 +1,143 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app linkding
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            db.home.arpa/pg: "pg-home"
+            authentik.home.arpa/https: "allow"
+            # egress.home.arpa/internet: "allow"
+        containers:
+          main:
+            image: &img
+              repository: "docker.io/sissbruecker/linkding"
+              tag: "1.25.0@sha256:32ec417b6ddb92ca20ff71a07c524b68ad2853e99258acfae1d3cef2de03f3cc"
+            env:
+              TZ: "${CONFIG_TZ}"
+              LD_ENABLE_OIDC: "True"
+              LD_CSRF_TRUSTED_ORIGINS: "https://${APP_DNS_LINKDING}"
+              LD_SERVER_PORT: &http "8080"
+              LD_LOG_X_FORWARDED_FOR: "true"
+              LD_FAVICON_PROVIDER: "https://icons.duckduckgo.com/ip3/{domain}.ico"
+              LD_DB_ENGINE: "postgres"
+              LD_DB_OPTIONS: |-
+                {"sslmode": "require"}
+              LD_DB_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-linkding"
+                    key: "pgbouncer-host"
+              LD_DB_PORT:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-linkding"
+                    key: "pgbouncer-port"
+              LD_DB_DATABASE:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-linkding"
+                    key: "dbname"
+              LD_DB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-linkding"
+                    key: "user"
+              LD_DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: "pg-home-pguser-linkding"
+                    key: "password"
+            envFrom:
+              - secretRef:
+                  name: "linkding-secrets"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+    service:
+      main:
+        ports:
+          http:
+            port: *http
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        hosts:
+          - host: &host "${APP_DNS_LINKDING}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: false
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "data"
+            path: "/etc/linkding/data"
+            readOnly: false
+          - subPath: "tmp"
+            path: "/tmp"
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_LINKDING}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/linkding"
+                    operator: "DoesNotExist"

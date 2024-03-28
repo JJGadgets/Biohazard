@@ -1,0 +1,38 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: linkding-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "linkding"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/linkding/app
+  targetNamespace: "linkding"
+  dependsOn:
+    - name: linkding-db
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: linkding-db
+  namespace: flux-system
+  labels: &l
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-home"
+    app.kubernetes.io/name: "linkding"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
+  dependsOn:
+    - name: 1-core-db-pg-clusters-home
+    - name: 1-core-secrets-es-k8s
+  postBuild:
+    substitute:
+      PG_NAME: "home"
+      PG_DB_USER: &app "linkding"
+      PG_APP_NS: *app
