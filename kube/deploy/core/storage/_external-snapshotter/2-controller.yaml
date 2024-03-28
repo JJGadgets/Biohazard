@@ -35,3 +35,13 @@ spec:
     name: external-snapshotter-controller
   dependsOn:
     - name: 1-core-storage-ext-snapshot-crds
+  patches:
+    - patch: | # democratic-csi local-hostpath snapshots
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
+          value: "--enable-distributed-snapshotting"
+      target:
+        group: apps
+        version: v1
+        kind: Deployment
+        name: snapshot-controller
