@@ -52,7 +52,7 @@ spec:
           rclone-r2: &rclone
             image: &rcimg
               repository: "jank.ing/jjgadgets/rclone"
-              tag: "1.66.0@sha256:d4670f40bf879d648c67664b9a02618293bffa8aefdac5503281f0616454bc7a"
+              tag: "1.66.0@sha256:69a724e80740153ae8897dc061f50c3ae12fbe150e0193db530cbc483615dbf1"
             args: ["sync", "/.datree/crdSchemas/", "r2:k8s-schemas/", "--progress", "--fast-list", "--checksum"]
             env:
               TZ: "${CONFIG_TZ}"
