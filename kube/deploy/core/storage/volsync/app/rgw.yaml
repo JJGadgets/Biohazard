@@ -1,0 +1,63 @@
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: "volsync-rgw"
+  namespace: "volsync"
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
+spec:
+  bucketName: "volsync"
+  storageClassName: "rgw-${CLUSTER_NAME}"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "external-secrets-kubernetes-volsync-s3"
+  namespace: "volsync"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["selfsubjectrulesreviews"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: &name "external-secrets-kubernetes-volsync-s3"
+  namespace: "volsync"
+roleRef:
+  apiGroup: "rbac.authorization.k8s.io"
+  kind: "Role"
+  name: *name
+subjects:
+  - kind: "ServiceAccount"
+    name: *name
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "external-secrets-kubernetes-volsync-s3"
+  namespace: "volsync"
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: "kubernetes-volsync-s3"
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: "volsync" # pull from this namespace
+      server:
+        url: "https://kubernetes.default.svc.cluster.local"
+        caProvider:
+          type: "ConfigMap"
+          name: "kube-root-ca.crt"
+          namespace: "volsync"
+          key: "ca.crt"
+      auth:
+        serviceAccount:
+          name: "external-secrets-kubernetes-volsync-s3"
+          namespace: "volsync"

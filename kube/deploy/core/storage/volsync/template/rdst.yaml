@@ -3,18 +3,21 @@ apiVersion: volsync.backube/v1alpha1
 kind: ReplicationDestination
 metadata:
   name: "${PVC}-bootstrap"
+  labels:
+    kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
 spec:
   trigger:
     manual: "restore-once-bootstrap"
   restic:
-    repository: "${PVC}-${RESTORE:=r2}-restic"
+    repository: "vs-${PVC}-${RESTORE:=r2}-restic"
     copyMethod: "Snapshot"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
-    cacheStorageClassName: "${SC:=block}"
-    cacheAccessModes: ["ReadWriteOnce"]
     capacity: "${SIZE:=20Gi}"
     accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+    cacheStorageClassName: "${SC:=block}"
+    cacheAccessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+    cacheCapacity: "${CACHESIZE:=2Gi}"
     moverSecurityContext:
       runAsNonRoot: true
       runAsUser: ${RUID:=1000}
