@@ -4,5 +4,8 @@ kind: Kustomization
 resources:
   - pvc.yaml
   - secrets-restic.yaml
+  - externalsecrets-r2.yaml
+  - externalsecrets-rgw.yaml
   - rdst.yaml
-  - rsrc.yaml
+  - rsrc-r2.yaml
+  - rsrc-rgw.yaml
