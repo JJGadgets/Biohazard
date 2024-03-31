@@ -59,9 +59,14 @@ nodes:
                 gateway: "${IP_ROUTER_VLAN_K8S}"
             vip:
               ip: "${IP_CLUSTER_VIP}"
-          # - <<: *vlan-ceph
-          #   mtu: 1500
-          #   addresses: ["${IP_PVE_CEPH_PREFIX}8/28"]
+          - &vlan-ceph
+            vlanId: 678
+            mtu: 9000
+            dhcp: false
+            addresses: ["${IP_VLAN_CEPH_PREFIX}1/28"]
+            routes:
+              - network: "${IP_VLAN_CEPH_CIDR}"
+                metric: 1
     machineFiles:
       - &ts
         op: create
@@ -106,9 +111,8 @@ nodes:
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
-          # - <<: *vlan-ceph
-          #   mtu: 1500
-          #   addresses: ["${IP_PVE_CEPH_PREFIX}9/28"]
+          - <<: *vlan-ceph
+            addresses: ["${IP_VLAN_CEPH_PREFIX}2/28"]
     machineFiles:
       - *ts
       - <<: *tsNode
@@ -129,9 +133,8 @@ nodes:
         vlans:
           - <<: *m720q-v58
             addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
-          # - <<: *vlan-ceph
-          #   mtu: 1500
-          #   addresses: ["${IP_PVE_CEPH_PREFIX}5/28"]
+          - <<: *vlan-ceph
+            addresses: ["${IP_VLAN_CEPH_PREFIX}3/28"]
     machineFiles:
       - *ts
       - <<: *tsNode

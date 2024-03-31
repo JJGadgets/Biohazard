@@ -31,7 +31,9 @@ spec:
       cephVersion:
         image: "quay.io/ceph/ceph:v18.2.0" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
       network:
-        #provider: host
+        provider: host
+        addressRanges:
+          public: ["${IP_VLAN_CEPH_CIDR}"]
         connections:
           requireMsgr2: true
           encryption:
