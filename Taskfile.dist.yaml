@@ -40,6 +40,7 @@ tasks:
 
   gitconfig:
     desc: Configure Git.
+    dir: '{{.USER_WORKING_DIR}}'
     cmds:
       - git config commit.gpgSign true
       - git config pull.rebase true

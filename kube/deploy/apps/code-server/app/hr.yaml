@@ -164,6 +164,16 @@ spec:
               - subPath: "ssh-pubkey"
                 path: "/home/coder/.ssh/id_rsa.pub"
                 readOnly: true
+      talos-admin:
+        enabled: true
+        type: secret
+        name: "talos"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - path: "/var/run/secrets/talos.dev"
+                readOnly: true
       tmp:
         enabled: true
         type: emptyDir
