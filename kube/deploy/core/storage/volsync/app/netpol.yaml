@@ -39,3 +39,15 @@ spec:
     # allow all to public Internet
     - toEntities:
         - world
+    # Ceph RGW
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6953"
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_CEPH_CIDR}"
+      toPorts:
+        - ports:
+            - port: "6953"
