@@ -15,7 +15,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.15.3"
+      version: "1.15.1"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository
@@ -104,3 +104,8 @@ spec:
       enabled: true
       annotations:
         grafana_folder: "Cilium"
+    resources: # for agent
+      requests:
+        memory: "1Gi"
+      limits:
+        memory: "2Gi"
