@@ -52,6 +52,17 @@ spec:
             io.kubernetes.pod.namespace: rook-ceph
     - toFQDNs:
         - matchName: "rgw-biohazard.${DNS_TS}"
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_CEPH_CIDR}"
+      toPorts:
+        - ports:
+            - port: "6953"
+    - toEntities:
+        - "host"
+        - "remote-node"
+      toPorts:
+        - ports:
+            - port: "6953"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
