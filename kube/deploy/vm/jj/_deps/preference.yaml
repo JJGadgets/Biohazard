@@ -1,0 +1,34 @@
+---
+apiVersion: instancetype.kubevirt.io/v1beta1
+kind: VirtualMachinePreference
+metadata:
+  name: "jj" # Windows Server 2022 & Windows 11
+# from https://github.com/kubevirt/kubevirt/blob/2c5e56f2cd0fcde341f47a7da0b94bc812c2f43f/examples/windows.yaml
+spec:
+  preferredSubdomain: "jj"
+  requirements:
+    cpu:
+      guest: 2
+    memory:
+      guest: 8192Mi
+  clock:
+    preferredClockOffset:
+      timezone: "${CONFIG_TZ}"
+  devices:
+    preferredDiskBus: virtio
+    preferredInterfaceModel: virtio
+    preferredTPM:
+      persistent: true
+    preferredAutoattachMemBalloon: false
+    preferredAutoattachGraphicsDevice: true
+    preferredAutoattachSerialConsole: true
+    preferredAutoattachPodInterface: true
+    preferredAutoattachInputDevice: true
+    preferredInputType: "tablet"
+  firmware:
+    preferredUseEfi: true
+  volumes:
+    preferredStorageClassName: "file"
+  preferredTerminationGracePeriodSeconds: 180
+  machine:
+    preferredMachineType: "pc-q35-rhel9.2.0"

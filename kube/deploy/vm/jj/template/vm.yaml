@@ -1,0 +1,50 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: "jj-${VM}"
+spec:
+  preference:
+    kind: "VirtualMachinePreference"
+    name: "jj"
+  instancetype:
+    kind: "VirtualMachineInstancetype"
+    name: "jj"
+  runStrategy: "Always"
+  template:
+    metadata:
+      labels:
+        vm.home.arpa: "jj"
+        vm.home.arpa/os: "linux"
+        vm.home.arpa/jj: "${VM}"
+    spec:
+      hostname: "jj-${VM}"
+      networks:
+        - name: "main"
+          pod:
+            vmNetworkCIDR: "${IP_KUBEVIRT_JJ_CIDR_V4}"
+      volumes:
+        - name: "root"
+          persistentVolumeClaim:
+            claimName: "vm-jj-${VM}-root"
+      domain:
+        devices:
+          disks:
+            - name: "root"
+              disk: {}
+          interfaces:
+            - name: "main"
+              masquerade: {}
+              ports:
+                - name: "tailscale"
+                  port: 41641
+                  protocol: "UDP"
+          autoattachInputDevice: true
+          inputs:
+            - name: "tablet1"
+              type: "tablet"
+              bus: "virtio"
+        firmware:
+          bootloader:
+            efi:
+              persistent: true

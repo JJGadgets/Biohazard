@@ -1,0 +1,50 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zz-vm-jj-1-deps
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/vm/ad/_deps
+  targetNamespace: "vm-ad"
+  dependsOn:
+    - name: zz-vm-1-kubevirt-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zz-vm-jj-debian-pvc
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "vm-jj"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+    - name: zz-vm-jj-1-deps
+  postBuild:
+    substitute:
+      PVC: "vm-jj-debian-root"
+      SIZE: "55Gi"
+      VOLUMEMODE: "Filesystem"
+      RUID: &uid "107"
+      RGID: *uid
+      RFSG: *uid
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zz-vm-jj-debian
+  namespace: flux-system
+  labels:
+    wait.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/vm/jj/template
+  targetNamespace: "vm-jj"
+  dependsOn:
+    - name: zz-vm-1-kubevirt-app
+    - name: zz-vm-jj-1-deps
+    - name: zz-vm-jj-debian-pvc
+  postBuild:
+    substitute:
+      VM: "debian"
