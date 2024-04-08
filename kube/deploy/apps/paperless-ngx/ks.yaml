@@ -4,9 +4,16 @@ kind: Kustomization
 metadata:
   name: paperless-ngx-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "paperless-ngx"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/paperless-ngx/app
-  dependsOn: []
+  targetNamespace: "paperless-ngx"
+  dependsOn:
+    - name: paperless-ngx-db
+    - name: paperless-ngx-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
