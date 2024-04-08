@@ -37,11 +37,11 @@ spec:
               PAPERLESS_WEBSERVER_WORKERS: "2"
               PAPERLESS_TASK_WORKERS: "2"
               PAPERLESS_REDIS: "unix:///sockets/redis.sock"
-              PAPERLESS_CONSUMPTION_DIR: &consume "/nas/consume"
-              PAPERLESS_DATA_DIR: &pvc "/nas/data"
-              PAPERLESS_EXPORT_DIR: &export "/nas/export"
-              PAPERLESS_MEDIA_ROOT: &media "/nas/media"
-              PAPERLESS_TRASH_DIR: &trash "/nas/trash"
+              PAPERLESS_CONSUMPTION_DIR: &consume "/data/consume"
+              PAPERLESS_DATA_DIR: &pvc "/data/data"
+              PAPERLESS_EXPORT_DIR: &export "/data/export"
+              PAPERLESS_MEDIA_ROOT: &media "/data/media"
+              PAPERLESS_TRASH_DIR: &trash "/data/trash"
               PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
               # PAPERLESS_SOCIALACCOUNT_PROVIDERS in ES envFrom
               PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
@@ -176,6 +176,12 @@ spec:
           - hosts:
               - *host
     persistence:
+      data:
+        enabled: true
+        existingClaim: "paperless-ngx-data"
+        globalMounts:
+          - subPath: "data"
+            path: "/data"
       nas:
         enabled: true
         type: nfs

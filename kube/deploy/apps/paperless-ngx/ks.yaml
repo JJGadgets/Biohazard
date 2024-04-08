@@ -27,3 +27,32 @@ spec:
       PG_NAME: "home"
       PG_DB_USER: &app "paperless-ngx"
       PG_APP_NS: *app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless-ngx-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "paperless-ngx"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "paperless-ngx"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "paperless-ngx-data"
+      SIZE: "100Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_PAPERLESS_NGX}
+      RGID: !!str |
+        ${APP_UID_PAPERLESS_NGX}
+      RFSG: !!str |
+        ${APP_UID_PAPERLESS_NGX}
