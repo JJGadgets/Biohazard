@@ -180,8 +180,16 @@ spec:
         enabled: true
         existingClaim: "paperless-ngx-data"
         globalMounts:
+          - subPath: "consume"
+            path: "/data/consume"
           - subPath: "data"
-            path: "/data"
+            path: "/data/data"
+          - subPath: "export"
+            path: "/data/export"
+          - subPath: "media"
+            path: "/data/media"
+          - subPath: "trash"
+            path: "/data/trash"
       nas:
         enabled: true
         type: nfs
