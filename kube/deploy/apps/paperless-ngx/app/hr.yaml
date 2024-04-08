@@ -4,9 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app paperless-ngx
   namespace: *app
-  labels:
-    nginx.ingress.home.arpa/type: auth
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
@@ -43,8 +42,8 @@ spec:
               PAPERLESS_EXPORT_DIR: &export "/nas/export"
               PAPERLESS_MEDIA_ROOT: &media "/nas/media"
               PAPERLESS_TRASH_DIR: &trash "/nas/trash"
-              PAPERLESS_ENABLE_HTTP_REMOTE_USER: "true"
-              PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME: "HTTP_X_AUTHENTIK_UID"
+              PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
+              # PAPERLESS_SOCIALACCOUNT_PROVIDERS in ES envFrom
               PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
               PAPERLESS_OCR_LANGUAGES: "eng"
               PAPERLESS_OCR_LANGUAGE: "eng"
@@ -165,9 +164,6 @@ spec:
         enabled: true
         primary: true
         className: "nginx-internal"
-        annotations:
-          nginx.ingress.kubernetes.io/auth-signin: |-
-            https://${APP_DNS_PAPERLESS_NGX}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_PAPERLESS_NGX}"
             paths:
@@ -179,23 +175,6 @@ spec:
         tls:
           - hosts:
               - *host
-      api:
-        enabled: true
-        primary: false
-        className: "nginx-internal"
-        annotations:
-          nginx.ingress.kubernetes.io/use-regex: "true"
-        hosts:
-          - host: &api "${APP_DNS_PAPERLESS_NGX}"
-            paths:
-              - path: "/api/.*"
-                pathType: ImplementationSpecific
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts:
-              - *api
     persistence:
       nas:
         enabled: true
@@ -253,5 +232,18 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
-        seccompProfile:
-          type: "RuntimeDefault"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/paperless-ngx"
+                    operator: "DoesNotExist"

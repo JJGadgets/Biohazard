@@ -87,7 +87,7 @@ spec:
                   originServerName: "${DNS_SHORT}"
               
               - hostname: "${APP_DNS_AUTHENTIK}"
-                service: https://nginx-external-controller.ingress.svc.cluster.local:443
+                service: https://nginx-public-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "${APP_DNS_AUTHENTIK}"
               

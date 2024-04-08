@@ -33,9 +33,9 @@ spec:
       port: 9000
     ingress:
       enabled: true
-      ingressClassName: "nginx-external"
+      ingressClassName: "nginx-public"
       annotations:
-        external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
+        external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
         external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         # WebSockets (used for frontend to backend connection)
         nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -48,7 +48,6 @@ spec:
       tls:
         - hosts:
             - *host
-          secretName: authentik-tls
     volumes:
     - name: authentik-tls
       secret:

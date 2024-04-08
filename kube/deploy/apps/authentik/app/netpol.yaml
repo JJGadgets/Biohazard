@@ -16,12 +16,6 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: ingress
-            app.kubernetes.io/instance: nginx-external
-            app.kubernetes.io/name: ingress-nginx
-    # ingress-nginx access for forward-auth
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ingress
             app.kubernetes.io/name: ingress-nginx
     # allow HTTPS traffic in-cluster
     - fromEndpoints:
