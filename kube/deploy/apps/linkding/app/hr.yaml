@@ -24,7 +24,7 @@ spec:
             ingress.home.arpa/nginx-internal: "allow"
             db.home.arpa/pg: "pg-home"
             authentik.home.arpa/https: "allow"
-            # egress.home.arpa/internet: "allow"
+            egress.home.arpa/internet: "allow"
         containers:
           main:
             image: &img

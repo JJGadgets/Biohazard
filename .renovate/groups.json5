@@ -148,12 +148,12 @@
       "versioning": "semver",
       "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$"
     },
-    {
-      "description": "SearXNG versioning",
-      "matchPackagePatterns": ["searxng"],
-      "matchDatasources": ["docker"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(:?<hash>.*)$"
-    },
+    // {
+    //   "description": "SearXNG versioning",
+    //   "matchPackagePatterns": ["searxng"],
+    //   "matchDatasources": ["docker"],
+    //   "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(:?<hash>.*)$"
+    // },
     {
       "description": "Configure more granular control for apps in ./kube/deploy/core",
       "matchFileNames": ["kube/deploy/core/**"],
