@@ -18,26 +18,6 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: paperless-ngx-db
-  namespace: flux-system
-  labels:
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-home"
-spec:
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
-  dependsOn:
-    - name: 1-core-db-pg-clusters-home
-    - name: 1-core-secrets-es-k8s
-  postBuild:
-    substitute:
-      PG_NAME: "home"
-      PG_DB_USER: &app "paperless-ngx"
-      PG_APP_NS: *app
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
   name: paperless-ngx-pvc
   namespace: flux-system
   labels: &l
@@ -63,3 +43,23 @@ spec:
         ${APP_UID_PAPERLESS_NGX}
       RFSG: !!str |
         ${APP_UID_PAPERLESS_NGX}
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless-ngx-db
+  namespace: flux-system
+  labels:
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-home"
+spec:
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
+  dependsOn:
+    - name: 1-core-db-pg-clusters-home
+    - name: 1-core-secrets-es-k8s
+  postBuild:
+    substitute:
+      PG_NAME: "home"
+      PG_DB_USER: &app "paperless-ngx"
+      PG_APP_NS: *app
