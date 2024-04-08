@@ -213,6 +213,8 @@ spec:
               - &sockdir
                 subPath: "sockets"
                 path: "/sockets"
+            redis:
+              - *sockdir
           tika:
             main:
               - subPath: "tika"
