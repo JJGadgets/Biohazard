@@ -213,11 +213,6 @@ spec:
               - &sockdir
                 subPath: "sockets"
                 path: "/sockets"
-            redis:
-              - *sockdir
-              - subPath: "forceDisableDataPathToDisableRDB"
-                path: "/data"
-                readOnly: true # jank to lock the dir
           tika:
             main:
               - subPath: "tika"
