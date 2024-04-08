@@ -23,6 +23,7 @@ spec:
           labels:
             db.home.arpa/pg: "pg-home"
             ingress.home.arpa/nginx-internal: "allow"
+            authentik.home.arpa/https: "allow"
             # egress.home.arpa/nginx-external: "allow" # authentik # commented out currently because only OIDC needs this
         containers:
           main:
@@ -237,6 +238,9 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: false
         runAsUser: &uid 1000 # hardcoded `paperless` user
