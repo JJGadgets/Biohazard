@@ -22,7 +22,9 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
-            db.home.arpa/pg: "pg-default"
+            ingress.home.arpa/world: "allow"
+            ingress.home.arpa/cluster: "allow"
+            #db.home.arpa/pg: "pg-default" # Postgres for log audit
         containers:
           main:
             image: &img
