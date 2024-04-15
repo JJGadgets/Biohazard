@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name minio-nas-secrets
+  namespace: minio-nas
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "MinIO NAS - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      engineVersion: v2
+      mergePolicy: Merge
+      data:
+        MINIO_ROOT_USER: "{{ .username }}"
+        MINIO_ROOT_PASSWORD: "{{ .password }}"

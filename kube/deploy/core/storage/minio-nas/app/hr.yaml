@@ -1,0 +1,155 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app minio-nas
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            db.home.arpa/pg: "pg-default"
+        containers:
+          main:
+            image: &img
+              repository: quay.io/minio/minio
+              tag: RELEASE.2024-04-06T05-26-02Z
+            command: ["minio", "server"]
+            args: ["--console-address", ":9001", "--certs-dir", "/tls"]
+            env:
+              TZ: "${CONFIG_TZ}"
+              MINIO_VOLUMES: "/data"
+              MINIO_DOMAIN: &s3 "${APP_DNS_MINIO_NAS_S3}"
+              MINIO_COMPRESSION_ENABLE: "on"
+              MINIO_BROWSER_LOGIN_ANIMATION: "off"
+              MINIO_BROWSER_REDIRECT: "true"
+              MINIO_BROWSER_REDIRECT_URL: "https://${APP_DNS_MINIO_NAS}"
+              MINIO_SERVER_URL: "https://${APP_DNS_MINIO_NAS_S3}"
+            envFrom:
+              - secretRef:
+                  name: "minio-nas-secrets"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+        #initContainers:
+        #  01-init-minio-nas-admin-password:
+        #    command:
+        #      - /bin/sh
+        #      - -c
+        #      - "[ -s /data/minio-nas.db ] || /sbin/minio-nasd recover_account -c /data/server.toml admin"
+        #    image: *img
+        #    imagePullPolicy: IfNotPresent
+        #    envFrom: [secretRef: { name: "minio-nas-pg-superuser" }]
+    service:
+      main:
+        ports:
+          http:
+            port: 9001
+      ssh:
+        enabled: true
+        primary: false
+        controller: main
+        type: LoadBalancer
+        externalTrafficPolicy: Cluster
+        annotations:
+          coredns.io/hostname: "${APP_DNS_MINIO_NAS_S3}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_MINIO_NAS_S3}"
+        ports:
+          http:
+            enabled: true
+            port: 443
+            targetPort: 9000
+            protocol: HTTPS
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        hosts:
+          - host: &host "${APP_DNS_MINIO_NAS}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: false
+      data:
+        enabled: true
+        #existingClaim: "minio-nas-data"
+        type: "custom"
+        volumeSpec:
+          iscsi:
+            targetPortal: "${IP_TRUENAS}:3260"
+            iqn: "${CONFIG_TRUENAS_IQN}:minio"
+            lun: "0"
+            initiatorName: "{{ .Release.Name }}"
+            fsType: "xfs" # MinIO recommendation
+        globalMounts:
+          - subPath: "data"
+            path: "/data"
+      tls:
+        enabled: true
+        type: secret
+        name: "long-domain-tls"
+        defaultMode: 0400
+        advancedMounts:
+          main:
+            main:
+              - subPath: "tls.crt"
+                path: "/tls/public.crt"
+                readOnly: true
+              - subPath: "tls.key"
+                path: "/tls/private.key"
+                readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_MINIO_NAS}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/minio-nas"
+                    operator: "DoesNotExist"

@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-storage-minio-nas-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "minio-nas"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/minio-nas/app
+  targetNamespace: "minio-nas"
+  dependsOn: []
