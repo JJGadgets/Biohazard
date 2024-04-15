@@ -17,8 +17,11 @@ spec:
   values: # TODO: separate Grafana's actual configs like dashboards (leave deployment config) into its own configMap and use valuesFrom
     replicas: 1 # OIDC needs specific session, thus 1 replica
     podLabels:
-      egress.home.arpa/nginx-external: "allow" # authentik
       tailscale.com/expose: "true"
+      authentik.home.arpa/https: "allow"
+    hostAliases:
+      - ip: "${APP_IP_AUTHENTIK}"
+        hostnames: ["${APP_DNS_AUTHENTIK}"]
     env:
       GF_EXPLORE_ENABLED: true
       GF_LOG_MODE: console
@@ -214,7 +217,7 @@ spec:
           datasource:
             - { name: DS_PROMETHEUS, value: Prometheus }
         windows-node-jakub-pinkas:
-          gnetId: 
+          gnetId:
           revision: 3
           datasource: Prometheus
     sidecar:
