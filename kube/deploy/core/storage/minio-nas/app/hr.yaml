@@ -109,8 +109,7 @@ spec:
           iscsi:
             targetPortal: "${IP_TRUENAS}:3260"
             iqn: "${CONFIG_TRUENAS_IQN}:minio"
-            lun: "0"
-            initiatorName: "{{ .Release.Name }}"
+            lun: 0
             fsType: "xfs" # MinIO recommendation
         globalMounts:
           - subPath: "data"
