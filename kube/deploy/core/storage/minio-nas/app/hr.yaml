@@ -65,12 +65,13 @@ spec:
         #    envFrom: [secretRef: { name: "minio-nas-pg-superuser" }]
     service:
       main:
+        primary: false
         ports:
           http:
             port: 9001
-      ssh:
+      s3:
         enabled: true
-        primary: false
+        primary: true
         controller: main
         type: LoadBalancer
         externalTrafficPolicy: Cluster
@@ -88,6 +89,12 @@ spec:
         enabled: true
         primary: true
         className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          # https://github.com/kubernetes/ingress-nginx/issues/6728
+          nginx.ingress.kubernetes.io/server-snippet: |
+            proxy_ssl_name ${APP_DNS_MINIO_NAS_S3};
+            proxy_ssl_server_name on;
         hosts:
           - host: &host "${APP_DNS_MINIO_NAS}"
             paths: &paths
