@@ -18,7 +18,7 @@ SOPS_VERSION="${SOPS_VERSION#*v}"
 VYAML_VERSION="0.2.6"
 
 # renovate: datasource=github-releases depName=atuinsh/atuin
-ATUIN_VERSION="v18.0.2"
+ATUIN_VERSION="v18.2.0"
 ATUIN_VERSION="${ATUIN_VERSION#*v}"
 
 # renovate: datasource=github-releases depName=go-task/task
