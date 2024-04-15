@@ -70,7 +70,7 @@ spec:
         primary: false
         className: "tailscale"
         hosts:
-          - host: &ts "files"
+          - host: &ts "files.${DNS_TS}"
             paths:
               - path: /
                 pathType: Prefix
