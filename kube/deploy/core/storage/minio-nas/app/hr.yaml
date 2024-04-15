@@ -38,8 +38,7 @@ spec:
               MINIO_DOMAIN: &s3 "${APP_DNS_MINIO_NAS_S3}"
               MINIO_COMPRESSION_ENABLE: "on"
               MINIO_BROWSER_LOGIN_ANIMATION: "off"
-              MINIO_BROWSER_REDIRECT: "true"
-              MINIO_BROWSER_REDIRECT_URL: "https://${APP_DNS_MINIO_NAS}"
+              MINIO_BROWSER_REDIRECT: "false"
               MINIO_SERVER_URL: "https://${APP_DNS_MINIO_NAS_S3}"
             envFrom:
               - secretRef:
