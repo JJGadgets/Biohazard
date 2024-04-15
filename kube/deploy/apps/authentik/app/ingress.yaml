@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: "cilium"
   rules:
-    - host: &host "${APP_DNS_AUTHENTIK}"
+    - host: &host "2${APP_DNS_AUTHENTIK}"
       http:
         paths:
           - pathType: Prefix
