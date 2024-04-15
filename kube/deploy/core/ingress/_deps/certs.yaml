@@ -46,7 +46,7 @@ spec:
     kind: ClusterIssuer
   privateKey:
     algorithm: ECDSA
-    size: 521
+    size: 384
     rotationPolicy: Always
   dnsNames:
     - "*.${DNS_MAIN}"
@@ -128,32 +128,6 @@ spec:
   dnsNames:
     - "${DNS_STREAM}"
     - "*.${DNS_STREAM}"
----
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: me
-  namespace: ingress
-spec:
-  secretName: "me-tls"
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-  additionalOutputFormats:
-    - type: CombinedPEM
-    - type: DER
-  issuerRef:
-    name: letsencrypt-production
-    kind: ClusterIssuer
-  privateKey:
-    algorithm: ECDSA
-    size: 384
-    rotationPolicy: Always
-  dnsNames:
-    - "${DNS_ME}"
-    - "*.${DNS_ME}"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
