@@ -64,23 +64,18 @@ spec:
         #    imagePullPolicy: IfNotPresent
         #    envFrom: [secretRef: { name: "minio-nas-pg-superuser" }]
     service:
-      main:
+      dashboard:
         primary: false
         ports:
           http:
             port: 9001
-      s3:
-        enabled: true
-        primary: true
-        controller: main
+      main:
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_MINIO_NAS_S3}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINIO_NAS_S3}"
         ports:
           http:
-            enabled: true
             port: 443
             targetPort: 9000
             protocol: HTTPS
