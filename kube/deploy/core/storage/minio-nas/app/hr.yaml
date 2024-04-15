@@ -68,10 +68,12 @@ spec:
     service:
       dashboard:
         primary: false
+        controller: main
         ports:
           http:
             port: 9001
       main:
+        controller: main
         type: LoadBalancer
         annotations:
           coredns.io/hostname: "${APP_DNS_MINIO_NAS_S3}"
