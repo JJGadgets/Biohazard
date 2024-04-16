@@ -70,6 +70,14 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+    persistence:
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "jail"
+            path: "/opt/cool/child-roots"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
