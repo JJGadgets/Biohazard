@@ -30,7 +30,7 @@ DUO_VERSION="duo_unix-2.0.3"
 DUO_VERSION="${DUO_VERSION#*duo_unix-}"
 
 # renovate: datasource=github-releases depName=tailscale/tailscale
-TAILSCALE_VERSION="v1.60.1"
+TAILSCALE_VERSION="v1.64.2"
 TAILSCALE_VERSION="${TAILSCALE_VERSION#*v}"
 
 echo "STAGE 1: Clone vyos-build Git repository, with ${VYOS_VERSION} tag"
