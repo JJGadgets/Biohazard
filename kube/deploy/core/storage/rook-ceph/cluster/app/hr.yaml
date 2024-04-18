@@ -324,6 +324,7 @@ spec:
               tailscale.com/expose: "true"
             instances: 2
             port: 6953
+            hostNetwork: false
             # securePort: 443 # TODO: switch from Tailscale to L2 + externalIP... maybe?
             # sslCertificateRef: "rgw-biohazard-tls"
             priorityClassName: "system-cluster-critical"
