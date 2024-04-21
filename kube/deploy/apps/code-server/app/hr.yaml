@@ -19,6 +19,9 @@ spec:
       main:
         type: deployment
         replicas: 1
+        annotations: &anno
+          reloader.stakater.com/auto: "false"
+          secret.reloader.stakater.com/reload: "code-server-secrets"
         pod:
           labels:
             tailscale.com/expose: "true"
