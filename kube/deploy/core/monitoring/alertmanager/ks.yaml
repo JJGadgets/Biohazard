@@ -1,0 +1,41 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-alertmanager-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "alertmanager"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/alertmanager/app
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-monitoring-alertmanager-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-alertmanager-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "alertmanager"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "alertmanager-data"
+      SIZE: "2Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: "1000"
+      RGID: "2000"
+      RFSG: "2000"

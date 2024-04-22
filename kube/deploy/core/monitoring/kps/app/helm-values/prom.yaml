@@ -59,3 +59,13 @@ prometheus:
       registry: quay.io
       repository: prometheus/prometheus
       tag: v2.51.0-rc.0-dedupelabels
+    # external AlertManager (non-KPS)
+    alertingEndpoints:
+      - apiVersion: v2
+        name: alertmanager
+        namespace: monitoring
+        port: 9093
+      - apiVersion: v2
+        name: alertmanager-local
+        namespace: monitoring
+        port: 9093

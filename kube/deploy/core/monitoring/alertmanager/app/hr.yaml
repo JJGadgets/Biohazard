@@ -1,0 +1,222 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app alertmanager
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: "allow"
+            egress.home.arpa/discord: "allow"
+        containers: &ct
+          main:
+            image:
+              repository: "quay.io/prometheus/alertmanager"
+              tag: "main@sha256:8145bf0107b5106fc1c554f2fc0b628e9e1d2c818bfe4e78867d8f75046aa6c7" # TODO: using main because waiting on 0.27.1 for DiscordConfig webhook_url_file fix (https://github.com/prometheus/alertmanager/pull/3728)
+              #tag: "v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5"
+            args:
+              - --config.file=/etc/alertmanager/alertmanager.yaml
+              - --storage.path=/alertmanager
+              - --data.retention=336h
+              - "--web.external-url=https://${APP_DNS_ALERTMANAGER}/"
+              - --web.route-prefix=/
+              - --web.listen-address=:9093
+              - --cluster.listen-address=[$(POD_IP)]:9094
+              - "--cluster.label=${CLUSTER_NAME}"
+              - --cluster.peer=alertmanager.monitoring.svc.cluster.local:9094
+              - --cluster.peer=alertmanager-local-0.monitoring.svc.cluster.local:9094
+              - --cluster.peer=alertmanager-local-1.monitoring.svc.cluster.local:9094
+              - --cluster.peer=alertmanager-local-2.monitoring.svc.cluster.local:9094
+              - --cluster.reconnect-timeout=5m
+            env:
+              TZ: "${CONFIG_TZ}"
+              POD_IP:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+            ports:
+              - name: http
+                containerPort: 9093
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec: &ready
+                  httpGet:
+                    path: "/-/ready"
+                    port: http
+                    scheme: HTTP
+                  initialDelaySeconds: 3
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+                  successThreshold: 1
+                  failureThreshold: 10
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  <<: *ready
+                  periodSeconds: 1
+                  failureThreshold: 60
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: "/-/healthy"
+                    port: http
+                    scheme: HTTP
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  successThreshold: 1
+                  failureThreshold: 10
+      local:
+        type: statefulset
+        replicas: 3
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/discord: allow
+        containers: *ct
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              size: 2Gi
+              storageClass: local
+              accessMode: ReadWriteOnce
+              advancedMounts:
+                main:
+                  - path: /alertmanager
+    service:
+      main:
+        controller: main
+        ports: &ports
+          http:
+            port: 9093
+          cluster:
+            port: 9094
+      local: &svc
+        controller: local
+        ports: *ports
+      local-0:
+        <<: *svc
+        extraSelectorLabels:
+          apps.kubernetes.io/pod-index: "0"
+      local-1:
+        <<: *svc
+        extraSelectorLabels:
+          apps.kubernetes.io/pod-index: "1"
+      local-2:
+        <<: *svc
+        extraSelectorLabels:
+          apps.kubernetes.io/pod-index: "2"
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: "nginx-internal"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_ALERTMANAGER}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: local
+                  port: http
+        tls:
+          - hosts: [*host]
+      tailscale:
+        enabled: true
+        primary: false
+        className: "tailscale"
+        hosts:
+          - host: &host "${APP_DNS_ALERTMANAGER_TS}"
+            paths: *paths
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: alertmanager-data
+        advancedMounts:
+          main:
+            main:
+              - subPath: data
+                path: /alertmanager
+      config:
+        enabled: true
+        type: configMap
+        name: alertmanager-config
+        globalMounts:
+          - path: /etc/alertmanager
+      secrets:
+        type: secret
+        name: alertmanager-secrets
+        globalMounts:
+          - path: /secrets
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: "Always"
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+              app.kubernetes.io/component: local
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/alertmanager"
+                    operator: "DoesNotExist"
+    serviceMonitor:
+      main:
+        enabled: true
+        selector:
+          app.kubernetes.io/name: alertmanager
+        endpoints:
+          - port: http
+            scheme: http
+            enableHttp2: true
+            path: "/metrics"
+            interval: 1m
+            scrapeTimeout: 30s

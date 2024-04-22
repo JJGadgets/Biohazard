@@ -31,7 +31,7 @@ spec:
             env:
               TZ: "${CONFIG_TZ}"
               # TODO: use full config mapping to all AM instances and 1 cluster, including different deployments for authentik, cloudflared and Tailscale's forward auth headers
-              ALERTMANAGER_URI: "http://kps-alertmanager.monitoring.svc:9093"
+              ALERTMANAGER_URI: "http://alertmanager-local.monitoring.svc:9093"
               ALERTMANAGER_EXTERNAL_URI: "https://${APP_DNS_ALERTMANAGER}"
               ALERTMANAGER_PROXY: "true"
             securityContext: &sc
