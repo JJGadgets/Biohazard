@@ -24,6 +24,11 @@ jobs:
       matrix:
         build: ["router"]
     steps:
+      - name: Lowercase repository owner
+        shell: bash
+        run: |
+          echo "LOWERCASN_REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: dnf install -y rpm-ostree selinux-policy selinux-policy-targeted policycoreutils podman
 
@@ -47,7 +52,7 @@ jobs:
 
       - name: Build OSTree and push it to registry
         env:
-          USER: "${{ github.repository_owner }}"
+          USER: "${{ env.LOWERCASN_REPO_OWNER }}"
           BUILD: "${{ matrix.build }}"
         run: "cd ./ostree && ./build.sh registry"
         # TODO: add secrets and push to private R2/Wasabi/etc
