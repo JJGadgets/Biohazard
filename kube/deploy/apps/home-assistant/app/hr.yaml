@@ -144,7 +144,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_HOME_ASSISTANT}
+        runAsUser: &uid 1000 # code-server coder user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
