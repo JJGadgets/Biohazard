@@ -22,15 +22,15 @@ spec:
       type: "deployment"
       replicas: 1
     image:
-      repository: "registry.jjgadgets.tech/jjgadgets/gotosocial"
+      repository: "jank.ing/jjgadgets/gotosocial"
       tag: "0.15.0@sha256:6c11ffd1de7016953965e58c95ed0d12bb858ef3276b01133a106fa30a5cd499"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       ingress.home.arpa/cloudflare: "allow"
       db.home.arpa/pg: "pg-gotosocial"
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-      egress.home.arpa/nginx-external: "allow"
-      egress.home.arpa/world: "allow"
+      authentik.home.arpa/https: "allow"
+      egress.home.arpa/internet: "allow"
       prom.home.arpa/kps: "allow"
     env:
       TZ: "${CONFIG_TZ}"
@@ -182,3 +182,6 @@ spec:
     serviceMonitor:
       main:
         enabled: true
+    hostAliases:
+      - ip: "${APP_IP_AUTHENTIK}"
+        hostnames: ["${APP_DNS_AUTHENTIK}"]
