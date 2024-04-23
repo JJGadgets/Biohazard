@@ -14,6 +14,8 @@ tmp-is-dir: true
 repos:
   - fedora-40
   - fedora-40-updates
+  - tailscale-stable
+  - 1password
 
 packages:
   # base
@@ -23,8 +25,8 @@ packages:
   - wireguard-tools
   - tailscale
   - podman
-  - 'bird >= 2.15.1-1.fc40'
-  - 'kea = 2.4.1-5.fc40'
+  - bird
+  - kea
   - dnsdist
   - bind
   - unbound
