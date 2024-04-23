@@ -1,0 +1,72 @@
+---
+ref: fedora-ostree-router
+rojig:
+  name: biohazard-router
+  summary: "JJGadgets Biohazard Router"
+  license: "Apache 2.0"
+
+releasever: 40
+selinux: false
+automatic-version-prefix: "${releasever}.<date:%Y%m%d>"
+mutate-os-release: "${releasever}"
+tmp-is-dir: true
+
+repos:
+  - fedora-40
+  - fedora-40-updates
+  # - fedora-40-updates-testing
+  - rpmfusion-free
+  - rpmfusion-free-updates
+  - copr:copr.fedorainfracloud.org:wezfurlong:wezterm-nightly
+  - copr:copr.fedorainfracloud.org:atim:i3status-rust
+
+packages:
+  # base
+  - fedora-release-server
+  - fedora-release-identity-server
+  - nftables
+  - wireguard-tools
+  - tailscale
+  - podman
+  - 'bird >= 2.15.1-1.fc40'
+  - 'kea = 2.4.1-5.fc40'
+  - dnsdist
+  - bind
+  - unbound
+  - openssh
+  - openssh-server
+  - openssh-clients
+  - 1password-cli
+  - git-core
+  - age
+  - gnupg2
+  - pam_duo
+  - pam_yubico
+  - chrony
+  - node-exporter
+  - haproxy
+  - mdns-repeater
+  - lldpd
+  - iperf
+  - iperf3
+  - radvd
+  - tayga
+  # missing: blocky, sops
+
+exclude-packages:
+  # remove Fedora specifics
+  - firewalld
+  - selinux-policy
+  - selinux-policy-targeted
+
+units:
+  - nftables.service
+  - tailscaled.service
+  - named.service
+  - unbound.service
+  - chronyd.service
+  - sshd.service
+  - node_exporter.service
+  - openvpn-server@.service
+  - mdns-repeater.service
+  - lldpd.service

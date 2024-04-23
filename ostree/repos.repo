@@ -1,0 +1,21 @@
+[fedora-40]
+name=Fedora 40 $basearch
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=fedora-40&arch=$basearch
+enabled=1
+gpgcheck=1
+metadata_expire=1d
+
+[fedora-40-updates]
+name=Fedora 40 $basearch Updates
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-released-f40&arch=$basearch
+enabled=1
+gpgcheck=1
+metadata_expire=1d
+
+[1password]
+name=1Password Stable Channel
+baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://downloads.1password.com/linux/keys/1password.asc

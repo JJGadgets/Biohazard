@@ -1,0 +1,53 @@
+---
+name: OSTree Build
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 13 * * 5 # Friday 9pm in SGT/GMT+8, Friday 1pm in UTC
+  push:
+    branches: ["main"]
+    paths:
+      - "ostree/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    timeout-minutes: 40
+    container:
+      image: public.ecr.aws/docker/library/fedora:39@sha256:06df381d697d14940c886fda8e94a4fdc838df74e93f65111ed3ea04f7a7d6e0
+      # Fix SELinux for the built OSTree: https://github.com/coreos/rpm-ostree/issues/1943
+      options: --privileged --security-opt label:disable
+    strategy:
+      matrix:
+        build: ["router"]
+    steps:
+      - name: Install dependencies
+        run: dnf install -y rpm-ostree selinux-policy selinux-policy-targeted policycoreutils podman
+
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@7bfa3a4717ef143a604ee0a99d859b8886a96d00 # v1.9.3
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+
+      - name: Checkout
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+
+      - name: Log into container registry
+        run: podman login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+
+      - name: Download RPM repo files from upstream
+        run: "./ostree/repos.sh"
+
+      - name: Build OSTree and push it to registry
+        env:
+          USER: "${{ github.repository_owner }}"
+          BUILD: "${{ matrix.build }}"
+        run: "cd ./ostree && ./build.sh registry"
+        # TODO: add secrets and push to private R2/Wasabi/etc
