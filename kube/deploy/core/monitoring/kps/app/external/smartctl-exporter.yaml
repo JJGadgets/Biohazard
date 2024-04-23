@@ -1,0 +1,14 @@
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: smartctl-exporter
+  namespace: monitoring
+spec:
+  scrapeInterval: "1m"
+  scrapeTimeout: "10s"
+  staticConfigs:
+    - targets:
+        - "${IP_BLACKHAWK}:9633" # My laptop
+  metricsPath: "/metrics"
+
