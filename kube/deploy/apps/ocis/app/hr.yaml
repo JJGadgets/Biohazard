@@ -110,6 +110,13 @@ spec:
             path: "/etc/ocis"
           - subPath: "varlib"
             path: "/var/lib/ocis"
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
