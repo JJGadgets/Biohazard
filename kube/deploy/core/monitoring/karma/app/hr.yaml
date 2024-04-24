@@ -34,6 +34,7 @@ spec:
               ALERTMANAGER_URI: "http://alertmanager-local.monitoring.svc:9093"
               ALERTMANAGER_EXTERNAL_URI: "https://${APP_DNS_ALERTMANAGER}"
               ALERTMANAGER_PROXY: "true"
+              FILTERS_DEFAULT: "@state!=suppressed"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
