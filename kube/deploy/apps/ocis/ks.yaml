@@ -1,0 +1,44 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ocis-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "ocis"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/ocis/app
+  targetNamespace: "ocis"
+  dependsOn:
+    - name: ocis-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ocis-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "ocis"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "ocis"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "ocis-data"
+      SIZE: "100Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_OCIS}
+      RGID: !!str |
+        ${APP_UID_OCIS}
+      RFSG: !!str |
+        ${APP_UID_OCIS}
