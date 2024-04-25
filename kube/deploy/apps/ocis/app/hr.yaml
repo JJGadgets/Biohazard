@@ -63,9 +63,10 @@ spec:
               PROXY_ROLE_ASSIGNMENT_DRIVER: oidc
               PROXY_ROLE_ASSIGNMENT_OIDC_CLAIM: groups
               # I'm using the default role mapping here https://doc.owncloud.com/ocis/5.0/deployment/services/s-list/proxy.html#automatic-role-assignments
-            envFrom:
-              - secretRef:
-                  name: "ocis-secrets"
+            # TODO: transfer all secrets generated via `ocis init` from /etc/ocis/ocis.yaml in PVC to 1P and re-enable this
+            #envFrom:
+            #  - secretRef:
+            #      name: "ocis-secrets"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -82,6 +83,10 @@ spec:
           01-ocis-init:
             <<: *ct
             command: ["/bin/sh", "-c", "ocis init || true"]
+            resources:
+              requests:
+                cpu: "1m"
+                memory: "50Mi"
     service:
       main:
         ports:
