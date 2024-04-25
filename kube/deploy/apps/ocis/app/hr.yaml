@@ -92,6 +92,8 @@ spec:
         enabled: true
         primary: true
         className: "nginx-internal"
+        annotations:
+          nginx.ingress.kubernetes.io/custom-http-errors: "502"
         hosts:
           - host: &host "${APP_DNS_OCIS}"
             paths: &paths
