@@ -78,6 +78,10 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
+        initContainers:
+          01-ocis-init:
+            <<: *ct
+            command: ["/bin/sh", "-c", "ocis init || true"]
     service:
       main:
         ports:

@@ -33,9 +33,9 @@ spec:
     substitute:
       PVC: "ocis-data"
       SIZE: "100Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
+      ACCESSMODE: "ReadWriteOnce"
       RUID: !!str &uid |
         ${APP_UID_OCIS}
       RGID: !!str |
