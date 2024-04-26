@@ -17,7 +17,7 @@ spec:
     controllers:
       main:
         type: "deployment"
-        replicas: 1
+        replicas: 0 # currently unused
         pod:
           labels:
             ingress.home.arpa/internet: "allow"
