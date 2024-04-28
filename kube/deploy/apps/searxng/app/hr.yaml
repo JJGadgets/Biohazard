@@ -32,8 +32,12 @@ spec:
             command: ["uwsgi", "--master", "--http-socket", "0.0.0.0:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
-              UWSGI_WORKERS: "2"
-              UWSGI_THREADS: "2"
+              UWSGI_WORKERS: &cpu
+                valueFrom:
+                  resourceFieldRef:
+                    containerName: main
+                    resource: limits.cpu # not defined, so will use node allocatable
+              UWSGI_THREADS: *cpu
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -47,7 +51,6 @@ spec:
                 cpu: "50m"
                 memory: "1Gi"
               limits:
-                cpu: "3000m"
                 memory: "2Gi"
           redis:
             image:
