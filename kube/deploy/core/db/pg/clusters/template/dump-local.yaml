@@ -43,9 +43,9 @@ spec:
               env:
                 # don't use pg_dumpall because this template assumes 1 cluster and 1 DB by default
                 - name: "POSTGRES_CLUSTER"
-                  value: "TRUE"
+                  value: !!str "${PG_DUMPALL:='FALSE'}"
                 - name: "POSTGRES_DB"
-                  value: "postgres"
+                  value: "${PG_DB_NAME:=postgres}"
                 # DROP backed_up_databases IF EXISTS
                 - name: "POSTGRES_EXTRA_OPTS"
                   value: "--clean --if-exists"
