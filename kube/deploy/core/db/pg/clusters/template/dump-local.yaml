@@ -51,15 +51,16 @@ spec:
                   value: "--clean --if-exists"
                 # use pgBouncer service to handle connection loadbalancing and failover
                 - name: "POSTGRES_HOST"
-                  valueFrom:
-                    secretKeyRef:
-                      name: &pguser "pg-${PG_APP_NAME}-pguser-${PG_DB_USER}"
-                      key: "pgbouncer-host"
+                  value: "pg-${PG_APP_NAME}-replicas.${PG_APP_NS}.svc.cluster.local"
+                  #valueFrom:
+                  #  secretKeyRef:
+                  #    name: &pguser "pg-${PG_APP_NAME}-pguser-${PG_DB_USER}"
+                  #    key: "host"
                 # use pguser app credentials
                 - name: "POSTGRES_USER"
                   valueFrom:
                     secretKeyRef:
-                      name: *pguser
+                      name: &pguser "pg-${PG_APP_NAME}-pguser-${PG_DB_USER}"
                       key: "user"
                 - name: "POSTGRES_PASSWORD"
                   valueFrom:
