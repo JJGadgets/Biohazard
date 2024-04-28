@@ -28,14 +28,10 @@ spec:
           main:
             image: &img
               repository: "docker.io/searxng/searxng"
-              tag: "2023.7.22-65d8b1a31"
+              tag: "latest@sha256:61c2684c4579c1849888c38ebb0d02ea0eac3fde1f2a0aa85ba685294a419910"
             command: ["uwsgi", "--master", "--http-socket", "0.0.0.0:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
-              SEARXNG_BASE_URL: "https://{APP_DNS_SEARXNG}/"
-              SEARXNG_URL: "https://{APP_DNS_SEARXNG}"
-              SEARXNG_PORT: &http "8080"
-              SEARXNG_REDIS_URL: "unix:///etc/searxng/redis.sock?db=0"
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -55,7 +51,7 @@ spec:
             image:
               repository: "public.ecr.aws/docker/library/redis"
               tag: "7.2.4-bookworm@sha256:f14f42fc7e824b93c0e2fe3cdf42f68197ee0311c3d2e0235be37480b2e208e6"
-            command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/etc/searxng/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
@@ -68,7 +64,7 @@ spec:
       main:
         ports:
           http:
-            port: *http
+            port: 8080
     ingress:
       main:
         enabled: true
@@ -97,21 +93,19 @@ spec:
           main:
             main:
               - subPath: "settings.yml"
-                path: "/etc/searxng/settings.yml"
-                readOnly: true
+                path: "/usr/local/searxng/searx/settings.yml"
       tmp:
         enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
-          - subPath: "etc"
-            path: "/etc/searxng"
-            readOnly: false
+          - subPath: "redis"
+            path: "/redis"
     configMaps:
       config:
         enabled: true
         data:
-          server.toml: |-
+          settings.yml: |-
             use_default_settings:
               engines:
                 keep_only:
@@ -220,6 +214,8 @@ spec:
               default_lang: "en"
               max_page: 0
             server:
+              bind_address: "0.0.0.0"
+              port: 8080
               base_url: "https://${APP_DNS_SEARXNG}/"
               image_proxy: true
               http_protocol_version: "1.1"
@@ -248,6 +244,8 @@ spec:
               '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
               '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
               '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
+            redis:
+              url: "unix:///redis/redis.sock?db=0"
     # NOTE: Search engines disabled:
     # - archive.is (too many requests)
     defaultPodOptions:
@@ -255,7 +253,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_SEARXNG}
+        runAsUser: &uid 977 # upstream `searxng` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
