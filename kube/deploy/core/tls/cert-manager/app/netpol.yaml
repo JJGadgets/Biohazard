@@ -12,6 +12,10 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    # Prometheus
+    - fromEndpoints:
+        - matchLabels:
+            prometheus: "kps"
   egress:
     # same namespace
     - toEndpoints:
