@@ -1,0 +1,149 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app navidrome
+  namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            prom.home.arpa/kps: allow
+            ingress.home.arpa/nginx-internal: allow
+            # egress.home.arpa/internet: "allow"
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/navidrome/navidrome
+              tag: 0.52.0@sha256:432b2e3a0e593031c2947fd2b33596b35fa319a835cb771b660f2bc2890de12a
+            env:
+              TZ: "${CONFIG_TZ}"
+              ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
+              ND_MUSICFOLDER: /media
+              ND_DATAFOLDER: /config
+              ND_CACHEFOLDER: /config/cache
+              ND_PORT: &http "8080"
+              ND_COVERJPEGQUALITY: "100"
+              ND_DEFAULTTHEME: Dark
+              ND_ENABLEGRAVATAR: "false"
+              ND_IMAGECACHESIZE: "1GB"
+              ND_TRANSCODINGCACHESIZE: 5GB
+              ND_SEARCHFULLSTRING: "true"
+              ND_SUBSONICARTISTPARTICIPATIONS: "true"
+              ND_ENABLETRANSCODINGCONFIG: "${CONFIG_NAVIDROME_TRANSCODE_UI:=false}"
+              ND_UILOGINBACKGROUNDURL: https://raw.githubusercontent.com/JJGadgets/images/main/cover.png
+              ND_UIWELCOMEMESSAGE: "Welcome to JJGadgets Music."
+              ND_PROMETHEUS_ENABLED: "true"
+              ND_PROMETHEUS_METRICSPATH: /metrics
+              ND_REVERSEPROXYUSERHEADER: X-authentik-username
+              ND_REVERSEPROXYWHITELIST: "${IP_POD_CIDR_V4}"
+            envFrom:
+              - secretRef:
+                  name: navidrome-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+    service:
+      main:
+        ports:
+          http:
+            port: *http
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
+        hosts:
+          - host: &host "${APP_DNS_NAVIDROME}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: true
+        existingClaim: navidrome-data
+        globalMounts:
+          - subPath: data
+            path: /config
+      nfs:
+        enabled: true
+        type: nfs
+        server: "${IP_TRUENAS}"
+        path: "${PATH_NAS_MEDIA}"
+        globalMounts:
+          - subPath: Music
+            path: /media
+            readOnly: true
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: "tmp"
+            path: "/tmp"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_NAVIDROME}
+        runAsGroup: *uid
+        fsGroup: *uid
+        supplementalGroups: [6969] # NAS
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/navidrome
+                    operator: DoesNotExist
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+          - port: http
+            scheme: http
+            path: "/api/v1/metrics"
+            interval: 1m
+            scrapeTimeout: 30s
