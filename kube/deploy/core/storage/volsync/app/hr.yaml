@@ -18,3 +18,6 @@ spec:
     manageCRDs: true
     metrics:
       disableAuth: true
+    podLabels:
+      prom.home.arpa/kps: allow
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
