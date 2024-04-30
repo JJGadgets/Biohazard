@@ -22,7 +22,7 @@ spec:
       PG_SC: "local"
       PG_CONFIG_VERSION: "16"
       PG_CONFIG_SIZE: "100Gi"
-      PG_DUMPALL: !!str "TRUE"
+      PG_DUMPALL: !!str "'TRUE'"
   patches:
     - patch: |-
         apiVersion: postgres-operator.crunchydata.com/v1beta1
