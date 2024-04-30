@@ -55,6 +55,39 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
+            ports:
+              - name: s3
+                containerPort: 9000
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 60
+                  httpGet: &ready
+                    path: "/minio/health/cluster"
+                    port: s3
+                    scheme: HTTPS
+                    httpHeaders:
+                      - name: Host
+                        value: *s3
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 60
+                  httpGet:
+                    <<: *ready
+                    path: "/minio/health/live"
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 120
+                  httpGet:
+                    <<: *ready
+                    path: "/minio/health/live"
         #initContainers:
         #  01-init-minio-nas-admin-password:
         #    command:
