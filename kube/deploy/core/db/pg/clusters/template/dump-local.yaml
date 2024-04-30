@@ -5,9 +5,10 @@ metadata:
   name: "pg-${PG_APP_NAME}-${PG_DB_NAME}-dump-local"
   namespace: "${PG_APP_NS}"
   labels: &labels
-    postgresql: &pg "pg-${PG_APP_NAME}"
-    app.kubernetes.io/instance: *pg
     app.kubernetes.io/name: "pg-dump-local"
+    app.kubernetes.io/instance: &pg "pg-${PG_APP_NAME}"
+    postgresql: *pg # CNPG
+    postgres-operator.crunchydata.com/cluster: *pg
     kustomize.toolkit.fluxcd.io/force: "Enabled"
 spec:
   schedule: "0 6 * * *"

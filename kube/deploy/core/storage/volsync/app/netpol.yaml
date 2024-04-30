@@ -35,6 +35,10 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/created-by: volsync
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            prometheus: "kps"
   egress:
     # allow all to public Internet
     - toEntities:
@@ -51,3 +55,6 @@ spec:
       toPorts:
         - ports:
             - port: "6953"
+    - toEndpoints:
+        - matchLabels:
+            rgw: "${CLUSTER_NAME}"

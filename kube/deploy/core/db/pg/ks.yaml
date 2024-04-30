@@ -12,11 +12,21 @@ spec:
   wait: false
   dependsOn:
     - name: 1-core-storage-csi-driver-nfs-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
+    - name: 1-core-secrets-es-k8s
   healthChecks:
-    - name: crunchy-pgo
-      namespace: crunchy-pgo
+    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
       kind: HelmRelease
-      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+      name: crunchy-pgo
+      namespace: crunchy-pgo
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: minio-nas
+      namespace: minio-nas
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: rook-ceph-rgw-biohazard-a
+      namespace: rook-ceph
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
