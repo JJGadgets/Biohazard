@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationdestination_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationDestination
 metadata:
@@ -24,3 +25,14 @@ spec:
       runAsGroup: ${RGID:=1000}
       fsGroup: ${RFSG:=1000}
       seccompProfile: {type: "RuntimeDefault"}
+    moverPodLabels:
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+      s3.home.arpa/minio-nas: "allow"
+      egress.home.arpa/r2: "allow"
+    moverResources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 6Gi

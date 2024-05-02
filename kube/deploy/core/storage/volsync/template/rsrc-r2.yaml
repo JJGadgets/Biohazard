@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
@@ -25,3 +26,12 @@ spec:
     retain: # keep all backups within 1 week (7 days), keep latest snapshot from each day within 2 weeks
       daily: ${DAILY:=14}
       within: ${WITHIN:=7d}
+    moverPodLabels:
+      egress.home.arpa/r2: allow
+    moverResources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 6Gi
