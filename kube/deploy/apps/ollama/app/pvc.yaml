@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "ollama-data"
+  labels:
+    snapshot.home.arpa/enabled: "true"
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
+spec:
+  storageClassName: "file"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "100Gi"
