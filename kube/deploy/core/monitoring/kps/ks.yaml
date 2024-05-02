@@ -11,6 +11,17 @@ spec:
 #    - name: 1-core-monitoring-kps-alertmanager-pvc-0
 #    - name: 1-core-monitoring-kps-alertmanager-pvc-1
 #    - name: 1-core-monitoring-kps-alertmanager-pvc-2
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-kps-external
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/monitoring/kps/external
+  targetNamespace: monitoring
+  dependsOn:
+    - name: 1-core-monitoring-kps-app
 #---
 #apiVersion: kustomize.toolkit.fluxcd.io/v1
 #kind: Kustomization
