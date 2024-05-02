@@ -1,0 +1,121 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app goatcounter
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/nginx-public: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/jjgadgets/goatcounter
+              tag: 2.5.0
+            # runtime config already in image CMD as command args, not using PG because I don't really care about this data or having stuck PVC attachments
+            env:
+              TZ: "${CONFIG_TZ}"
+            #envFrom:
+            #  - secretRef:
+            #      name: goatcounter-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: true
+        className: nginx-public
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "goat-counter-privacy-respecting-tracking.jjgadgets.tech"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      short:
+        enabled: true
+        primary: false
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_GOATCOUNTER}"
+            paths: *paths
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: false
+      data:
+        enabled: true
+        existingClaim: goatcounter-data
+        globalMounts:
+          - subPath: data
+            path: /data
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+            readOnly: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_GOATCOUNTER}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/goatcounter
+                    operator: DoesNotExist

@@ -1,0 +1,44 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: goatcounter-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "goatcounter"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/goatcounter/app
+  targetNamespace: "goatcounter"
+  dependsOn:
+    - name: goatcounter-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: goatcounter-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "goatcounter"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "goatcounter"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "goatcounter-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_GOATCOUNTER}
+      RGID: !!str |
+        ${APP_UID_GOATCOUNTER}
+      RFSG: !!str |
+        ${APP_UID_GOATCOUNTER}
