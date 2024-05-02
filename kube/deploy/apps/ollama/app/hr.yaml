@@ -30,7 +30,7 @@ spec:
               tag: 0.1.32@sha256:c5018bf71b27a38f50da37d86fa0067105eea488cdcc258ace6d222dde632f75
             env:
               TZ: "${CONFIG_TZ}"
-              OLLAMA_MODELS: &pvc /data
+              OLLAMA_MODELS: &pvc /models
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -69,6 +69,12 @@ spec:
         existingClaim: ollama-data
         globalMounts:
           - subPath: data
+            path: /.ollama
+      models:
+        enabled: true
+        existingClaim: ollama-models
+        globalMounts:
+          - subPath: models
             path: *pvc
       tmp:
         enabled: true
