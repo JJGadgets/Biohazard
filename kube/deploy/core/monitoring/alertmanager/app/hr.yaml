@@ -141,7 +141,7 @@ spec:
       main:
         enabled: true
         primary: true
-        className: "nginx-internal"
+        className: "nginx-external"
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -212,7 +212,8 @@ spec:
       main:
         enabled: true
         selector:
-          app.kubernetes.io/name: alertmanager
+          matchLabels:
+            app.kubernetes.io/name: alertmanager
         endpoints:
           - port: http
             scheme: http
