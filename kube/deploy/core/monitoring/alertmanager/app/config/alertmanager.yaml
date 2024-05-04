@@ -42,7 +42,7 @@ receivers:
         # yoinked below from onedr0p, blame him if something doesn't work
         title: >-
           {{ .GroupLabels.alertname }} - {{ .GroupLabels.namespace }}
-          {{- if ne .CommonLabels.severity "" }}({{ .CommonLabels.severity}}){{- end }}
+          {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity}}){{- end }}
           ({{ .GroupLabels.cluster }})
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
