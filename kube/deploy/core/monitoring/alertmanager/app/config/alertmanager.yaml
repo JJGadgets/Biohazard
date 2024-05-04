@@ -43,8 +43,16 @@ receivers:
           {{ .CommonLabels.alertname }}
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
+          ## Group Labels
+          {{- range ( .GroupLabels.Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
+            - **{{ .Name }}:** `{{ .Value }}`
+          {{- end}}
+          ## Common Labels
+          {{- range ( .CommonLabels.Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
+            - **{{ .Name }}:** `{{ .Value }}`
+          {{- end}}
+          ## Alerts
           {{- range .Alerts }}
-            ---
             {{- if ne .Annotations.description "" }}
               > {{ .Annotations.description }}
             {{- else if ne .Annotations.summary "" }}
@@ -53,14 +61,14 @@ receivers:
               > {{ .Annotations.message }}
             {{- else }}
               Alert description not available
-              {{- if gt (len .Labels.SortedPairs) 0 }}
-                ---
-                {{- range .Labels.SortedPairs }}
-                  - **{{ .Name }}:** `{{ .Value }}`
-                {{- end }}
-                ---
-              {{- end }}
             {{- end }}
-            [Prometheus query]({{ .GeneratorURL }})
+            {{- if gt (len .Labels.SortedPairs) 0 }}
+              ---
+              {{- range ( ( .Labels.Remove $root.CommonLabels.Names ).Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
+                - **{{ .Name }}:** `{{ .Value }}`
+              {{- end }}
+              ---
+            {{- end }}
+            [{{ .Fingerprint }}]({{ .GeneratorURL }})
             ---
           {{- end }}
