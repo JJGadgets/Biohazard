@@ -22,6 +22,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
+            authentik.home.arpa/https: "allow"
             db.home.arpa/pg: "pg-home"
             prom.home.arpa/kps: "allow"
         containers:
@@ -128,6 +129,9 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_VIKUNJA}
