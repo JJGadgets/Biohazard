@@ -44,22 +44,23 @@ receivers:
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
           {{- range .Alerts }}
+            ---
             {{- if ne .Annotations.description "" }}
-              {{ .Annotations.description }}
+              > {{ .Annotations.description }}
             {{- else if ne .Annotations.summary "" }}
-              {{ .Annotations.summary }}
+              > {{ .Annotations.summary }}
             {{- else if ne .Annotations.message "" }}
-              {{ .Annotations.message }}
+              > {{ .Annotations.message }}
             {{- else }}
               Alert description not available
               {{- if gt (len .Labels.SortedPairs) 0 }}
-                <small>
+                ---
                 {{- range .Labels.SortedPairs }}
-                  <b>{{ .Name }}:</b> {{ .Value }}
+                  - **{{ .Name }}:** `{{ .Value }}`
                 {{- end }}
-                </small>
+                ---
               {{- end }}
             {{- end }}
-            {{ .Fingerprint }}
-            {{ .GeneratorURL }}
+            [Prometheus query]({{ .GeneratorURL }})
+            ---
           {{- end }}
