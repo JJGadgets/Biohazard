@@ -2,7 +2,7 @@
 global:
   resolve_timeout: 5m
 route:
-  group_by: ["alertname", "cluster", "namespace"]
+  group_by: ["alertname", "cluster", "namespace", "job"]
   group_interval: 10m
   group_wait: 1m
   receiver: discord
@@ -41,7 +41,9 @@ receivers:
         webhook_url_file: "/secrets/discord"
         # yoinked below from onedr0p, blame him if something doesn't work
         title: >-
-          {{ .CommonLabels.alertname }} {{- if ne .CommonLabels.severity "" }}({{ .CommonLabels.severity}}){{- end }} ({{ .GroupLabels.cluster }})
+          {{ .GroupLabels.alertname }} - {{ .GroupLabels.namespace }}
+          {{- if ne .CommonLabels.severity "" }}({{ .CommonLabels.severity}}){{- end }}
+          ({{ .GroupLabels.cluster }})
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
           {{- $root := . }}
@@ -49,10 +51,9 @@ receivers:
           {{- $common := ( ( .CommonLabels.Remove $root.GroupLabels.Names ).Remove $rm ) }}
           {{- if gt (len $common.SortedPairs) 0 }}
           ## Common Labels
-          {{- end }}
-          > Namespace: `{{ .CommonLabels.namespace.Value }}`
           {{- range $common.SortedPairs }}
           > {{ .Name }}: `{{ .Value }}`
+          {{- end }}
           {{- end }}
           ## Alerts
           {{- range .Alerts }}
