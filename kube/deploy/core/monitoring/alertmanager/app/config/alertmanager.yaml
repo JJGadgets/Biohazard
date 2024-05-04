@@ -2,7 +2,7 @@
 global:
   resolve_timeout: 5m
 route:
-  group_by: ["alertname", "cluster", "job", "namespace"]
+  group_by: ["alertname", "cluster", "namespace"]
   group_interval: 10m
   group_wait: 1m
   receiver: discord
@@ -33,7 +33,7 @@ receivers:
   # - name: heartbeat
   #   webhook_configs:
   #     - send_resolved: true
-  #       url: "${CLOUD_GATUS_HEARTBEAT_URL}"
+  #       url: ""
   - name: "null"
   - name: discord
     discord_configs:
@@ -44,32 +44,37 @@ receivers:
           {{ .CommonLabels.alertname }}
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
+          {{- $root := . }}
+          {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" }}
+          {{- $common := ( ( .CommonLabels.Remove $root.GroupLabels.Names ).Remove $rm ) }}
+          {{- if gt (len .GroupLabels.SortedPairs) 0 }}
           ## Group Labels
-          {{- range ( .GroupLabels.Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
-            - **{{ .Name }}:** `{{ .Value }}`
-          {{- end}}
+          {{- range .GroupLabels.SortedPairs }}
+          > {{ .Name }}: `{{ .Value }}`
+          {{- end }}
+          {{- end }}
+          {{- if gt (len $common.SortedPairs) 0 }}
           ## Common Labels
-          {{- range ( .CommonLabels.Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
-            - **{{ .Name }}:** `{{ .Value }}`
-          {{- end}}
+          {{- range $common.SortedPairs }}
+          > {{ .Name }}: `{{ .Value }}`
+          {{- end }}
+          {{- end }}
           ## Alerts
           {{- range .Alerts }}
             {{- if ne .Annotations.description "" }}
-              > {{ .Annotations.description }}
+          - **{{ .Annotations.description }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
             {{- else if ne .Annotations.summary "" }}
-              > {{ .Annotations.summary }}
+          - **{{ .Annotations.summary }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
             {{- else if ne .Annotations.message "" }}
-              > {{ .Annotations.message }}
+          - **{{ .Annotations.message }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
             {{- else }}
-              Alert description not available
+          - **Alert description not available** [{{ .Fingerprint }}]({{ .GeneratorURL }})
             {{- end }}
-            {{- if gt (len .Labels.SortedPairs) 0 }}
-              ---
-              {{- range ( ( .Labels.Remove $root.CommonLabels.Names ).Remove {instance,kubernetes_node,endpoint,prometheus,service,cluster} ).SortedPairs }}
-                - **{{ .Name }}:** `{{ .Value }}`
+            {{- $uniq := ( ( .Labels.Remove $root.GroupLabels.Names ).Remove $root.CommonLabels.Names ) }}
+            {{- if gt (len $uniq.SortedPairs) 0 }}
+              {{- range $uniq.SortedPairs }}
+          > {{ .Name }}: `{{ .Value }}`
               {{- end }}
-              ---
             {{- end }}
-            [{{ .Fingerprint }}]({{ .GeneratorURL }})
-            ---
           {{- end }}
+
