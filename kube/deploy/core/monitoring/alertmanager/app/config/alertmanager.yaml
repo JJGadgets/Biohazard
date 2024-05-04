@@ -41,23 +41,17 @@ receivers:
         webhook_url_file: "/secrets/discord"
         # yoinked below from onedr0p, blame him if something doesn't work
         title: >-
-          {{ .CommonLabels.alertname }}
-          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
+          {{ .CommonLabels.alertname }} {{- if ne .CommonLabels.severity "" }}({{ .CommonLabels.severity}}){{- end }} ({{ .GroupLabels.cluster }})
         message: |-
           {{- $root := . }}
-          {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" }}
+          {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" "severity" }}
           {{- $common := ( ( .CommonLabels.Remove $root.GroupLabels.Names ).Remove $rm ) }}
-          {{- if gt (len .GroupLabels.SortedPairs) 0 }}
-          ## Group Labels
-          {{- range .GroupLabels.SortedPairs }}
-          > {{ .Name }}: `{{ .Value }}`
-          {{- end }}
-          {{- end }}
           {{- if gt (len $common.SortedPairs) 0 }}
           ## Common Labels
+          {{- end }}
+          > Namespace: `{{ .CommonLabels.namespace.Value }}`
           {{- range $common.SortedPairs }}
           > {{ .Name }}: `{{ .Value }}`
-          {{- end }}
           {{- end }}
           ## Alerts
           {{- range .Alerts }}
