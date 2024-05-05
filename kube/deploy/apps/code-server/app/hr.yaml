@@ -29,6 +29,7 @@ spec:
             ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/apiserver: "allow"
             egress.home.arpa/world: "allow"
+            egress.home.arpa/cluster: "allow"
         containers:
           main:
             image:
@@ -84,6 +85,8 @@ spec:
             port: 22
             targetPort: 2222
             protocol: TCP
+          ssh2:
+            port: 22222
     ingress:
       main:
         enabled: true
@@ -143,16 +146,24 @@ spec:
             path: "/home/coder"
           - subPath: "ssh"
             path: "/home/coder/.ssh" # override secret mount perms
+          - subPath: "nix-var"
+            path: "/nix/var"
       misc: # not backed up
         enabled: true
         existingClaim: "code-server-misc"
         globalMounts:
+          - subPath: "ignore"
+            path: "/home/coder/ignore"
           - subPath: "brew"
             path: "/home/linuxbrew"
           - subPath: "nix"
-            path: "/nix"
+            path: "/nix/store"
           - subPath: "cache"
             path: "/home/coder/.cache"
+          - subPath: "mise"
+            path: "/home/coder/.local/share/mise"
+          - subPath: "go"
+            path: "/home/coder/go"
       secrets:
         enabled: true
         type: secret
@@ -193,6 +204,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
+      hostname: "biohazard-code-server.jjgadgets.tech"
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000 # `coder` user
