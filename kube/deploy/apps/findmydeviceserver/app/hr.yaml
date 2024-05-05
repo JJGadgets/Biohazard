@@ -21,12 +21,12 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
+            ingress.home.arpa/nginx-external: "allow"
         containers:
           main:
             image: &img
-              repository: "jank.ing/jjgadgets/findmydeviceserver-master"
-              tag: "rolling"
+              repository: jank.ing/jjgadgets/findmydeviceserver-master
+              tag: v0.5.0@sha256:e1c2cf01ea9dc70e798b9d7ee8bb2a5855062f81b91e4cd2446b7de54b7668de
             env:
               TZ: "${CONFIG_TZ}"
             securityContext:
@@ -52,7 +52,7 @@ spec:
         primary: true
         className: "nginx-external"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_FINDMYDEVICESERVER}"
