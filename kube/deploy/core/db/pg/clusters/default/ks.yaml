@@ -56,12 +56,6 @@ spec:
               databases: ["yagpdb"]
             - name: "redbot"
               databases: ["redbot"]
-          backups:
-            pgbackrest:
-              global:
-                compress-type: "bz2"
-                compress-level: "9"
-                delta: "y"
       target:
         group: postgres-operator.crunchydata.com
         kind: PostgresCluster
