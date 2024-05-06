@@ -4,8 +4,6 @@ kind: HelmRelease
 metadata:
   name: &app davis
   namespace: *app
-  labels:
-    nginx.ingress.home.arpa/type: auth
 spec:
   interval: 5m
   chart:
@@ -106,7 +104,7 @@ spec:
         hosts:
           - host: &host "${APP_DNS_DAVIS}"
             paths: &paths
-              - path: /dashboard
+              - path: /
                 pathType: Prefix
                 service:
                   name: main
