@@ -13,8 +13,10 @@ spec:
   dataFrom:
     - extract:
         key: "davis - ${CLUSTER_NAME}"
-    - extract:
-        key: "AWS SES - ${CLUSTER_NAME}"
+    - find:
+        path: "AWS SES - ${CLUSTER_NAME}"
+        name:
+          regexp: "^SECRET_AWS_SES_*"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
