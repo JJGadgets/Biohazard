@@ -19,6 +19,7 @@ spec:
           egress.home.arpa/r2: "allow"
           s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
           s3.home.arpa/minio-nas: "allow"
+          prom.home.arpa/kps: "allow"
       replicas: ${PG_REPLICAS:=3}
       dataVolumeClaimSpec:
         storageClassName: "${PG_SC:=local}"
@@ -26,6 +27,13 @@ spec:
         resources:
           requests:
             storage: "${PG_CONFIG_SIZE:=20Gi}"
+      resources:
+        requests:
+          cpu: "${PG_CPU_REQ:=50m}"
+          memory: "${PG_MEM_REQ:=512M}"
+        limits:
+          cpu: "${PG_CPU_LIMIT:=2000m}"
+          memory: "${PG_MEM_LIMIT:=2Gi}"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
@@ -80,6 +88,8 @@ spec:
         repo3-retention-full: "5"
         repo3-retention-diff: "30"
         repo3-cipher-type: "aes-256-cbc"
+        log-level-stderr: "debug"
+        log-level-console: "debug"
       repos:
         # the array with index 0 on the `repos` list is used for replica recovery/replay from WALs, regardless of repo name (repo1, repo2, etc)
         - name: "repo3" # Ceph RGW in-cluster
@@ -144,6 +154,16 @@ spec:
             matchLabels:
               postgres-operator.crunchydata.com/cluster: *name
               postgres-operator.crunchydata.com/role: "pgbouncer"
+  monitoring:
+    pgmonitor:
+      exporter:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64M
+          limits:
+            cpu: 1000m
+            memory: 512M
 ---
 apiVersion: v1
 kind: Secret
