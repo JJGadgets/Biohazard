@@ -1,0 +1,185 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app davis
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            db.home.arpa/pg: pg-home
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/tchapi/davis
+              tag: 4.4.2@sha256:475465ed78376d2a54e3f797d581e02f59b82195a4fa982809cfaafd392ba9a6
+            env:
+              APP_TIMEZONE: "${CONFIG_TZ}"
+              APP_ENV: prod
+              DATABASE_DRIVER: postgresql
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-home-pguser-davis
+                    key: pgbouncer-uri
+              WEBDAV_ENABLED: "false"
+              CALDAV_ENABLED: "true"
+              CARDDAV_ENABLED: "true"
+              LOG_FILE_PATH: /dev/stdout
+              ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard
+              AUTH_METHOD: LDAP
+              LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
+              LDAP_DN_PATTERN: mail=%u
+              LDAP_MAIL_ATTRIBUTE: mail
+              LDAP_AUTH_USER_AUTOCREATE: "true"
+              TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              TRUSTED_HOSTS: "${APP_DNS_DAVIS}"
+            envFrom:
+              - secretRef:
+                  name: davis-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+          caddy:
+            image:
+              repository: jank.ing/jjgadgets/caddy-distroless-base
+              tag: 2.7.6@sha256:7a16fbac33728694301f18b5414dd257e9f2902fc0d1d5c8919bf86c73b93570
+            args: ["run", "--config", "/config/Caddyfile"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    ingress:
+      main:
+        enabled: true
+        primary: false
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_DAVIS}/outpost.goauthentik.io/start?rd=$escaped_request_uri
+        hosts:
+          - host: &host "${APP_DNS_DAVIS}"
+            paths: &paths
+              - path: /dashboard
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      ingress:
+        enabled: true
+        primary: true
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_DAVIS}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: davis-config
+        advancedMounts:
+          main:
+            caddy:
+              - subPath: Caddyfile
+                path: /config/Caddyfile
+      tmp:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: fpm
+            path: /var/www/davis
+    configMaps:
+      config:
+        enabled: true
+        data:
+          Caddyfile: |
+            {
+              http_port 8080
+              https_port 8443
+            }
+            ${APP_DNS_DAVIS}:8080 {
+              header -Server
+              header -X-Powered-By
+              header Referrer-Policy no-referrer-when-downgrade
+              header X-Content-Type-Options nosniff
+              header Strict-Transport-Security "max-age=15768000;preload"
+              redir /.well-known/carddav /dav/ 301
+              redir /.well-known/caldav /dav/ 301
+              root * /var/www/davis/public
+              encode zstd gzip
+              php_fastcgi 127.0.0.1:9000 {
+                trusted_proxies ${IP_POD_CIDR_V4}
+              }
+              file_server {
+                hide .git .gitignore
+              }
+            }
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 82 # php-fpm server
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/davis
+                    operator: DoesNotExist

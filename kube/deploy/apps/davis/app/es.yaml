@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name davis-secrets
+  namespace: davis
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "davis - ${CLUSTER_NAME}"
+    - extract:
+        key: "AWS SES - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      engineVersion: v2
+      data:
+        APP_SECRET: '{{ .APP_SECRET }}'
+        ADMIN_LOGIN: '{{ .username }}'
+        ADMIN_PASSWORD: '{{ .password }}'
+        MAILER_DSN: 'smtps://{{ .SECRET_AWS_SES_USERNAME }}:{{ .SECRET_AWS_SES_PASSWORD }}@{{ .SECRET_AWS_SES_HOST }}:465'
+        INVITE_FROM_ADDRESS: '{{ .INVITE_FROM_ADDRESS }}'
