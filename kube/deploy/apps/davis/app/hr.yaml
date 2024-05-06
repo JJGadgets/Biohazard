@@ -23,6 +23,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-home
+            authentik.home.arpa/ldap: allow
         containers:
           main:
             image: &img
