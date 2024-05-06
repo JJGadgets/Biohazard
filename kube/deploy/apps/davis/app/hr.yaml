@@ -84,6 +84,15 @@ spec:
               limits:
                 cpu: "1"
                 memory: "512Mi"
+        initContainers:
+          01-public:
+            image: *img
+            command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /public"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 5m
+                memory: 10M
     service:
       main:
         ports:
@@ -139,8 +148,8 @@ spec:
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: fpm
-            path: /var/www/davis
+          - subPath: public
+            path: /public
     configMaps:
       config:
         enabled: true
@@ -158,7 +167,7 @@ spec:
               header Strict-Transport-Security "max-age=15768000;preload"
               redir /.well-known/carddav /dav/ 301
               redir /.well-known/caldav /dav/ 301
-              root * /var/www/davis/public
+              root * /public
               encode zstd gzip
               php_fastcgi 127.0.0.1:9000 {
                 trusted_proxies ${IP_POD_CIDR_V4}
