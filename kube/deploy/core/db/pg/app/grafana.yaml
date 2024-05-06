@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/gitrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: 1-core-monitoring-crunchy-pgo-dashboards
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: https://github.com/CrunchyData/postgres-operator-examples.git
+  ref:
+    commit: 62a661cb10b686a34cd156f15f520fcbef094a47
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include Grafana dashboards
+    !/kustomize/monitoring/grafana/dashboards
+# TODO: if KubeVirt CR used to actually deploy KubeVirt needs to be modified from defaults, maybe consider self-managing it?
+---
+# yaml-language-server: $schema=https://flux.jank.ing/kustomization-kustomize-v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &name 1-core-monitoring-crunchy-pgo-dashboards
+  namespace: flux-system
+  labels: # for my repo's Fluxtomization patching, can be ignored for those passing by
+    kustomization.flux.home.arpa/name: "kubevirt"
+    kustomization.flux.home.arpa/default: "false"
+    kustomization.flux.home.arpa/helmpatches: "false"
+    substitution.flux.home.arpa/disabled: "true"
+    prune.flux.home.arpa/disabled: "false"
+spec:
+  interval: 5m
+  prune: true
+  wait: true
+  path: "./kustomize/monitoring/grafana/dashboards"
+  sourceRef:
+    kind: GitRepository
+    name: *name
+  dependsOn:
+    - name: "0-${CLUSTER_NAME}-config"
+  targetNamespace: crunchy-pgo
+  commonMetadata:
+    annotations:
+      kustomize.toolkit.fluxcd.io/substitute: "disabled"
+      grafana_folder: "Postgres"
+    labels:
+      grafana_dashboard: "true"
