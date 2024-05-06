@@ -27,5 +27,5 @@ spec:
         APP_SECRET: '{{ .APP_SECRET }}'
         ADMIN_LOGIN: '{{ .username }}'
         ADMIN_PASSWORD: '{{ .password }}'
-        MAILER_DSN: 'smtps://{{ .SECRET_AWS_SES_USERNAME }}:{{ .SECRET_AWS_SES_PASSWORD }}@{{ .SECRET_AWS_SES_HOST }}:465'
+        MAILER_DSN: 'smtps://{{ .SECRET_AWS_SES_USERNAME }}:{{ .SECRET_AWS_SES_PASSWORD_URLENCODE }}@{{ .SECRET_AWS_SES_HOST }}:465'
         INVITE_FROM_ADDRESS: '{{ .INVITE_FROM_ADDRESS }}'
