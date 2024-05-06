@@ -1,0 +1,38 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: &name "pg-${PG_APP_NAME}-master"
+  namespace: &ns "${PG_APP_NS}"
+spec:
+  jobLabel: *name
+  namespaceSelector:
+    matchNames:
+      - *ns
+  podMetricsEndpoints:
+    - honorLabels: true
+      path: /metrics
+      port: exporter
+  selector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
+      postgres-operator.crunchydata.com/role: master
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: &name "pg-${PG_APP_NAME}-replica"
+  namespace: &ns "${PG_APP_NS}"
+spec:
+  jobLabel: *name
+  namespaceSelector:
+    matchNames:
+      - *ns
+  podMetricsEndpoints:
+    - honorLabels: true
+      path: /metrics
+      port: exporter
+  selector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
+      postgres-operator.crunchydata.com/role: replica
