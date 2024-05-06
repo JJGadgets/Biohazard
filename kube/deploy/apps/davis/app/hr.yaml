@@ -167,7 +167,7 @@ spec:
               header Strict-Transport-Security "max-age=15768000;preload"
               redir /.well-known/carddav /dav/ 301
               redir /.well-known/caldav /dav/ 301
-              root * /public
+              root * /public/public
               encode zstd gzip
               php_fastcgi 127.0.0.1:9000 {
                 trusted_proxies ${IP_POD_CIDR_V4}
