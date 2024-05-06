@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app davis
   namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth
 spec:
   interval: 5m
   chart:
@@ -69,7 +71,12 @@ spec:
               repository: jank.ing/jjgadgets/caddy-distroless-base
               tag: 2.7.6@sha256:7a16fbac33728694301f18b5414dd257e9f2902fc0d1d5c8919bf86c73b93570
             args: ["run", "--config", "/config/Caddyfile"]
-            securityContext: *sc
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_BIND_SERVICE"]
             resources:
               requests:
                 cpu: "10m"
@@ -88,6 +95,7 @@ spec:
         primary: false
         className: nginx-internal
         annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4}"
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_DAVIS}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
