@@ -40,7 +40,7 @@ spec:
               WEBDAV_ENABLED: "false"
               CALDAV_ENABLED: "true"
               CARDDAV_ENABLED: "true"
-              LOG_FILE_PATH: /dev/stderr
+              LOG_FILE_PATH: /tmp/davis.log
               #ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard # TODO: fix forward auth for dashboard
               AUTH_METHOD: LDAP
               LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
