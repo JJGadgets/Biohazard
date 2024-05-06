@@ -45,7 +45,7 @@ spec:
               #ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard # TODO: fix forward auth for dashboard
               AUTH_METHOD: LDAP
               LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
-              LDAP_DN_PATTERN: mail=%u
+              LDAP_DN_PATTERN: cn=%U,ou=users,dc=ldap,dc=goauthentik,dc=io
               LDAP_MAIL_ATTRIBUTE: mail
               LDAP_AUTH_USER_AUTOCREATE: "true"
               TRUSTED_PROXIES: "${IP_POD_CIDR_V4},127.0.0.1"
