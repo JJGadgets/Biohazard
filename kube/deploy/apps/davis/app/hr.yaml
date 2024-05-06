@@ -43,13 +43,13 @@ spec:
               CALDAV_ENABLED: "true"
               CARDDAV_ENABLED: "true"
               LOG_FILE_PATH: /dev/stdout
-              ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard
+              #ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard # TODO: fix forward auth for dashboard
               AUTH_METHOD: LDAP
               LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
               LDAP_DN_PATTERN: mail=%u
               LDAP_MAIL_ATTRIBUTE: mail
               LDAP_AUTH_USER_AUTOCREATE: "true"
-              TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              TRUSTED_PROXIES: "${IP_POD_CIDR_V4},127.0.0.1"
               TRUSTED_HOSTS: "${APP_DNS_DAVIS}"
             envFrom:
               - secretRef:
@@ -87,7 +87,7 @@ spec:
         initContainers:
           01-public:
             image: *img
-            command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /public"]
+            command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /web"]
             securityContext: *sc
             resources:
               requests:
@@ -101,30 +101,12 @@ spec:
     ingress:
       main:
         enabled: true
-        primary: false
-        className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4}"
-          nginx.ingress.kubernetes.io/auth-signin: |-
-            https://${APP_DNS_DAVIS}/outpost.goauthentik.io/start?rd=$escaped_request_uri
-        hosts:
-          - host: &host "${APP_DNS_DAVIS}"
-            paths: &paths
-              - path: /dashboard
-                pathType: Prefix
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts: [*host]
-      ingress:
-        enabled: true
         primary: true
         className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_DAVIS}"
             paths: &paths
-              - path: /
+              - path: /dashboard
                 pathType: Prefix
                 service:
                   name: main
@@ -148,8 +130,16 @@ spec:
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: public
-            path: /public
+        advancedMounts:
+          main:
+            caddy:
+              - subPath: public
+                path: /var/www/davis/public
+            main:
+              - subPath: public
+                path: /var/www/davis/public
+            01-public:
+              - path: /web
     configMaps:
       config:
         enabled: true
@@ -167,7 +157,7 @@ spec:
               header Strict-Transport-Security "max-age=15768000;preload"
               redir /.well-known/carddav /dav/ 301
               redir /.well-known/caldav /dav/ 301
-              root * /public/public
+              root * /var/www/davis/public
               encode zstd gzip
               php_fastcgi 127.0.0.1:9000 {
                 trusted_proxies ${IP_POD_CIDR_V4}
