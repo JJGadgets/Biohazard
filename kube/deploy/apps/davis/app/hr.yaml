@@ -28,7 +28,7 @@ spec:
             image: &img
               repository: ghcr.io/tchapi/davis
               tag: 4.4.2@sha256:475465ed78376d2a54e3f797d581e02f59b82195a4fa982809cfaafd392ba9a6
-            env:
+            env: &env
               APP_TIMEZONE: "${CONFIG_TZ}"
               APP_ENV: prod
               DATABASE_DRIVER: postgresql
@@ -49,7 +49,7 @@ spec:
               LDAP_AUTH_USER_AUTOCREATE: "true"
               TRUSTED_PROXIES: "${IP_POD_CIDR_V4},127.0.0.1"
               TRUSTED_HOSTS: "${APP_DNS_DAVIS}"
-            envFrom:
+            envFrom: &envFrom
               - secretRef:
                   name: davis-secrets
             securityContext: &sc
@@ -86,6 +86,8 @@ spec:
           01-public:
             image: *img
             command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /web"]
+            env: *env
+            envFrom: *envFrom
             securityContext: *sc
             resources:
               requests:
@@ -94,6 +96,8 @@ spec:
           02-db-migrate:
             image: *img
             command: ["/var/www/davis/bin/console", "doctrine:migrations:migrate", "--no-interaction"]
+            env: *env
+            envFrom: *envFrom
             securityContext: *sc
             resources:
               requests:
