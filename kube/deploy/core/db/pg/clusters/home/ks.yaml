@@ -50,6 +50,8 @@ spec:
               databases: ["linkding"]
             - name: "davis"
               databases: ["davis"]
+              password:
+                type: "AlphaNumeric" # Otherwise, PHP Symfony will throw "this parameter must be defined" errors, e.g. `This parameter "3C+" must be defined`, where 3C+ is a part of the password
           patroni:
             dynamicConfiguration:
               synchronous_mode: true
