@@ -40,7 +40,7 @@ spec:
               WEBDAV_ENABLED: "false"
               CALDAV_ENABLED: "true"
               CARDDAV_ENABLED: "true"
-              LOG_FILE_PATH: /dev/stdout
+              LOG_FILE_PATH: /dev/stderr
               #ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard # TODO: fix forward auth for dashboard
               AUTH_METHOD: LDAP
               LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
@@ -59,7 +59,7 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "10m"
+                cpu: "5m"
                 memory: "128Mi"
               limits:
                 cpu: "3000m"
@@ -77,7 +77,7 @@ spec:
                 add: ["NET_BIND_SERVICE"]
             resources:
               requests:
-                cpu: "10m"
+                cpu: "5m"
                 memory: "128Mi"
               limits:
                 cpu: "1"
@@ -86,6 +86,14 @@ spec:
           01-public:
             image: *img
             command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /web"]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 5m
+                memory: 10M
+          02-db-migrate:
+            image: *img
+            command: ["/var/www/davis/bin/console", "doctrine:migrations:migrate", "--no-interaction"]
             securityContext: *sc
             resources:
               requests:
@@ -130,14 +138,13 @@ spec:
             path: /tmp
         advancedMounts:
           main:
-            caddy:
-              - subPath: public
-                path: /var/www/davis/public
-            main:
-              - subPath: public
-                path: /var/www/davis/public
             01-public:
               - path: /web
+            caddy: &public
+              - subPath: public
+                path: /var/www/davis/public
+            main: *public
+            02-db-migrate: *public
     configMaps:
       config:
         enabled: true
