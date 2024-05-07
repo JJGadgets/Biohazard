@@ -21,3 +21,26 @@ spec:
                   number: 80
   tls:
     - hosts: [*host]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-victoria-tailscale
+  namespace: monitoring
+  annotations:
+    tailscale.com/tags: "tag:k8s-grafana"
+spec:
+  ingressClassName: "tailscale"
+  rules:
+    - host: &host "v${APP_DNS_TS_GRAFANA}"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+  tls:
+    - hosts: [*host]
