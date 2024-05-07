@@ -11,10 +11,10 @@ spec:
   selectAllByDefault: true
   externalLabels:
     cluster: "${CLUSTER_NAME}"
-  datasource: &vmsingle
-    url: http://vmsingle-victoria.monitoring.svc:8429
-  remoteWrite: *vmsingle
-  remoteRead: *vmsingle
+  datasource: &vm
+    url: http://vmagent-victoria.monitoring.svc:8429
+  remoteWrite: *vm
+  remoteRead: *vm
   notifiers:
     - url: http://alertmanager.monitoring.svc:9093
     - url: http://alertmanager-local-0.monitoring.svc:9093
@@ -29,9 +29,10 @@ spec:
   #             app.kubernetes.io/name: alertmanager
   resources:
     requests:
-      cpu: 10m
-      memory: 128Mi
+      cpu: 50m
+      memory: 64Mi
     limits:
+      cpu: 1
       memory: 1Gi
   topologySpreadConstraints:
     - maxSkew: 1

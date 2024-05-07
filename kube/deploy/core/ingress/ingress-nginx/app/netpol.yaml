@@ -92,11 +92,22 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: "monitoring"
             prometheus: "kps"
+      toPorts:
+        - ports:
+            - port: "10254"
+    # allow VictoriaMetrics to scrape
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "monitoring"
+            app.kubernetes.io/name: "vmagent"
+      toPorts:
+        - ports:
+            - port: "10254"
   egress:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
         - kube-apiserver
-    - toEntities: 
+    - toEntities:
         - host
       toPorts:
         - ports:
