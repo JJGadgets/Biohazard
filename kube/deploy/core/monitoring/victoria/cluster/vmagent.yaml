@@ -9,6 +9,7 @@ spec:
   selectAllByDefault: true
   remoteWrite:
     - url: "http://vmsingle-victoria.monitoring.svc:8429/api/v1/write"
+    - url: "http://vminsert-victoria.monitoring.svc:8480/insert/0/prometheus/api/v1/write"
   scrapeInterval: 30s
   replicaCount: 3
   statefulMode: true

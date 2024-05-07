@@ -12,7 +12,8 @@ spec:
   externalLabels:
     cluster: "${CLUSTER_NAME}"
   datasource: &vm
-    url: http://vmsingle-victoria.monitoring.svc:8429
+    #url: http://vmsingle-victoria.monitoring.svc:8429
+    url: http://vmselect-victoria.monitoring.svc:8481/select/0/prometheus
   remoteRead: *vm
   remoteWrite:
     url: http://vmagent-victoria.monitoring.svc:8429
