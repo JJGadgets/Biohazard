@@ -29,6 +29,17 @@ spec:
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
+      RGW_CRON: "0 5/12 * * *"
+  #patches:
+  #  - patch: |
+  #      $patch: delete
+  #      apiVersion: volsync.backube/v1alpha1
+  #      kind: ReplicationSource
+  #      metadata:
+  #        name: vm-ad-dc1-c-drive-rgw-restic
+  #    target:
+  #      kind: ReplicationSource
+  #      name: vm-ad-dc1-c-drive-rgw-restic
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -68,6 +79,17 @@ spec:
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
+      RGW_CRON: "0 5/12 * * *"
+  #patches:
+  #  - patch: |
+  #      $patch: delete
+  #      apiVersion: volsync.backube/v1alpha1
+  #      kind: ReplicationSource
+  #      metadata:
+  #        name: vm-ad-dc2-c-drive-rgw-restic
+  #    target:
+  #      kind: ReplicationSource
+  #      name: vm-ad-dc2-c-drive-rgw-restic
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
