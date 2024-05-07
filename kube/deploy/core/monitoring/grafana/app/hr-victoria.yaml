@@ -265,7 +265,7 @@ spec:
             app.kubernetes.io/name: "grafana"
     extraInitContainers:
       - name: "load-vm-ds-plugin"
-        image: "curlimages/curl:7.85.0"
+        image: "curlimages/curl:7.88.1@sha256:48318407b8d98e8c7d5bd4741c88e8e1a5442de660b47f63ba656e5c910bc3da"
         command: [ "/bin/sh" ]
         workingDir: "/var/lib/grafana"
         args:
