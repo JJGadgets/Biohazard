@@ -125,8 +125,6 @@ spec:
             uid: prometheus
             access: proxy
             url: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
-            jsonData:
-              prometheusType: Prometheus
             isDefault: true
           #- name: Prometheus
           #  type: prometheus
@@ -244,6 +242,7 @@ spec:
         enabled: true
         searchNamespace: ALL
         labelValue: ""
+        initDatasources: true
     serviceMonitor:
       enabled: true
     ingress:
