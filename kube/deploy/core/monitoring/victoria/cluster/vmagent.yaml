@@ -15,9 +15,9 @@ spec:
   vmAgentExternalLabelName: prometheus
   externalLabels:
     cluster: "${CLUSTER_NAME}"
-  inlineRelabelConfig:
-    - action: drop
-      source_labels: [service, endpoint]
+  #inlineRelabelConfig:
+  #  - action: drop
+  #    source_labels: [service, endpoint]
   # pod config
   replicaCount: 3
   statefulMode: true
