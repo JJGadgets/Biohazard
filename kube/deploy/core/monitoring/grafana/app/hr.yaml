@@ -117,15 +117,43 @@ spec:
         apiVersion: 1
         deleteDatasources:
           - { name: Prometheus, orgId: 1 }
+          - { name: AlertManager, orgId: 1 }
+          - { name: VMAgent, orgId: 1 }
+          - { name: prom, orgId: 1 }
         datasources:
           - name: Prometheus
-            type: prometheus
+            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
             uid: prometheus
+            isDefault: true
+            access: proxy
+            url: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
+            #url: http://kps-prometheus.monitoring.svc.cluster.local:9090
+            jsonData:
+              prometheusType: Prometheus
+          - name: AlertManager
+            type: alertmanager # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+            uid: alertmanager
+            isDefault: false
+            access: proxy
+            url: http://alertmanager-local.monitoring.svc.cluster.local:9093
+            jsonData:
+              implementation: prometheus
+          - name: VMAgent
+            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+            uid: vmagent
+            isDefault: false
+            access: proxy
+            url: http://vmagent-victoria.monitoring.svc.cluster.local:8429
+            jsonData:
+              prometheusType: Prometheus
+          - name: prom
+            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+            uid: prom
+            isDefault: false
             access: proxy
             url: http://kps-prometheus.monitoring.svc.cluster.local:9090
             jsonData:
               prometheusType: Prometheus
-            isDefault: true
     dashboards:
       default:
         cloudflared:
