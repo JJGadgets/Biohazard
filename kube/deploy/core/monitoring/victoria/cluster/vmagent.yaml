@@ -17,7 +17,7 @@ spec:
     cluster: "${CLUSTER_NAME}"
   inlineRelabelConfig:
     - action: drop
-      source_labels: [prometheus, service, endpoint]
+      source_labels: [service, endpoint]
   # pod config
   replicaCount: 3
   statefulMode: true
