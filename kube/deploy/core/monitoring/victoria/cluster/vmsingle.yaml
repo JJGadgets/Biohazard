@@ -41,14 +41,19 @@ metadata:
 spec:
   retentionPeriod: 7d
   extraArgs:
-    dedup.minScrapeInterval: 10s
+    dedup.minScrapeInterval: 60s
     maxLabelsPerTimeseries: "40"
     search.minStalenessInterval: 5m
   volumes:
-    - name: data
+    - name: &vol vmsingle-data
       emptyDir:
         medium: Memory
         sizeLimit: 4Gi
+  volumeMounts:
+    - name: *vol
+      mountPath: &path /vmsingle-data
+  storageDataPath: *path
+  terminationGracePeriodSeconds: 60
   resources: # TODO: refine
     requests:
       cpu: 200m
