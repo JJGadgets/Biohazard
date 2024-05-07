@@ -12,9 +12,10 @@ spec:
   externalLabels:
     cluster: "${CLUSTER_NAME}"
   datasource: &vm
-    url: http://vmagent-victoria.monitoring.svc:8429
-  remoteWrite: *vm
+    url: http://vmsingle-victoria.monitoring.svc:8429
   remoteRead: *vm
+  remoteWrite:
+    url: http://vmagent-victoria.monitoring.svc:8429
   notifiers:
     - url: http://alertmanager.monitoring.svc:9093
     - url: http://alertmanager-local-0.monitoring.svc:9093
