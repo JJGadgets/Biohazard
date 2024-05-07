@@ -6,10 +6,19 @@ metadata:
   name: victoria
   namespace: monitoring
 spec:
+  # metrics config
   selectAllByDefault: true
   remoteWrite:
     - url: "http://vmsingle-victoria.monitoring.svc:8429/api/v1/write"
-  scrapeInterval: 30s
+    - url: "http://vmsingle-alerts.monitoring.svc:8429/api/v1/write"
+  scrapeInterval: 1m
+  vmAgentExternalLabelName: prometheus
+  externalLabels:
+    cluster: "${CLUSTER_NAME}"
+  inlineRelabelConfig:
+    - action: drop
+      source_labels: [prometheus, service, endpoint]
+  # pod config
   replicaCount: 3
   statefulMode: true
   statefulStorage:
@@ -27,9 +36,6 @@ spec:
         matchLabels:
           app.kubernetes.io/name: vmagent
           app.kubernetes.io/instance: victoria
-  vmAgentExternalLabelName: prometheus
-  externalLabels:
-    cluster: "${CLUSTER_NAME}"
   resources: # TODO: refine
     requests:
       cpu: 300m
