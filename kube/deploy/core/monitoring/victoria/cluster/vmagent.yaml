@@ -3,17 +3,14 @@
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAgent
 metadata:
-  name: vmagent
+  name: victoria
   namespace: monitoring
 spec:
   selectAllByDefault: true
   remoteWrite:
-    - url: "http://victoria.monitoring.svc:8429/api/v1/write"
-  podMetadata:
-    labels:
-      victoria: vmagent
+    - url: "http://vmsingle-victoria.monitoring.svc:8429/api/v1/write"
   scrapeInterval: 10s
-  # scrapeTimeout: 5s
+  scrapeTimeout: 5s
   replicaCount: 3
   statefulMode: true
   statefulStorage:
@@ -29,7 +26,8 @@ spec:
       whenUnsatisfiable: DoNotSchedule
       labelSelector:
         matchLabels:
-          victoria: vmagent
+          app.kubernetes.io/name: vmagent
+          app.kubernetes.io/instance: victoria
   vmAgentExternalLabelName: prometheus
   externalLabels:
     cluster: "${CLUSTER_NAME}"

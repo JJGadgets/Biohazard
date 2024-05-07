@@ -1,0 +1,43 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmalert_v1beta1.json
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: victoria
+  namespace: monitoring
+spec:
+  replicaCount: 3
+  evaluationInterval: "10s"
+  selectAllByDefault: true
+  externalLabels:
+    cluster: "${CLUSTER_NAME}"
+  datasource: &vmsingle
+    url: http://vmsingle-victoria.monitoring.svc:8429
+  remoteWrite: *vmsingle
+  remoteRead: *vmsingle
+  notifiers:
+    - url: http://alertmanager.monitoring.svc:9093
+    - url: http://alertmanager-local-0.monitoring.svc:9093
+    - url: http://alertmanager-local-1.monitoring.svc:9093
+    - url: http://alertmanager-local-2.monitoring.svc:9093
+  # notifiers:
+  #   - selector:
+  #       namespaceSelector:
+  #         matchNames: [monitoring]
+  #       labelSelector:
+  #         matchLabels:
+  #             app.kubernetes.io/name: alertmanager
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: vmalert
+          app.kubernetes.io/instance: victoria
