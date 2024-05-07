@@ -44,6 +44,7 @@ spec:
     dedup.minScrapeInterval: 60s
     maxLabelsPerTimeseries: "40"
     search.minStalenessInterval: 5m
+    storageDataPath: &path /vmdata
   volumes:
     - name: &vol vmsingle-data
       emptyDir:
@@ -51,8 +52,7 @@ spec:
         sizeLimit: 4Gi
   volumeMounts:
     - name: *vol
-      mountPath: &path /vmsingle-data
-  storageDataPath: *path
+      mountPath: *path
   terminationGracePeriodSeconds: 60
   resources: # TODO: refine
     requests:
