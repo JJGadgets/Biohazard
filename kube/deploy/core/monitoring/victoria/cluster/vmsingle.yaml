@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmsingle_v1beta1.json
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: victoria
+  namespace: monitoring
+spec:
+  retentionPeriod: "6" # months if no unit specified
+  extraArgs:
+    dedup.minScrapeInterval: 1m
+  storage:
+    storageClassName: block
+    accessModes: [ReadWriteOnce]
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 100Gi
+    dataSourceRef:
+      apiGroup: volsync.backube
+      kind: ReplicationDestination
+      name: victoria-vmsingle-bootstrap
+  resources: # TODO: refine
+    requests:
+      cpu: 200m
+      memory: 2Gi
+    limits:
+      cpu: 1
+      memory: 4Gi

@@ -1,0 +1,42 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmagent_v1beta1.json
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: vmagent
+  namespace: monitoring
+spec:
+  selectAllByDefault: true
+  remoteWrite:
+    - url: "http://victoria.monitoring.svc:8429/api/v1/write"
+  podMetadata:
+    labels:
+      victoria: vmagent
+  scrapeInterval: 10s
+  # scrapeTimeout: 5s
+  replicaCount: 3
+  statefulMode: true
+  statefulStorage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: local
+        resources:
+          requests:
+            storage: 35Gi
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          victoria: vmagent
+  vmAgentExternalLabelName: prometheus
+  externalLabels:
+    cluster: "${CLUSTER_NAME}"
+  resources: # TODO: refine
+    requests:
+      cpu: 100m
+      memory: 2Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
