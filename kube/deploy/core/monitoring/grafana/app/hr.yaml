@@ -112,14 +112,21 @@ spec:
             editable: true
             options:
               path: /var/lib/grafana/dashboard/windows
+          - name: victoriametrics
+            orgId: 1
+            folder: VictoriaMetrics
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/VictoriaMetrics
     datasources:
       datasources.yaml:
         apiVersion: 1
         deleteDatasources:
           - { name: Prometheus, orgId: 1 }
           - { name: AlertManager, orgId: 1 }
-          - { name: VMAgent, orgId: 1 }
-          - { name: prom, orgId: 1 }
+          #- { name: prom, orgId: 1 }
         datasources:
           - name: Prometheus
             type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
@@ -131,29 +138,21 @@ spec:
             jsonData:
               prometheusType: Prometheus
           - name: AlertManager
-            type: alertmanager # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+            type: alertmanager
             uid: alertmanager
             isDefault: false
             access: proxy
             url: http://alertmanager-local.monitoring.svc.cluster.local:9093
             jsonData:
               implementation: prometheus
-          - name: VMAgent
-            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
-            uid: vmagent
-            isDefault: false
-            access: proxy
-            url: http://vmagent-victoria.monitoring.svc.cluster.local:8429
-            jsonData:
-              prometheusType: Prometheus
-          - name: prom
-            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
-            uid: prom
-            isDefault: false
-            access: proxy
-            url: http://kps-prometheus.monitoring.svc.cluster.local:9090
-            jsonData:
-              prometheusType: Prometheus
+          #- name: prom
+          #  type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+          #  uid: prom
+          #  isDefault: false
+          #  access: proxy
+          #  url: http://kps-prometheus.monitoring.svc.cluster.local:9090
+          #  jsonData:
+          #    prometheusType: Prometheus
     dashboards:
       default:
         cloudflared:
@@ -247,6 +246,23 @@ spec:
         windows-node-jakub-pinkas:
           gnetId:
           revision: 3
+          datasource: Prometheus
+      victoriametrics:
+        vmsingle:
+          gnetId: 10229
+          revision: 35
+          datasource: Prometheus
+        vmagent:
+          gnetId: 12683
+          revision: 17
+          datasource: Prometheus
+        vmalert:
+          gnetId: 14950
+          revision: 10
+          datasource: Prometheus
+        operator:
+          gnetId: 17869
+          revision: 2
           datasource: Prometheus
     sidecar:
       dashboards:
