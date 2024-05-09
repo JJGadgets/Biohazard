@@ -247,7 +247,7 @@ spec:
                     cleanupOnFail: true
                     remediation:
                       retries: 5
-                      strategy: uninstall
+                      strategy: rollback
                   rollback:
                     recreate: true
                     cleanupOnFail: true
