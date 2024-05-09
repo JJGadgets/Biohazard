@@ -91,7 +91,9 @@ spec:
             db.home.arpa/pg: pg-home
         containers:
           main:
-            image: *img
+            image:
+              repository: ghcr.io/immich-app/immich-server
+              tag: v1.103.1@sha256:708ff677ab952dda9d7cb9343a6d650a6ac02a4e6c7447015f9df95c780cfc42
             env: *env
             securityContext: *sc
             resources:
@@ -177,7 +179,7 @@ spec:
         defaultMode: 0400
         globalMounts:
           - subPath: ca.crt
-            path: /secrets/pg
+            path: /secrets/pg/ca.crt
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
