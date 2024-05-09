@@ -1,0 +1,68 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: immich-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "immich"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/immich/app
+  targetNamespace: "immich"
+  dependsOn:
+    - name: immich-db
+    - name: immich-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: immich-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "immich"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "immich"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "immich-data"
+      SIZE: "100Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_IMMICH}
+      RGID: !!str |
+        ${APP_UID_IMMICH}
+      RFSG: !!str |
+        ${APP_UID_IMMICH}
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: immich-db
+  namespace: flux-system
+  labels: &l
+    prune.flux.home.arpa/enabled: "true"
+    db.home.arpa/pg: "pg-home"
+    app.kubernetes.io/name: "immich"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/db/pg/clusters/template/pguser
+  targetNamespace: "pg"
+  dependsOn:
+    - name: 1-core-db-pg-clusters-home
+    - name: 1-core-secrets-es-k8s
+  postBuild:
+    substitute:
+      PG_NAME: "home"
+      PG_DB_USER: &app "immich"
+      PG_APP_NS: *app
