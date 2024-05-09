@@ -87,7 +87,7 @@ spec:
     template:
       type: "Opaque"
       data:
-        pgbouncer-uri-sslmode: "{{ .pgbouncer-uri }}?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"
+        pgbouncer-uri-sslmode: "{{ .uri }}?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"
   data:
     - secretKey: "uri"
       remoteRef:
