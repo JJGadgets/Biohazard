@@ -23,8 +23,8 @@ spec:
       valuesKey: prom.yaml
     - <<: *vf
       valuesKey: kube-state-metrics.yaml
-    - <<: *vf
-      valuesKey: alertmanager.yaml
+    #- <<: *vf
+    #  valuesKey: alertmanager.yaml
     # - <<: *vf
     #   valuesKey: node-exporter.yaml
   values:
