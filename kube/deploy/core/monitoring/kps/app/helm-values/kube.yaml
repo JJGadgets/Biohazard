@@ -5,21 +5,25 @@ kubeApiServer:
   serviceMonitor:
     metricRelabelings:
       # Drop high cardinality labels
-      - action: drop
+      - &dropDuration
+        action: drop
         sourceLabels: ["__name__"]
         regex: (apiserver|etcd|rest_client)_request(|_sli|_slo)_duration_seconds_bucket
       - action: drop
         sourceLabels: ["__name__"]
-        regex: (apiserver_response_sizes_bucket|apiserver_watch_events_sizes_bucket)
+        regex: (apiserver_response_sizes_bucket|apiserver_watch_events_sizes_bucket|apiserver_request_body_size_bytes_bucket)
 kubeScheduler:
-  enabled: false
-  # endpoints: *cp
+  enabled: true
+  endpoints: *cp
 kubeControllerManager:
-  enabled: false
-  # endpoints: *cp
+  enabled: true
+  endpoints: *cp
 kubeEtcd:
   enabled: true
   endpoints: *cp
+  serviceMonitor:
+    metricRelabelings:
+      - *dropDuration
   # service: # TODO: did I add this in by accident?
   #   enabled: true
   #   port: 2381
@@ -44,5 +48,6 @@ kubelet:
       - action: drop
         sourceLabels: ["__name__"]
         regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count|apiserver_request_body_size_bytes_bucket)
+      - *dropDuration
 kubeProxy:
   enabled: false # Disabled due to eBPF
