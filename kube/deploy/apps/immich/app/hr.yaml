@@ -171,6 +171,13 @@ spec:
             path: /usr/src/app/node_modules/local-reverse-geocoder/geonames_dump
           - subPath: transformers
             path: /usr/src/app/.transformers_cache
+      pg-ca:
+        type: secret
+        name: pg-home-ca
+        defaultMode: 0400
+        globalMounts:
+          - subPath: ca.crt
+            path: /secrets/pg
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
