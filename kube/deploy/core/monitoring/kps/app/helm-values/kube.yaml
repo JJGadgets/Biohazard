@@ -43,6 +43,6 @@ kubelet:
         regex: (id|name)
       - action: drop
         sourceLabels: ["__name__"]
-        regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
+        regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count|apiserver_request_body_size_bytes_bucket)
 kubeProxy:
   enabled: false # Disabled due to eBPF
