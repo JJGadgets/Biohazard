@@ -23,6 +23,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-home
+            authentik.home.arpa/https: allow
         containers:
           main:
             image: &img
@@ -60,7 +61,7 @@ spec:
                 memory: "128Mi"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "2Gi"
       microservices:
         type: deployment
         replicas: 1
@@ -77,11 +78,11 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
+                memory: "300Mi"
                 gpu.intel.com/i915: "1"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "2Gi"
                 gpu.intel.com/i915: "1"
       ml:
         type: deployment
@@ -183,6 +184,9 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_IMMICH}
