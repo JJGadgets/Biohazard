@@ -13,9 +13,9 @@ spec:
     - url: "http://vmsingle-alerts.monitoring.svc:8429/api/v1/write"
   scrapeInterval: 60s
   vmAgentExternalLabelName: ""
-  inlineRelabelConfig:
-    - action: labeldrop
-      source_labels: [prometheus, service, endpoint]
+  #inlineRelabelConfig:
+  #  - action: labeldrop
+  #    source_labels: [prometheus, service, endpoint]
   # pod config
   replicaCount: 3
   statefulMode: true
