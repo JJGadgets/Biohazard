@@ -14,7 +14,7 @@ prometheus:
     # TODO: set default intervals to debug memory spikes
     scrapeInterval: "30s"
     scrapeTimeout: "15s"
-    replicas: 0
+    replicas: 0 # 3
     retention: 14d
     retentionSize: 30GB
     walCompression: true
