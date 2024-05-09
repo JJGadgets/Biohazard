@@ -12,7 +12,9 @@ spec:
     - url: "http://vmsingle-victoria.monitoring.svc:8429/api/v1/write"
     - url: "http://vmsingle-alerts.monitoring.svc:8429/api/v1/write"
   scrapeInterval: 60s
-  vmAgentExternalLabelName: ""
+  vmAgentExternalLabelName: prometheus
+  externalLabels:
+    cluster: "${CLUSTER_NAME}"
   #inlineRelabelConfig:
   #  - action: labeldrop
   #    source_labels: [prometheus, service, endpoint]
