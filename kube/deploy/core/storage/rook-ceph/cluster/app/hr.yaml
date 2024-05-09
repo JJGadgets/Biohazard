@@ -5,9 +5,28 @@ metadata:
   #name: "rook-ceph-cluster-${CLUSTER_NAME:=biohazard}"
   name: "rook-ceph-cluster-biohazard" # TODO: envsubst in HR currently breaks flux-local, hardcode cluster name for now since not using Ceph in multi k8s clusters as of this commit
   namespace: rook-ceph
+  labels:
+    helm.flux.home.arpa/default: "false"
 spec:
   interval: 5m
   timeout: 1h
+  maxHistory: 10
+  install:
+    crds: CreateReplace
+    createNamespace: true
+    remediation:
+      retries: 5
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      retries: 5
+      strategy: rollback
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  uninstall:
+    keepHistory: false
   chart:
     spec:
       chart: rook-ceph-cluster
@@ -46,6 +65,7 @@ spec:
         enabled: true
         urlPrefix: "/"
         ssl: false
+        prometheusEndpoint: "http://vmsingle-victoria.monitoring.svc.cluster.local:8429"
       labels:
         mgr:
           ingress.home.arpa/nginx-internal: "allow"
@@ -59,6 +79,8 @@ spec:
         allowMultiplePerNode: false
         modules:
           - name: "pg_autoscaler"
+            enabled: true
+          - name: "diskprediction_local"
             enabled: true
       removeOSDsIfOutAndSafeToRemove: false
       storage:
