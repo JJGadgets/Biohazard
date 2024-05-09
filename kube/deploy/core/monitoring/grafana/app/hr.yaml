@@ -68,58 +68,6 @@ spec:
         enabled: false
       grafana_net:
         url: "https://grafana.net"
-    dashboardProviders:
-      dashboardproviders.yaml:
-        apiVersion: 1
-        providers:
-          - name: default
-            orgId: 1
-            folder: ""
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/default
-          - name: flux
-            orgId: 1
-            folder: Flux
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/flux
-          - name: kubernetes
-            orgId: 1
-            folder: Kubernetes
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/kubernetes
-          - name: nginx
-            orgId: 1
-            folder: Ingress-NGINX
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/nginx
-          - name: windows
-            orgId: 1
-            folder: Windows
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboard/windows
-          - name: victoriametrics
-            orgId: 1
-            folder: VictoriaMetrics
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboard/VictoriaMetrics
     datasources:
       datasources.yaml:
         apiVersion: 1
@@ -153,6 +101,74 @@ spec:
           #  url: http://kps-prometheus.monitoring.svc.cluster.local:9090
           #  jsonData:
           #    prometheusType: Prometheus
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: default
+            orgId: 1
+            folder: ""
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/default
+          - name: ceph
+            orgId: 1
+            folder: Ceph
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/ceph
+          - name: flux
+            orgId: 1
+            folder: Flux
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/flux
+          - name: kubernetes
+            orgId: 1
+            folder: Kubernetes
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/kubernetes
+          - name: nginx
+            orgId: 1
+            folder: Ingress-NGINX
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/nginx
+          - name: postgres
+            orgId: 1
+            folder: Postgres
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/postgres
+          - name: victoriametrics
+            orgId: 1
+            folder: VictoriaMetrics
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/VictoriaMetrics
+          - name: windows
+            orgId: 1
+            folder: Windows
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/windows
     dashboards:
       default:
         cloudflared:
@@ -188,6 +204,19 @@ spec:
           datasource:
             - name: DS_PROMETHEUS
               value: Prometheus
+      ceph:
+        ceph-cluster-galexrt:
+          gnetId: 2842
+          revision: 17
+          datasource: Prometheus
+        ceph-pools-galexrt:
+          gnetId: 5342
+          revision: 9
+          datasource: Prometheus
+        ceph-osd-galexrt:
+          gnetId: 5336
+          revision: 9
+          datasource: Prometheus
       flux:
         flux-cluster:
           url: https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/monitoring/monitoring-config/dashboards/cluster.json
@@ -221,6 +250,59 @@ spec:
         nginx-request-handling-performance:
           url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/request-handling-performance.json
           datasource: Prometheus
+      postgres:
+        crunchy-pgbackrest:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/pgbackrest.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-pod-details:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/pod_details.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-postgresql-details:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_details.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-postgresql-overview:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_overview.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-postgresql-service_health:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_service_health.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-prometheus-alerts:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/prometheus_alerts.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crunchy-query-statistics:
+          url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/query_statistics.json
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+      victoriametrics:
+        vmsingle:
+          gnetId: 10229
+          revision: 35
+          datasource: Prometheus
+        vmagent:
+          gnetId: 12683
+          revision: 17
+          datasource: Prometheus
+        vmalert:
+          gnetId: 14950
+          revision: 10
+          datasource: Prometheus
+        operator:
+          gnetId: 17869
+          revision: 2
+          datasource: Prometheus
       windows:
         nvidia-gpu:
           gnetId: 14574
@@ -246,23 +328,6 @@ spec:
         windows-node-jakub-pinkas:
           gnetId:
           revision: 3
-          datasource: Prometheus
-      victoriametrics:
-        vmsingle:
-          gnetId: 10229
-          revision: 35
-          datasource: Prometheus
-        vmagent:
-          gnetId: 12683
-          revision: 17
-          datasource: Prometheus
-        vmalert:
-          gnetId: 14950
-          revision: 10
-          datasource: Prometheus
-        operator:
-          gnetId: 17869
-          revision: 2
           datasource: Prometheus
     sidecar:
       dashboards:
