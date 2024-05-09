@@ -44,8 +44,8 @@ spec:
               DB_URL:
                 valueFrom:
                   secretKeyRef:
-                    name: pg-home-pguser-immich
-                    key: pgbouncer-uri
+                    name: pg-home-pguser-immich-fixed
+                    key: pgbouncer-uri-sslmode
             envFrom: &ef
               - secretRef:
                   name: immich-secrets
