@@ -66,14 +66,14 @@ operator:
 ## NOTE: Cilium L2 LoadBalancer service IP announcements
 externalIPs:
   enabled: true
-l2announcements:
-  enabled: false
-  leaseDuration: "120s"
-  leaseRenewDeadline: "60s"
-  leaseRetryPeriod: "1s"
-k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
-  qps: 50
-  burst: 100
+#l2announcements:
+#  enabled: false
+#  leaseDuration: "120s"
+#  leaseRenewDeadline: "60s"
+#  leaseRetryPeriod: "1s"
+#k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
+#  qps: 50
+#  burst: 100
 
 ## NOTE: Cilium additional features and/or CRDs
 bpf:
@@ -92,11 +92,11 @@ bandwidthManager:
   enabled: true
   bbr: false # enable after Talos kernel updated to >= 5.18
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
-### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy & CiliumEndpoints status (policy enforcement etc) with the below enabled
+### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled
+### endpointStatus no longer enabled since it can cause large apiserver resource usage and latency spikes, check Cilium docs on alternative
 enableCnpStatusUpdates: true
 endpointStatus:
-  enabled: true
-  status: "policy"
+  enabled: false
 # wellKnownIdentities: # for use in netpols, by having well-known endpoint labels # TODO: broken on 1.14?
 #   enabled: true
 
