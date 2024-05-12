@@ -6,6 +6,7 @@ metadata:
   name: victoria
   namespace: monitoring
 spec:
+  useStrictSecurity: true
   replicaCount: 3
   evaluationInterval: 1m
   selectAllByDefault: true
@@ -13,7 +14,8 @@ spec:
     cluster: "${CLUSTER_NAME}"
   datasource: &vm
     url: http://vmsingle-alerts.monitoring.svc:8429
-  remoteRead: *vm
+  remoteRead:
+    url: http://vmsingle-victoria.monitoring.svc:8429
   remoteWrite:
     url: http://vmagent-victoria.monitoring.svc:8429
   notifiers:

@@ -9,8 +9,8 @@ kube-state-metrics:
   prometheus:
     monitor:
       enabled: true
-      interval: "10s"
-      scrapeTimeout: "5s"
+      #interval: "10s"
+      #scrapeTimeout: "5s"
       relabelings:
         # replaces other node identifiers with hostname
         - action: replace

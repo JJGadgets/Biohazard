@@ -31,8 +31,8 @@ kubeEtcd:
 kubelet:
   enabled: true
   serviceMonitor:
-    interval: "10s"
-    scrapeTimeout: "5s"
+    #interval: "10s"
+    #scrapeTimeout: "5s"
     attachMetadata:
       node: true
     metricRelabelings:
