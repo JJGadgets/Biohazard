@@ -80,6 +80,9 @@ bpf:
   masquerade: false # not beneficial for homelab, and tends to conflict with other networking stuff
   tproxy: true # L7 netpols stuff
 l7Proxy: true # enables L7 netpols
+dnsProxy:
+  enableTransparentMode: false # TODO: verify if this reduces Cilium resource usage
+
 bgpControlPlane:
   enabled: true
   ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
