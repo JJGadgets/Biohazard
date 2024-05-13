@@ -74,6 +74,14 @@ spec:
           labels:
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: &uid ${APP_UID_IMMICH}
+            runAsGroup: *uid
+            fsGroup: *uid
+            fsGroupChangePolicy: Always
+            supplementalGroups: [226, 128] # GPU
+            seccompProfile: { type: "RuntimeDefault" }
           topologySpreadConstraints:
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
@@ -89,9 +97,7 @@ spec:
             command: *cmd
             args: ["microservices"]
             env: *env
-            securityContext:
-              <<: *sc
-              supplementalGroups: [226, 128] # GPU
+            securityContext: *sc
             resources:
               requests:
                 cpu: "100m"
