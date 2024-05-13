@@ -43,6 +43,16 @@ spec:
         ${APP_UID_IMMICH}
       RFSG: !!str |
         ${APP_UID_IMMICH}
+  patches:
+    - patch: | # too big for this luxury
+        $patch: delete
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationSource
+        metadata:
+          name: immich-data-rgw-restic
+      target:
+        kind: ReplicationSource
+        name: immich-data-rgw-restic
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

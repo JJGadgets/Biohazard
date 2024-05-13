@@ -13,6 +13,7 @@ spec:
     repository: "${PVC}-r2-restic"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
+    accessModes: ["${SNAP_ACCESSMODE:=ReadOnlyMany}"] # CephFS shallow snapshot, and allow rsrc pod to schedule anywhere
     cacheStorageClassName: "${CACHE:=block}"
     cacheAccessModes: ["ReadWriteOnce"]
     cacheCapacity: "${CACHESIZE:=2Gi}"

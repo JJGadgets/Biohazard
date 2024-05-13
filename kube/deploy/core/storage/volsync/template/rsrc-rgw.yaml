@@ -13,6 +13,7 @@ spec:
     repository: "vs-${PVC}-rgw-restic"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
+    accessModes: ["${SNAP_ACCESSMODE:=ReadOnlyMany}"] # CephFS shallow snapshot, and allow rsrc pod to schedule anywhere
     cacheStorageClassName: "${CACHE:=block}"
     cacheAccessModes: ["ReadWriteOnce"]
     cacheCapacity: "${CACHESIZE:=2Gi}"
@@ -30,8 +31,7 @@ spec:
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     moverResources:
       requests:
-        cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 200m
+        cpu: 150m
         memory: 6Gi
