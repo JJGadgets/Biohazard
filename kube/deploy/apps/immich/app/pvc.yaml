@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "immich-misc"
+  namespace: &app "immich"
+  annotations:
+    description: "PVC for misc files that don't need to be backed up, like thumbnails and encoded videos."
+  labels:
+    app.kubernetes.io/name: *app
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
+spec:
+  storageClassName: "file"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "100Gi"

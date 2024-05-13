@@ -192,6 +192,16 @@ spec:
             main:
               - subPath: redis
                 path: /data
+      misc:
+        existingClaim: immich-misc
+        advancedMounts:
+          immich: &misc
+            main:
+              - subPath: encodedvideo
+                path: /data/encoded-video
+              - subPath: thumbs
+                path: /data/thumbs
+          microservices: *misc
       tmp:
         type: emptyDir
         medium: Memory
