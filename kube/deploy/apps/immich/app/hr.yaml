@@ -81,7 +81,7 @@ spec:
                 memory: "300Mi"
                 gpu.intel.com/i915: "1"
               limits:
-                cpu: "3000m"
+                cpu: "1000m" # my machine will actually die
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
       ml:
@@ -100,7 +100,7 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
+                memory: "1Gi"
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
@@ -111,8 +111,8 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.2.4-bookworm@sha256:f14f42fc7e824b93c0e2fe3cdf42f68197ee0311c3d2e0235be37480b2e208e6"
-            command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+              tag: "7.2.4@sha256:f14f42fc7e824b93c0e2fe3cdf42f68197ee0311c3d2e0235be37480b2e208e6"
+            command: ["redis-server", "--save", "300 1", "--appendonly", "yes"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
@@ -161,8 +161,12 @@ spec:
           microservices: *mount
           ml:
             main:
-              - subPath: ml
+              - subPath: ml-cache
                 path: /cache
+          redis:
+            main:
+              - subPath: redis
+                path: /data
       tmp:
         type: emptyDir
         medium: Memory
@@ -195,13 +199,13 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
+      #topologySpreadConstraints:
+      #  - &tsc maxSkew: 1
+      #    topologyKey: kubernetes.io/hostname
+      #    whenUnsatisfiable: DoNotSchedule
+      #    labelSelector:
+      #      matchLabels:
+      #        app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
