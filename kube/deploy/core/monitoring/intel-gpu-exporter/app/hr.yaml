@@ -3,7 +3,6 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app intel-gpu-exporter
-  namespace: monitoring
 spec:
   interval: 5m
   chart:
