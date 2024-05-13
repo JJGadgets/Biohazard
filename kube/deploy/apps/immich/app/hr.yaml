@@ -89,7 +89,9 @@ spec:
             command: *cmd
             args: ["microservices"]
             env: *env
-            securityContext: *sc
+            securityContext:
+              <<: *sc
+              supplementalGroups: [226, 128] # GPU
             resources:
               requests:
                 cpu: "100m"

@@ -113,7 +113,7 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
         supplementalGroups: [
-          44, 104, 109, # GPU
+          44, 104, 109, 128, 226 # GPU
           6969 # NAS
         ]
         seccompProfile: { type: "RuntimeDefault" }
