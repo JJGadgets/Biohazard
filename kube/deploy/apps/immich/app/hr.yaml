@@ -97,11 +97,8 @@ spec:
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
       ml:
-        type: deployment
+        type: statefulset
         replicas: 3
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "90%"
         pod:
           labels:
             db.home.arpa/pg: pg-home
@@ -128,6 +125,14 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "6Gi"
+        statefulset:
+          volumeClaimTemplates:
+            - name: data
+              size: 10Gi
+              storageClass: local
+              accessMode: ReadWriteOnce
+              globalMounts:
+                - path: /cache
       redis:
         type: deployment
         replicas: 1
@@ -183,10 +188,6 @@ spec:
               - subPath: data
                 path: *pvc
           microservices: *mount
-          ml:
-            main:
-              - subPath: ml-cache
-                path: /cache
           redis:
             main:
               - subPath: redis
