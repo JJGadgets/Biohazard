@@ -64,10 +64,22 @@ spec:
                 memory: "2Gi"
       microservices:
         type: deployment
-        replicas: 1
+        replicas: 3
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             db.home.arpa/pg: pg-home
+          topologySpreadConstraints:
+            - &tsc maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/component: microservices
         containers:
           main:
             image: *img
@@ -199,13 +211,6 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      #topologySpreadConstraints:
-      #  - &tsc maxSkew: 1
-      #    topologyKey: kubernetes.io/hostname
-      #    whenUnsatisfiable: DoNotSchedule
-      #    labelSelector:
-      #      matchLabels:
-      #        app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
