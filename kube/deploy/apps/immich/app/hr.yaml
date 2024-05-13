@@ -37,6 +37,7 @@ spec:
               NODE_ENV: production
               LOG_LEVEL: verbose
               IMMICH_MEDIA_LOCATION: &pvc /data
+              IMMICH_METRICS: "true"
               IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local:3001
               IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local:3003
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
@@ -156,6 +157,13 @@ spec:
         ports:
           http:
             port: 3001
+          metrics:
+            port: 8081
+      microservices:
+        controller: microservices
+        ports:
+          metrics:
+            port: 8081
       ml:
         controller: ml
         ports:
@@ -252,3 +260,20 @@ spec:
             - from: [{podSelector: *sel}]
           egress:
             - to: [{podSelector: *sel}]
+    serviceMonitor:
+      immich:
+        serviceName: immich
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
+      microservices:
+        serviceName: microservices
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s

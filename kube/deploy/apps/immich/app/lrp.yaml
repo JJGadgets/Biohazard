@@ -15,4 +15,9 @@ spec:
         app.kubernetes.io/name: immich
         app.kubernetes.io/instance: immich
         app.kubernetes.io/component: ml
+    toPorts:
+      - port: "3003"
+        protocol: TCP
+      - port: "3003"
+        protocol: UDP
 
