@@ -8,21 +8,21 @@ spec:
   chart:
     spec:
       chart: victoria-metrics-operator
-      version: 0.30.3
+      version: 0.31.1
       sourceRef:
         kind: HelmRepository
         name: victoria
         namespace: flux-system
   values:
-    # temp fix https://github.com/VictoriaMetrics/operator/issues/942 https://github.com/VictoriaMetrics/operator/commit/8f025b3b4fce6e3472cabaa49b07c748aa6e3ffa
-    image:
-      tag: 8f025b3@sha256:eab585319200f9b6f2e45cc870c51ce626801b5f3858209f8356b3706501d5b0
     # -- use crd dir
     createCRD: true
     operator:
       useCustomConfigReloader: true
       # say NO to PSPs kids!
       psp_auto_creation_enabled: false
+    env:
+      - name: VM_VMALERTDEFAULT_CONFIGRELOADERCPU
+        value: 10m
     rbac:
       pspEnabled: false
     resources:
