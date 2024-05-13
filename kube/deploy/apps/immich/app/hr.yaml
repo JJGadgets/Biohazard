@@ -23,6 +23,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-home
+            prom.home.arpa/kps: allow
             authentik.home.arpa/https: allow
         containers:
           main:
@@ -72,6 +73,7 @@ spec:
         pod:
           labels:
             db.home.arpa/pg: pg-home
+            prom.home.arpa/kps: allow
           topologySpreadConstraints:
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
