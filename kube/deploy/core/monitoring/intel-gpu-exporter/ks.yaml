@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-intel-gpu-exporter-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "intel-gpu-exporter"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/intel-gpu-exporter/app
+  targetNamespace: "monitoring"
+  dependsOn: []

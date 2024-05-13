@@ -1,0 +1,68 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app intel-gpu-exporter
+  namespace: monitoring
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: "2.6.0"
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      main:
+        type: daemonset
+        pod:
+          labels:
+            prom.home.arpa/kps: allow
+          nodeSelector:
+            intel.feature.node.kubernetes.io/gpu: "true"
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/onedr0p/intel-gpu-exporter
+              tag: rolling@sha256:db18b372824a3940b7733d11286070439d47eb22bc4bc1471a4c754ba977f665
+            env:
+              TZ: "${CONFIG_TZ}"
+            securityContext:
+              privileged: true
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+                gpu.intel.com/i915_monitoring: 1
+              limits:
+                cpu: "1000m"
+                memory: "1Gi"
+                gpu.intel.com/i915_monitoring: 1
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    defaultPodOptions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/intel-gpu-exporter
+                    operator: DoesNotExist
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
+            relabelings:
+              - sourceLabels: [__meta_kubernetes_pod_node_name]
+                targetLabel: node
