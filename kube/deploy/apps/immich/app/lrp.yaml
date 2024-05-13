@@ -1,0 +1,18 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumLocalRedirectPolicy
+metadata:
+  name: &app immich-ml
+  namespace: &ns immich
+spec:
+  redirectFrontend:
+    serviceMatcher:
+      serviceName: *app
+      namespace: *ns
+  redirectBackend:
+    localEndpointSelector:
+      matchLabels:
+        app.kubernetes.io/name: immich
+        app.kubernetes.io/instance: immich
+        app.kubernetes.io/component: ml
+
