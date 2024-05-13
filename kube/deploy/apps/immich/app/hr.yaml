@@ -154,10 +154,11 @@ spec:
       data:
         existingClaim: immich-data
         advancedMounts:
-          immich:
+          immich: &mount
             main:
               - subPath: data
                 path: *pvc
+          microservices: *mount
           ml:
             main:
               - subPath: ml

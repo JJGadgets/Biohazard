@@ -33,7 +33,7 @@ spec:
   postBuild:
     substitute:
       PVC: "immich-data"
-      SIZE: "100Gi"
+      SIZE: "200Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
