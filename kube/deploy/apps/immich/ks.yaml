@@ -50,7 +50,9 @@ spec:
         kind: ReplicationSource
         metadata:
           name: immich-data-rgw-restic
+          namespace: immich
       target:
+        apiVersion: volsync.backube/v1alpha1
         kind: ReplicationSource
         name: immich-data-rgw-restic
 ---
