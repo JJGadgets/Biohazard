@@ -80,7 +80,7 @@ spec:
             runAsGroup: *uid
             fsGroup: *uid
             fsGroupChangePolicy: Always
-            supplementalGroups: [226, 128] # GPU
+            supplementalGroups: [44, 104, 109, 128, 226] # GPU
             seccompProfile: { type: "RuntimeDefault" }
           topologySpreadConstraints:
             - maxSkew: 1
