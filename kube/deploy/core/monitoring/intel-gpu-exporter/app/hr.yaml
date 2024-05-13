@@ -20,6 +20,7 @@ spec:
         pod:
           labels:
             prom.home.arpa/kps: allow
+          hostIPC: true # to view processes
           nodeSelector:
             intel.feature.node.kubernetes.io/gpu: "true"
         containers:
