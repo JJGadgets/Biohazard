@@ -106,6 +106,7 @@ spec:
         acl immich-share-ref req.hdr(Referer) -m beg https://${APP_DNS_IMMICH}/share/ # weak but better than nothing
         acl immich-api-asset path_beg /api/asset/
         acl immich-api-asset path_beg /api/download/asset/
+        acl immich-api-asset path_beg /api/timeline/buckets/
         acl immich-share-cookie req.cook(immich_shared_link_token) -m found
         use_backend immich if immich-fqdn immich-path
         use_backend immich if immich-fqdn immich-api-share immich-key immich-share-ref
