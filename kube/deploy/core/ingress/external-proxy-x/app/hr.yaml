@@ -98,7 +98,15 @@ spec:
         bind :80 accept-proxy
         redirect scheme https code 301 if !{ ssl_fc } # HTTP to HTTPS redirect
         option forwardfor
-        use_backend immich if { req.hdr(host) -m str ${APP_DNS_IMMICH} } { path_beg /share/ }
+        acl immich-fqdn req.hdr(host) -m str ${APP_DNS_IMMICH}
+        acl immich-path path_beg /share/
+        acl immich-path path_beg /_app/immutable/
+        acl immich-api path /api/shared-link/me
+        acl immich-api path_beg /api/asset/thumbnail/
+        acl immich-key url_param(key) -m found
+        acl immich-share-ref req.hdr(Referer) -m beg https://${APP_DNS_IMMICH}/share/ # weak but better than nothing
+        use_backend immich if immich-fqdn immich-path
+        use_backend immich if immich-fqdn immich-api immich-key immich-share-ref
         use_backend nginx-public if { req.hdr(host) -m end ${DNS_LONG} }
         use_backend nginx-external if { req.hdr(host) -m end ${DNS_SHORT} }
 
