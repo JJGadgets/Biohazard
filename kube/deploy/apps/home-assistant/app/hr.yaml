@@ -70,7 +70,9 @@ spec:
               - "/home/coder"
             env:
               TZ: "${CONFIG_TZ}"
-            securityContext: *sc
+            securityContext:
+              <<: *sc
+              runAsUser: 1000 # coder
             resources:
               requests:
                 cpu: "10m"
@@ -144,7 +146,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000 # code-server coder user
+        runAsUser: &uid ${APP_UID_HOME_ASSISTANT}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
