@@ -104,9 +104,10 @@ spec:
                 - kubernetes_node
               targetLabel: instance
         dashboards:
-          enabled: true
-          annotations:
-            grafana_folder: "Cilium"
+          enabled: false # managed in Grafana HR to upgrade queries
+          #enabled: true
+          #annotations:
+          #  grafana_folder: "Cilium"
     operator:
       prometheus:
         enabled: true
