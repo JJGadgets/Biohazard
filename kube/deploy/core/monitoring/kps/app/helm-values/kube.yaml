@@ -13,21 +13,17 @@ kubeApiServer:
         sourceLabels: ["__name__"]
         regex: (apiserver_response_sizes_bucket|apiserver_watch_events_sizes_bucket|apiserver_request_body_size_bytes_bucket)
 kubeScheduler:
-  enabled: true
-  endpoints: *cp
+  enabled: false
+  #endpoints: *cp
 kubeControllerManager:
-  enabled: true
-  endpoints: *cp
+  enabled: false
+  #endpoints: *cp
 kubeEtcd:
   enabled: true
   endpoints: *cp
   serviceMonitor:
     metricRelabelings:
       - *dropDuration
-  # service: # TODO: did I add this in by accident?
-  #   enabled: true
-  #   port: 2381
-  #   targetPort: 2381
 kubelet:
   enabled: true
   serviceMonitor:
