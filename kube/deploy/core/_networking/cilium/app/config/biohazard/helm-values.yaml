@@ -81,7 +81,10 @@ bpf:
   tproxy: true # L7 netpols stuff
 l7Proxy: true # enables L7 netpols
 dnsProxy:
-  enableTransparentMode: false # TODO: verify if this reduces Cilium resource usage
+  #enableTransparentMode: false # TODO: verify if this reduces Cilium resource usage
+  enableTransparentMode: true
+socketLB:
+  hostNamespaceOnly: true # KubeVirt
 
 bgpControlPlane:
   enabled: true
