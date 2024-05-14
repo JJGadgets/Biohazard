@@ -95,8 +95,13 @@ spec:
         bind :80 accept-proxy
         redirect scheme https code 301 if !{ ssl_fc } # HTTP to HTTPS redirect
         option forwardfor
+        use_backend immich if { req.hdr(host) -m str ${APP_DNS_IMMICH} } { path_beg /share/ }
         use_backend nginx-public if { req.hdr(host) -m end ${DNS_LONG} }
         use_backend nginx-external if { req.hdr(host) -m end ${DNS_SHORT} }
+
+      backend immich
+        mode http
+        server immich immich.immich.svc.cluster.local:3001 check
 
       backend nginx-public
         mode http
@@ -109,7 +114,7 @@ spec:
 # server internalnginx ingress-nginx-controller.ingress.svc.cluster.local:443 ssl verify required ca-file /tls/ca.pem
     resources:
       requests:
-        cpu: 50m
+        cpu: 10m
         memory: 128Mi
       limits:
         cpu: 500m
