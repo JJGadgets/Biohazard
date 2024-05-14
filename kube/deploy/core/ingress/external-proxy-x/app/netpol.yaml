@@ -12,7 +12,8 @@ spec:
       app.kubernetes.io/instance: *app
   ingress:
     - fromCIDRSet:
-        - cidr: "${IP_EC2_NON_K8S}/32"
+        #- cidr: "${IP_EC2_NON_K8S}/32"
+        - cidr: "10.52.225.3/32"
       toPorts:
         - ports:
             - port: "80"
@@ -23,3 +24,13 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: UDP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: immich
+            app.kubernetes.io/name: immich
+            app.kubernetes.io/component: immich
+      toPorts:
+        - ports:
+            - port: "3001"
+              protocol: TCP

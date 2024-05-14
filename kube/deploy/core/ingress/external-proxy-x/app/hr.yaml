@@ -19,6 +19,9 @@ spec:
       tag: "2.9.6@sha256:84eacbc84c38558fb550394499ac08bd0c3df923e7e95326f5c95f807f10c088"
       pullPolicy: IfNotPresent
     kind: DaemonSet
+    podLabels:
+      egress.home.arpa/nginx-external: allow
+      egress.home.arpa/nginx-public: allow
     service:
       type: LoadBalancer
       annotations:
