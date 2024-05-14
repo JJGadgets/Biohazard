@@ -7,6 +7,56 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - "${IP_ROUTER_VLAN_K8S}:9100"
-        - "${IP_BLACKHAWK}:9100" # My laptop
+        - &router "${IP_ROUTER_VLAN_K8S}:9100"
+        - &blackhawk "${IP_BLACKHAWK}:9100" # My laptop
   metricsPath: "/metrics"
+  relabelings:
+    - sourceLabels: ["__address__"]
+      targetLabel: "instance"
+      regex: *router
+      replacement: "opnsense:9100"
+    - sourceLabels: ["__address__"]
+      targetLabel: "instance"
+      regex: *blackhawk
+      replacement: "blackhawk:9100"
+---
+# yaml-language-server: $schema=https://crds.jank.ing/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: low-battery
+  namespace: monitoring
+spec:
+  groups:
+    - name: low-battery.rules
+      rules:
+        - alert: BatteryLow15To20
+          annotations:
+            summary: >-
+              {{ $labels.instance }} battery
+              is low, between 15% to 20%.
+          expr: |
+            node_power_supply_capacity >= 15 <= 20
+          for: 2m
+          labels:
+            severity: critical
+        - alert: BatteryLow10To15
+          annotations:
+            summary: >-
+              {{ $labels.instance }} battery
+              is low, between 10% to 15%.
+          expr: |
+            node_power_supply_capacity >= 10 <= 15
+          for: 2m
+          labels:
+            severity: critical
+        - alert: BatteryLow5To10
+          annotations:
+            summary: >-
+              {{ $labels.instance }} battery
+              is low, between 5% to 10%.
+          expr: |
+            node_power_supply_capacity >= 5 <= 10
+          for: 2m
+          labels:
+            severity: critical
