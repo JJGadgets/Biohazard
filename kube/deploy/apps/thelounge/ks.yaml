@@ -24,7 +24,10 @@ spec:
     substitute:
       PVC: "thelounge-data"
       SIZE: "10Gi"
-      SC: "block"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid !!str |
         ${APP_UID_THELOUNGE}
       RGID: !!str |

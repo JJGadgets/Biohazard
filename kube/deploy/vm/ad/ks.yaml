@@ -26,6 +26,10 @@ spec:
       PVC: "vm-ad-dc1-c-drive"
       SIZE: "105Gi"
       VOLUMEMODE: "Filesystem"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
@@ -76,6 +80,10 @@ spec:
       PVC: "vm-ad-dc2-c-drive"
       SIZE: "105Gi"
       VOLUMEMODE: "Filesystem"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid

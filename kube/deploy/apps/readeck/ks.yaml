@@ -25,7 +25,10 @@ spec:
     substitute:
       PVC: "readeck-data"
       SIZE: "100Gi"
-      SC: "block"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid !!str |
         ${APP_UID_READECK}
       RGID: !!str |

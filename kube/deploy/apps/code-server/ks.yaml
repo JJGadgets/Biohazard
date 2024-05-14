@@ -39,6 +39,8 @@ spec:
       CACHESIZE: "6Gi"
       SC: &sc "block"
       SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
