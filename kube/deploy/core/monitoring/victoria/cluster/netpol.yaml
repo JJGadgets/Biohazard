@@ -10,6 +10,13 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/instance: "victoria"
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            egress.home.apa/kps: "allow"
+          matchExpressions:
+            - key: "io.kubernetes.pod.namespace"
+              operator: "Exists"
   egress:
     - toEndpoints:
         - matchLabels:
@@ -30,4 +37,19 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
+            app.kubernetes.io/instance: "victoria"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "victoria-egress-labelled"
+spec:
+  description: "Allow Prometheus to egress to pods labelled with metrics exporters, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/kps: "allow"
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: "vmsingle"
             app.kubernetes.io/instance: "victoria"
