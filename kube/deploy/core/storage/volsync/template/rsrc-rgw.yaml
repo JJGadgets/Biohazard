@@ -4,6 +4,8 @@ apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
   name: "${PVC}-rgw-restic"
+  labels:
+    volsync.home.arpa/repo: "rgw"
 spec:
   sourcePVC: "${PVC}"
   trigger:

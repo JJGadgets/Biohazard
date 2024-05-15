@@ -50,12 +50,10 @@ spec:
         apiVersion: volsync.backube/v1alpha1
         kind: ReplicationSource
         metadata:
-          name: immich-data-rgw-restic
-          namespace: immich
+          name: not-used
       target:
-        apiVersion: volsync.backube/v1alpha1
         kind: ReplicationSource
-        name: immich-data-rgw-restic
+        labelSelector: volsync.home.arpa/repo=rgw
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
