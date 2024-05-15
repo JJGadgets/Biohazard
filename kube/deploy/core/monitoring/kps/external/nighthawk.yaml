@@ -7,11 +7,15 @@ metadata:
   namespace: monitoring
 spec:
   # TODO: set default intervals to debug memory spikes
-  scrapeInterval: "30s"
-  scrapeTimeout: "15s"
   staticConfigs:
-    - targets: ["${IP_NIGHTHAWK}:9182"]
+    - targets:
+        - &ip "${IP_NIGHTHAWK}:9182"
   metricsPath: "/metrics"
+  relabelings:
+    - sourceLabels: ["__address__"]
+      targetLabel: "instance"
+      regex: *ip
+      replacement: "nighthawk:9182"
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -21,8 +25,12 @@ metadata:
 spec:
   # scrapeInterval: "2s"
   # scrapeTimeout: "1s"
-  scrapeInterval: "30s"
-  scrapeTimeout: "15s"
   staticConfigs:
-    - targets: ["${IP_NIGHTHAWK}:9835"]
+    - targets:
+        - &ip "${IP_NIGHTHAWK}:9835"
   metricsPath: "/metrics"
+  relabelings:
+    - sourceLabels: ["__address__"]
+      targetLabel: "instance"
+      regex: *ip
+      replacement: "nighthawk:9835"
