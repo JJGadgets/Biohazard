@@ -10,7 +10,7 @@ metrics:
       - { color: "red", min: 76, max: 1000 }
 
   - name: cluster_memory_usage
-    query: round(sum(node_memory_MemTotal_bytes{cluster="${CLUSTER_NAME}",kubernetes_node!=""} - node_memory_MemAvailable_bytes{cluster="${CLUSTER_NAME",kubernetes_node!=""}) / sum(node_memory_MemTotal_bytes{cluster="${CLUSTER_NAME}",kubernetes_node!=""}) * 100, 0.1)
+    query: round(sum(node_memory_MemTotal_bytes{kubernetes_node!=""} - node_memory_MemAvailable_bytes{kubernetes_node!=""}) / sum(node_memory_MemTotal_bytes{kubernetes_node!=""}) * 100, 0.1)
     suffix: "%"
     colors:
       - { color: "green", min: 0, max: 35 }
