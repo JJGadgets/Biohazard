@@ -78,7 +78,7 @@ metrics:
       - { color: "red", min: 5, max: 9999 }
 
   - name: blackhawk_battery_percent
-    query: node_power_supply_capacity{instance="blackhawk:9100"}
+    query: round(node_power_supply_capacity{instance="blackhawk:9100"}, 0.1)
     suffix: "%"
     colors:
       - { color: "red", min: 0, max: 19 }
@@ -86,7 +86,7 @@ metrics:
       - { color: "green", min: 51, max: 99999 }
 
   - name: blackhawk_battery_cycles
-    query: node_power_supply_cyclecount{instance="blackhawk:9100"}
+    query: round(node_power_supply_cyclecount{instance="blackhawk:9100"}, 0.1)
     suffix: " cycles"
     colors:
       - { color: "red", min: 0, max: 199 }
@@ -94,7 +94,7 @@ metrics:
       - { color: "green", min: 400, max: 99999 }
 
   - name: blackhawk_battery_health
-    query: (node_power_supply_energy_full{instance="blackhawk:9100"} / node_power_supply_energy_full_design{instance="blackhawk:9100"} * 100)
+    query: round((node_power_supply_energy_full{instance="blackhawk:9100"} / node_power_supply_energy_full_design{instance="blackhawk:9100"} * 100), 0.1)
     suffix: "%"
     colors:
       - { color: "red", min: 0, max: 79 }
