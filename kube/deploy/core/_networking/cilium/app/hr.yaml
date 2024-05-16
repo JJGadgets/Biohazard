@@ -108,6 +108,7 @@ spec:
           #enabled: true
           #annotations:
           #  grafana_folder: "Cilium"
+      eventQueueSize: "10000" # default is 6144 which fills up
     operator:
       prometheus:
         enabled: true
