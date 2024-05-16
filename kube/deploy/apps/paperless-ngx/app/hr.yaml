@@ -29,7 +29,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/paperless-ngx/paperless-ngx"
-              tag: "2.8.3@sha256:a93abe7d41a3011cbdf687eccc1ca4b7c6dbc199449fb9651a3bcd7e7f0ff9ee"
+              tag: "2.8.6@sha256:2744572313cf3026520243f00e064d8fa82d838173a160d63b7e481575a86fdc"
             args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
