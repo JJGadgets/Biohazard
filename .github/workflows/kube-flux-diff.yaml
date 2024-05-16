@@ -35,6 +35,7 @@ jobs:
           sources: "flux-system"
           path: "${{ matrix.path }}"
           resource: "${{ matrix.resource }}"
+          debug: true
 
       - if: ${{ steps.diff.outputs.diff != '' }}
         name: Add comment
