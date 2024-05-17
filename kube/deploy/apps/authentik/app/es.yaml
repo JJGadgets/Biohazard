@@ -1,0 +1,54 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name authentik-secrets
+  namespace: authentik
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "authentik - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: "Opaque"
+      data:
+        AUTHENTIK_SECRET_KEY: '{{ .AUTHENTIK_SECRET_KEY }}'
+        AUTHENTIK_REDIS__PASSWORD: '{{ .AUTHENTIK_REDIS__PASSWORD }}'
+        AUTHENTIK_EMAIL__FROM: '{{ .AUTHENTIK_EMAIL__FROM }}'
+        AUTHENTIK_EMAIL__HOST: '{{ .AUTHENTIK_EMAIL__HOST }}'
+        AUTHENTIK_EMAIL__PORT: '{{ .AUTHENTIK_EMAIL__PORT }}'
+        AUTHENTIK_EMAIL__USE_TLS: '{{ .AUTHENTIK_EMAIL__USE_TLS }}'
+        AUTHENTIK_EMAIL__USE_SSL: '{{ .AUTHENTIK_EMAIL__USE_SSL }}'
+        AUTHENTIK_EMAIL__USERNAME: '{{ .AUTHENTIK_EMAIL__USERNAME }}'
+        AUTHENTIK_EMAIL__PASSWORD: '{{ .AUTHENTIK_EMAIL__PASSWORD }}'
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name authentik-ldap
+  namespace: authentik
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "authentik - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: "Opaque"
+      data:
+        AUTHENTIK_TOKEN: '{{ .AUTHENTIK_TOKEN }}'
