@@ -25,6 +25,11 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-external: allow
+            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/nginx-public: allow
+            egress.home.arpa/nginx-external: allow
+            egress.home.arpa/nginx-internal: allow
+            egress.home.arpa/nginx-public: allow
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
