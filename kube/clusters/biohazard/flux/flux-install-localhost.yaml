@@ -31,9 +31,6 @@ spec:
     name: flux-manifests
   patches:
     # localhost stuff
-        #- op: add
-        #  path: /metadata/labels/pod-security.kubernetes.io\/enforce
-        #  value: "privileged"
     - patch: |
         apiVersion: v1
         kind: Namespace
@@ -81,6 +78,18 @@ spec:
             - --enable-leader-election=false
             - --metrics-addr=127.0.0.1:$(METRICS_PORT)
             - --health-addr=127.0.0.1:$(HEALTH_PORT)
+        - op: add
+          path: /spec/template/metadata/labels/flux
+          value: localhost
+        - op: add
+          path: /spec/template/spec/affinity
+          value:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - topologyKey: kubernetes.io/hostname
+                  labelSelector:
+                    matchLabels:
+                      flux: localhost
       target:
         kind: Deployment
     - patch: |
@@ -161,9 +170,6 @@ spec:
               resourceFieldRef:
                 divisor: "0"
                 resource: limits.cpu
-      target:
-        kind: Deployment
-    - patch: |
         - op: add
           path: /spec/template/spec/containers/0/env/-
           value:
