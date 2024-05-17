@@ -13,56 +13,25 @@ spec:
   targetNamespace: "authentik"
   dependsOn:
     - name: authentik-db
-    - name: authentik-pvc
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: authentik-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "authentik"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "authentik"
-  dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
-  postBuild:
-    substitute:
-      PVC: "authentik-data"
-      SIZE: "10Gi"
-      SC: &sc "file"
-      SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_AUTHENTIK}
-      RGID: !!str |
-        ${APP_UID_AUTHENTIK}
-      RFSG: !!str |
-        ${APP_UID_AUTHENTIK}
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: authentik-db
   namespace: flux-system
-  labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
-    app.kubernetes.io/name: "authentik"
 spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
+  path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
-    - name: 1-core-db-pg-clusters-default
+    - name: 1-core-db-pg-app
+    - name: 1-core-storage-democratic-csi-local-hostpath
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
-      PG_NAME: "default"
-      PG_DB_USER: &app "authentik"
+      PG_APP_NAME: &app "authentik"
       PG_APP_NS: *app
+      PG_DB_NAME: *app
+      PG_DB_USER: *app
+      PG_REPLICAS: "3"
+      PG_SC: "local"
+      PG_CONFIG_VERSION: "15.2-11"
+      PG_CONFIG_SIZE: "20Gi"
