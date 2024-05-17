@@ -26,7 +26,8 @@ spec:
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
           topologySpreadConstraints:
-            - &tsc maxSkew: 1
+            - &tsc
+              maxSkew: 1
               topologyKey: kubernetes.io/hostname
               whenUnsatisfiable: DoNotSchedule
               labelSelector:
