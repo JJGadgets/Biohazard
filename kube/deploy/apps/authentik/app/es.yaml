@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name authentik-secrets
+  namespace: authentik
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "authentik - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: "Opaque"
+      data:
+        pgbouncer-uri-sslmode: "{{ .uri }}?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"

@@ -5,127 +5,294 @@ metadata:
   name: &app authentik
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
-      chart: *app
-      version: &vers 2023.10.7
+      chart: app-template
+      version: 3.1.0
       sourceRef:
-        name: *app
+        name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    image:
-      repository: "ghcr.io/goauthentik/server"
-      tag: "2023.10.7" # specify image tag for Renovate to pull changelogs & security info, and for security releases without a chart release
-      #digest: "sha256:8ebdd51a95d3efdcb0cf3b26ed849cc0f9a8c032adb8cd595cabb59a1f321161" # TODO: apparently Renovate doesn't see this as a digest?
-      pullPolicy: IfNotPresent
-    # server is in active-active, 3 replicas seems to confuse authentik
-    replicas: 2
-    worker:
-      # workers don't need leader election, thus any size works
-      replicas: 2
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 1
-    service:
-      port: 9000
-    ingress:
-      enabled: true
-      ingressClassName: "nginx-external"
-      annotations:
-        external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
-        external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        # WebSockets (used for frontend to backend connection)
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-      hosts:
-        - host: &host "${APP_DNS_AUTH}"
-          paths:
-            - path: "/"
-              pathType: Prefix
-      tls:
-        - hosts:
-            - *host
-          secretName: authentik-tls
-    volumes:
-    - name: authentik-tls
-      secret:
-        secretName: authentik-tls
-        optional: false
-        items:
-        - key: tls.crt
-          path: fullchain.pem
-        - key: tls.key
-          path: privkey.pem
-    volumeMounts:
-    - name: authentik-tls
-      mountPath: /certs/${APP_DNS_AUTH}-k8s
-      readOnly: true
-    authentik:
-      log_level: debug
-      secret_key: "${SECRET_AUTHENTIK_SECRET_KEY}"
-      email:
-        host: "${SECRET_AUTHENTIK_SMTP_HOST}"
-        port: 587
-        username: "${SECRET_AUTHENTIK_SMTP_USERNAME}"
-        password: "${SECRET_AUTHENTIK_SMTP_PASSWORD}"
-        use_tls: true
-        from: "${SECRET_AUTHENTIK_SMTP_FROM}"
-      outposts:
-        container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
-      error_reporting:
-        enabled: false
-        send_pii: false
-      postgresql:
-        enabled: false
-        host: 'pg-authentik-primary.authentik.svc.cluster.local'
-        port: 5432
-        name: ""
-        user: ""
-        password: ""
+    controllers:
+      authentik:
+        type: deployment
+        replicas: 2
+        pod:
+          labels:
+            ingress.home.arpa/nginx-public: allow
+            db.home.arpa/pg: pg-authentik
+            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            prom.home.arpa/kps: allow
+          topologySpreadConstraints:
+            - &tsc maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/component: *app
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/goauthentik/server
+              tag: 2023.10.7
+            args: [server]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              AUTHENTIK_POSTGRESQL__HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-authentik-pguser-authentik
+                    key: pgbouncer-host
+              AUTHENTIK_POSTGRESQL__PORT:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-authentik-pguser-authentik
+                    key: pgbouncer-port
+              AUTHENTIK_POSTGRESQL__NAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-authentik-pguser-authentik
+                    key: dbname
+              AUTHENTIK_POSTGRESQL__USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-authentik-pguser-authentik
+                    key: user
+              AUTHENTIK_POSTGRESQL__PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-authentik-pguser-authentik
+                    key: password
+              AUTHENTIK_POSTGRESQL__USE_PGBOUNCER: "true"
+              AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
+              AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
+              AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local.
+              AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4}"
+              AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+              AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
+            envFrom: &envFrom
+              - secretRef:
+                  name: authentik-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "2Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      worker:
+        type: deployment
+        replicas: 3
+        pod:
+          labels:
+            db.home.arpa/pg: pg-authentik
+            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            # authentik.home.arpa/https: allow
+            prom.home.arpa/kps: allow
+            # egress.home.arpa/internet: allow
+          topologySpreadConstraints:
+            - <<: *tsc
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/component: worker
+        containers:
+          main:
+            image: *img
+            args: [worker]
+            env: *env
+            envFrom: *envFrom
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "4Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      ldap:
+        type: deployment
+        replicas: 3
+        pod:
+          labels:
+            authentik.home.arpa/https: allow
+          topologySpreadConstraints:
+            - <<: *tsc
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/component: ldap
+        containers:
+          main:
+            image:
+              <<: *img
+              repository: ghcr.io/goauthentik/ldap
+            env:
+              AUTHENTIK_HOST: "${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: authentik-ldap
+                    key: token
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "4Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       redis:
-        host: "authentik-redis.authentik.svc.cluster.local"
-        password: ""
-    envValueFrom:
-      AUTHENTIK_POSTGRESQL__NAME:
-        secretKeyRef:
-          name: &pgsec pg-authentik-pguser-authentik
-          key: dbname
-      AUTHENTIK_POSTGRESQL__USER:
-        secretKeyRef:
-          name: *pgsec
-          key: user
-      AUTHENTIK_POSTGRESQL__PASSWORD:
-        secretKeyRef:
-          name: *pgsec
-          key: password
-      AUTHENTIK_REDIS__PASSWORD:
-        secretKeyRef:
-          name: authentik-redis
-          key: password
-    redis:
-      enabled: false
-    blueprints: []
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: fuckoff.home.arpa/home-assistant
-              operator: DoesNotExist
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - topologyKey: kubernetes.io/hostname
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: *app
-                app.kubernetes.io/instance: *app
-                app.kubernetes.io/component: server
-          - topologyKey: kubernetes.io/hostname
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: *app
-                app.kubernetes.io/instance: *app
-                app.kubernetes.io/component: worker
+        type: deployment
+        replicas: 1
+        containers:
+          redis:
+            image:
+              repository: "public.ecr.aws/docker/library/redis"
+              tag: "7.2.4@sha256:f14f42fc7e824b93c0e2fe3cdf42f68197ee0311c3d2e0235be37480b2e208e6"
+            command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            envFrom: *envFrom
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "32Mi"
+              limits:
+                cpu: "1000m"
+                memory: "512Mi"
+    service:
+      authentik:
+        controller: authentik
+        ports:
+          http: &port
+            port: 9000
+            protocol: HTTP
+            appProtocol: http
+          http-80:
+            <<: *port
+            port: 80
+            targetPort: 9000
+          metrics:
+            <<: *port
+            port: 9300
+      redis:
+        primary: false
+        controller: redis
+        ports:
+          redis:
+            port: 6379
+      expose:
+        primary: false
+        controller: authentik
+        type: LoadBalancer
+        annotations:
+          io.cilium/internal: "true"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK}"
+        ports:
+          http:
+            port: 443
+            targetPort: 9443
+            protocol: HTTPS
+            appProtocol: https
+      ldap:
+        primary: false
+        controller: ldap
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: "${APP_DNS_AUTHENTIK_LDAP}"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_LDAP}"
+        ports:
+          ldap-tcp: &ldap
+            port: 389
+            targetPort: 3389
+            protocol: TCP
+          ldap-udp:
+            <<: *ldap
+            protocol: UDP
+          ldaps-tcp: &ldaps
+            port: 636
+            targetPort: 6636
+            protocol: TCP
+          ldaps-udp:
+            <<: *ldaps
+            protocol: UDP
+    ingress:
+      main:
+        className: nginx-public
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_AUTHENTIK}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      pg-ca:
+        type: secret
+        name: pg-home-ca
+        defaultMode: 0400
+        globalMounts:
+          - subPath: ca.crt
+            path: /secrets/pg/ca.crt
+      tls:
+        type: secret
+        name: authentik-tls
+        defaultMode: 0400
+        globalMounts:
+          - path: "/certs/${APP_DNS_AUTHENTIK}-k8s"
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_AUTHENTIK}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/authentik
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        policyTypes: [Ingress, Egress]
+        podSelector: {}
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
