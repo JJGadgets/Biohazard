@@ -252,7 +252,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: authentik
                   port: http
         tls:
           - hosts: [*host]
@@ -278,7 +278,7 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_AUTHENTIK}
+        runAsUser: &uid ${APP_UID_AUTHENTIK:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
