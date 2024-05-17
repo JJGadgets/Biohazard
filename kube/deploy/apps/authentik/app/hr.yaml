@@ -97,11 +97,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+            #probes:
+            #  liveness:
+            #    enabled: true
+            #  readiness:
+            #    enabled: true
       worker:
         type: deployment
         replicas: 3
@@ -132,11 +132,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "4Gi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+            #probes:
+            #  liveness:
+            #    enabled: true
+            #  readiness:
+            #    enabled: true
       ldap:
         type: deployment
         replicas: 3
@@ -170,11 +170,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "4Gi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+            #probes:
+            #  liveness:
+            #    enabled: true
+            #  readiness:
+            #    enabled: true
       redis:
         type: deployment
         replicas: 1
@@ -269,7 +269,7 @@ spec:
     persistence:
       pg-ca:
         type: secret
-        name: pg-home-ca
+        name: pg-authentik-ca
         defaultMode: 0400
         globalMounts:
           - subPath: ca.crt
