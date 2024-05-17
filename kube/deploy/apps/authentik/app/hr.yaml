@@ -19,6 +19,9 @@ spec:
       authentik:
         type: deployment
         replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             ingress.home.arpa/nginx-public: allow
@@ -146,6 +149,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
+              tag: 2023.10.7@sha256:c483b0adf9a2123ab3d0498450d3d0f91344c97248dba789a4f80fdd3f6eb213
             env:
               AUTHENTIK_HOST: "${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
