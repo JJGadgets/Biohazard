@@ -269,10 +269,10 @@ spec:
     persistence:
       pg-ca:
         type: secret
-        name: pg-authentik-ca
+        name: pg-authentik-pgbouncer
         defaultMode: 0400
         globalMounts:
-          - subPath: ca.crt
+          - subPath: pgbouncer-frontend.ca-roots
             path: *pgca
       tls:
         type: secret
