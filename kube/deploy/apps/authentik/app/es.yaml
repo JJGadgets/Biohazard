@@ -20,7 +20,6 @@ spec:
     template:
       type: "Opaque"
       data:
-        pgbouncer-uri-sslmode: "{{ .uri }}?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"
         AUTHENTIK_SECRET_KEY: '{{ .AUTHENTIK_SECRET_KEY }}'
         AUTHENTIK_REDIS__PASSWORD: '{{ .AUTHENTIK_REDIS__PASSWORD }}'
         AUTHENTIK_EMAIL__FROM: '{{ .AUTHENTIK_EMAIL__FROM }}'
@@ -30,3 +29,26 @@ spec:
         AUTHENTIK_EMAIL__USE_SSL: '{{ .AUTHENTIK_EMAIL__USE_SSL }}'
         AUTHENTIK_EMAIL__USERNAME: '{{ .AUTHENTIK_EMAIL__USERNAME }}'
         AUTHENTIK_EMAIL__PASSWORD: '{{ .AUTHENTIK_EMAIL__PASSWORD }}'
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name authentik-ldap
+  namespace: authentik
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "authentik - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: "Opaque"
+      data:
+        AUTHENTIK_TOKEN: '{{ .AUTHENTIK_TOKEN }}'

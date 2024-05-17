@@ -24,7 +24,7 @@ spec:
           unavailable: "90%"
         pod:
           labels:
-            ingress.home.arpa/nginx-public: allow
+            ingress.home.arpa/nginx-external: allow
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
@@ -104,7 +104,7 @@ spec:
           labels:
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            # authentik.home.arpa/https: allow
+            authentik.home.arpa/https: allow
             prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
           topologySpreadConstraints:
@@ -246,7 +246,7 @@ spec:
             protocol: UDP
     ingress:
       main:
-        className: nginx-public
+        className: nginx-external
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -260,6 +260,7 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+            secretName: authentik-tls
     persistence:
       pg-ca:
         type: secret
@@ -267,7 +268,7 @@ spec:
         defaultMode: 0400
         globalMounts:
           - subPath: ca.crt
-            path: /secrets/pg/ca.crt
+            path: *pgca
       tls:
         type: secret
         name: authentik-tls
@@ -296,8 +297,22 @@ spec:
                     operator: DoesNotExist
     networkpolicies:
       same-ns:
-        policyTypes: [Ingress, Egress]
         podSelector: {}
+        policyTypes: [Ingress, Egress]
         rules:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
+      vm-ad:
+        controller: worker
+        policyTypes: [Egress]
+        rules:
+          egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR}"}}]]
+    serviceMonitor:
+      authentik:
+        serviceName: authentik
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
