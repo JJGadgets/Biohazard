@@ -54,12 +54,14 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
-                    key: pgbouncer-host
+                    #key: pgbouncer-host
+                    key: host
               AUTHENTIK_POSTGRESQL__PORT:
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
-                    key: pgbouncer-port
+                    #key: pgbouncer-port
+                    key: port
               AUTHENTIK_POSTGRESQL__NAME:
                 valueFrom:
                   secretKeyRef:
@@ -75,7 +77,7 @@ spec:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: password
-              AUTHENTIK_POSTGRESQL__USE_PGBOUNCER: "true"
+              #AUTHENTIK_POSTGRESQL__USE_PGBOUNCER: "true"
               AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local.
@@ -269,10 +271,12 @@ spec:
     persistence:
       pg-ca:
         type: secret
-        name: pg-authentik-pgbouncer
+        #name: pg-authentik-pgbouncer
+        name: pg-authentik-cluster-cert
         defaultMode: 0400
         globalMounts:
-          - subPath: pgbouncer-frontend.ca-roots
+          - subPath: ca.crt
+            #subPath: pgbouncer-frontend.ca-roots
             path: *pgca
       tls:
         type: secret
