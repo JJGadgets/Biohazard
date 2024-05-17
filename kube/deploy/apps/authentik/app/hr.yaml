@@ -278,7 +278,7 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_AUTHENTIK:=1000}
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
