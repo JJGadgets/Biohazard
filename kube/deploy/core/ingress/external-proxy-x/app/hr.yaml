@@ -105,12 +105,13 @@ spec:
         acl immich-key url_param(key) -m found
         acl immich-share-ref req.hdr(Referer) -m beg https://${APP_DNS_IMMICH}/share/ # weak but better than nothing
         acl immich-api-asset path_beg /api/asset/
-        acl immich-api-asset path_beg /api/download/asset/
-        acl immich-api-asset path /api/timeline/buckets
+        acl immich-api-asset path_beg /api/download/
+        acl immich-api-asset path_beg /api/timeline/bucket # match both buckets and bucket
         acl immich-share-cookie req.cook(immich_shared_link_token) -m found
         use_backend immich if immich-fqdn immich-path
         use_backend immich if immich-fqdn immich-api-share immich-key immich-share-ref
         use_backend immich if immich-fqdn immich-api-asset immich-key immich-share-ref immich-share-cookie
+        use_backend nginx-external if { req.hdr(host) -m str ${APP_DNS_AUTHENTIK} }
         use_backend nginx-public if { req.hdr(host) -m end ${DNS_LONG} }
         use_backend nginx-external if { req.hdr(host) -m end ${DNS_SHORT} }
 
