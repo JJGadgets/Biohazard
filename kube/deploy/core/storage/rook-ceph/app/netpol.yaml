@@ -80,12 +80,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: ingress
-            app.kubernetes.io/instance: ingress-nginx
             app.kubernetes.io/name: ingress-nginx
     # allow CNPG to connect
     - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ingress
         - matchExpressions:
             - key: cnpg.io/cluster
               operator: Exists

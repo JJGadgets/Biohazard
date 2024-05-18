@@ -94,7 +94,7 @@ spec:
         # the array with index 0 on the `repos` list is used for replica recovery/replay from WALs, regardless of repo name (repo1, repo2, etc)
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
-            endpoint: "rgw-biohazard.${DNS_TS}"
+            endpoint: "${APP_DNS_RGW_HTTPS}"
             bucket: "pg-${PG_APP_NAME}"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks

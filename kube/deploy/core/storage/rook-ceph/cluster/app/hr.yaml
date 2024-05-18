@@ -71,6 +71,7 @@ spec:
           ingress.home.arpa/nginx-internal: "allow"
           prom.home.arpa/kps: "allow"
           tailscale.com/expose: "true"
+          egress.home.arpa/kps: "allow"
       mon:
         count: 3
         allowMultiplePerNode: false
@@ -221,7 +222,7 @@ spec:
             dataChunks: 2
             codingChunks: 1
           parameters:
-            min_size: "2"
+            min_size: "3"
             compression_mode: "aggressive"
             compression_algorithm: "lz4" # some games compress pretty good
         storageClass:
@@ -345,15 +346,14 @@ spec:
             labels: # netpols
               tailscale.com/expose: "true"
             instances: 2
-            port: 6953
             hostNetwork: false
-            # securePort: 443 # TODO: switch from Tailscale to L2 + externalIP... maybe?
-            # sslCertificateRef: "rgw-biohazard-tls"
+            port: 6953
+            securePort: 53443
+            sslCertificateRef: "short-domain-tls"
             priorityClassName: "system-cluster-critical"
             resources:
               requests:
                 cpu: 100m
-                memory: 1Gi
               limits:
                 memory: 2Gi
         ingress:
