@@ -54,7 +54,7 @@ spec:
             tunnel: "${SECRET_CLOUDFLARE_TUNNEL_ID}"
             credentials-file: /etc/cloudflared/credentials.json
             no-autoupdate: true
-            
+
             ingress:
               - hostname: "cftest.${DNS_SHORT}"
                 service: hello_world
@@ -62,40 +62,40 @@ spec:
               - hostname: "*"
                 path: "^/metrics"
                 service: http://default-backend.ingress.svc.cluster.local:80
-              
+
               - hostname: "${APP_DNS_FLUX_WEBHOOK}"
                 service: "http://webhook-receiver.flux-system.svc.cluster.local:80"
-              
+
               - hostname: "social.jjgadgets.tech"
                 service: https://gotosocial.gotosocial.svc.cluster.local.:8080
                 originRequest:
                   originServerName: "social.jjgadgets.tech"
-              
+
               - hostname: "${APP_DNS_HEADSCALE}"
                 service: https://headscale.headscale.svc.cluster.local.:8080
                 originRequest:
                   originServerName: "${APP_DNS_HEADSCALE}"
-              
+
               - hostname: "*.${DNS_SHORT}"
                 service: https://nginx-external-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "ingress.${DNS_SHORT}"
-              
+
               - hostname: "${DNS_SHORT}"
                 service: https://nginx-public-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "${DNS_SHORT}"
-              
+
               - hostname: "${APP_DNS_AUTHENTIK}"
-                service: https://nginx-public-controller.ingress.svc.cluster.local:443
+                service: https://nginx-external-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "${APP_DNS_AUTHENTIK}"
-              
+
               - hostname: "*.${DNS_MAIN}"
                 service: https://nginx-public-controller.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "ingress.${DNS_MAIN}"
-              
+
               - service: http://default-backend.ingress.svc.cluster.local:80
 ---
 apiVersion: v1
