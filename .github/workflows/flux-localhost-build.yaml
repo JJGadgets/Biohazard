@@ -81,17 +81,17 @@ jobs:
         run: |
           export MESSAGE="${{ env.MESSAGE }}"
           export SHA=$( git rev-parse ${{ env.DESTINATION_BRANCH }}:${{ env.FILE_TO_COMMIT }} )
-          export CONTENT=$( base64 -i ${{ env.FILE_TO_COMMIT }} )
+          base64 -i -w0 ${{ env.FILE_TO_COMMIT }} > /tmp/base64data
           if gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
               --field message="${MESSAGE}" \
-              --field content="${CONTENT}" \
+              --field content="@/tmp/base64data" \
               --field encoding="base64" \
               --field branch="${{ env.DESTINATION_BRANCH }}" \
               --field sha="${SHA}" ; then
             echo "Pushed signed commit to GitHub."
           elif gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
               --field message="${MESSAGE}" \
-              --field content="${CONTENT}" \
+              --field content="@/tmp/base64data" \
               --field encoding="base64" \
               --field branch="${{ env.DESTINATION_BRANCH }}" ; then
             echo "Pushed signed commit to GitHub."
