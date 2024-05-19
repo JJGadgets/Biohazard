@@ -1,0 +1,67 @@
+---
+name: "Flux Localhost Build"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Flux version to build
+        # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
+        default: "2.2.3"
+        required: true
+
+env:
+  # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
+  FLUX_VERSION: "2.2.3"
+
+jobs:
+  flux-localhost-build:
+    name: Flux Localhost Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: "Setup variables" # Renovate can't edit the version in `env` block if there's other ${{}} stuff around
+        id: "vars"
+        shell: "bash"
+        run: |
+          echo "FLUX_VERSION=${{ github.event.inputs.version || env.FLUX_VERSION }}" >> "${GITHUB_ENV}"
+          echo "BRANCH=flux-localhost-build-${{ github.event.inputs.version || env.FLUX_VERSION }}" >> "${GITHUB_ENV}"
+          echo "MESSAGE=feat(bootstrap/flux)!: build Flux v${{ env.FLUX_VERSION }} localhost install manifests" >> "${GITHUB_ENV}"
+
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@a0de6af83968303c8c955486bf9739a57d23c7f1 # v1.10.0
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+
+      - name: Setup Flux
+        uses: fluxcd/flux2/action@534684601ec8888beb0cc4f51117b59e97606c4d # v2.2.3
+        with:
+          version: "${{ env.FLUX_VERSION }}"
+
+      - name: Checkout
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+
+      - name: Build Flux Install Manifests
+        shell: bash
+        run: |
+          git config push.autoSetupRemote true
+
+          git checkout ${{ env.BRANCH }} || git checkout -b ${{ env.BRANCH }} main
+          git pull origin ${{ env.BRANCH }} || true
+
+          mkdir -p /tmp/flux
+          flux pull artifact oci://ghcr.io/fluxcd/flux-manifests:v${{ env.FLUX_VERSION }} --output /tmp/flux/
+          flux build kustomization zzz-flux --path /tmp/flux --kustomization-file ./kube/clusters/biohazard/flux/flux-install-localhost.yaml --dry-run | tee ./kube/bootstrap/flux/flux-install-localhost-manifests.yaml
+
+          git add ./kube/bootstrap/flux/flux-install-localhost-manifests.yaml
+          git commit --message "${{ env.MESSAGE }}"
+          git push origin ${{ env.BRANCH }}
+          gh pr create --title "${{ env.MESSAGE }}" --body "Updates Flux install manifests, patched for use with localhost hostNetwork, to the ${{ env.FLUX_VERSION }} version." --reviewer ${{ github.repository_owner }}
