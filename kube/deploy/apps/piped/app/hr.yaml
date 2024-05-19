@@ -36,7 +36,7 @@ spec:
           driver_class: "org.postgresql.Driver"
           secret:
             name: "pg-default-pguser-piped"
-            username: "username"
+            username: "user"
             password: "password"
       podSecurityContext: &psc
         runAsUser: &uid ${APP_UID_PIPED}
