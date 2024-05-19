@@ -56,6 +56,8 @@ jobs:
 
       - name: Build Flux Install Manifests
         shell: bash
+        env:
+          GH_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         run: |
           git config push.autoSetupRemote true
           git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
