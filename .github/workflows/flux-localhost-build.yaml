@@ -58,6 +58,8 @@ jobs:
         shell: bash
         run: |
           git config push.autoSetupRemote true
+          git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
+          git config user.email "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
 
           git checkout ${{ env.BRANCH }} || git checkout -b ${{ env.BRANCH }} main
           git pull origin ${{ env.BRANCH }} || true
