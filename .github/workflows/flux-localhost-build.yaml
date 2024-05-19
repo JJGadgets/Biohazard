@@ -89,13 +89,13 @@ jobs:
               --field branch="${{ env.DESTINATION_BRANCH }}" \
               --field sha="${SHA}" ; then
             echo "Pushed signed commit to GitHub."
-          else if gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
+          elif gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
               --field message="${MESSAGE}" \
               --field content="${CONTENT}" \
               --field encoding="base64" \
-              --field branch="${{ env.DESTINATION_BRANCH }}" \
+              --field branch="${{ env.DESTINATION_BRANCH }}" ; then
             echo "Pushed signed commit to GitHub."
           else
-            || echo "No changes to push or errored pushing."
+            echo "No changes to push or errored pushing."
           fi
           gh pr create --base main --head ${{ env.BRANCH }} --title "${{ env.MESSAGE }}" --body "Updates Flux install manifests, patched for use with localhost hostNetwork, to the ${{ env.FLUX_VERSION }} version." --reviewer ${{ github.repository_owner }}
