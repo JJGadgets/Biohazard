@@ -2,7 +2,6 @@
 name: "Flux Localhost Build"
 
 on:
-  workflow_call:
   workflow_dispatch:
     inputs:
       version:
@@ -10,6 +9,12 @@ on:
         # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
         default: "2.2.3"
         required: true
+  push:
+    branches: ["main"]
+    paths:
+      - kube/bootstrap/flux
+      - kube/clusters/*/flux/flux-install*.yaml
+      - .github/workflows/flux-localhost-build.yaml
 
 env:
   # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
