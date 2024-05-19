@@ -70,7 +70,6 @@ jobs:
           flux pull artifact oci://ghcr.io/fluxcd/flux-manifests:v${{ env.FLUX_VERSION }} --output /tmp/flux/
           flux build kustomization zzz-flux --path /tmp/flux --kustomization-file ./kube/clusters/biohazard/flux/flux-install-localhost.yaml --dry-run | tee ./${{ env.OUTFILE }}
 
-
       # below is yoinked from https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit Changes # with commit signing
         shell: bash
@@ -89,5 +88,10 @@ jobs:
             --field encoding="base64" \
             --field branch="${{ env.DESTINATION_BRANCH }}" \
             --field sha="${SHA}" \
+            || gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
+            --field message="${MESSAGE}" \
+            --field content="${CONTENT}" \
+            --field encoding="base64" \
+            --field branch="${{ env.DESTINATION_BRANCH }}" \
             || echo "No changes to push or errored pushing."
           gh pr create --base main --head ${{ env.BRANCH }} --title "${{ env.MESSAGE }}" --body "Updates Flux install manifests, patched for use with localhost hostNetwork, to the ${{ env.FLUX_VERSION }} version." --reviewer ${{ github.repository_owner }}
