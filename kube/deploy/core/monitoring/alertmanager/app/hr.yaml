@@ -105,6 +105,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/discord: allow
+            dns.home.arpa/l7: "false"
         containers: *ct
         statefulset:
           volumeClaimTemplates:
@@ -209,6 +210,10 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/alertmanager"
                     operator: "DoesNotExist"
+      dnsConfig: # avoid flooding Cilium dnsproxy
+        options:
+          - name: ndots
+            value: "1"
     serviceMonitor:
       main:
         enabled: true
