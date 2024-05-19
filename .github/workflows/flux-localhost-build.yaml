@@ -19,6 +19,7 @@ on:
 env:
   # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
   FLUX_VERSION: "2.2.3"
+  OUTFILE: "kube/bootstrap/flux/flux-install-localhost-manifests.yaml"
 
 jobs:
   flux-localhost-build:
@@ -35,7 +36,7 @@ jobs:
         run: |
           echo "FLUX_VERSION=${{ github.event.inputs.version || env.FLUX_VERSION }}" >> "${GITHUB_ENV}"
           echo "BRANCH=flux-localhost-build-${{ github.event.inputs.version || env.FLUX_VERSION }}" >> "${GITHUB_ENV}"
-          echo "MESSAGE=feat(bootstrap/flux)!: build Flux v${{ env.FLUX_VERSION }} localhost install manifests" >> "${GITHUB_ENV}"
+          echo "MESSAGE=feat(bootstrap/flux)!: build Flux v${{ github.event.inputs.version || env.FLUX_VERSION }} localhost install manifests" >> "${GITHUB_ENV}"
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
         uses: actions/create-github-app-token@a0de6af83968303c8c955486bf9739a57d23c7f1 # v1.10.0
@@ -62,16 +63,31 @@ jobs:
           git config push.autoSetupRemote true
           git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
           git config user.email "${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
-
           git checkout -b ${{ env.BRANCH }} main
-          #git checkout ${{ env.BRANCH }} || git checkout -b ${{ env.BRANCH }} main
-          #git pull --rebase --autostash origin ${{ env.BRANCH }} || true
+          git push origin ${{ env.BRANCH }} --force
 
           mkdir -p /tmp/flux
           flux pull artifact oci://ghcr.io/fluxcd/flux-manifests:v${{ env.FLUX_VERSION }} --output /tmp/flux/
-          flux build kustomization zzz-flux --path /tmp/flux --kustomization-file ./kube/clusters/biohazard/flux/flux-install-localhost.yaml --dry-run | tee ./kube/bootstrap/flux/flux-install-localhost-manifests.yaml
+          flux build kustomization zzz-flux --path /tmp/flux --kustomization-file ./kube/clusters/biohazard/flux/flux-install-localhost.yaml --dry-run | tee ./${{ env.OUTFILE }}
 
-          git add ./kube/bootstrap/flux/flux-install-localhost-manifests.yaml
-          git commit --message "${{ env.MESSAGE }}"
-          git push origin ${{ env.BRANCH }} --force
-          gh pr create --title "${{ env.MESSAGE }}" --body "Updates Flux install manifests, patched for use with localhost hostNetwork, to the ${{ env.FLUX_VERSION }} version." --reviewer ${{ github.repository_owner }}
+
+      # below is yoinked from https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
+      - name: Commit Changes # with commit signing
+        shell: bash
+        env:
+          GH_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+          FILE_TO_COMMIT: "${{ env.OUTFILE }}"
+          DESTINATION_BRANCH: "${{ env.BRANCH }}"
+        run: |
+          export MESSAGE="${{ env.MESSAGE }}"
+          export SHA=$( git rev-parse ${{ env.DESTINATION_BRANCH }}:${{ env.FILE_TO_COMMIT }} )
+          export CONTENT=$( base64 -i ${{ env.FILE_TO_COMMIT }} )
+          gh api --method PUT /repos/:owner/:repo/contents/${{ env.FILE_TO_COMMIT }} \
+            --field message="${MESSAGE}" \
+            --field content="${CONTENT}" \
+            --field encoding="base64" \
+            --field branch="${{ env.DESTINATION_BRANCH }}" \
+            --field sha="${SHA}" \
+            || echo "No changes to push or errored pushing."
+          gh pr create --base main --head ${{ env.BRANCH }} --title "${{ env.MESSAGE }}" --body "Updates Flux install manifests, patched for use with localhost hostNetwork, to the ${{ env.FLUX_VERSION }} version." --reviewer ${{ github.repository_owner }}
