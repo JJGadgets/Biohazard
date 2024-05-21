@@ -1,0 +1,203 @@
+---
+clusterName: sinon
+talosVersion: v1.6.4
+kubernetesVersion: v1.29.2
+endpoint: "https://sinon.${DNS_CLUSTER}:6443"
+allowSchedulingOnMasters: true
+allowSchedulingOnControlPlanes: true
+
+cniConfig:
+  name: none
+  #name: custom
+  #urls:
+  #  - https://raw.githubusercontent.com/cloudnativelabs/kube-router/v2.1.1/daemonset/generic-kuberouter-all-features.yaml
+
+clusterPodNets:
+  - "${IP_POD_CIDR_V4}"
+  #- "${IP_POD_CIDR_V6}"
+clusterSvcNets:
+  - "${IP_SVC_CIDR_V4}"
+  #- "${IP_SVC_CIDR_V6}"
+
+additionalApiServerCertSans: &san
+  - "127.0.0.1" # KubePrism
+additionalMachineCertSans: *san
+
+nodes:
+
+  - &m720q
+    hostname: "sinon.${DNS_CLUSTER}" # i7-6700k 4C8T, 32GB RAM, 480GB OS Intel DC S3500 SATA SSD
+    ipAddress: "${IP_SINON}"
+    controlPlane: true
+    installDiskSelector:
+      size: "<= 600GB"
+      type: "ssd"
+    nameservers: ["${IP_HOME_DNS}"]
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: lo
+        addresses: ["127.0.0.1/8", "127.0.0.31/8", "127.0.0.32/8", "127.0.0.33/8"]
+      - &m720q-net
+        mtu: 1500
+        dhcp: false
+        deviceSelector:
+          driver: "e1000e"
+        vlans:
+          - &m720q-v58
+            vlanId: 58
+            mtu: 1500
+            dhcp: false
+            addresses: ["${IP_SINON}/28", "${IP_SINON_V6}/64"]
+            routes:
+              - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
+                metric: 1
+              - network: "0.0.0.0/0"
+                gateway: "${IP_ROUTER_VLAN_K8S}"
+    #machineFiles:
+    #  - &ts
+    #    op: create
+    #    path: /var/etc/tailscale/auth.env
+    #    permissions: 0o600
+    #    content: |
+    #      TS_KUBE_SECRET=""
+    #      TS_STATE_DIR=/var/lib/tailscale
+    #      TS_USERSPACE=false
+    #      TS_ACCEPT_DNS=false
+    #  - &tsNode
+    #    op: append
+    #    path: /var/etc/tailscale/auth.env
+    #    permissions: 0o600
+    #    content: |
+    #      TS_HOSTNAME=sinon
+    #      TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:sinon
+    #      TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_SINON}
+    #      TS_ROUTES=${IP_SINON}/32
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/i915-ucode
+            - siderolabs/intel-ucode
+            - siderolabs/iscsi-tools
+            #- siderolabs/tailscale
+
+patches:
+  # set all disks to no scheduler
+  - |-
+    machine:
+      udev:
+        rules:
+          - |-
+            SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", ATTR{queue/scheduler}="none"
+
+  - &kubeletExtraArgs |-
+    - op: add
+      path: /machine/kubelet/extraArgs
+      value:
+        feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
+
+  - &machinePatch |-
+    machine:
+      install:
+        bootloader: true
+      network:
+        extraHostEntries:
+          - ip: "${IP_SINON}"
+            aliases: ["sinon.${DNS_CLUSTER}"]
+          - ip: "${IP_BIOHAZARD_VIP}"
+            aliases: ["c.${DNS_BIOHAZARD}"]
+          - ip: "${IP_ROUTER_VLAN_K8S}"
+            aliases: ["c.${DNS_BIOHAZARD}"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
+            aliases: ["c.${DNS_BIOHAZARD}", "ange.${DNS_BIOHAZARD}", "biohazard.mesh.cilium.io"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
+            aliases: ["c.${DNS_BIOHAZARD}", "charlotte.${DNS_BIOHAZARD}", "biohazard.mesh.cilium.io"]
+          - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
+            aliases: ["c.${DNS_BIOHAZARD}", "chise.${DNS_BIOHAZARD}", "biohazard.mesh.cilium.io"]
+          - ip: "${IP_HERCULES}"
+            aliases: ["hercules.mesh.cilium.io"]
+      time:
+        disabled: false
+        servers: ["${IP_ROUTER_LAN}"]
+        bootTimeout: 2m0s
+
+  - &clusterPatch |-
+    cluster:
+      allowSchedulingOnMasters: true
+      allowSchedulingOnControlPlanes: true
+      discovery:
+        enabled: true
+        registries:
+          kubernetes:
+            disabled: false
+          service:
+            disabled: true
+      proxy:
+        disabled: true
+
+  - &kubePrism |-
+    machine:
+      features:
+        kubePrism:
+          enabled: true
+          port: 7445
+
+  - &kubeletSubnet |-
+    machine:
+      kubelet:
+        nodeIP:
+          validSubnets:
+            - "${IP_ROUTER_VLAN_K8S_CIDR}"
+
+  - &kubeletConfig |-
+    machine:
+      kubelet:
+        extraConfig:
+          maxPods: 200
+
+  # patch containerd for spegel (discard)
+  - |-
+    machine:
+      files:
+        - op: create
+          path: /etc/cri/conf.d/20-customization.part
+          permissions: 0o644
+          content: |
+            [plugins."io.containerd.grpc.v1.cri"]
+              enable_unprivileged_ports = true
+              enable_unprivileged_icmp = true
+            [plugins."io.containerd.grpc.v1.cri".containerd]
+              discard_unpacked_layers = false
+
+controlPlane:
+  patches:
+
+    - &apiServerExtraArgs |-
+      - op: add
+        path: /cluster/apiServer/extraArgs
+        value:
+          feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
+
+    - &apiServerResources |-
+      cluster:
+        apiServer:
+          resources:
+            requests:
+              cpu: 200m
+              memory: 2Gi
+            limits:
+              memory: 8Gi
+
+    - &nodeCidrSize |-
+      - op: add
+        path: /cluster/controllerManager/extraArgs
+        value:
+          node-cidr-mask-size: 24
+
+    - &etcdSubnetMetrics |-
+      cluster:
+        etcd:
+          advertisedSubnets:
+            - "${IP_ROUTER_VLAN_K8S_CIDR}"
+          extraArgs:
+            listen-metrics-urls: "http://0.0.0.0:2381"

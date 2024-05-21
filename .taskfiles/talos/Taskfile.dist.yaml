@@ -8,6 +8,9 @@ includes:
   cluster:
     internal: true
     taskfile: ../cluster
+  # bootstrap:
+  #   internal: true
+  #   taskfile: ../bootstrap
 
 vars:
   C: '{{.C | default "biohazard"}}'
@@ -18,12 +21,27 @@ tasks:
     dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
     vars:
       C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+    # dotenv:
+    #   - "/{{.ROOT_DIR}}/.taskfiles/talos/talhelper-secrets-1p.env"
+    env:
+      cluster_id: "op://{{.C}}/.{{.C}}-talos/Secrets/cluster_id"
+      cluster_secret: "op://{{.C}}/.{{.C}}-talos/Secrets/cluster_secret"
+      secrets_bootstraptoken: "op://{{.C}}/.{{.C}}-talos/Secrets/secrets_bootstraptoken"
+      secrets_secretboxencryptionsecret: "op://{{.C}}/.{{.C}}-talos/Secrets/secrets_secretboxencryptionsecret"
+      trustdinfo_token: "op://{{.C}}/.{{.C}}-talos/Secrets/trustdinfo_token"
+      certs_etcd_crt: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_etcd_crt"
+      certs_etcd_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_etcd_key"
+      certs_k8s_crt: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_k8s_crt"
+      certs_k8s_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_k8s_key"
+      certs_k8saggregator_crt: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_k8saggregator_crt"
+      certs_k8saggregator_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_k8saggregator_key"
+      certs_k8sserviceaccount_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_k8sserviceaccount_key"
+      certs_os_crt: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_os_crt"
+      certs_os_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_os_key"
     cmds:
       - pwd
-      - sops --decrypt {{.ROOT_DIR}}/kube/clusters/{{.C}}/config/vars.sops.env | sops --config {{.ROOT_DIR}}/.sops-stdin.yaml --encrypt --output-type yaml --output ./talenv.sops.yaml /dev/stdin
-      - talhelper genconfig -e ./talenv.sops.yaml
-      - defer: rm -rf ./talenv.sops.yaml
-
+      - op user get --me # check signin status, fail if not signed in
+      - op run -- task --taskfile /{{.ROOT_DIR}}/.taskfiles/bootstrap/Taskfile.dist.yaml 1p-vars-env-run C={{.C}} -- talhelper genconfig
 
   bootstrap:
     aliases: [bs]
@@ -42,13 +60,13 @@ tasks:
       - until talosctl kubeconfig --talosconfig /{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos/clusterconfig/talosconfig --endpoints {{.IP}} --nodes {{.IP}} --context {{.C}} ; do sleep 1; done
       - |
         sed -i 's/current-context: admin@.*/current-context: admin@{{.C}}/g' ~/.kube/config || true
-      - task: cilium-bootstrap-apply
-        vars:
-          C: '{{.C | default "biohazard"}}'
-      - task: cluster:cluster-init-config
-        vars:
-          C: '{{.C | default "biohazard"}}'
-          APPLY: "1"
+      # - task: cilium-bootstrap-apply
+      #   vars:
+      #     C: '{{.C | default "biohazard"}}'
+      # - task: cluster:cluster-init-config
+      #   vars:
+      #     C: '{{.C | default "biohazard"}}'
+      #     APPLY: "1"
 
   reboot:
     desc: Reboot nodes based on Kubernetes InternalIP. Assumes only 1 IP in InternalIP, and the IP known to Kubernetes is the same used by `talosctl`.

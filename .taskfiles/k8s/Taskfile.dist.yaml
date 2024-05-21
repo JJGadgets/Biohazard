@@ -25,12 +25,13 @@ tasks:
       NAME: &name-fail '{{ or .NAME (fail "Missing `NAME` environment variable!") }}'
       NS: *ns-fail
     cmds:
-      - until [[ $(kubectl -n {{.NS}} get pod {{.NAME}} -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
+      - |
+        until [[ $(kubectl -n {{.NS}} get pod {{.NAME}} -o jsonpath='{.items[*].status.phase}') == "Pending" ]]; do sleep 1; done
 
   wait-pod-running:
     aliases: [waitr]
     internal: true
-    desc: Wait for a job's pod to change its status to running
+    desc: "Wait for a job's pod to change its status to running"
     vars:
       NAME: *name-fail
       NS: *ns-fail
@@ -44,7 +45,8 @@ tasks:
       NAME: *name-fail
       NS: *ns-fail
     cmds:
-      - until kubectl wait pod -n {{.NS}} {{.NAME}} --for-jsonpath='{.items[*].status.phase}'=Running --timeout=-; do sleep 1; done
+      - |
+        until kubectl wait pod -n {{.NS}} {{.NAME}} --for-jsonpath='{.items[*].status.phase}'=Running --timeout=-; do sleep 1; done
 
   wait-pod-ready:
     internal: true
@@ -134,8 +136,8 @@ tasks:
   shortnames:
     desc: List all installed CRDs and their short names.
     cmds:
-      - |-
-        kubectl get crds -o jsonpath='{range .items[*]}{.spec.names.kind}: {.spec.names.shortNames}{"\n"}{end}'
+      - |
+        kubectl get crds -o jsonpath '{range .items[*]}{.spec.names.kind}: {.spec.names.shortNames}{"\n"}{end}'
 
   clear-old-pods:
     aliases: [cop]
@@ -146,6 +148,20 @@ tasks:
           kubectl delete pod -A --field-selector=status.phase==Failed || true;
           kubectl delete pod -A --field-selector=status.phase==Succeeded || true;
         done
+
+  delete-stuck-pvc:
+    aliases: [delpvc]
+    desc: Delete PVC which is stuck, e.g. if it's a local-path PVC and the node has been wiped and reset.
+    vars:
+      NS: '{{ or .NS (fail "Missing `NS` environment variable!") }}'
+      PVC: '{{ or .PVC (fail "Missing `PVC` environment variable!") }}'
+    cmds:
+      - |
+        kubectl delete pvc -n {{.NS}} {{.PVC}} --wait=false
+      - |
+        kubectl patch pvc -n {{.NS}} {{.PVC}} --type='json' -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
+      - |
+        until kubectl wait --for=delete pvc -n {{.NS}} {{.PVC}} --timeout=3600s; do sleep 1; done
 
   iperf2:
     desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.

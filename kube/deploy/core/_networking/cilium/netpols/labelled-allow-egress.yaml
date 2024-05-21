@@ -176,7 +176,7 @@ spec:
     matchLabels:
       egress.home.arpa/r2: allow
   egress:
-    - toFQDNs:
+    - toFQDNs: &dns
         - matchPattern: "*.r2.cloudflarestorage.com"
       toPorts:
         - ports:
@@ -184,6 +184,19 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *dns
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -195,7 +208,7 @@ spec:
     matchLabels:
       egress.home.arpa/github: allow
   egress:
-    - toFQDNs:
+    - toFQDNs: &dns
         - matchPattern: "github.com"
         - matchPattern: "*.github.com"
         - matchPattern: "*.github.dev"
@@ -208,6 +221,19 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *dns
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -219,7 +245,7 @@ spec:
     matchLabels:
       egress.home.arpa/discord: allow
   egress:
-    - toFQDNs:
+    - toFQDNs: &dns
         - matchPattern: "discord.com"
         - matchPattern: "*.discord.com"
         - matchPattern: "discordapp.com"
@@ -233,6 +259,19 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *dns
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -244,7 +283,7 @@ spec:
     matchLabels:
       egress.home.arpa/pypi: allow
   egress:
-    - toFQDNs:
+    - toFQDNs: &dns
         - matchPattern: "pypi.org"
       toPorts:
         - ports:
@@ -252,6 +291,19 @@ spec:
               protocol: "TCP"
             - port: "443"
               protocol: "UDP"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *dns
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2

@@ -9,48 +9,50 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: 3.1.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      ${APPNAME}:
         # type: statefulset
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            db.home.arpa/pg: "pg-default"
+            ingress.home.arpa/nginx-internal: allow
+            db.home.arpa/pg: pg-default
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            # egress.home.arpa/internet: "allow"
+            # authentik.home.arpa/https: allow
+            # prom.home.arpa/kps: allow
+            # egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
-              repository: "ghcr.io/${APPNAME}/${APPNAME}"
-              tag: "v"
-            env:
+              repository: ghcr.io/${APPNAME}/${APPNAME}
+              tag: v
+            env: &env
               TZ: "${CONFIG_TZ}"
               _APPNAME_DATABASE_SOURCE:
                 valueFrom:
                   secretKeyRef:
-                    name: "pg-default-pguser-${APPNAME}"
-                    key: "pgbouncer-uri"
+                    name: pg-default-pguser-${APPNAME}
+                    key: pgbouncer-uri
               GTS_STORAGE_S3_ACCESS_KEY:
                 valueFrom:
                   secretKeyRef:
-                    name: "${APPNAME}-data-s3"
-                    key: "AWS_ACCESS_KEY_ID"
+                    name: ${APPNAME}-data-s3
+                    key: AWS_ACCESS_KEY_ID
               GTS_STORAGE_S3_SECRET_KEY:
                 valueFrom:
                   secretKeyRef:
-                    name: "${APPNAME}-media-s3"
-                    key: "AWS_SECRET_ACCESS_KEY"
-            envFrom:
+                    name: ${APPNAME}-media-s3
+                    key: AWS_SECRET_ACCESS_KEY
+            envFrom: &envFrom
               - secretRef:
-                  name: "${APPNAME}-secrets"
+                  name: ${APPNAME}-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -63,6 +65,13 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              #startup:
+              #  enabled: true
         # statefulset:
         #   volumeClaimTemplates:
         #     - name: data
@@ -71,69 +80,66 @@ spec:
         #       accessMode: ReadWriteOnce
         #       advancedMounts:
         #         main: # only container name here
-        #           - path: "/data"
+        #           - path: /data
         #         01-init-${APPNAME}-admin-password:
-        #           - path: "/data"
+        #           - path: /data
         #     - name: backup
         #       accessMode: ReadWriteOnce
         #       size: 20Gi
         #       storageClass: block
         #       globalMounts:
-        #         - path: "/backup"
+        #         - path: /backup
         initContainers:
           01-init-${APPNAME}-admin-password:
+            image: *img
             command:
               - /bin/sh
               - -c
               - "[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin"
-            image: *img
-            imagePullPolicy: IfNotPresent
-            # TODO: add example PVC initContainer mounts to persistence/volumeClaimTemplates
+            securityContext: *sc
+            #resources:
           01-init-db:
             image:
               repository: "ghcr.io/onedr0p/postgres-init"
               tag: "15.5@sha256:70b4c228f2e86de39008a35211c76c1ac6de1dcdf0e908ac09ede6a11e2344e2"
-            imagePullPolicy: IfNotPresent
             envFrom: [secretRef: { name: "${APPNAME}-pg-superuser" }]
+            securityContext: *sc
+            #resources:
     service:
-      main:
+      ${APPNAME}:
+        controller: ${APPNAME}
         ports:
           http:
             port: 8080
-      ssh:
-        enabled: true
+            protocol: HTTP
+            appProtocol: http
+      expose:
         primary: false
-        controller: main
+        controller: ${APPNAME}
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "${APP_DNS_APPNAME}"
           "io.cilium/lb-ipam-ips": "${APP_IP_APPNAME}"
         ports:
           http:
-            enabled: true
             port: 443
             targetPort: 8443
             protocol: HTTPS
           ldap-tcp:
-            enabled: true
             port: 636
             targetPort: 3636
             protocol: TCP
           ldap-udp:
-            enabled: true
             port: 636
             targetPort: 3636
             protocol: UDP
     ingress:
       main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
+        className: nginx-internal
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
             proxy_ssl_name ${APP_DNS_APPNAME};
@@ -147,17 +153,21 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: ${APPNAME}
                   port: http
         tls:
           - hosts: [*host]
       tailscale:
-        enabled: true
-        primary: true
-        className: "tailscale"
+        primary: false
+        className: tailscale
         hosts:
           - host: &host "${APPNAME}.${DNS_TS}"
-            paths: *paths
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  name: frontend
+                  port: http
         tls:
           - hosts: [*host]
     #     dnsConfig:
@@ -166,52 +176,43 @@ spec:
     #           value: "1"
     persistence:
       config:
-        enabled: true
         type: configMap
-        name: "${APPNAME}-config"
+        name: ${APPNAME}-config
         advancedMounts:
           main:
             main:
-              - subPath: "server.toml"
-                path: "/data/server.toml"
-                readOnly: true
+              - subPath: server.toml
+                path: /data/server.toml
       data:
-        enabled: true
-        existingClaim: "${APPNAME}-data"
+        existingClaim: ${APPNAME}-data
         globalMounts:
-          - subPath: "data"
-            path: "/data"
+          - subPath: data
+            path: /data
       nfs:
-        enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
         path: "${PATH_NAS_PERSIST_K8S}"
-        advancedMounts:
-          main:
-            main:
-              - subPath: "${APPNAME}"
-                path: "/nfs"
+        globalMounts:
+          - subPath: ${APPNAME}
+            path: /nfs
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-            readOnly: false
+          - subPath: tmp
+            path: /tmp
       tls:
-        enabled: true
         type: secret
-        name: "${APPNAME}-tls"
+        name: ${APPNAME}-tls
         defaultMode: 0400
         advancedMounts:
           main:
             main:
-              - subPath: "tls.crt"
-                path: "/tls/fullchain.pem"
+              - subPath: tls.crt
+                path: /tls/fullchain.pem
                 readOnly: true
-              - subPath: "tls.key"
-                path: "/tls/privkey.pem"
+              - subPath: tls.key
+                path: /tls/privkey.pem
                 readOnly: true
     configMaps:
       config:
@@ -236,17 +237,20 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_APPNAME}
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
@@ -255,5 +259,13 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/${APPNAME}"
-                    operator: "DoesNotExist"
+                  - key: fuckoff.home.arpa/${APPNAME}
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        controller: ${APPNAME}
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]

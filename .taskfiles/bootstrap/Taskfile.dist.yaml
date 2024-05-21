@@ -1,0 +1,72 @@
+---
+# Tasks related to multi-cluster or cluster-level management, e.g. bootstrap
+version: "3"
+
+includes:
+  flux:
+    internal: true
+    taskfile: ../flux
+
+vars:
+  C: '{{.C | default "biohazard"}}'
+  # APPLY: '{{.APPLY | default "0"}}'
+
+tasks:
+  1p-vars-env-yq:
+    vars:
+      C: &c '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      OUT: &out '{{ .OUT | default "yaml" }}'
+    cmds:
+      - op item get --vault {{.C}} ".{{.C}}-vars" --format=json | yq --input-format json --output-format {{ .OUT | default "yaml" }} '.fields | with(.[]; (.label | key) = "key") | (.[] | select(has("value") | not) | .value) |= "" | from_entries'
+
+  1p-vars-env-shell:
+    aliases: [1penv, openv]
+    vars:
+      C: *c
+      # OUT: *out
+      PRE_ARGS: '{{.PRE_ARGS}}'
+      POST_ARGS: '{{.POST_ARGS}}'
+    cmds:
+      - |
+        {{.PRE_ARGS}}op item get --vault {{.C}} ".{{.C}}-vars" --format=json | yq --input-format json '.fields | with(.[]; (.label | key) = "key") | (.[] | select(has("value") | not) | .value) |= "" | map(.key + "=" + (.value | @sh)) | .[]'{{.POST_ARGS}} {{.CLI_ARGS}}
+
+  1p-vars-env-run:
+    dir: '{{.USER_WORKING_DIR}}'
+    vars:
+      C: &c '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      # OUT: *out
+    cmds:
+      - export $(task --taskfile /{{.ROOT_DIR}}/Taskfile.dist.yaml 1p-vars-env-shell C={{.C}}); {{.CLI_ARGS}}
+
+  k8s-1p-connect-load-credentials:
+    vars:
+      C: *c
+    cmds:
+      - kubectl get namespace external-secrets || kubectl create namespace external-secrets
+      - kubectl get namespace onepassword-connect || kubectl create namespace onepassword-connect
+      # - kubectl delete secret -n onepassword-connect onepassword-connect-secrets || true
+      - op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n external-secrets generic onepassword-connect-secrets --from-file=1password-credentials.json=/dev/stdin
+      - op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n onepassword-connect generic onepassword-connect-secrets --from-file=1password-credentials.json=/dev/stdin
+      # - kubectl rollout restart -n onepassword-connect deploy/onepassword-connect || true
+
+  bootstrap:
+    aliases: [bs]
+    desc: Bootstrap Kubernetes to a GitOps managed stage after OS install.
+    vars:
+      C: *c
+    cmds:
+      - |
+        kubectx || kubectl config current-context; read -p "BOOTSTRAP
+        Press ENTER to confirm the Kubernetes context to bootstrap, or Control+C to exit.
+        > "; read -p "RECONFIRM: Press ENTER again to really confirm.
+        > "
+      - task: flux:install
+      - task: k8s-1p-connect-load-credentials
+        vars:
+          C: *c
+      - task: 1p-vars-env-shell
+        vars:
+          C: *c
+          POST_ARGS: " | kubectl create secret generic -n flux-system sinon-vars --from-env-file=/dev/stdin"
+      - kubectl create secret generic -n flux-system sinon-secrets # currently nothing hopefully maybe?
+      - op read "op://{{.C}}/Flux/agekey" | kubectl create secret generic -n flux-system agekey --from-file=age.agekey=/dev/stdin

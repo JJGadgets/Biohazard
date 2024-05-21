@@ -1,7 +1,7 @@
 ---
 clusterName: biohazard
-talosVersion: v1.5.4
-kubernetesVersion: v1.28.2
+talosVersion: v1.6.4
+kubernetesVersion: v1.29.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -155,8 +155,11 @@ patches:
     machine:
       udev:
         rules:
-          - |-
-            ATTR{queue/scheduler}="none"
+          # set all disks to `none` scheduler (optimal setting for Ceph and ZFS)
+          - SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", ATTR{queue/scheduler}="none"
+          # allow GID 44 (video) to use Intel GPU
+          #- SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
+          - SUBSYSTEM=="drm", GROUP="44", MODE="0660"
 
   - &kubeletExtraArgs |-
     - op: add
@@ -227,20 +230,6 @@ patches:
         extraConfig:
           maxPods: 200
 
-  # Rook Ceph encrypted OSDs
-  # TODO: https://github.com/siderolabs/talos/issues/3129
-  - |-
-    machine:
-      files:
-        - op: overwrite
-          path: /etc/lvm/lvm.conf
-          permissions: 0o644
-          content: |
-            backup {
-                    backup = 0
-                    archive = 0
-            }
-
   # patch containerd for spegel (discard)
   - |-
     machine:
@@ -262,7 +251,7 @@ controlPlane:
       - op: add
         path: /cluster/apiServer/extraArgs
         value:
-          feature-gates: CronJobTimeZone=true,GracefulNodeShutdown=true,ServerSideApply=true
+          feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
 
     - &apiServerResources |-
       cluster:

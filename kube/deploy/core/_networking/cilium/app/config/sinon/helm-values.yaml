@@ -1,10 +1,10 @@
 ---
 ## NOTE: required for Talos
 securityContext:
-  privileged: true
+  #privileged: true
   capabilities:
-    ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
-    cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+    ciliumAgent: [CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID]
+    cleanCiliumState: [NET_ADMIN,SYS_ADMIN,SYS_RESOURCE]
 cgroup:
   autoMount:
     enabled: false
@@ -12,8 +12,8 @@ cgroup:
 
 ## NOTE: Cluster identification, mainly for ClusterMesh
 cluster:
-  name: "biohazard"
-  id: "1"
+  name: "sinon"
+  id: "2"
 
 ## NOTE: ClusterMesh, for connecting multiple clusters
 # clustermesh:
@@ -66,11 +66,11 @@ operator:
 ## NOTE: Cilium L2 LoadBalancer service IP announcements
 externalIPs:
   enabled: true
-#l2announcements:
-#  enabled: false
-#  leaseDuration: "120s"
-#  leaseRenewDeadline: "60s"
-#  leaseRetryPeriod: "1s"
+l2announcements:
+  enabled: true
+  leaseDuration: "120s"
+  leaseRenewDeadline: "60s"
+  leaseRetryPeriod: "1s"
 k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
   qps: 50
   burst: 100
@@ -88,8 +88,6 @@ socketLB:
 
 bgpControlPlane:
   enabled: true
-  ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
-  ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
 localRedirectPolicy: false
 nodePort:
   enabled: true
@@ -98,13 +96,6 @@ bandwidthManager:
   enabled: true
   bbr: false # enable after Talos kernel updated to >= 5.18
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
-### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled
-### endpointStatus no longer enabled since it can cause large apiserver resource usage and latency spikes, check Cilium docs on alternative
-enableCnpStatusUpdates: false
-endpointStatus:
-  enabled: false
-# wellKnownIdentities: # for use in netpols, by having well-known endpoint labels # TODO: broken on 1.14?
-#   enabled: true
 
 ## NOTE: Hubble observability
 hubble:

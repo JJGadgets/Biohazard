@@ -6,8 +6,21 @@ version: "3"
 
 tasks:
   install:
+    vars:
+      FLUXDIR:
+        sh: mktemp -d
+      # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
+      FLUX_DEFAULT_VERSION: "v2.2.3"
+      FLUXVER: '{{ .FLUXVER | default .FLUX_DEFAULT_VERSION }}'
+      C: '{{ .C | default "biohazard" }}'
     cmds:
-      - kubectl apply --server-side --kustomize /{{.ROOT_DIR}}/kube/bootstrap/flux/
+      #- defer: rm {{.FLUXDIR}}/*.yaml && rmdir {{.FLUXDIR}}
+      - flux pull artifact oci://ghcr.io/fluxcd/flux-manifests:{{.FLUXVER}} --output {{.FLUXDIR}}
+      - |
+        kubectx || kubectl config current-context; read -p "Press ENTER to confirm the Kubernetes context to install Flux to, or Control+C to exit.
+        > "
+      - flux build kustomization zzz-flux --path {{.FLUXDIR}} --kustomization-file /{{.ROOT_DIR}}/kube/bootstrap/flux/flux-install-localhost.yaml --dry-run | kubectl delete -f -
+      - flux build kustomization zzz-flux --path {{.FLUXDIR}} --kustomization-file /{{.ROOT_DIR}}/kube/bootstrap/flux/flux-install-localhost.yaml --dry-run | kubectl apply --server-side -f -
 
   get-all-watch:
     aliases: [ga, fga, getall]

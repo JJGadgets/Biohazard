@@ -9,7 +9,7 @@ spec:
   interval: 10m
   url: oci://ghcr.io/fluxcd/flux-manifests
   ref:
-    tag: v2.2.3
+    tag: "${FLUXCD_VERSION:=v2.2.3}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -56,6 +56,16 @@ spec:
           path: /spec/template/spec/containers/0/readinessProbe
         - op: remove
           path: /spec/template/spec/containers/0/ports
+        - op: add
+          path: /spec/template/spec/containers/0/env/-
+          value:
+            name: KUBERNETES_SERVICE_HOST
+            value: "127.0.0.1"
+        - op: add
+          path: /spec/template/spec/containers/0/env/-
+          value:
+            name: KUBERNETES_SERVICE_PORT
+            value: "6443"
         - op: add
           path: /spec/template/spec/containers/0/env/-
           value:
@@ -160,6 +170,13 @@ spec:
       target:
         kind: Deployment
         name: notification-controller
+    - patch: |
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
+          value: --events-addr=http://127.0.0.1:9690/
+      target:
+        kind: Deployment
+        name: "(kustomize-controller|helm-controller|source-controller)"
     # cgroups
     - patch: |
         - op: add
@@ -191,9 +208,6 @@ spec:
     # Increase the number of reconciliations that can be performed in parallel and bump the resources limits
     # https://fluxcd.io/flux/cheatsheets/bootstrap/#increase-the-number-of-workers
     - patch: |
-        - op: add
-          path: /spec/template/spec/containers/0/args/-
-          value: --events-addr=http://127.0.0.1:9690/
         - op: add
           path: /spec/template/spec/containers/0/args/-
           value: --concurrent=100
@@ -250,7 +264,7 @@ spec:
         - op: add
           path: /metadata/annotations
           value:
-            secret.reloader.stakater.com/reload: biohazard-vars,biohazard-secrets
+            secret.reloader.stakater.com/reload: biohazard-vars,biohazard-secrets,nuclear-vars,nuclear-secrets,herclues-vars,hercules-secrets,sinon-vars,sinon-secrets
       target:
         kind: Deployment
         name: kustomize-controller

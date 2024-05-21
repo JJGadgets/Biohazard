@@ -6,7 +6,7 @@ version: "3"
   # NS: '{{.NS | default "pg"}}'
 
 tasks:
-  rw:
+  cnpg-rw:
     desc: Get current CloudNativePG master (writable) instance to run command against.
     dir: "{{.USER_WORKING_DIR}}"
     vars:
@@ -21,6 +21,25 @@ tasks:
       # NS: &ns-default '{{.NS | default "pg"}}'
     cmds:
       - kubectl get clusters.postgresql.cnpg.io -n {{.NS}} {{.PG}} -o yaml | yq '.status.currentPrimary' | xargs -o -I% kubectl -n {{.NS}} {{.CLI_ARGS}}
+
+  crunchy-master:
+    desc: Get current Crunchy-PGO master (writable) instance to run command against.
+    dir: "{{.USER_WORKING_DIR}}"
+    vars:
+      APP: "{{.APP}}"
+      PG: &pg-default
+        sh: |-
+          [[ -n "{{.PG}}" ]] && ( echo -n "{{.PG}}" && exit 0 ) || ( [[ -n "{{.APP}}" ]] && echo -n "pg-{{.APP}}" || echo -n "pg-default" )
+      NS: &ns-default
+        sh: |-
+          [[ -n "{{.NS}}" ]] && echo -n "{{.NS}}" || ( [[ -n "{{.APP}}" ]] && echo -n "{{.APP}}" || echo -n "pg" )
+      MASTER:
+        sh: |-
+          kubectl get pod -n {{.NS}} -l postgres-operator.crunchydata.com/cluster={{.PG}},postgres-operator.crunchydata.com/role=master -o name
+      # PG: '{{ or .PG (fail "Missing `PG` environment variable!") }}'
+      # NS: &ns-default '{{.NS | default "pg"}}'
+    cmds:
+      - kubectl exec -it -n {{.NS}} {{.MASTER}} --container database -- {{.CLI_ARGS}}
 
   adminer:
     desc: Use kubectl netshoot krew plugin to deploy adminer as sidecar to the current primary CNPG replica pod.
@@ -98,3 +117,13 @@ tasks:
     cmds:
       - kubectl exec -it --container database -n {{.NS}} {{.CRUNCHY_PRIMARY}} -- /bin/bash -c 'rm -rf {{.CP_DIR}}/dump.psql && pg_dump --dbname {{.DBNAME}} {{.ARGS}} --file {{.CP_DIR}}/dump.psql'
       - kubectl cp --container database {{.NS}}/{{.CRUNCHY_PRIMARY}}:{{.CP_DIR}}/dump.psql {{.DUMP}}
+
+  crunchy-expire:
+    desc: Expire unused backups on dedicated pgBackRest repo host pod of a CrunchyData Postgres cluster.
+    dir: "{{.USER_WORKING_DIR}}"
+    vars:
+      APP: "{{.APP}}"
+      PG: *pg-default
+      NS: *ns-default
+    cmds:
+      - kubectl get pods -n {{.NS}} -l postgres-operator.crunchydata.com/pgbackrest-dedicated=,postgres-operator.crunchydata.com/cluster={{.PG}} -o name | xargs -oI% kubectl exec -it -n {{.NS}} % -c pgbackrest -- pgbackrest expire --stanza=db --repo=1 --repo1-retention-full=1 --repo1-retention-diff=1

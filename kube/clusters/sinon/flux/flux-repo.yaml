@@ -9,8 +9,8 @@ spec:
   url: ssh://git@github.com/JJGadgets/Biohazard
   ref:
     branch: main
-  secretRef:
-    name: github-ssh
+  #secretRef:
+  #  name: github-ssh
   ignore: |
     # exclude all to whitelist
     /*
@@ -20,7 +20,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 0-biohazard-config
+  name: 0-sinon-config
   # I wanna see it on the top lol
   namespace: flux-system
   labels:
@@ -30,7 +30,7 @@ metadata:
     kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   interval: 5m0s
-  path: ./kube/clusters/biohazard/flux
+  path: ./kube/clusters/sinon/flux
   prune: false
   wait: false
   sourceRef:
@@ -46,13 +46,13 @@ spec:
       FLUXCD_VERSION: "v2.2.3"
     substituteFrom:
       - kind: Secret
-        name: biohazard-vars
+        name: sinon-vars
         optional: false
       - kind: Secret
-        name: biohazard-secrets
+        name: sinon-secrets
         optional: false
       # - kind: ConfigMap
-      #   name: biohazard-versions
+      #   name: sinon-versions
       #   optional: false
   patches:
     - patch: |-
@@ -66,7 +66,7 @@ spec:
           decryption:
             provider: sops
             secretRef:
-              name: biohazard-secrets-decrypt-sops-age
+              name: agekey
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -89,7 +89,7 @@ spec:
         - op: add
           path: /spec/dependsOn/-
           value:
-            name: 0-biohazard-config
+            name: 0-sinon-config
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -144,10 +144,10 @@ spec:
           postBuild:
             substituteFrom:
               - kind: Secret
-                name: biohazard-vars
+                name: sinon-vars
                 optional: false
               - kind: Secret
-                name: biohazard-secrets
+                name: sinon-secrets
                 optional: false
       target:
         group: kustomize.toolkit.fluxcd.io
@@ -160,12 +160,12 @@ spec:
         metadata:
           name: not-used
         spec:
-          prune: false
+          prune: true
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: prune.flux.home.arpa/disabled notin (true) # default
+        labelSelector: prune.flux.home.arpa/disabled notin (true)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -201,7 +201,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: wait.flux.home.arpa/disabled notin (true) # default
+        labelSelector: wait.flux.home.arpa/disabled notin (true)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization

@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./externalsecret-secrets.yaml
+  - ./externalsecret-vars.yaml
+#secretGenerator:
+#  - name: biohazard-secrets
+#    namespace: flux-system
+#    envs:
+#      - ./secrets.sops.env
+#  - name: biohazard-vars
+#    namespace: flux-system
+#    envs:
+#      - ./vars.sops.env
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    kustomize.toolkit.fluxcd.io/ssa: "merge"
+    kustomize.toolkit.fluxcd.io/prune: "disabled"
