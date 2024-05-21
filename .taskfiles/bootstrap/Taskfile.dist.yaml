@@ -43,10 +43,12 @@ tasks:
       C: *c
     cmds:
       - kubectl get namespace external-secrets || kubectl create namespace external-secrets
-      - kubectl get namespace onepassword-connect || kubectl create namespace onepassword-connect
       # - kubectl delete secret -n onepassword-connect onepassword-connect-secrets || true
-      - op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n external-secrets generic onepassword-connect-secrets --from-file=1password-credentials.json=/dev/stdin
-      - op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n onepassword-connect generic onepassword-connect-secrets --from-file=1password-credentials.json=/dev/stdin
+      - kubectl delete secret -n external-secrets onepassword-connect-server onepassword-connect-client || true
+      - |
+        op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n external-secrets generic onepassword-connect-server --from-file=1password-credentials.json=/dev/stdin
+      - |
+        op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Access Token: {{.C}}' --format=json | yq '.id')/credential" | kubectl create secret -n external-secrets generic onepassword-connect-client --from-file=token=/dev/stdin
       # - kubectl rollout restart -n onepassword-connect deploy/onepassword-connect || true
 
   bootstrap:
@@ -70,3 +72,5 @@ tasks:
           POST_ARGS: " | kubectl create secret generic -n flux-system sinon-vars --from-env-file=/dev/stdin"
       - kubectl create secret generic -n flux-system sinon-secrets # currently nothing hopefully maybe?
       - op read "op://{{.C}}/Flux/agekey" | kubectl create secret generic -n flux-system agekey --from-file=age.agekey=/dev/stdin
+      - yq '.spec.values | explode(.)' ./kube/deploy/core/secrets/external-secrets/app/hr.yaml | helm install -n external-secrets external-secrets oci://ghcr.io/external-secrets/charts/external-secrets --version $(yq '.spec.chart.spec.version' ./kube/deploy/core/secrets/external-secrets/app/hr.yaml) -f -
+      - kubectl apply --server-side -f /{{.ROOT_DIR}}/kube/clusters/sinon/flux/flux-repo.yaml
