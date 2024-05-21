@@ -61,10 +61,10 @@ spec:
           enabled: true
           className: "nginx-internal"
           hosts:
-            - "${APP_DNS_HUBBLE}"
+            - "${APP_DNS_HUBBLE:=hubble}"
           tls:
             - hosts:
-                - "${APP_DNS_HUBBLE}"
+                - "${APP_DNS_HUBBLE:=hubble}"
       relay:
         prometheus:
           enabled: true

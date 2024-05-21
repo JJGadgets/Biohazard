@@ -62,6 +62,7 @@ kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 rollOutCiliumPods: true
 operator:
   rollOutPods: true
+  replicas: 1 # single node
 
 ## NOTE: Cilium L2 LoadBalancer service IP announcements
 externalIPs:
