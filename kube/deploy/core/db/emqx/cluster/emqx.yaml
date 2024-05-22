@@ -4,12 +4,13 @@ apiVersion: apps.emqx.io/v2beta1
 kind: EMQX
 metadata:
   name: emqx
+  namespace: emqx
 spec:
   image: public.ecr.aws/emqx/emqx:5.6.1
   config:
     # the `$${env}` in the env var means Flux's Kustomize controller should escape the envsubst and output `${env}` exactly
     data: |
-      authentication [{
+      authentication {
         enable = true
         backend = "ldap"
         mechanism = "password_based"
@@ -28,7 +29,7 @@ spec:
           enable = true
           server_name_indication = "emqx-glauth.${DNS_SHORT}"
         }
-      }]
+      }
       authorization {
         sources = [{
           enable = true
