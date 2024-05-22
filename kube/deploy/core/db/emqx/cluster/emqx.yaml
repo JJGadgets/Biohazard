@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/apps.emqx.io/emqx_v2beta1.json
+apiVersion: apps.emqx.io/v2beta1
+kind: EMQX
+metadata:
+  name: emqx
+spec:
+  image: public.ecr.aws/emqx/emqx:5.6.1
+  config:
+    # the `$${env}` in the env var means Flux's Kustomize controller should escape the envsubst and output `${env}` exactly
+    data: |
+      authentication [{
+        enable = true
+        backend = "ldap"
+        mechanism = "password_based"
+        method {
+          type = bind
+          bind_password = "$${password}"
+        }
+        server = "glauth.emqx.svc.cluster.local.:636"
+        query_timeout = "10s"
+        username = "search"
+        password = "file:///secrets/ldap-search.password"
+        pool_size = 1
+        base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
+        filter = "(objectClass=*)"
+        ssl {
+          enable = true
+          server_name_indication = "emqx-glauth.${DNS_SHORT}"
+        }
+      }]
+      authorization {
+        sources = [{
+          enable = true
+          type = ldap
+          publish_attribute = "mqttPublishTopic"
+          subscribe_attribute = "mqttSubscriptionTopic"
+          all_attribute = "mqttPubSubTopic"
+          server = "glauth.emqx.svc.cluster.local.:636"
+          query_timeout = "10s"
+          username = "search"
+          password = "file:///secrets/ldap-search.password"
+          pool_size = 1
+          base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
+          filter = "(objectClass=*)"
+          ssl {
+            enable = true
+            server_name_indication = "emqx-glauth.${DNS_SHORT}"
+          }
+        }]
+        no_match = "deny"
+      }
+  bootstrapAPIKeys:
+    - secretRef:
+        key:
+          secretName: emqx-secrets
+          secretKey: X_EMQX_APIKEY_KEY
+        secret:
+          secretName: emqx-secrets
+          secretKey: X_EMQX_APIKEY_SECRET
+  coreTemplate:
+    spec:
+      replicas: 3
+      envFrom: &envFrom
+        - secretRef:
+            name: emqx-secrets
+      volumeClaimTemplates:
+        storageClassName: local
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+  listenersServiceTemplate:
+    metadata:
+      annotations:
+        coredns.io/hostname: "${APP_DNS_EMQX}"
+        io.cilium/lb-ipam-ips: "${APP_IP_EMQX}"
+    spec:
+      type: LoadBalancer

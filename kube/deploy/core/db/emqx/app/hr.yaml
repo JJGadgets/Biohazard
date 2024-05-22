@@ -1,0 +1,46 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app emqx-operator
+  namespace: emqx
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: emqx-operator
+      version: 2.2.22
+      sourceRef:
+        name: emqx
+        kind: HelmRepository
+        namespace: flux-system
+  dependsOn:
+    - name: cert-manager
+      namespace: cert-manager
+  values:
+    fullnameOverride: *app
+    image:
+      repository: ghcr.io/emqx/emqx-operator
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              labelSelector: control-plane=controller-manager
+            patch: |
+              - op: add
+                path: /spec/template/metadata/labels
+                value:
+                  egress.home.arpa/apiserver: allow
+          - target:
+              kind: ClusterRoleBinding
+            patch: |
+              - op: replace
+                path: /kind
+                value: RoleBinding
+          - target:
+              kind: ClusterRole
+            patch: |
+              - op: replace
+                path: /kind
+                value: RoleBinding
