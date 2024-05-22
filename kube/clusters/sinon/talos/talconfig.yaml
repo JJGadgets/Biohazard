@@ -201,3 +201,23 @@ controlPlane:
             - "${IP_ROUTER_VLAN_K8S_CIDR}"
           extraArgs:
             listen-metrics-urls: "http://0.0.0.0:2381"
+
+    - &scheduler |-
+      cluster:
+        scheduler:
+          config:
+            apiVersion: kubescheduler.config.k8s.io/v1
+            kind: KubeSchedulerConfiguration
+            profiles:
+              - schedulerName: default-scheduler
+                pluginConfig:
+                  - name: PodTopologySpread
+                    args:
+                      defaultingType: List
+                      defaultConstraints:
+                        - maxSkew: 1
+                          topologyKey: "kubernetes.io/hostname"
+                          whenUnsatisfiable: ScheduleAnyway
+                        - maxSkew: 3
+                          topologyKey: "topology.kubernetes.io/zone"
+                          whenUnsatisfiable: ScheduleAnyway
