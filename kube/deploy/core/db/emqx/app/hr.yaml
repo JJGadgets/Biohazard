@@ -29,18 +29,20 @@ spec:
               labelSelector: control-plane=controller-manager
             patch: |
               - op: add
-                path: /spec/template/metadata/labels
-                value:
-                  egress.home.arpa/apiserver: allow
+                path: "/spec/template/metadata/labels/egress.home.arpa~1apiserver"
+                value: allow
+          - target:
+              kind: ClusterRole
+            patch: |
+              - op: replace
+                path: /kind
+                value: Role
           - target:
               kind: ClusterRoleBinding
             patch: |
               - op: replace
                 path: /kind
                 value: RoleBinding
-          - target:
-              kind: ClusterRole
-            patch: |
               - op: replace
-                path: /kind
-                value: RoleBinding
+                path: /roleRef/kind
+                value: Role
