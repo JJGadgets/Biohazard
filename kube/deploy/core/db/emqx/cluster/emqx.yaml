@@ -51,6 +51,14 @@ spec:
         }]
         no_match = "deny"
       }
+      listeners.ssl.default {
+        bind = "0.0.0.0:8883"
+        ssl_options {
+          certfile = "/tls/tls.crt"
+          keyfile = "/tls/tls.key"
+          gc_after_handshake = true
+        }
+      }
   bootstrapAPIKeys:
     - secretRef:
         key:
@@ -71,6 +79,19 @@ spec:
         resources:
           requests:
             storage: 1Gi
+      extraVolumes:
+        - name: emqx-secrets
+          secret:
+            secretName: emqx-secrets
+        - name: tls
+          secret:
+            secretName: short-domain-tls
+      extraVolumeMounts:
+        - name: emqx-secrets
+          subPath: ldap-search.password
+          mountPath: /secrets/ldap-search.password
+        - name: tls
+          mountPath: /tls
   listenersServiceTemplate:
     metadata:
       annotations:
