@@ -31,18 +31,3 @@ spec:
               - op: add
                 path: "/spec/template/metadata/labels/egress.home.arpa~1apiserver"
                 value: allow
-          - target:
-              kind: ClusterRole
-            patch: |
-              - op: replace
-                path: /kind
-                value: Role
-          - target:
-              kind: ClusterRoleBinding
-            patch: |
-              - op: replace
-                path: /kind
-                value: RoleBinding
-              - op: replace
-                path: /roleRef/kind
-                value: Role
