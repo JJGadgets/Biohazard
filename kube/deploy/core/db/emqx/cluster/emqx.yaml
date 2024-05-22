@@ -54,8 +54,8 @@ spec:
       listeners.ssl.default {
         bind = "0.0.0.0:8883"
         ssl_options {
-          certfile = "/tls/tls.crt"
-          keyfile = "/tls/tls.key"
+          certfile = "/tls/cert.pem"
+          keyfile = "/tls/key.pem"
           gc_after_handshake = true
         }
       }
@@ -91,7 +91,11 @@ spec:
           subPath: ldap-search.password
           mountPath: /secrets/ldap-search.password
         - name: tls
-          mountPath: /tls
+          subPath: tls.crt
+          mountPath: /tls/cert.pem
+        - name: tls
+          subPath: tls.key
+          mountPath: /tls/key.pem
   listenersServiceTemplate:
     metadata:
       annotations:
