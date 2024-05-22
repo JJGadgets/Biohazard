@@ -2,16 +2,19 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 1-core-storage-rook-ceph-cluster
+  name: "1-core-storage-rook-ceph-cluster"
   namespace: flux-system
+  labels:
+    prune.flux.home.arpa/disabled: "true"
 spec:
   wait: true
-  path: ./kube/deploy/core/storage/rook-ceph/cluster/app
+  prune: false
+  path: "./kube/deploy/core/storage/rook-ceph/cluster/${CLUSTER_NAME:=biohazard}"
   dependsOn:
-    - name: 0-${CLUSTER_NAME}-config
+    - name: "0-${CLUSTER_NAME}-config"
     - name: 1-core-storage-rook-ceph-app
   healthChecks:
     - apiVersion: ceph.rook.io/v1
       kind: CephCluster
-      name: "${CLUSTER_NAME}"
+      name: "${CLUSTER_NAME:=biohazard}"
       namespace: rook-ceph

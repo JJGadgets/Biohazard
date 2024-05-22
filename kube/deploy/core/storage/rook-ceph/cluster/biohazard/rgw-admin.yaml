@@ -1,0 +1,24 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: rgw-biohazard-admin
+  namespace: rook-ceph
+spec:
+  store: biohazard
+  displayName: rgw-biohazard-admin
+  capabilities:
+    user: "*"
+    bucket: "*"
+    usage: "*"
+    metadata: "*"
+    zone: "*"
+    roles: "*"
+    info: "*"
+    amz-cache: "*"
+    bilog: "*"
+    mdlog: "*"
+    datalog: "*"
+    user-policy: "*"
+    oidc-provider: "*"
+    ratelimit: "*"

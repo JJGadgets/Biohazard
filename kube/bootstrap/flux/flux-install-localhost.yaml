@@ -100,6 +100,10 @@ spec:
                   labelSelector:
                     matchLabels:
                       flux: localhost
+        - op: replace
+          path: /spec/strategy
+          value:
+            type: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
       target:
         kind: Deployment
     - patch: |

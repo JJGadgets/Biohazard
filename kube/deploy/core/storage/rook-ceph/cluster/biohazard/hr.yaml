@@ -1,0 +1,391 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  #name: "rook-ceph-cluster-${CLUSTER_NAME:=biohazard}"
+  name: "rook-ceph-cluster-biohazard" # TODO: envsubst in HR currently breaks flux-local, hardcode cluster name for now since not using Ceph in multi k8s clusters as of this commit
+  namespace: rook-ceph
+  labels:
+    helm.flux.home.arpa/default: "false"
+    kustomize.toolkit.fluxcd.io/prune: Disabled
+spec:
+  interval: 5m
+  timeout: 1h
+  maxHistory: 10
+  install:
+    crds: CreateReplace
+    createNamespace: true
+    remediation:
+      retries: 5
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      retries: 5
+      strategy: rollback
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  uninstall:
+    keepHistory: false
+  chart:
+    spec:
+      chart: rook-ceph-cluster
+      version: "v1.13.4"
+      sourceRef:
+        name: rook-ceph
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    clusterName: "${CLUSTER_NAME:=biohazard}"
+    operatorNamespace: "rook-ceph"
+    configOverride: |
+      [global]
+      bdev_enable_discard = true
+      bdev_async_discard = true
+      osd_class_update_on_start = false
+      osd_pool_default_size = 3
+      osd_pool_default_min_size = 2
+      mon_data_avail_warn = 10
+    cephClusterSpec:
+      cephVersion:
+        image: "quay.io/ceph/ceph:v18.2.0" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
+      network:
+        provider: host
+        addressRanges:
+          public: ["${IP_VLAN_CEPH_CIDR}"]
+        connections:
+          requireMsgr2: true
+          encryption:
+            enabled: false # TODO: 2023-11-23 disabled to test speeds with compression without encryption
+          compression:
+            enabled: false
+      crashCollector:
+        disable: true
+      dashboard:
+        enabled: true
+        urlPrefix: "/"
+        ssl: false
+        prometheusEndpoint: "http://vmsingle-victoria.monitoring.svc.cluster.local:8429"
+      labels:
+        mgr:
+          ingress.home.arpa/nginx-internal: "allow"
+          prom.home.arpa/kps: "allow"
+          tailscale.com/expose: "true"
+          egress.home.arpa/kps: "allow"
+      mon:
+        count: 3
+        allowMultiplePerNode: false
+      mgr:
+        count: 2
+        allowMultiplePerNode: false
+        modules:
+          - name: "pg_autoscaler"
+            enabled: true
+          - name: "diskprediction_local"
+            enabled: true
+      removeOSDsIfOutAndSafeToRemove: false
+      storage:
+        useAllNodes: false
+        useAllDevices: false
+        config:
+          encryptedDevice: "true"
+          osdsPerDevice: "1"
+        nodes:
+          - name: "ange"
+            devicePathFilter: &osd-s3500-1-6tb "^/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4.*"
+          - name: "charlotte"
+            devicePathFilter: *osd-s3500-1-6tb
+          - name: "chise"
+            devicePathFilter: *osd-s3500-1-6tb
+      placement:
+        all:
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+      resources:
+        mgr:
+          requests:
+            cpu: "150m"
+            memory: "512Mi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        mon:
+          requests:
+            cpu: "100m"
+            memory: "500Mi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        osd:
+          requests:
+            cpu: "500m"
+            memory: "3Gi"
+          limits:
+            # cpu: "999999m"
+            cpu: "2000m" # 2023-12-22: re-enabled CPU limits becaues 3 8th gen Intel CPUs aren't enough for the rest of my workloads apparently
+            memory: "10Gi"
+        mgr-sidecar:
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "1000m"
+            memory: "500Mi"
+        crashcollector:
+          requests:
+            cpu: "15m"
+            memory: "64Mi"
+          limits:
+            memory: "64Mi"
+        logcollector:
+          requests:
+            cpu: "50m"
+            memory: "100Mi"
+          limits:
+            memory: "1Gi"
+        cleanup:
+          requests:
+            cpu: "250m"
+            memory: "100Mi"
+          limits:
+            memory: "1Gi"
+        exporter:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "250m"
+            memory: "128Mi"
+    cephBlockPools:
+      - name: "${CLUSTER_NAME}-block-k8s-ssd"
+        spec:
+          failureDomain: "host"
+          deviceClass: "ssd"
+          replicated:
+            size: 3
+          parameters:
+            min_size: "2"
+            compression_mode: "aggressive"
+            compression_algorithm: "lz4"
+        storageClass: &rbd-sc
+          enabled: true
+          name: "block"
+          isDefault: true
+          reclaimPolicy: "Delete"
+          allowVolumeExpansion: true
+          mountOptions: ["discard"]
+          parameters:
+            imageFormat: "2"
+            imageFeatures: "layering,exclusive-lock,object-map,fast-diff,deep-flatten" # https://docs.ceph.com/en/quincy/rbd/rbd-config-ref/#image-features
+            csi.storage.k8s.io/provisioner-secret-name: "rook-csi-rbd-provisioner"
+            csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-rbd-provisioner"
+            csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/node-stage-secret-name: "rook-csi-rbd-node"
+            csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/fstype: "ext4"
+      # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "ssd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 1
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "lz4"
+      #   storageClass:
+      #     <<: *rbd-sc
+      #     name: "block-ssd-ec-2-1"
+      #     isDefault: false
+      # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
+      #   spec:
+      #     failureDomain: "osd"
+      #     deviceClass: "hdd"
+      #     erasureCoded:
+      #       dataChunks: 2
+      #       codingChunks: 2
+      #     parameters:
+      #       min_size: "2"
+      #       compression_mode: "aggressive"
+      #       compression_algorithm: "zstd"
+      #   storageClass:
+      #     <<: *rbd-sc
+      #     name: "block-hdd-ec-2-2"
+      - name: "games-ec-2-1"
+        spec:
+          failureDomain: "osd"
+          deviceClass: "ssd"
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            min_size: "3"
+            compression_mode: "aggressive"
+            compression_algorithm: "lz4" # some games compress pretty good
+        storageClass:
+          enabled: false # only my gaming PC will be accessing this
+      - name: "builtin-mgr"
+        spec:
+          name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
+          failureDomain: "host"
+          deviceClass: "ssd"
+          replicated:
+            size: 3 # https://github.com/rook/rook/discussions/13178
+            requireSafeReplicaSize: true
+          parameters:
+            min_size: "2"
+            compression_mode: "none"
+        storageClass:
+          enabled: false # ain't nothin' touchin' the mgr pool lol
+    cephBlockPoolsVolumeSnapshotClass:
+      enabled: true
+      name: "block"
+      isDefault: true
+      deletionPolicy: "Delete"
+    cephFileSystems:
+      - &cephfs
+        name: &fs "${CLUSTER_NAME}-fs"
+        spec: &cephfsSpec
+          preserveFilesystemOnDelete: true
+          metadataPool:
+            failureDomain: "host"
+            deviceClass: "ssd"
+            replicated:
+              size: 3
+          dataPools:
+            - &cephfsData
+              name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
+              failureDomain: "host"
+              deviceClass: "ssd"
+              replicated:
+                size: 3
+              parameters:
+                min_size: "2"
+                compression_mode: "aggressive"
+                compression_algorithm: "zstd"
+          metadataServer:
+            activeCount: 3 # 3 active 3 standby
+            activeStandby: true
+            placement:
+              topologySpreadConstraints:
+                - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
+                  topologyKey: "kubernetes.io/hostname"
+                  whenUnsatisfiable: "DoNotSchedule"
+                  labelSelector:
+                    matchLabels:
+                      rook_file_system: *fs
+            resources:
+              requests:
+                cpu: 100m
+                memory: 2Gi
+              limits:
+                cpu: 2000m # 2 cores
+                memory: 4Gi
+        storageClass: &cephfsSC
+          enabled: true
+          isDefault: false
+          name: "file"
+          pool: *fsdata0
+          reclaimPolicy: "Delete"
+          allowVolumeExpansion: true
+          # mountOptions: ["discard"]
+          parameters:
+            csi.storage.k8s.io/provisioner-secret-name: "rook-csi-cephfs-provisioner"
+            csi.storage.k8s.io/provisioner-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/controller-expand-secret-name: "rook-csi-cephfs-provisioner"
+            csi.storage.k8s.io/controller-expand-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
+            csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
+            csi.storage.k8s.io/fstype: "ext4"
+      # - <<: *cephfs
+      #   name: &fs "nas"
+      #   spec:
+      #     <<: *cephfsSpec
+      #     dataPools:
+      #       - <<: *cephfsData
+      #         name: "nas-data0"
+      #     metadataServer:
+      #       activeCount: 3 # 3 active 3 standby
+      #       activeStandby: true
+      #       placement:
+      #         topologySpreadConstraints:
+      #           - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
+      #             topologyKey: "kubernetes.io/hostname"
+      #             whenUnsatisfiable: "DoNotSchedule"
+      #             labelSelector:
+      #               matchLabels:
+      #                 rook_file_system: *fs
+      #   storageClass:
+      #     enabled: false # Samba vfs_ceph &/or Ceph NFS
+    cephFileSystemVolumeSnapshotClass:
+      enabled: true
+      name: "file"
+      isDefault: false
+      deletionPolicy: Delete
+    cephObjectStores:
+      - name: &rgw "${CLUSTER_NAME}"
+        spec:
+          preservePoolsOnDelete: true
+          metadataPool:
+            failureDomain: "host"
+            deviceClass: "ssd"
+            replicated:
+              size: 3
+          dataPool:
+            failureDomain: "host"
+            deviceClass: "ssd"
+            replicated:
+              size: 3
+          healthCheck:
+            bucket:
+              interval: "60s"
+          gateway:
+            labels: # netpols
+              tailscale.com/expose: "true"
+            instances: 2
+            hostNetwork: false
+            port: 6953
+            securePort: 53443
+            sslCertificateRef: "short-domain-tls"
+            priorityClassName: "system-cluster-critical"
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 2Gi
+        ingress:
+          enabled: true
+          ingressClassName: "nginx-internal"
+          annotations:
+            nginx.ingress.kubernetes.io/custom-http-errors: "404,502"
+            nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+          host:
+            name: &rgw-host "${APP_DNS_RGW_S3}"
+            path: "/"
+          tls:
+            - hosts: [*rgw-host]
+        storageClass:
+          enabled: true
+          name: "rgw-${CLUSTER_NAME}"
+          reclaimPolicy: "Delete"
+          volumeBindingMode: "Immediate"
+          parameters:
+            region: "us-east-1"
+    monitoring:
+      enabled: true
+      createPrometheusRules: true
+    ingress:
+      dashboard:
+        ingressClassName: "nginx-internal"
+        host:
+          name: &dashboard-host "${APP_DNS_CEPH}"
+          path: "/"
+        tls:
+          - hosts:
+              - *dashboard-host
+    pspEnable: false
