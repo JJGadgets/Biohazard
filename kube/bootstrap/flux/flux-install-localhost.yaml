@@ -156,7 +156,17 @@ spec:
     - patch: |
         - op: add
           path: /spec/template/spec/containers/0/args/-
+          value: --events-addr=http://127.0.0.1:9690/
+      target:
+        kind: Deployment
+        name: "(kustomize-controller|helm-controller|source-controller)"
+    - patch: |
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
           value: --events-addr=127.0.0.1:9690
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
+          value: --receiverAddr=:59292
         - op: add
           path: /spec/template/spec/containers/0/env/-
           value:
@@ -171,12 +181,16 @@ spec:
         kind: Deployment
         name: notification-controller
     - patch: |
-        - op: add
-          path: /spec/template/spec/containers/0/args/-
-          value: --events-addr=http://127.0.0.1:9690/
+        - op: replace
+          path: /spec/ports
+          value:
+            - name: http
+              port: 80
+              protocol: TCP
+              targetPort: 59292 # use number since we removed containerPorts
       target:
-        kind: Deployment
-        name: "(kustomize-controller|helm-controller|source-controller)"
+        kind: Service
+        name: webhook-receiver
     # cgroups
     - patch: |
         - op: add

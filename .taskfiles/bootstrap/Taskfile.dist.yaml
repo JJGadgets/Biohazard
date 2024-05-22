@@ -43,12 +43,13 @@ tasks:
       C: *c
     cmds:
       - kubectl get namespace external-secrets || kubectl create namespace external-secrets
-      # - kubectl delete secret -n onepassword-connect onepassword-connect-secrets || true
       - kubectl delete secret -n external-secrets onepassword-connect-server onepassword-connect-client || true
       - |
         op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Credentials File' --format=json | yq '.id')/1password-credentials.json" | kubectl create secret -n external-secrets generic onepassword-connect-server --from-file=1password-credentials.json=/dev/stdin
       - |
-        op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Access Token: {{.C}}' --format=json | yq '.id')/credential" | kubectl create secret -n external-secrets generic onepassword-connect-client --from-file=token=/dev/stdin
+        op read "op://{{.C}}/$(op item get --vault {{.C}} '{{.C}} Access Token: {{.C}}' --format=json | yq '.id')/credential" | tr -d '\n' | kubectl create secret -n external-secrets generic onepassword-connect-client --from-file=token=/dev/stdin
+      - kubectl get secrets -n external-secrets onepassword-connect-server -o yaml | yq '.data | map_values(@base64d)'
+      - kubectl get secrets -n external-secrets onepassword-connect-client -o yaml | yq '.data | map_values(@base64d)'
       # - kubectl rollout restart -n onepassword-connect deploy/onepassword-connect || true
 
   bootstrap:
