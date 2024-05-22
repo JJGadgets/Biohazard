@@ -221,8 +221,9 @@ spec:
         kind: Deployment
     - patch: |
         - op: replace
-          path: /spec/strategy/type
-          value: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
+          path: /spec/strategy
+          value:
+            type: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
         - op: remove
           path: /spec/strategy/rollingUpdate
       target:
