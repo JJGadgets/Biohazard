@@ -8,7 +8,7 @@ spec:
   interval: 10m0s
   url: ssh://git@github.com/JJGadgets/Biohazard
   ref:
-    branch: main
+    branch: "prune-false" # tmp
   secretRef:
     name: biohazard-flux-github-ssh-key
   ignore: |
@@ -157,7 +157,7 @@ spec:
         metadata:
           name: not-used
         spec:
-          prune: true
+          prune: false
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -181,7 +181,7 @@ spec:
         metadata:
           name: not-used
         spec:
-          prune: true
+          prune: false
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
