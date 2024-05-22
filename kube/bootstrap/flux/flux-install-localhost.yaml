@@ -100,11 +100,6 @@ spec:
                   labelSelector:
                     matchLabels:
                       flux: localhost
-        - op: replace
-          path: /spec/strategy/type
-          value: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
-        - op: remove
-          path: /spec/strategy/rollingUpdate
       target:
         kind: Deployment
     - patch: |
@@ -162,6 +157,11 @@ spec:
         - op: add
           path: /spec/template/spec/containers/0/args/-
           value: --events-addr=http://127.0.0.1:9690/
+        - op: replace
+          path: /spec/strategy/type
+          value: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
+        - op: remove
+          path: /spec/strategy/rollingUpdate
       target:
         kind: Deployment
         name: "(kustomize-controller|helm-controller|source-controller)"
