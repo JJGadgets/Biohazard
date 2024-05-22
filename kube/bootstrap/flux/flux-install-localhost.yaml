@@ -219,15 +219,15 @@ spec:
             - operator: Exists
       target:
         kind: Deployment
-#    - patch: |
-#        - op: replace
-#          path: /spec/strategy
-#          value:
-#            type: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
-#            rollingUpdate: {}
-#      target:
-#        kind: Deployment
-#        name: "(kustomize-controller|helm-controller|notification-controller)"
+    - patch: |
+        - op: replace
+          path: /spec/strategy
+          value:
+            type: Recreate # avoid new pods stuck on CrashLoop because localhost is already binded
+            rollingUpdate: {}
+      target:
+        kind: Deployment
+        name: "(kustomize-controller|helm-controller|notification-controller)"
     # Increase the number of reconciliations that can be performed in parallel and bump the resources limits
     # https://fluxcd.io/flux/cheatsheets/bootstrap/#increase-the-number-of-workers
     - patch: |
