@@ -20,7 +20,7 @@ spec:
         }
         server = "glauth.emqx.svc.cluster.local.:636"
         query_timeout = "10s"
-        username = "search"
+        username = "cn=search,ou=search,ou=users,dc=emqx,dc=io"
         password = "file:///secrets/ldap-search.password"
         pool_size = 1
         base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
@@ -39,7 +39,7 @@ spec:
           all_attribute = "mqttPubSubTopic"
           server = "glauth.emqx.svc.cluster.local.:636"
           query_timeout = "10s"
-          username = "search"
+          username = "cn=search,ou=search,ou=users,dc=emqx,dc=io"
           password = "file:///secrets/ldap-search.password"
           pool_size = 1
           base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
@@ -51,14 +51,15 @@ spec:
         }]
         no_match = "deny"
       }
-      listeners.ssl.default {
-        bind = "0.0.0.0:8883"
-        ssl_options {
-          certfile = "/tls/cert.pem"
-          keyfile = "/tls/key.pem"
-          gc_after_handshake = true
-        }
-      }
+
+#      listeners.ssl.default {
+#        bind = "0.0.0.0:8883"
+#        ssl_options {
+#          certfile = "/tls/cert.pem"
+#          keyfile = "/tls/key.pem"
+#          gc_after_handshake = true
+#        }
+#      }
   bootstrapAPIKeys:
     - secretRef:
         key:
