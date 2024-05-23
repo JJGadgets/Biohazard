@@ -63,6 +63,9 @@ spec:
           path: "/metadata/labels"
           value:
             kustomize.toolkit.fluxcd.io/prune: "disabled"
+        - op: add
+          path: "/metadata/labels/kustomize.toolkit.fluxcd.io~1prune"
+          value: "disabled"
       target:
         kind: Namespace
     - patch: |-
@@ -238,6 +241,9 @@ spec:
                   path: "/metadata/labels"
                   value:
                     kustomize.toolkit.fluxcd.io/prune: "disabled"
+                - op: add
+                  path: "/metadata/labels/kustomize.toolkit.fluxcd.io~1prune"
+                  value: "disabled"
               target:
                 kind: Namespace
             - patch: |-
@@ -245,6 +251,9 @@ spec:
                   path: "/metadata/labels"
                   value:
                     kustomize.toolkit.fluxcd.io/prune: "disabled"
+                - op: add
+                  path: "/metadata/labels/kustomize.toolkit.fluxcd.io~1prune"
+                  value: "disabled"
               target:
                 kind: PersistentVolumeClaim
       target:
