@@ -160,7 +160,7 @@ spec:
       #- name: "${CLUSTER_NAME}-block-k8s-ssd"
       - name: "${CLUSTER_NAME}-block-k8s-hdd"
         spec:
-          failureDomain: "host"
+          failureDomain: "osd"
           deviceClass: "hdd"
           replicated:
             size: 2
@@ -188,7 +188,7 @@ spec:
       - name: "builtin-mgr"
         spec:
           name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
-          failureDomain: "host"
+          failureDomain: "osd"
           deviceClass: "ssd"
           replicated:
             size: 2 # https://github.com/rook/rook/discussions/13178
@@ -209,7 +209,7 @@ spec:
         spec: &cephfsSpec
           preserveFilesystemOnDelete: true
           metadataPool:
-            failureDomain: "host"
+            failureDomain: "osd"
             #deviceClass: "ssd"
             deviceClass: "hdd"
             replicated:
@@ -217,7 +217,7 @@ spec:
           dataPools:
             - &cephfsData
               name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
-              failureDomain: "host"
+              failureDomain: "osd"
               #deviceClass: "ssd"
               deviceClass: "hdd"
               replicated:
@@ -262,12 +262,12 @@ spec:
         spec:
           preservePoolsOnDelete: true
           metadataPool:
-            failureDomain: "host"
+            failureDomain: "osd"
             #deviceClass: "ssd"
             replicated:
               size: 2
           dataPool:
-            failureDomain: "host"
+            failureDomain: "osd"
             #deviceClass: "ssd"
             deviceClass: "hdd"
             replicated:
