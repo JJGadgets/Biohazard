@@ -46,7 +46,7 @@ spec:
             passsha256 = "{{ .GLAUTH_SEARCH_PASSWORD_SHA256 }}"
               [[users.capabilities]]
               action = "search"
-              object = "ou=emqx,dc=emqx,dc=io"
+              object = "*"
           [[groups]]
             name = "search"
             gidnumber = 99991
