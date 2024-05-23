@@ -321,3 +321,9 @@ spec:
           - hosts:
               - *dashboard-host
     pspEnable: false
+    toolbox:
+      enable: true
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
