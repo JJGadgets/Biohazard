@@ -190,7 +190,7 @@ spec:
         spec:
           name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
           failureDomain: "osd"
-          deviceClass: "ssd"
+          deviceClass: "hdd"
           replicated:
             size: 2 # https://github.com/rook/rook/discussions/13178
             requireSafeReplicaSize: true
