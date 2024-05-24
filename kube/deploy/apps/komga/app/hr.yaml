@@ -70,12 +70,11 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: komga
                   port: http
         tls:
           - hosts: [*host]
       tailscale:
-        primary: false
         className: tailscale
         hosts:
           - host: &host "${APP_DNS_TS_KOMGA}"
