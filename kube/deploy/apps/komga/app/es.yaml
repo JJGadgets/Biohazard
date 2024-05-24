@@ -27,14 +27,14 @@ spec:
                 client:
                   registration:
                     authentik:
-                      provider: authentik # this must match the provider below
-                      client-name: Login with JJGadgets
+                      provider: authentik
+                      client-name: JJGadgets Auth
                       client-id: "{{ .SECRET_KOMGA_AUTHENTIK_CLIENT_ID }}"
                       client-secret: "{{ .SECRET_KOMGA_AUTHENTIK_CLIENT_SECRET }}"
-                      scope: openid,email
+                      scope: openid,profile,email
                       authorization-grant-type: authorization_code
                       # the placeholders in {} will be replaced automatically, you don't need to change this line
-                      redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
+                      redirect-uri: "https://{{ .APP_DNS_KOMGA }}/login/oauth2/code/authentik"
                   provider:
                     authentik:
                       user-name-attribute: preferred_username
