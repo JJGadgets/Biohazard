@@ -1,0 +1,44 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: komga-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "komga"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/komga/app
+  targetNamespace: "komga"
+  dependsOn:
+    - name: komga-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: komga-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "komga"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "komga"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "komga-data"
+      SIZE: "200Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_KOMGA}
+      RGID: !!str |
+        ${APP_UID_KOMGA}
+      RFSG: !!str |
+        ${APP_UID_KOMGA}

@@ -1,0 +1,41 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name komga-secrets
+  namespace: komga
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "komga - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: "Opaque"
+      data:
+        application.yml: |
+          spring:
+            security:
+              oauth2:
+                client:
+                  registration:
+                    authentik:
+                      provider: authentik # this must match the provider below
+                      client-name: Login with JJGadgets
+                      client-id: "{{ .SECRET_KOMGA_AUTHENTIK_CLIENT_ID }}"
+                      client-secret: "{{ .SECRET_KOMGA_AUTHENTIK_CLIENT_SECRET }}"
+                      scope: openid,email
+                      authorization-grant-type: authorization_code
+                      # the placeholders in {} will be replaced automatically, you don't need to change this line
+                      redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
+                  provider:
+                    authentik:
+                      user-name-attribute: preferred_username
+                      issuer-uri: https://${APP_DNS_AUTHENTIK}/application/o/komga/
