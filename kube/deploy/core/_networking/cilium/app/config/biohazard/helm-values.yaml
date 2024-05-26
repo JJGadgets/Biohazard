@@ -1,10 +1,9 @@
 ---
 ## NOTE: required for Talos
 securityContext:
-  privileged: true
   capabilities:
-    ciliumAgent: "{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
-    cleanCiliumState: "{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+    ciliumAgent: [CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID]
+    cleanCiliumState: [NET_ADMIN,SYS_ADMIN,SYS_RESOURCE]
 cgroup:
   autoMount:
     enabled: false
@@ -90,10 +89,9 @@ bgpControlPlane:
   enabled: true
   ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
   ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
-localRedirectPolicy: false
+localRedirectPolicy: true
 nodePort:
-  enabled: true
-  range: "9993,32767"
+  enabled: false
 bandwidthManager:
   enabled: true
   bbr: false # enable after Talos kernel updated to >= 5.18
