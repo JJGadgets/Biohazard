@@ -29,8 +29,10 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: dns
 spec:
+  allowFirstLastIPs: yes
   cidrs:
     - cidr: "${IP_LB_DNS_CIDR}"
+    - cidr: "${APP_IP_BLOCKY}/32"
   serviceSelector:
     matchLabels:
       exposeSvc: dns
@@ -45,3 +47,14 @@ spec:
   serviceSelector:
     matchLabels:
       io.cilium/internal: "true"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: vm-ad
+spec:
+  cidrs:
+    - cidr: "${IP_AD_CIDR}"
+  serviceSelector:
+    matchLabels:
+      vm.home.arpa/windows: "ad"

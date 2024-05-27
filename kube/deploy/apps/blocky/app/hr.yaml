@@ -1,0 +1,146 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app blocky
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      blocky:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-external: allow
+            db.home.arpa/pg: pg-default
+            egress.home.arpa/world: allow # TODO: tighten up
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/0xerr0r/blocky
+              tag: v0.24@sha256:9a82e0235c52ef3048586f8006add06e52132adaae70d02f980569dae16421a2
+            #args: ["--config", &dir "/config"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_BIND_SERVICE"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "3000m"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      blocky:
+        controller: blocky
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+      expose:
+        primary: false
+        controller: blocky
+        type: LoadBalancer
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_BLOCKY}"
+        ports:
+          dns:
+            port: 53
+            targetPort: 8053
+            protocol: UDP
+            appProtocol: domain
+          dns-tcp:
+            port: 53
+            targetPort: 8053
+            protocol: TCP
+            appProtocol: domain
+    ingress:
+      main:
+        className: nginx-external
+        hosts:
+          - host: &host "${APP_DNS_BLOCKY}"
+            paths: &paths
+              - path: /dns-query
+                pathType: Prefix
+                service:
+                  identifier: blocky
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        type: configMap
+        name: blocky-config
+        advancedMounts:
+          blocky:
+            main:
+              - subPath: config.yml
+                path: /app/config.yml
+      secrets:
+        type: secret
+        name: blocky-secrets
+        defaultMode: 0400
+        advancedMounts:
+          blocky:
+            main:
+              - subPath: allowlist
+                path: /secrets/allowlist
+              - subPath: blocklist
+                path: /secrets/blocklist
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/blocky
+                    operator: DoesNotExist
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+    serviceMonitor:
+      blocky:
+        serviceName: blocky
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
