@@ -62,16 +62,23 @@ blocking:
       # hardcore mode activated
       - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/ultimate.txt
       - https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/wildcards.txt
-  # definition of allowlist groups.
-  # Note: if the same group has both allow/denylists, allowlists take precedence. Meaning if a domain is both blocked and allowed, it will be allowed.
-  # If a group has only allowlist entries, only domains from this list are allowed, and all others be blocked.
+    wifi:
+      - | # Linksys home routers/APs be noisy
+        heartbeat.belkin.com
+        www.belkin.com
+        *.belkin.com
+        *.root-servers.net
   allowlists:
     extra:
       - /secrets/allowlist # mounted from ExternalSecret
+    blackhole: # no `blackhole` entry in blocklists, thus "whitelist mode"
+      - jank.ing
   # definition: which groups should be applied for which client
   clientGroupsBlock:
     default: [default, nsfw]
     ${IP_JJ_V4}: [default, extra]
+    ${IP_JJ_V4}: [default, extra]
+    ${IP_WIFI_V4}: [default, nsfw, wifi]
   blockType: zeroIp
   blockTTL: 5m
   loading:
