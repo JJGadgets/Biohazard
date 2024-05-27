@@ -18,7 +18,10 @@ spec:
     controllers:
       blocky:
         type: deployment
-        replicas: 3
+        replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             ingress.home.arpa/nginx-external: allow
