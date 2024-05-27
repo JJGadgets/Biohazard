@@ -27,6 +27,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: "tailscale"
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "blocky"
   egress:
     - toCIDRSet:
         - cidr: "${IP_ROUTER_VLAN_K8S}/32"

@@ -24,6 +24,7 @@ spec:
             ingress.home.arpa/nginx-external: allow
             db.home.arpa/pg: pg-default
             egress.home.arpa/world: allow # TODO: tighten up
+            prom.home.arpa/kps: allow
         containers:
           main:
             image: &img
@@ -41,9 +42,10 @@ spec:
             resources:
               requests:
                 cpu: "10m"
+                memory: "1Gi"
               limits:
                 cpu: "3000m"
-                memory: "512Mi"
+                memory: "2Gi"
             probes:
               liveness:
                 enabled: true
