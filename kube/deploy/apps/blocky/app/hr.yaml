@@ -18,7 +18,7 @@ spec:
     controllers:
       blocky:
         type: deployment
-        replicas: 1
+        replicas: 3
         pod:
           labels:
             ingress.home.arpa/nginx-external: allow
@@ -51,6 +51,32 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+      redis:
+        type: deployment
+        replicas: 1
+        containers:
+          redis:
+            image:
+              repository: "public.ecr.aws/docker/library/redis"
+              tag: "7.2.4@sha256:f14f42fc7e824b93c0e2fe3cdf42f68197ee0311c3d2e0235be37480b2e208e6"
+            command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "32Mi"
+              limits:
+                cpu: "1000m"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
       blocky:
         controller: blocky
@@ -59,6 +85,14 @@ spec:
             port: 8080
             protocol: HTTP
             appProtocol: http
+      redis:
+        primary: false
+        controller: redis
+        ports:
+          redis:
+            port: 6379
+            protocol: TCP
+            appProtocol: redis
       expose:
         primary: false
         controller: blocky
@@ -128,6 +162,8 @@ spec:
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
+              app.kubernetes.io/instance: *app
+              app.kubernetes.io/component: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -139,6 +175,13 @@ spec:
         options:
           - name: ndots
             value: "1"
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
     serviceMonitor:
       blocky:
         serviceName: blocky

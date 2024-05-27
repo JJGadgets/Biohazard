@@ -1,0 +1,76 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "external-secrets-kubernetes-provider"
+  namespace: "blocky"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["*"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["selfsubjectrulesreviews"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: &name "external-secrets-kubernetes-provider"
+  namespace: "blocky"
+roleRef:
+  apiGroup: "rbac.authorization.k8s.io"
+  kind: "Role"
+  name: *name
+subjects:
+  - kind: "ServiceAccount"
+    name: *name
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "external-secrets-kubernetes-provider"
+  namespace: "blocky"
+---
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: "kubernetes-blocky"
+  namespace: &ns "blocky"
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: *ns
+      server:
+        url: "https://kubernetes.default.svc"
+        caProvider:
+          type: "ConfigMap"
+          name: "kube-root-ca.crt"
+          key: "ca.crt"
+      auth:
+        serviceAccount:
+          name: "external-secrets-kubernetes-provider"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name "pg-default-pguser-blocky"
+  namespace: "blocky"
+spec:
+  refreshInterval: "1m"
+  secretStoreRef:
+    kind: "SecretStore"
+    name: "kubernetes-blocky"
+  target:
+    name: "pg-default-pguser-blocky-fixed"
+    creationPolicy: "Owner"
+    deletionPolicy: "Retain"
+    template:
+      type: "Opaque"
+      data:
+        pgbouncer-uri-sslmode: "{{ .uri }}?sslmode=require"
+  data:
+    - secretKey: "uri"
+      remoteRef:
+        key: *name
+        property: "pgbouncer-uri"

@@ -72,11 +72,11 @@ blocking:
     extra:
       - /secrets/allowlist # mounted from ExternalSecret
     blackhole: # no `blackhole` entry in blocklists, thus "whitelist mode"
-      - jank.ing
+      - |
+        *.jank.ing
   # definition: which groups should be applied for which client
   clientGroupsBlock:
     default: [default, nsfw]
-    ${IP_JJ_V4}: [default, extra]
     ${IP_JJ_V4}: [default, extra]
     ${IP_WIFI_V4}: [default, nsfw, wifi]
   blockType: zeroIp
@@ -105,6 +105,9 @@ prometheus:
 #  type: postgresql
 #  target: postgres://user:password@db_host_or_ip:5432/db_name
 #  logRetentionDays: 7
+
+redis:
+  address: blocky-redis.redis.svc.cluster.local
 
 minTlsServeVersion: 1.3
 
