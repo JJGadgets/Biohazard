@@ -29,7 +29,7 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: dns
 spec:
-  allowFirstLastIPs: yes
+  allowFirstLastIPs: "Yes"
   cidrs:
     - cidr: "${IP_LB_DNS_CIDR}"
     - cidr: "${APP_IP_BLOCKY}/32"
