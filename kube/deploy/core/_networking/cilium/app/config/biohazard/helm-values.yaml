@@ -70,9 +70,9 @@ externalIPs:
 #  leaseDuration: "120s"
 #  leaseRenewDeadline: "60s"
 #  leaseRetryPeriod: "1s"
-k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
-  qps: 50
-  burst: 100
+#k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
+#  qps: 50
+#  burst: 100
 
 ## NOTE: Cilium additional features and/or CRDs
 bpf:
@@ -89,7 +89,7 @@ bgpControlPlane:
   enabled: true
   ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
   ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
-localRedirectPolicy: true
+localRedirectPolicy: false
 nodePort:
   enabled: false
 bandwidthManager:
