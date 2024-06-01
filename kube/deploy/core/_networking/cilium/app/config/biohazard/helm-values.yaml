@@ -34,6 +34,7 @@ cluster:
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 routingMode: native
+devices: '{enp1s0.58}' # use specific VLAN
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 loadBalancer:
@@ -51,7 +52,7 @@ loadBalancer:
 ## NOTE: Cilium's networking internals
 ipam:
   mode: kubernetes
-kubeProxyReplacement: strict
+kubeProxyReplacement: true
 ### Talos 1.5 and above come with KubePrism which is an internal TCP load balancer for kube-apiserver. DO NOT COPY IF NOT ON TALOS OR A KUBEPRISM-SUPPORTED KUBERNETES DISTRIBUTION!!!
 k8sServiceHost: "127.0.0.1"
 k8sServicePort: "7445"
@@ -80,9 +81,9 @@ bpf:
   tproxy: true # L7 netpols stuff
 l7Proxy: true # enables L7 netpols
 dnsProxy:
-  enableTransparentMode: true
+  enableTransparentMode: false # TODO: 2024-06-02: temporarily turned off to attempt fixing endpoint creation timeout
 socketLB:
-  enabled: true # supposed to be default off, but it's enabled anyway, and looks fun lol
+  enabled: false # supposed to be default off, but it's enabled anyway, and looks fun lol # TODO: 2024-06-02: temporarily turned off to attempt fixing endpoint creation timeout
   hostNamespaceOnly: true # KubeVirt compatibility
 
 bgpControlPlane:
@@ -93,7 +94,7 @@ localRedirectPolicy: false
 nodePort:
   enabled: false
 bandwidthManager:
-  enabled: true
+  enabled: false
   bbr: false # enable after Talos kernel updated to >= 5.18
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
 ### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled

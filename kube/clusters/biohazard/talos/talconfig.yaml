@@ -57,8 +57,8 @@ nodes:
                 metric: 1
               - network: "0.0.0.0/0"
                 gateway: "${IP_ROUTER_VLAN_K8S}"
-            vip:
-              ip: "${IP_CLUSTER_VIP}"
+            #vip:
+            #  ip: "${IP_CLUSTER_VIP}"
           - &vlan-ceph
             vlanId: 678
             mtu: 9000
