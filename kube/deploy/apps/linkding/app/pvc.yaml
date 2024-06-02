@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "linkding-snapshots"
+  namespace: &app "linkding"
+  annotations:
+    description: "PVC for saving Linkding page snapshots (similar to Wayback)"
+  labels:
+    app.kubernetes.io/name: *app
+    snapshot.home.arpa/enabled: "true"
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
+spec:
+  storageClassName: "file"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "100Gi"
