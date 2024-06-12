@@ -21,3 +21,25 @@ spec:
         sources:
           usb:
             deviceLabelFields: ["class", "vendor", "device"]
+          custom:
+            - name: "e1000"
+              labels:
+                "feature.node.kubenernetes.io/e1000.present": "true"
+              matchFeatures:
+                - feature: kernel.loadedmodule
+                  matchExpressions:
+                    e1000e: {op: Exists}
+            - name: "e1000e"
+              labels:
+                "feature.node.kubenernetes.io/e1000e.present": "true"
+              matchFeatures:
+                - feature: kernel.loadedmodule
+                  matchExpressions:
+                    e1000e: {op: Exists}
+            - name: "mlx4"
+              labels:
+                "feature.node.kubenernetes.io/mlx4.present": "true"
+              matchFeatures:
+                - feature: kernel.loadedmodule
+                  matchExpressions:
+                    mlx4_core: {op: Exists}
