@@ -24,21 +24,21 @@ spec:
           custom:
             - name: "e1000"
               labels:
-                "feature.node.kubenernetes.io/e1000.present": "true"
+                "feature.node.kubernetes.io/e1000.present": "true"
               matchFeatures:
                 - feature: kernel.loadedmodule
                   matchExpressions:
                     e1000e: {op: Exists}
             - name: "e1000e"
               labels:
-                "feature.node.kubenernetes.io/e1000e.present": "true"
+                "feature.node.kubernetes.io/e1000e.present": "true"
               matchFeatures:
                 - feature: kernel.loadedmodule
                   matchExpressions:
                     e1000e: {op: Exists}
             - name: "mlx4"
               labels:
-                "feature.node.kubenernetes.io/mlx4.present": "true"
+                "feature.node.kubernetes.io/mlx4.present": "true"
               matchFeatures:
                 - feature: kernel.loadedmodule
                   matchExpressions:
