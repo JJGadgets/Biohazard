@@ -66,6 +66,11 @@ spec:
             port: 443
             protocol: HTTPS
             appProtocol: https
+          https2:
+            port: 53443
+            targetPort: 443
+            protocol: HTTPS
+            appProtocol: https
     persistence:
       config:
         type: configMap
