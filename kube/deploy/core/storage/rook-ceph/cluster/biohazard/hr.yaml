@@ -350,12 +350,11 @@ spec:
           gateway:
             labels: # netpols
               tailscale.com/expose: "true"
-              s3.home.arpa/rgw: "biohazard"
             instances: 2
             hostNetwork: false
             port: 6953
-            securePort: 53443
-            sslCertificateRef: "short-domain-tls"
+            #securePort: 53443
+            #sslCertificateRef: "short-domain-tls"
             priorityClassName: "system-cluster-critical"
             resources:
               requests:
