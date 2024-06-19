@@ -53,7 +53,9 @@ spec:
       network:
         provider: host
         addressRanges:
-          public: ["${IP_VLAN_CEPH_CIDR}"]
+          #public: ["${IP_VLAN_CEPH_CIDR}"] # TODO: maybe switch back to separate VLAN when 10GbE switch becomes managed?
+          #tagged VLANs don't work with this setup: Ceph nodes --> TL-ST1008F --> GLC-TE --> FortiSwitch 1GbE, but somehow `s/GLC-TE --> FortiSwitch/10G PVE OVS bridge with OPNsense VM/g` works lol
+          public: ["${IP_ROUTER_VLAN_K8S_CIDR}"]
         connections:
           requireMsgr2: true
           encryption:
@@ -103,7 +105,9 @@ spec:
           tolerations:
             - key: "node-role.kubernetes.io/control-plane"
               operator: "Exists"
-      resources:
+            - key: "node-role.kubernetes.io/unschedulable"
+              operator: "Exists"
+      resources: # defaults are very aggressive
         mgr:
           requests:
             cpu: "150m"
@@ -346,6 +350,7 @@ spec:
           gateway:
             labels: # netpols
               tailscale.com/expose: "true"
+              s3.home.arpa/rgw: "biohazard"
             instances: 2
             hostNetwork: false
             port: 6953
