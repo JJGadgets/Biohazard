@@ -26,10 +26,16 @@ spec:
             - port: "1053"
     - fromEndpoints:
         - matchLabels:
+            io.kubernetes.pod.namespace: "kube-system"
+    - fromEndpoints:
+        - matchLabels:
             io.kubernetes.pod.namespace: "tailscale"
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: "blocky"
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: "code-server"
   egress:
     - toCIDRSet:
         - cidr: "${IP_ROUTER_VLAN_K8S}/32"
