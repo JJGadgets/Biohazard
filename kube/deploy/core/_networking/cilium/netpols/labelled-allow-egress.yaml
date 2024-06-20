@@ -342,6 +342,19 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-iot
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/iot: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_IOT_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-user1
 spec:
   endpointSelector:
