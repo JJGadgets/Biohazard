@@ -8,6 +8,7 @@ spec:
   path: ./kube/deploy/vm/ad/_deps
   targetNamespace: "vm-ad"
   dependsOn:
+    - name: 1-core-1-networking-multus-app
     - name: zz-vm-1-kubevirt-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
