@@ -16,7 +16,9 @@ spec:
           "vlan": 888,
           "capabilities": { "mac": true },
           "disableContainerInterface": true,
-          "macspoofchk": true
         }
       ]
     }
+
+---
+#          "macspoofchk": true # TODO: Talos 1.6.4 doesn't have `nft` binary?
