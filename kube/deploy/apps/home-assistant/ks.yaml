@@ -13,6 +13,7 @@ spec:
   targetNamespace: "home-assistant"
   dependsOn:
     - name: home-assistant-pvc
+    - name: 1-core-1-networking-multus-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

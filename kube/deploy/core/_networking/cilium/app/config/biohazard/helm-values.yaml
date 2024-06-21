@@ -34,7 +34,7 @@ cluster:
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 routingMode: native
-devices: 'enp1s0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
+devices: 'enp1s0,br0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 loadBalancer:
@@ -57,6 +57,10 @@ kubeProxyReplacement: true
 k8sServiceHost: "127.0.0.1"
 k8sServicePort: "7445"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+
+## Multus compatibility
+cni:
+  exclusive: false
 
 ## NOTE: Cilium can automatically kill and respawn pods upon ConfigMap updates or other resource changes
 rollOutCiliumPods: true

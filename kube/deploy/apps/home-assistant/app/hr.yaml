@@ -23,6 +23,15 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/iot: "allow"
+          annotations:
+            k8s.v1.cni.cncf.io/networks: |
+              [{
+                "name":"iot",
+                "namespace": "home-assistant",
+                "ips": ["${APP_IP_HOME_ASSISTANT_IOT}"],
+                "mac": "${APP_MAC_HOME_ASSISTANT_IOT}",
+                "gateway": "${IP_ROUTER_VLAN_IOT}"
+              }]
         containers:
           main:
             image:

@@ -16,11 +16,11 @@ spec:
   values:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
-      tag: v4.0.2-thick
+      tag: v4.0.2-thick@sha256:3fbcc32bd4e4d15bd93c96def784a229cd84cca27942bf4858b581f31c97ee02
     cni:
       image:
         repository: ghcr.io/angelnu/cni-plugins
-        tag: 1.4.0@sha256:cd2b132f3725c303a809f253aac07d11e696910a6053e7535e609118151aa9fe
+        tag: 1.5.1@sha256:caac0fccffb23811386919e3f8cc216de7e1a907648f19bc671d9e495fb77069
       paths:
         config: /etc/cni/net.d
         bin: /opt/cni/bin

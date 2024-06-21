@@ -33,59 +33,72 @@ nodes:
     installDiskSelector:
       size: "<= 600GB"
       type: "nvme"
-    nameservers: ["${IP_HOME_DNS}"]
+    nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
     networkInterfaces:
       - &m720q-net
-        mtu: 9000 # TODO: switch to 9000 once M720q risers arrive
+        interface: bond0
+        mtu: 9000
         dhcp: false
-        deviceSelector:
-          # onboard I219-V NIC
-          # driver: "e1000e"
-          # hardwareAddr: "*:9a"
-          # TODO: switch to Mellanox once M720q risers arrive
-          driver: "mlx4_core"
-          hardwareAddr: "*:80"
+        bond: &bond0
+          mode: active-backup
+          miimom: 100
+          #primary: enp1s0 # TODO: wen eta Talos bond primary device selector
+          #primary_reselect: better
+          deviceSelectors:
+            # Mellanox ConnectX (enp1s0)
+            - driver: "mlx4_core"
+              hardwareAddr: "*:80"
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
+        routes:
+          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
+            metric: 1
+          - network: "0.0.0.0/0"
+            gateway: "${IP_ROUTER_VLAN_K8S}"
+        #vip:
+        #  ip: "${IP_CLUSTER_VIP}"
+      - &m720q-bond1
+        interface: bond1
+        bond:
+          mode: active-backup
+          miimon: 100
+          deviceSelectors:
+            - driver: e1000e
+      - &m720q-br0
+        interface: br0
+        mtu: 1500
+        dhcp: true # native/untagged VLAN will be either undefined or an empty VLAN with no DHCP in prod, this is for emergency/recovery use
+        bridge:
+          interfaces: [bond1]
+          stp: {enabled: true}
         vlans:
-          - &m720q-v58
-            vlanId: 58
-            mtu: 9000
+          - &vlan-active-directory
+            vlanId: 888
+            mtu: 1500
             dhcp: false
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
-            routes:
-              - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
-                metric: 1
-              - network: "0.0.0.0/0"
-                gateway: "${IP_ROUTER_VLAN_K8S}"
-            #vip:
-            #  ip: "${IP_CLUSTER_VIP}"
-          - &vlan-ceph
-            vlanId: 678
-            mtu: 9000
+          - &vlan-iot
+            vlanId: 227
+            mtu: 1500
             dhcp: false
-            addresses: ["${IP_VLAN_CEPH_PREFIX}1/28"]
-            routes:
-              - network: "${IP_VLAN_CEPH_CIDR}"
-                metric: 1
-    machineFiles:
-      - &ts
-        op: create
-        path: /var/etc/tailscale/auth.env
-        permissions: 0o600
-        content: |
-          TS_KUBE_SECRET=""
-          TS_STATE_DIR=/var/lib/tailscale
-          TS_USERSPACE=false
-          TS_ACCEPT_DNS=false
-      - &tsNode
-        op: append
-        path: /var/etc/tailscale/auth.env
-        permissions: 0o600
-        content: |
-          TS_HOSTNAME=ange-talos
-          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:ange
-          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_ANGE}
-          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}1/32
+#    machineFiles:
+#      - &ts
+#        op: create
+#        path: /var/etc/tailscale/auth.env
+#        permissions: 0o600
+#        content: |
+#          TS_KUBE_SECRET=""
+#          TS_STATE_DIR=/var/lib/tailscale
+#          TS_USERSPACE=false
+#          TS_ACCEPT_DNS=false
+#      - &tsNode
+#        op: append
+#        path: /var/etc/tailscale/auth.env
+#        permissions: 0o600
+#        content: |
+#          TS_HOSTNAME=ange-talos
+#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:ange
+#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_ANGE}
+#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}1/32
     schematic:
       customization:
         systemExtensions:
@@ -93,7 +106,7 @@ nodes:
             - siderolabs/i915-ucode
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
-            - siderolabs/tailscale
+            #- siderolabs/tailscale
     inlinePatch:
       machine:
         sysfs:
@@ -105,44 +118,46 @@ nodes:
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
     networkInterfaces:
       - <<: *m720q-net
-        deviceSelector:
-          driver: "mlx4_core"
-          hardwareAddr: "*:6a"
-        vlans:
-          - <<: *m720q-v58
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
-          - <<: *vlan-ceph
-            addresses: ["${IP_VLAN_CEPH_PREFIX}2/28"]
-    machineFiles:
-      - *ts
-      - <<: *tsNode
-        content: |
-          TS_HOSTNAME=charlotte-talos
-          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:charlotte
-          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHARLOTTE}
-          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}2/32
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
+        bond:
+          <<: *bond0
+          deviceSelectors:
+            # Mellanox ConnectX (enp1s0)
+            - driver: "mlx4_core"
+              hardwareAddr: "*:6a"
+      - *m720q-bond0
+      - *m720q-br0
+#    machineFiles:
+#      - *ts
+#      - <<: *tsNode
+#        content: |
+#          TS_HOSTNAME=charlotte-talos
+#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:charlotte
+#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHARLOTTE}
+#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}2/32
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - <<: *m720q-net
-        deviceSelector:
-          driver: "mlx4_core"
-          hardwareAddr: "*:40"
-        vlans:
-          - <<: *m720q-v58
-            addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
-          - <<: *vlan-ceph
-            addresses: ["${IP_VLAN_CEPH_PREFIX}3/28"]
-    machineFiles:
-      - *ts
-      - <<: *tsNode
-        content: |
-          TS_HOSTNAME=chise-talos
-          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:chise
-          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHISE}
-          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}3/32
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
+        bond:
+          <<: *bond0
+          deviceSelectors:
+            # Mellanox ConnectX (enp1s0)
+            - driver: "mlx4_core"
+              hardwareAddr: "*:40"
+      - *m720q-bond0
+      - *m720q-br0
+#    machineFiles:
+#      - *ts
+#      - <<: *tsNode
+#        content: |
+#          TS_HOSTNAME=chise-talos
+#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:chise
+#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHISE}
+#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}3/32
     inlinePatch:
       machine:
         sysfs:
@@ -160,12 +175,6 @@ patches:
           # allow GID 44 (video) to use Intel GPU
           #- SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
           - SUBSYSTEM=="drm", GROUP="44", MODE="0660"
-
-  - &kubeletExtraArgs |-
-    - op: add
-      path: /machine/kubelet/extraArgs
-      value:
-        feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
 
   - &machinePatch |-
     machine:
@@ -189,7 +198,7 @@ patches:
             aliases: ["nas.${DNS_MAIN}"]
       time:
         disabled: false
-        servers: ["${IP_ROUTER_LAN}"]
+        servers: ["${IP_ROUTER_VLAN_K8S}"]
         bootTimeout: 2m0s
 #      kernel:
 #        modules:
@@ -246,13 +255,6 @@ patches:
 
 controlPlane:
   patches:
-
-    - &apiServerExtraArgs |-
-      - op: add
-        path: /cluster/apiServer/extraArgs
-        value:
-          feature-gates: GracefulNodeShutdown=true,ServerSideApply=true
-
     - &apiServerResources |-
       cluster:
         apiServer:
@@ -289,36 +291,25 @@ controlPlane:
           extraArgs:
             listen-metrics-urls: "http://0.0.0.0:2381"
 
-    # - &scheduler |-
-    #   cluster:
-    #     scheduler:
-    #       extraArgs:
-    #         config: "/custom/etc/kube-scheduler/config.yaml"
-    #       extraVolumes:
-    #         - hostPath: "/var/etc/kube-scheduler"
-    #           mountPath: "/custom/etc/kube-scheduler"
-    #           readonly: true
-    #   machine:
-    #     files:
-    #       - op: create
-    #         path: "/var/etc/kube-scheduler/config.yaml"
-    #         permissions: 0o400
-    #         content: |
-    #           apiVersion: kubescheduler.config.k8s.io/v1
-    #           kind: KubeSchedulerConfiguration
-    #           profiles:
-    #             - schedulerName: default-scheduler
-    #               pluginConfig:
-    #                 - name: PodTopologySpread
-    #                   args:
-    #                     defaultingType: List
-    #                     defaultConstraints:
-    #                       - maxSkew: 1
-    #                         topologyKey: "kubernetes.io/hostname"
-    #                         whenUnsatisfiable: ScheduleAnyway
-    #                       - maxSkew: 5
-    #                         topologyKey: "topology.kubernetes.io/zone"
-    #                         whenUnsatisfiable: ScheduleAnyway
+    - &scheduler |-
+      cluster:
+        scheduler:
+          config:
+            apiVersion: kubescheduler.config.k8s.io/v1
+            kind: KubeSchedulerConfiguration
+            profiles:
+              - schedulerName: default-scheduler
+                pluginConfig:
+                  - name: PodTopologySpread
+                    args:
+                      defaultingType: List
+                      defaultConstraints:
+                        - maxSkew: 1
+                          topologyKey: "kubernetes.io/hostname"
+                          whenUnsatisfiable: DoNotSchedule
+                        - maxSkew: 3
+                          topologyKey: "topology.kubernetes.io/zone"
+                          whenUnsatisfiable: ScheduleAnyway
 
     # TODO: can't create files outside /var, maybe open FR to whitelist this?
     # - &nfsMountOptions |-

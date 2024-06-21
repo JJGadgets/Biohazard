@@ -1,0 +1,22 @@
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: vm-ad
+  namespace: vm-ad
+spec:
+  config: |-
+    {
+      "cniVersion": "0.3.1",
+      "name": "vm-ad",
+      "plugins": [
+        {
+          "type": "bridge",
+          "bridge": "br0",
+          "vlan": 888,
+          "capabilities": { "mac": true },
+          "disableContainerInterface": true,
+          "macspoofchk": true
+        }
+      ]
+    }

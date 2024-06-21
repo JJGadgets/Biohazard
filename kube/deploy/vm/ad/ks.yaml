@@ -56,6 +56,7 @@ spec:
   path: ./kube/deploy/vm/ad/template-dc
   targetNamespace: "vm-ad"
   dependsOn:
+    - name: 1-core-1-networking-multus-app
     - name: zz-vm-1-kubevirt-app
     - name: zz-vm-ad-1-deps
     - name: zz-vm-ad-dc1-pvc
@@ -63,6 +64,7 @@ spec:
     substitute:
       NUM: "1"
       UUID: "${VM_UUID_AD_DC1}"
+      MAC: "${VM_MAC_AD_DC1}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -110,6 +112,7 @@ spec:
   path: ./kube/deploy/vm/ad/template-dc
   targetNamespace: "vm-ad"
   dependsOn:
+    - name: 1-core-1-networking-multus-app
     - name: zz-vm-1-kubevirt-app
     - name: zz-vm-ad-1-deps
     - name: 1-core-storage-rook-ceph-cluster
@@ -117,3 +120,4 @@ spec:
     substitute:
       NUM: "2"
       UUID: "${VM_UUID_AD_DC2}"
+      MAC: "${VM_MAC_AD_DC2}"
