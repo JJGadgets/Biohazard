@@ -163,7 +163,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: authentik-tokens
-                    key: ldap-token
+                    key: AUTHENTIK_TOKEN_LDAP
             securityContext: *sc
             resources:
               requests:
@@ -201,7 +201,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: authentik-tokens
-                    key: radius-token
+                    key: AUTHENTIK_TOKEN_RADIUS
             securityContext: *sc
             resources:
               requests:
