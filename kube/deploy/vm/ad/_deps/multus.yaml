@@ -13,7 +13,6 @@ spec:
         {
           "type": "bridge",
           "bridge": "br0",
-          "vlan": 888,
           "capabilities": { "mac": true },
           "ipam": {}
         }
@@ -21,5 +20,6 @@ spec:
     }
 
 ---
+#          "vlan": 888, # VLAN tagging handled by FortiSwitch NAC
 #          "disableContainerInterface": true
 #          "macspoofchk": true # TODO: Talos 1.6.4 doesn't have `nft` binary?
