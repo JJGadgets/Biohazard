@@ -34,7 +34,7 @@ spec:
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: &name authentik-ldap
+  name: &name authentik-tokens
   namespace: authentik
 spec:
   refreshInterval: 1m
@@ -51,4 +51,5 @@ spec:
     template:
       type: "Opaque"
       data:
-        AUTHENTIK_TOKEN: '{{ .AUTHENTIK_TOKEN }}'
+        ldap-token: '{{ .ldap-token }}'
+        radius-token: '{{ .radius-token }}'

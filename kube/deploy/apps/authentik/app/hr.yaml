@@ -162,8 +162,46 @@ spec:
               AUTHENTIK_TOKEN:
                 valueFrom:
                   secretKeyRef:
-                    name: authentik-ldap
-                    key: token
+                    name: authentik-tokens
+                    key: ldap-token
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "4Gi"
+            #probes:
+            #  liveness:
+            #    enabled: true
+            #  readiness:
+            #    enabled: true
+      radius:
+        type: deployment
+        replicas: 3
+        pod:
+          labels:
+            authentik.home.arpa/https: allow
+          topologySpreadConstraints:
+            - <<: *tsc
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/component: radius
+        containers:
+          main:
+            image:
+              <<: *img
+              repository: ghcr.io/goauthentik/radius
+              tag: 2023.10.7@sha256:ae095ce83ec6ff40e03104ff04a315269a7f2094df7310317140fa5f00fa74ff
+            env:
+              AUTHENTIK_HOST: "${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: authentik-tokens
+                    key: radius-token
             securityContext: *sc
             resources:
               requests:
@@ -251,6 +289,21 @@ spec:
           ldaps-udp:
             <<: *ldaps
             protocol: UDP
+      radius:
+        primary: false
+        controller: radius
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: "${APP_DNS_AUTHENTIK_RADIUS}"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_RADIUS}"
+        ports:
+          radius-udp: &radius
+            port: 1812
+            protocol: UDP
+            appProtocol: radius
+          radius-tcp:
+            <<: *radius
+            protocol: TCP
     ingress:
       main:
         className: nginx-external
