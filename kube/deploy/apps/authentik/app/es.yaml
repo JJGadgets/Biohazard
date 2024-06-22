@@ -51,5 +51,5 @@ spec:
     template:
       type: "Opaque"
       data:
-        ldap-token: '{{ .ldap-token }}'
-        radius-token: '{{ .radius-token }}'
+        AUTHENTIK_TOKEN_LDAP: '{{ .AUTHENTIK_TOKEN_LDAP }}'
+        AUTHENTIK_TOKEN_RADIUS: '{{ .AUTHENTIK_TOKEN_RADIUS }}'
