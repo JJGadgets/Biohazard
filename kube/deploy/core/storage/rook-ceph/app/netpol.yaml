@@ -73,7 +73,6 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: *app
       rgw: "${CLUSTER_NAME}"
   ingress:
     # ingress controller
