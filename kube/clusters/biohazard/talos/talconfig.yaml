@@ -37,9 +37,23 @@ nodes:
     disableSearchDomain: true
     networkInterfaces:
       - &m720q-net
-        interface: bond0
+        interface: br0
         mtu: 9000
         dhcp: false
+        bridge:
+          interfaces: [bond0]
+          stp: {enabled: true}
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
+        routes:
+          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
+            metric: 1
+          - network: "0.0.0.0/0"
+            gateway: "${IP_ROUTER_VLAN_K8S}"
+        #vip:
+        #  ip: "${IP_CLUSTER_VIP}"
+      - &m720q-bond0
+        interface: bond0
+        mtu: 9000
         bond: &bond0
           mode: active-backup
           miimom: 100
@@ -49,56 +63,22 @@ nodes:
             # Mellanox ConnectX (enp1s0)
             - driver: "mlx4_core"
               hardwareAddr: "*:80"
-        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
-        routes:
-          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
-            metric: 1
-          - network: "0.0.0.0/0"
-            gateway: "${IP_ROUTER_VLAN_K8S}"
-        #vip:
-        #  ip: "${IP_CLUSTER_VIP}"
-      - &m720q-bond1
-        interface: bond1
-        bond:
-          mode: active-backup
-          miimon: 100
-          deviceSelectors:
-            - driver: e1000e
-      - &m720q-br0
-        interface: br0
+      - &m720q-br1
+        interface: br1
         mtu: 1500
         dhcp: true # native/untagged VLAN will be either undefined or an empty VLAN with no DHCP in prod, this is for emergency/recovery use
         bridge:
           interfaces: [bond1]
           stp: {enabled: true}
-        vlans:
-          - &vlan-active-directory
-            vlanId: 888
-            mtu: 1500
-            dhcp: false
-          - &vlan-iot
-            vlanId: 227
-            mtu: 1500
-            dhcp: false
-#    machineFiles:
-#      - &ts
-#        op: create
-#        path: /var/etc/tailscale/auth.env
-#        permissions: 0o600
-#        content: |
-#          TS_KUBE_SECRET=""
-#          TS_STATE_DIR=/var/lib/tailscale
-#          TS_USERSPACE=false
-#          TS_ACCEPT_DNS=false
-#      - &tsNode
-#        op: append
-#        path: /var/etc/tailscale/auth.env
-#        permissions: 0o600
-#        content: |
-#          TS_HOSTNAME=ange-talos
-#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:ange
-#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_ANGE}
-#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}1/32
+        # tagged VLANs for Multus handled by FortiSwitch NAC using static MACs on bridge CNI plugin
+      - &m720q-bond1
+        interface: bond1
+        mtu: 1500
+        bond:
+          mode: active-backup
+          miimon: 100
+          deviceSelectors:
+            - driver: e1000e
     schematic:
       customization:
         systemExtensions:
@@ -106,7 +86,6 @@ nodes:
             - siderolabs/i915-ucode
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
-            #- siderolabs/tailscale
     inlinePatch:
       machine:
         sysfs:
@@ -119,45 +98,31 @@ nodes:
     networkInterfaces:
       - <<: *m720q-net
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
+      - <<: *m720q-bond0
         bond:
           <<: *bond0
           deviceSelectors:
             # Mellanox ConnectX (enp1s0)
             - driver: "mlx4_core"
               hardwareAddr: "*:6a"
-      - *m720q-bond0
-      - *m720q-br0
-#    machineFiles:
-#      - *ts
-#      - <<: *tsNode
-#        content: |
-#          TS_HOSTNAME=charlotte-talos
-#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:charlotte
-#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHARLOTTE}
-#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}2/32
+      - *m720q-br1
+      - *m720q-bond1
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - <<: *m720q-net
-        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
+      - <<: *m720q-bond0
         bond:
           <<: *bond0
           deviceSelectors:
             # Mellanox ConnectX (enp1s0)
             - driver: "mlx4_core"
               hardwareAddr: "*:40"
-      - *m720q-bond0
-      - *m720q-br0
-#    machineFiles:
-#      - *ts
-#      - <<: *tsNode
-#        content: |
-#          TS_HOSTNAME=chise-talos
-#          TS_EXTRA_ARGS=--accept-routes=false --netfilter-mode=off --snat-subnet-routes=false --advertise-tags=tag:talos,tag:chise
-#          TS_AUTHKEY=${SECRET_TAILSCALE_TALOS_AUTHKEY_CHISE}
-#          TS_ROUTES=${IP_ROUTER_VLAN_K8S_PREFIX}3/32
+      - *m720q-br1
+      - *m720q-bond1
     inlinePatch:
       machine:
         sysfs:
