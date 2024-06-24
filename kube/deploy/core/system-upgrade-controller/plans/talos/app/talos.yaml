@@ -21,7 +21,7 @@ spec:
         operator: NotIn
         values: [*v]
   prepare: &prepare
-    image: "registry.k8s.io/kubectl:v1.29.2@sha256:ac66c804f411269a1caa8cc907447fcd00a4476cfb627a4756845c85e685a671"
+    image: "registry.k8s.io/kubectl:v1.29.6@sha256:063146795dbda547af9d7ca16e338e0aa1fac79359624addf33f88c6ad4282ef"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
       - "--timeout=3600s"
