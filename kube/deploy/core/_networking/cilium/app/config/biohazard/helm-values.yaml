@@ -34,7 +34,7 @@ cluster:
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 routingMode: native
-devices: 'enp1s0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
+devices: 'br0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 loadBalancer:
