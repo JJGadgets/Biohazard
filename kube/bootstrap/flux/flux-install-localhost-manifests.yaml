@@ -3696,7 +3696,7 @@ spec:
             resourceFieldRef:
               divisor: "0"
               resource: limits.memory
-        image: ghcr.io/fluxcd/source-controller:v1.2.5@sha256:d83d4a1167d87d1dafba1cf3b0fc2ad435d62084768922ed153829d07aaf3305
+        image: ghcr.io/fluxcd/source-controller:v1.3.0@sha256:161da425b16b64dda4b3cec2ba0f8d7442973aba29bb446db3b340626181a0bc
         imagePullPolicy: IfNotPresent
         name: manager
         resources:
@@ -5461,7 +5461,7 @@ spec:
             resourceFieldRef:
               divisor: "0"
               resource: limits.memory
-        image: ghcr.io/fluxcd/kustomize-controller:v1.2.2
+        image: ghcr.io/fluxcd/kustomize-controller:v1.3.0@sha256:48a032574dd45c39750ba0f1488e6f1ae36756a38f40976a6b7a588d83acefc1
         imagePullPolicy: IfNotPresent
         name: manager
         resources:
@@ -7851,7 +7851,7 @@ spec:
             resourceFieldRef:
               divisor: "0"
               resource: limits.memory
-        image: ghcr.io/fluxcd/helm-controller:v0.37.4
+        image: ghcr.io/fluxcd/helm-controller:v0.37.4@sha256:6280691e55935f0f72cce166c63c0bc1208e68e1e048cf086a2e03d2ed6e2637
         imagePullPolicy: IfNotPresent
         name: manager
         resources:
@@ -9796,7 +9796,7 @@ spec:
             resourceFieldRef:
               divisor: "0"
               resource: limits.memory
-        image: ghcr.io/fluxcd/notification-controller:v1.2.4
+        image: ghcr.io/fluxcd/notification-controller:v1.3.0@sha256:c0fab940c7e578ea519097d36c040238b0cc039ce366fdb753947428bbf0c3d6
         imagePullPolicy: IfNotPresent
         name: manager
         resources:
