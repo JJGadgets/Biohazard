@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v1.103.1@sha256:10761af14a6145353169042f29d2e49943de75b57a5d19251b365fe0d41ee15a
+              tag: v1.107.0@sha256:2b9c87617e55e3471a1239b0fa00041361517dd8f65c7db46abc7392c0fb561a
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
             args: ["immich"]
             env: &env
