@@ -158,7 +158,7 @@ spec:
               repository: ghcr.io/goauthentik/ldap
               tag: 2023.10.7@sha256:c483b0adf9a2123ab3d0498450d3d0f91344c97248dba789a4f80fdd3f6eb213
             env:
-              AUTHENTIK_HOST: "${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
                 valueFrom:
                   secretKeyRef:
@@ -196,7 +196,7 @@ spec:
               repository: ghcr.io/goauthentik/radius
               tag: 2023.10.7@sha256:ae095ce83ec6ff40e03104ff04a315269a7f2094df7310317140fa5f00fa74ff
             env:
-              AUTHENTIK_HOST: "${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
                 valueFrom:
                   secretKeyRef:
