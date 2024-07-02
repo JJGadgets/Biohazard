@@ -91,7 +91,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: authentik
-            app.kubernetes.io/name: *app
+            app.kubernetes.io/name: authentik
             app.kubernetes.io/component: ldap
       toPorts:
         - ports:
