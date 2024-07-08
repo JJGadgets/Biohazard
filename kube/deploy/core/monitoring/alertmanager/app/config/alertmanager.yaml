@@ -6,8 +6,8 @@ route:
   group_interval: 10m
   group_wait: 1m
   receiver: discord
-  repeat_interval: 1h # temporarily set 1m because testing notifs
-  #repeat_interval: 12h
+  #repeat_interval: 1h # temporarily set 1m because testing notifs
+  repeat_interval: 24h
   routes:
     # - receiver: heartbeat
     #   group_interval: 5m
@@ -18,6 +18,7 @@ route:
     - receiver: "null"
       matchers:
         - alertname =~ "InfoInhibitor"
+        - alertname =~ "CPUThrottlingHigh"
     - receiver: discord
       continue: true
       matchers:
