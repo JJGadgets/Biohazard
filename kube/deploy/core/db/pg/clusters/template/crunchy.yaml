@@ -91,7 +91,7 @@ spec:
         log-level-stderr: "debug"
         log-level-console: "debug"
       repos:
-        - {}
+        - name: "repo4" # no actual repo, try to disable pgBackRest replication for reconciling replicas
         # the array with index 0 on the `repos` list is used for replica recovery/replay from WALs, regardless of repo name (repo1, repo2, etc)
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
@@ -139,9 +139,6 @@ spec:
           region: "us-east-1"
   proxy:
     pgBouncer:
-      config:
-        global:
-          default_pool_size: "100"
       port: 5432
       replicas: 3
       # config:
