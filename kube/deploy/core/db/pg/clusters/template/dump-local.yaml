@@ -50,9 +50,10 @@ spec:
                 # DROP backed_up_databases IF EXISTS
                 - name: "POSTGRES_EXTRA_OPTS"
                   value: "--clean --if-exists"
-                # use pgBouncer service to handle connection loadbalancing and failover
+                # use pgBouncer service by default to handle connection loadbalancing and failover
+                # use primary service using Flux envsubst in case replicas are not ready, pgBouncer won't work with dumpall
                 - name: "POSTGRES_HOST"
-                  value: "pg-${PG_APP_NAME}-pods.${PG_APP_NS}.svc.cluster.local"
+                  value: "pg-${PG_APP_NAME}-${PG_DUMP_FROM:=pgbouncer}.${PG_APP_NS}.svc.cluster.local"
                   #value: "pg-${PG_APP_NAME}-replicas.${PG_APP_NS}.svc.cluster.local"
                   #valueFrom:
                   #  secretKeyRef:
