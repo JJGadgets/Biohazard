@@ -105,7 +105,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: ${DNS_SHORT_CF}
     external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-  name: cloudflared-external-dns-${DNS_SHORT//./-:=domain1}
+  name: cloudflared-external-dns-short
   namespace: cloudflare
 spec:
   type: ExternalName
@@ -118,7 +118,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: ${DNS_MAIN_CF}
     external-dns.alpha.kubernetes.io/target: ${SECRET_CLOUDFLARE_TUNNEL_ID}.cfargotunnel.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-  name: cloudflared-external-dns-${DNS_MAIN//./-:=domain2}
+  name: cloudflared-external-dns-long
   namespace: cloudflare
 spec:
   type: ExternalName
