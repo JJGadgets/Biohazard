@@ -39,7 +39,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: "default-error-page-${DNS_SHORT//./-}"
+  name: "default-error-page-short"
   namespace: default
   annotations:
     external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
@@ -64,7 +64,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: "default-error-page-${DNS_MAIN//./-}"
+  name: "default-error-page-long"
   namespace: default
   annotations:
     external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
