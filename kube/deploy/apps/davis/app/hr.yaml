@@ -28,9 +28,9 @@ spec:
           main:
             image: &img
               repository: ghcr.io/tchapi/davis
-              tag: 4.4.3@sha256:54050bdebb1d079b355385178a42b14d865657ed55890b1b93b32b6a0a3cc18c
+              tag: "4.4.3@sha256:54050bdebb1d079b355385178a42b14d865657ed55890b1b93b32b6a0a3cc18c"
             env: &env
-              APP_TIMEZONE: "${CONFIG_TZ}"
+              APP_TIMEZONE: "${CONFIG_TZ:=sample}"
               APP_ENV: prod
               DATABASE_DRIVER: postgresql
               DATABASE_URL:
@@ -45,11 +45,11 @@ spec:
               #ADMIN_AUTH_BYPASS: "true" # forward-auth for /dashboard # TODO: fix forward auth for dashboard
               AUTH_METHOD: LDAP
               LDAP_AUTH_URL: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
-              LDAP_DN_PATTERN: cn=%U,ou=users,dc=ldap,dc=goauthentik,dc=io
+              LDAP_DN_PATTERN: "cn=%U,ou=users,dc=ldap,dc=goauthentik,dc=io"
               LDAP_MAIL_ATTRIBUTE: mail
               LDAP_AUTH_USER_AUTOCREATE: "true"
-              TRUSTED_PROXIES: "${IP_POD_CIDR_V4},127.0.0.1"
-              TRUSTED_HOSTS: "${APP_DNS_DAVIS}"
+              TRUSTED_PROXIES: "${IP_POD_CIDR_V4:=sample},127.0.0.1"
+              TRUSTED_HOSTS: "${APP_DNS_DAVIS:=sample}"
             envFrom: &envFrom
               - secretRef:
                   name: davis-secrets
@@ -68,7 +68,7 @@ spec:
           caddy:
             image:
               repository: jank.ing/jjgadgets/caddy-distroless-base
-              tag: 2.7.6@sha256:7a16fbac33728694301f18b5414dd257e9f2902fc0d1d5c8919bf86c73b93570
+              tag: "2.7.6@sha256:7a16fbac33728694301f18b5414dd257e9f2902fc0d1d5c8919bf86c73b93570"
             args: ["run", "--config", "/config/Caddyfile"]
             securityContext:
               readOnlyRootFilesystem: true
@@ -81,7 +81,7 @@ spec:
                 cpu: "5m"
                 memory: "128Mi"
               limits:
-                cpu: "1"
+                cpu: "1000m"
                 memory: "512Mi"
         initContainers:
           01-public:
@@ -115,7 +115,7 @@ spec:
         primary: true
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_DAVIS}"
+          - host: &host "${APP_DNS_DAVIS:=sample}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -159,7 +159,7 @@ spec:
               http_port 8080
               https_port 8443
             }
-            ${APP_DNS_DAVIS}:8080 {
+            ${APP_DNS_DAVIS:=sample}:8080 {
               header -Server
               header -X-Powered-By
               header Referrer-Policy no-referrer-when-downgrade
@@ -170,12 +170,13 @@ spec:
               root * /var/www/davis/public
               encode zstd gzip
               php_fastcgi 127.0.0.1:9000 {
-                trusted_proxies ${IP_POD_CIDR_V4}
+                trusted_proxies ${IP_POD_CIDR_V4:=sample}
               }
               file_server {
                 hide .git .gitignore
               }
             }
+
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
