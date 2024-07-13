@@ -143,8 +143,8 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK}"
-          hostnames: ["${APP_DNS_AUTHENTIK}"]
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 568
