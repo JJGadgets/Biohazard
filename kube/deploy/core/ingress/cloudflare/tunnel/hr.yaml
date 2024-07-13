@@ -67,9 +67,10 @@ spec:
                 service: "http://webhook-receiver.flux-system.svc.cluster.local:80"
 
               - hostname: "social.jjgadgets.tech"
-                service: https://gotosocial.gotosocial.svc.cluster.local.:8080
-                originRequest:
-                  originServerName: "social.jjgadgets.tech"
+                service: http://gotosocial.gotosocial.svc.cluster.local.:8080
+                #service: https://gotosocial.gotosocial.svc.cluster.local.:8080
+                #originRequest:
+                #  originServerName: "social.jjgadgets.tech"
 
               - hostname: "${APP_DNS_HEADSCALE}"
                 service: https://headscale.headscale.svc.cluster.local.:8080
