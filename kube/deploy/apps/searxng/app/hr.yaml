@@ -76,7 +76,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_SEARXNG}"
+          - host: &host "${APP_DNS_SEARXNG:=searxng}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -226,10 +226,10 @@ spec:
               http_protocol_version: "1.1"
               method: "GET"
             outgoing:
+              extra_proxy_timeout: 30.0
               proxies:
                 all://:
                   - socks5://10.64.0.1:1080
-                  - socks5://10.8.0.1:1080
             ui:
               static_use_hash: true
               infinite_scroll: true
@@ -249,6 +249,7 @@ spec:
               '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
               '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
               '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
+              '(.*\.)?medium\.com$': 'scribe.rip'
             redis:
               url: "unix:///redis/redis.sock?db=0"
     # NOTE: Search engines disabled:
