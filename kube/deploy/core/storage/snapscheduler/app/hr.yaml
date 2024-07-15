@@ -1,0 +1,24 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app snapscheduler
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: snapscheduler
+      version: 3.4.0
+      sourceRef:
+        name: backube
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    # netpols
+    podLabels:
+      egress.home.arpa/apiserver: allow
+    # misc
+    manageCRDs: true
+    metrics:
+      disableAuth: true
