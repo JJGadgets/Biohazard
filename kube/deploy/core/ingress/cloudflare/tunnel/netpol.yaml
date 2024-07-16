@@ -82,6 +82,19 @@ spec:
           rules:
             http:
               - {}
+    # allow Flux notification-controller ingress
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "59292"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - {}
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
