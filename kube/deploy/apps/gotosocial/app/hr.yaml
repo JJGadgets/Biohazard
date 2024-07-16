@@ -107,6 +107,24 @@ spec:
                 enabled: true
               #startup:
               #  enabled: true
+          migrate-db: # TODO: testing migrating Postgres to SQLite
+            image:
+              repository: docker.io/library/ruby # sequel gem
+              tag: 3.3.4
+            command: ["/bin/sh", "-c", "sleep 3600"]
+            env: *env
+            envFrom: *envFrom
+            securityContext:
+              runAsUser: 0
+          migrate-s3: # TODO: testing migrating Postgres to SQLite
+            image:
+              repository: docker.io/rclone/rclone # sequel gem
+              tag: 1.67.0
+            command: ["/bin/sh", "-c", "sleep 3600"]
+            env: *env
+            envFrom: *envFrom
+            securityContext:
+              runAsUser: 0
     service:
       gotosocial:
         controller: gotosocial
