@@ -70,7 +70,7 @@ spec:
           hostnames: ["${APP_DNS_FORTIGATE_EXPORTER_TARGET:=fortigate}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid !!int ${APP_UID_FORTIGATE_EXPORTER:=1000}
+        runAsUser: &uid ${APP_UID_FORTIGATE_EXPORTER:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
