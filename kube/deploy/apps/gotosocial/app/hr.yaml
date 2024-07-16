@@ -164,7 +164,7 @@ spec:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: false # TODO: tmp migrate
         runAsUser: &uid 568
         runAsGroup: *uid
         fsGroup: *uid
