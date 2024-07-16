@@ -116,6 +116,15 @@ spec:
             envFrom: *envFrom
             securityContext:
               runAsUser: 0
+          pg-dump:
+            image:
+              repository: registry.developers.crunchydata.com/crunchydata/crunchy-postgres
+              tag: ubi8-16.2-0
+            command: ["/bin/sh", "-c", "sleep 3600"]
+            env: *env
+            envFrom: *envFrom
+            securityContext:
+              runAsUser: 0
           migrate-s3: # TODO: testing migrating Postgres to SQLite
             image:
               repository: docker.io/rclone/rclone # sequel gem
