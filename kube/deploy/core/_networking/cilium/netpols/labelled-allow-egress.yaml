@@ -329,6 +329,20 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-router
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/router: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_ROUTER_VLAN_K8S}"
+        - cidr: "${IP_ROUTER_LAN}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-lan
 spec:
   endpointSelector:
