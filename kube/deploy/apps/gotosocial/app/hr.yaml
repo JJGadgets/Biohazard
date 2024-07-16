@@ -111,7 +111,7 @@ spec:
             image:
               repository: docker.io/library/ruby # sequel gem
               tag: 3.3.4
-            command: ["/bin/sh", "-c", "sleep 3600"]
+            command: ["/bin/sh", "-c", "gen install sequel pg sqlite3 && sleep 3600"]
             env: *env
             envFrom: *envFrom
             securityContext:
