@@ -60,7 +60,7 @@ spec:
         type: secret
         name: fortigate-exporter-secrets
         globalMounts:
-          - subPath: key.yaml
+          - subPath: fortigate-key.yaml
             path: /config/fortigate-key.yaml
     defaultPodOptions:
       automountServiceAccountToken: false
@@ -97,4 +97,4 @@ spec:
             scheme: http
             path: "/probe"
             params:
-              - target: "https://${APP_DNS_FORTIGATE_EXPORTER_TARGET:=fortigate}"
+              target: "https://${APP_DNS_FORTIGATE_EXPORTER_TARGET:=fortigate}"
