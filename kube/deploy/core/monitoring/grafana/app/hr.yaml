@@ -194,7 +194,8 @@ spec:
         fortigate:
           gnetId: 14011 # https://grafana.com/grafana/dashboards/14011?tab=revisions
           revision: 5
-          datasource: Prometheus
+          datasource:
+            - { name: DS_PROMETHEUS, value: Prometheus }
         node-exporter-full:
           gnetId: 1860 # https://grafana.com/grafana/dashboards/1860?tab=revisions
           revision: 31
