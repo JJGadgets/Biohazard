@@ -27,10 +27,9 @@ spec:
   resources: # TODO: refine
     requests:
       cpu: 200m
-      memory: 1Gi
     limits:
       cpu: 1
-      memory: 4Gi
+      memory: 2Gi
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmsingle_v1beta1.json
 apiVersion: operator.victoriametrics.com/v1beta1
@@ -42,7 +41,7 @@ metadata:
     description: "VMSingle that can schedule on any node in RollingUpdate fashion to have the highest availability for VMAlerts to process"
 spec:
   useStrictSecurity: true
-  retentionPeriod: 7d
+  retentionPeriod: 2d
   extraArgs:
     dedup.minScrapeInterval: 60s
     maxLabelsPerTimeseries: "40"
@@ -53,7 +52,7 @@ spec:
     - name: &vol vmsingle-data
       emptyDir:
         medium: Memory
-        sizeLimit: 4Gi
+        sizeLimit: 1Gi
   volumeMounts:
     - name: *vol
       mountPath: *path
@@ -61,7 +60,6 @@ spec:
   resources: # TODO: refine
     requests:
       cpu: 200m
-      memory: 1Gi
     limits:
       cpu: 1
-      memory: 6Gi
+      memory: 3Gi

@@ -94,8 +94,8 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "10m"
-                memory: "128Mi"
+                cpu: "30m"
+                memory: "600Mi"
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
@@ -129,11 +129,11 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
-                memory: "128Mi"
+                cpu: "20m"
+                memory: "512Mi"
               limits:
                 cpu: "1000m"
-                memory: "4Gi"
+                memory: "2Gi"
             #probes:
             #  liveness:
             #    enabled: true
@@ -171,7 +171,7 @@ spec:
                 memory: "128Mi"
               limits:
                 cpu: "1000m"
-                memory: "4Gi"
+                memory: "512Mi"
             #probes:
             #  liveness:
             #    enabled: true
@@ -209,7 +209,7 @@ spec:
                 memory: "128Mi"
               limits:
                 cpu: "1000m"
-                memory: "4Gi"
+                memory: "512Mi"
             #probes:
             #  liveness:
             #    enabled: true

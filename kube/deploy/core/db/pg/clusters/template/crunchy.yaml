@@ -126,6 +126,20 @@ spec:
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
             full: "30 6 * * 1" # every Monday at 06:30
             incremental: "30 6 * * 0,2-6" # every day at 06:30 except Monday
+      jobs:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - topologyKey: kubernetes.io/hostname
+                namespaceSelector: {}
+                labelSelector:
+                  matchExpressions:
+                    - key: postgres-operator.crunchydata.com/pgbackrest-cronjob
+                      operator: Exists
+        resources:
+          limits:
+            cpu: 250m
+            memory: 2Gi
   dataSource:
     pgbackrest:
       stanza: "db"

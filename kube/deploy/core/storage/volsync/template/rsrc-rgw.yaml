@@ -9,7 +9,7 @@ metadata:
 spec:
   sourcePVC: "${PVC}"
   trigger:
-    schedule: "${RGW_CRON:=0 * * * *}" # 8am & 8pm GMT+8
+    schedule: "${RGW_CRON:=40 * * * *}" # 8am & 8pm GMT+8
   restic:
     copyMethod: "Snapshot"
     repository: "vs-${PVC}-rgw-restic"

@@ -85,10 +85,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "600Mi"
           frontend:
             image:
               repository: "ghcr.io/jjgadgets/reactive-resume"
@@ -97,10 +96,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "600Mi"
     service:
       main:
         enabled: true

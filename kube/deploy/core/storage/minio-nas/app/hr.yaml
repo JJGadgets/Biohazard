@@ -50,11 +50,10 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "10m"
-                memory: "128Mi"
+                cpu: "100m"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "2Gi"
             ports:
               - name: s3
                 containerPort: 9000

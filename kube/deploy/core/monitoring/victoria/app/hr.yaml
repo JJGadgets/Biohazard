@@ -17,18 +17,20 @@ spec:
     # -- use crd dir
     createCRD: true
     operator:
+      enable_converter_ownership: true
       useCustomConfigReloader: true
       # say NO to PSPs kids!
       psp_auto_creation_enabled: false
     env:
       - name: VM_VMALERTDEFAULT_CONFIGRELOADERCPU
         value: 10m
+      - name: VM_VMAGENTDEFAULT_CONFIGRELOADERCPU
+        value: 10m
     rbac:
       pspEnabled: false
     resources:
       requests:
-        cpu: 5m
-        memory: 50M
+        cpu: 20m
       limits:
-        cpu: 200m
-        memory: 2Gi
+        cpu: 100m
+        memory: 200Mi
