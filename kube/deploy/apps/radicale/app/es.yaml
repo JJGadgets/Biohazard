@@ -1,0 +1,52 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name radicale-secrets
+  namespace: radicale
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "radicale - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        config: |
+          [server]
+          hosts = 0.0.0.0:8080
+          ssl = False
+          [encoding]
+          request = utf-8
+          stock = utf-8
+          [auth]
+          type = radicale_auth_ldap
+          realm = Radicale - Password Required
+          ldap_url = ldaps://{{ .APP_DNS_AUTHENTIK_LDAP }}:636
+          ldap_base = ou=users,dc=ldap,dc=goauthentik,dc=io
+          ldap_attribute = cn
+          ldap_filter = (memberOf=cn=Role-Radicale-Auth,ou=groups,dc=ldap,dc=goauthentik,dc=io)
+          ldap_binddn = CN=radicale-ldap,OU=service-accounts,OU=goauthentik.io,DC=ldap,DC=goauthentik,DC=io
+          ldap_password = {{ .LDAP_PASSWORD }}
+          ldap_scope = SUBTREE
+          [rights]
+          type = owner_only
+          [storage]
+          type = multifilesystem
+          filesystem_folder = /data/collections
+          hook = ([ -d .git ] || git init) && git add -A && (git diff --cached --quiet || git commit -m "changes by "%(user)s)
+          [web]
+          type = internal
+          [logging]
+          level = debug
+          mask_passwords = True
+          [headers]
+

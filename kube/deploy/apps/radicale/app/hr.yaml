@@ -1,0 +1,117 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app radicale
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      radicale:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/ldap: allow
+        containers:
+          main:
+            image: &img
+              repository: jank.ing/jjgadgets/radicale
+              tag: 3.2.2@sha256:973e80ba840319b5b0543f7f77235e793c5a065dee7e081efe22d9e0bd5776ce
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      radicale:
+        controller: radicale
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_RADICALE:=RADICALE}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: radicale
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        type: secret
+        name: radicale-secrets
+        globalMounts:
+          - subPath: config
+            path: /config/config
+      data:
+        existingClaim: radicale-data
+        globalMounts:
+          - subPath: data
+            path: /data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "${APP_IP_AUTHENTIK_LDAP:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK_LDAP:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_RADICALE:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/radicale
+                    operator: DoesNotExist

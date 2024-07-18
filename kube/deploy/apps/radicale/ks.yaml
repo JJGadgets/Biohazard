@@ -1,0 +1,45 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: radicale-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "radicale"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/radicale/app
+  targetNamespace: "radicale"
+  dependsOn:
+    - name: radicale-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: radicale-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "radicale"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "radicale"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-snapscheduler-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "radicale-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_RADICALE:=1000}
+      RGID: !!str |
+        ${APP_UID_RADICALE:=1000}
+      RFSG: !!str |
+        ${APP_UID_RADICALE:=1000}
