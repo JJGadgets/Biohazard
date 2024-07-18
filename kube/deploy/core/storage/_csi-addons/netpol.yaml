@@ -16,13 +16,15 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: "rook-ceph"
             app: "csi-rbdplugin"
-      toPorts:
-        - ports:
-            - port: "9070"
-    - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: "rook-ceph"
             app: "csi-rbdplugin-provisioner"
+        - matchLabels:
+            io.kubernetes.pod.namespace: "rook-ceph"
+            app: "csi-cephfsplugin"
+        - matchLabels:
+            io.kubernetes.pod.namespace: "rook-ceph"
+            app: "csi-cephfsplugin-provisioner"
       toPorts:
         - ports:
             - port: "9070"
