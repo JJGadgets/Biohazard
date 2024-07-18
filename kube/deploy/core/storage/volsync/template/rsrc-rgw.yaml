@@ -32,8 +32,6 @@ spec:
     moverPodLabels:
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
     moverResources:
-      requests:
-        memory: 256Mi
       limits:
         cpu: 150m
-        memory: 6Gi
+        memory: 1Gi
