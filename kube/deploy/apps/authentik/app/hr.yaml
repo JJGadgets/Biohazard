@@ -80,7 +80,7 @@ spec:
               #AUTHENTIK_POSTGRESQL__USE_PGBOUNCER: "true"
               AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
-              AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local.
+              AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
               AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4}"
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
@@ -311,7 +311,7 @@ spec:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
-          - host: &host "${APP_DNS_AUTHENTIK}"
+          - host: &host "${APP_DNS_AUTHENTIK:=authentik}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -341,8 +341,8 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK}"
-          hostnames: ["${APP_DNS_AUTHENTIK}"]
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000
@@ -369,7 +369,7 @@ spec:
         controller: worker
         policyTypes: [Egress]
         rules:
-          egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR}"}}]]
+          egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR:=127.0.0.1/32}"}}]]
     serviceMonitor:
       authentik:
         serviceName: authentik
