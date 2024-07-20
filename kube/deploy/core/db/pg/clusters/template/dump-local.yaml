@@ -70,6 +70,10 @@ spec:
                     secretKeyRef:
                       name: *pguser
                       key: "password"
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 100Mi
 ---
 apiVersion: v1
 kind: PersistentVolume
