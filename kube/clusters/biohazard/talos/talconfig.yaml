@@ -38,7 +38,7 @@ nodes:
     networkInterfaces:
       - &m720q-net
         interface: br0
-        mtu: 9000
+        mtu: 1500
         dhcp: false
         bridge:
           interfaces: [bond0]
@@ -53,32 +53,32 @@ nodes:
         #  ip: "${IP_CLUSTER_VIP}"
       - &m720q-bond0
         interface: bond0
-        mtu: 9000
+        mtu: 1500
         bond: &bond0
           mode: active-backup
-          miimom: 100
-          #primary: enp1s0 # TODO: wen eta Talos bond primary device selector
-          #primary_reselect: better
+          miimon: 100
+          primary: enp1s0 # TODO: wen eta Talos bond primary device selector
+          primaryReselect: better
           deviceSelectors:
             # Mellanox ConnectX (enp1s0)
             - driver: "mlx4_core"
-              hardwareAddr: "*:80"
-      - &m720q-br1
-        interface: br1
-        mtu: 1500
-        dhcp: true # native/untagged VLAN will be either undefined or an empty VLAN with no DHCP in prod, this is for emergency/recovery use
-        bridge:
-          interfaces: [bond1]
-          stp: {enabled: true}
-        # tagged VLANs for Multus handled by FortiSwitch NAC using static MACs on bridge CNI plugin
-      - &m720q-bond1
-        interface: bond1
-        mtu: 1500
-        bond:
-          mode: active-backup
-          miimon: 100
-          deviceSelectors:
+            # Onboard Intel 1GbE (eno1)
             - driver: e1000e
+      #- &m720q-br1
+      #  interface: br1
+      #  mtu: 1500
+      #  dhcp: true # native/untagged VLAN will be either undefined or an empty VLAN with no DHCP in prod, this is for emergency/recovery use
+      #  bridge:
+      #    interfaces: [bond1]
+      #    stp: {enabled: true}
+      #  # tagged VLANs for Multus handled by FortiSwitch NAC using static MACs on bridge CNI plugin
+      #- &m720q-bond1
+      #  interface: bond1
+      #  mtu: 1500
+      #  bond:
+      #    mode: active-backup
+      #    miimon: 100
+      #    deviceSelectors:
     schematic:
       customization:
         systemExtensions:
@@ -98,15 +98,15 @@ nodes:
     networkInterfaces:
       - <<: *m720q-net
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
-      - <<: *m720q-bond0
-        bond:
-          <<: *bond0
-          deviceSelectors:
-            # Mellanox ConnectX (enp1s0)
-            - driver: "mlx4_core"
-              hardwareAddr: "*:6a"
-      - *m720q-br1
-      - *m720q-bond1
+      - *m720q-bond0
+      #  bond:
+      #    <<: *bond0
+      #    deviceSelectors:
+      #      # Mellanox ConnectX (enp1s0)
+      #      - driver: "mlx4_core"
+      #        hardwareAddr: "*:6a"
+      #- *m720q-br1
+      #- *m720q-bond1
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
@@ -114,15 +114,15 @@ nodes:
     networkInterfaces:
       - <<: *m720q-net
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
-      - <<: *m720q-bond0
-        bond:
-          <<: *bond0
-          deviceSelectors:
-            # Mellanox ConnectX (enp1s0)
-            - driver: "mlx4_core"
-              hardwareAddr: "*:40"
-      - *m720q-br1
-      - *m720q-bond1
+      - *m720q-bond0
+      #  bond:
+      #    <<: *bond0
+      #    deviceSelectors:
+      #      # Mellanox ConnectX (enp1s0)
+      #      - driver: "mlx4_core"
+      #        hardwareAddr: "*:40"
+      #- *m720q-br1
+      #- *m720q-bond1
     inlinePatch:
       machine:
         sysfs:
@@ -169,6 +169,8 @@ patches:
 #        modules:
 #          - name: nct6683
 #            parameters: ["force=on"]
+#          - name: e1000e
+#            parameters: ["Node=0"]
 
   - &clusterPatch |-
     cluster:

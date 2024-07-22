@@ -30,11 +30,11 @@ spec:
           [auth]
           type = radicale_auth_ldap
           realm = Radicale - Password Required
-          ldap_url = ldaps://{{ .APP_DNS_AUTHENTIK_LDAP }}:636
-          ldap_base = ou=users,dc=ldap,dc=goauthentik,dc=io
+          ldap_url = ldaps://{{ .LDAP_SERVER }}:636
+          ldap_base = {{ .LDAP_BASE }}
           ldap_attribute = cn
-          ldap_filter = (memberOf=cn=Role-Radicale-Auth,ou=groups,dc=ldap,dc=goauthentik,dc=io)
-          ldap_binddn = CN=radicale-ldap,OU=service-accounts,OU=goauthentik.io,DC=ldap,DC=goauthentik,DC=io
+          ldap_filter = {{ .LDAP_FILTER }}
+          ldap_binddn = {{ .LDAP_BINDDN }}
           ldap_password = {{ .LDAP_PASSWORD }}
           ldap_scope = SUBTREE
           [rights]
@@ -42,7 +42,6 @@ spec:
           [storage]
           type = multifilesystem
           filesystem_folder = /data/collections
-          hook = ([ -d .git ] || git init) && git add -A && (git diff --cached --quiet || git commit -m "changes by "%(user)s)
           [web]
           type = internal
           [logging]
