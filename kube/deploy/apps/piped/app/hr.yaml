@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: piped
-      version: 5.3.0
+      version: 6.0.0
       sourceRef:
         name: piped
         kind: HelmRepository
@@ -18,6 +18,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/ingress-nginx: "allow"
+      egress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
       egress.home.arpa/world: "allow"
     postgresql:
@@ -30,7 +31,7 @@ spec:
         HTTP_WORKERS: 2
         PROXY_PART: "https://${APP_DNS_PIPED_YTPROXY}"
         COMPROMISED_PASSWORD_CHECK: true
-        DISABLE_REGISTRATION: false
+        DISABLE_REGISTRATION: true
         database:
           connection_url: "jdbc:postgresql://pg-default-pgbouncer.pg.svc:5432/piped"
           driver_class: "org.postgresql.Driver"
@@ -39,7 +40,7 @@ spec:
             username: "user"
             password: "password"
       podSecurityContext: &psc
-        runAsUser: &uid ${APP_UID_PIPED}
+        runAsUser: &uid ${APP_UID_PIPED:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -54,7 +55,7 @@ spec:
         repository: "docker.io/1337kavin/piped-frontend"
       args: ["-c", "sed -i s/pipedapi.kavin.rocks/$BACKEND_HOSTNAME/g /usr/share/nginx/html/assets/* && sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf && /docker-entrypoint.sh nginx -g 'daemon off;'"]
       env:
-        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND}"
+        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped-backend}"
       service:
         main:
           ports:
@@ -84,7 +85,7 @@ spec:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
-          - host: &frontend "${APP_DNS_PIPED_FRONTEND}"
+          - host: &frontend "${APP_DNS_PIPED_FRONTEND:=piped-frontend}"
             paths:
               - path: "/"
         tls:
@@ -96,7 +97,7 @@ spec:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
-          - host: &backend "${APP_DNS_PIPED_BACKEND}"
+          - host: &backend "${APP_DNS_PIPED_BACKEND:=piped-backend}"
             paths:
               - path: "/"
         tls:
@@ -108,7 +109,7 @@ spec:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
-          - host: &ytproxy "${APP_DNS_PIPED_YTPROXY}"
+          - host: &ytproxy "${APP_DNS_PIPED_YTPROXY:=piped-ytproxy}"
             paths:
               - path: "/"
         tls:
