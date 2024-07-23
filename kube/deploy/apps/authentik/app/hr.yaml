@@ -342,6 +342,11 @@ spec:
         defaultMode: 0400
         globalMounts:
           - path: "/certs/${APP_DNS_AUTHENTIK}-k8s"
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - path: "/media/public"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
