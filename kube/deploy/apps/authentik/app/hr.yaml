@@ -81,7 +81,12 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
+              AUTHENTIK_SESSION_STORAGE: "db"
+              AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
+              AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
+              AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
               AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4}"
+              AUTHENTIK_OUTPOSTS__DISCOVER: "false"
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
             envFrom: &envFrom
@@ -337,11 +342,6 @@ spec:
         defaultMode: 0400
         globalMounts:
           - path: "/certs/${APP_DNS_AUTHENTIK}-k8s"
-      tmp:
-        type: emptyDir
-        medium: Memory
-        globalMounts:
-          - path: "/media/public"
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
