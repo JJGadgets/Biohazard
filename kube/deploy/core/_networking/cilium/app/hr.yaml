@@ -107,7 +107,7 @@ spec:
           #enabled: true
           #annotations:
           #  grafana_folder: "Cilium"
-      eventQueueSize: "10000" # default is 6144 which fills up
+      eventQueueSize: "25000" # default is 6144 which fills up
     operator:
       prometheus:
         enabled: true
@@ -128,7 +128,10 @@ spec:
         grafana_folder: "Cilium"
     resources: # for agent
       limits:
-        memory: "2Gi"
+        memory: "3Gi"
+    debug: # for endpoint creation issue
+      enabled: true
+      verbose: "flow kvstore envoy datapath policy"
   postRenderers:
     - kustomize: # more reliable probe for endpoint creation issues
         patches:
