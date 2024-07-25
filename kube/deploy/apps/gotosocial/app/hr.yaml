@@ -131,6 +131,7 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+            secretName: gotosocial-tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
