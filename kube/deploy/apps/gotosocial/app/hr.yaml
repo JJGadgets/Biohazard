@@ -21,7 +21,8 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-public: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
+            ingress.home.arpa/nginx-internal: "allow"
             ingress.home.arpa/cloudflare: "allow"
             db.home.arpa/pg: "pg-gotosocial"
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
