@@ -43,6 +43,9 @@ spec:
     #     podCIDR: true
     bgpControlPlane:
       enabled: true
+    ## Note: dedicated Envoy, easier resource requests
+    envoy:
+      enabled: true
     ## Note: Cilium ingress controller
     ingressController:
       enabled: false
@@ -126,9 +129,9 @@ spec:
       enabled: true
       annotations:
         grafana_folder: "Cilium"
-    resources: # for agent
-      limits:
-        memory: "3Gi"
+    #resources: # for agent
+    #  limits:
+    #    memory: "3Gi"
     debug: # for endpoint creation issue
       enabled: true
       verbose: "flow kvstore envoy datapath policy"
