@@ -55,7 +55,8 @@ ipam:
 kubeProxyReplacement: true
 ### Talos 1.5 and above come with KubePrism which is an internal TCP load balancer for kube-apiserver. DO NOT COPY IF NOT ON TALOS OR A KUBEPRISM-SUPPORTED KUBERNETES DISTRIBUTION!!!
 k8sServiceHost: "127.0.0.1"
-k8sServicePort: "7445"
+#k8sServicePort: "7445"
+k8sServicePort: "6443" # TODO: testing for CiliumEndpoint create and delete timeouts, all nodes are controlplane so this works for now
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 
 ## Multus compatibility
