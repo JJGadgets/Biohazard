@@ -32,7 +32,7 @@ spec:
 #      app.kubernetes.io/name: *app
 #      app.kubernetes.io/component: ml
 #  egress:
-#    - toFQDNs:
+#    - toFQDNs: &huggingface
 #        - matchPattern: "huggingface.co"
 #        - matchPattern: "*.huggingface.co"
 #      toPorts:
@@ -41,3 +41,16 @@ spec:
 #              protocol: TCP
 #            - port: "443"
 #              protocol: UDP
+#    - toEndpoints:
+#        - matchLabels:
+#            "k8s:io.kubernetes.pod.namespace": kube-system
+#            "k8s:k8s-app": kube-dns
+#        - matchLabels:
+#            io.kubernetes.pod.namespace: kube-system
+#            k8s-app: kube-dns
+#      toPorts:
+#        - ports:
+#            - port: "53"
+#              protocol: "ANY"
+#          rules:
+#            dns: *huggingface

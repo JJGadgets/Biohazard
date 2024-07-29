@@ -25,16 +25,32 @@ spec:
             io.kubernetes.pod.namespace: *app
     # allow Duo
     - toFQDNs:
-        - matchPattern: "api-*.duosecurity.com"
+        - &duo matchPattern: "api-*.duosecurity.com"
       toPorts:
         - ports:
             - port: "443"
     # allow AWS SES
     - toFQDNs:
-        - matchPattern: "email-smtp.*.amazonaws.com"
+        - &smtp matchPattern: "email-smtp.*.amazonaws.com"
       toPorts:
         - ports:
             - port: "587"
+    # toFQDNs
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns:
+              - *duo
+              - *smtp
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2

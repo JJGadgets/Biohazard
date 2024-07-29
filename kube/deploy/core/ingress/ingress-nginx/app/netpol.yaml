@@ -116,6 +116,20 @@ spec:
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"
         - matchPattern: "*.${DNS_SHORT}"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns:
+              - matchPattern: "*"
     - toCIDRSet:
         - cidr: "${IP_ROUTER_LAN_CIDR}"
       toPorts:

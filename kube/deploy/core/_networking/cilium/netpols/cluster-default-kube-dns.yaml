@@ -26,6 +26,7 @@ spec:
   endpointSelector:
     matchExpressions:
       - {key: dns.home.arpa/l7, operator: NotIn, values: ["false"]}
+      - {key: dns.home.arpa/l7, operator: In, values: ["true"]}
   egress:
     - toEndpoints:
         - matchLabels:
@@ -50,7 +51,7 @@ spec:
   description: "Policy for egress allow to kube-dns from all Cilium managed endpoints in the cluster"
   endpointSelector:
     matchExpressions:
-      - {key: dns.home.arpa/l7, operator: In, values: ["false"]}
+      - {key: dns.home.arpa/l7, operator: NotIn, values: ["true"]}
   egress:
     - toEndpoints:
         - matchLabels:

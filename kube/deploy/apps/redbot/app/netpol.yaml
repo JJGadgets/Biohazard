@@ -9,7 +9,7 @@ spec:
   endpointSelector: {}
   egress:
     # Lavalink (Audio cog)
-    - toFQDNs:
+    - toFQDNs: &lavalink
         ## Discord media (???)
         - matchPattern: "*.discord.media"
         ## YouTube
@@ -48,3 +48,18 @@ spec:
               protocol: "UDP"
             - port: "50009"
               protocol: "UDP"
+    # toFQDNs
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns:
+              - matchPattern: "*"

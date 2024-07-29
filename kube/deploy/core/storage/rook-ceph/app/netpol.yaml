@@ -50,8 +50,8 @@ spec:
         - matchLabels:
             rgw: "${CLUSTER_NAME}"
             io.kubernetes.pod.namespace: rook-ceph
-    - toFQDNs:
-        - matchName: "rgw-biohazard.${DNS_TS}"
+#    - toFQDNs:
+#        - matchName: "rgw-biohazard.${DNS_TS}"
     - toCIDRSet:
         - cidr: "${IP_VLAN_CEPH_CIDR}"
       toPorts:

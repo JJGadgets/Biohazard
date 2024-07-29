@@ -13,6 +13,20 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
     # Debian apt repos
-    - toFQDNs:
+    - toFQDNs: &apt
         - matchName: "deb.debian.org"
         - matchName: "debian.map.fastlydns.net"
+    # toFQDNs
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *apt
