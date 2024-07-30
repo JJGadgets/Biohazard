@@ -19,15 +19,14 @@ spec:
             prometheus: "kps"
     # Tailscale connection
     - fromEntities:
-        - cluster
-        - world
+        - all
   egress:
     - toEntities:
         - world
     # kube-apiserver
     - toEntities:
         - kube-apiserver
-    - toEntities: 
+    - toEntities:
         - host
         - remote-node
       toPorts:

@@ -89,8 +89,9 @@ spec:
               operator: Exists
     # allow pods with rgw label to connect
     - fromEndpoints:
-        - matchLabels:
-            s3.home.arpa/store: rgw-${CLUSTER_NAME}
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
+            - key: s3.home.arpa/store
+              operator: In
+              values: ["rgw-${CLUSTER_NAME}"]

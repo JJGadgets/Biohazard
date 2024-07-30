@@ -17,10 +17,6 @@ spec:
         - remote-node
       toPorts:
         - ports:
-            - port: "80"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
             - port: "8443"
               protocol: TCP
     # all ingress-nginx traffic
@@ -79,14 +75,6 @@ spec:
               key: egress.home.arpa/nginx-external
             - <<: *egress
               key: egress.home.arpa/nginx-public
-    # allow authentik-managed components to connect to main authentik server
-    - fromEndpoints:
-        - matchExpressions:
-            - key: io.kubernetes.pod.namespace
-              operator: Exists
-            - key: app.kubernetes.io/managed-by
-              operator: In
-              values: ["goauthentik.io"]
     # allow KPS to scrape
     - fromEndpoints:
         - matchLabels:
@@ -116,6 +104,7 @@ spec:
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"
         - matchPattern: "*.${DNS_SHORT}"
+    # DNS proxy to kube-dns, DNS L7 visibility
     - toEndpoints:
         - matchLabels:
             "k8s:io.kubernetes.pod.namespace": kube-system
@@ -145,20 +134,12 @@ spec:
             app.kubernetes.io/name: ingress-nginx
     # allow ingress-nginx to egress to pods that require ingress
     - toEndpoints:
-        - matchLabels:
-            ingress.home.arpa/nginx: allow
-          matchExpressions:
-            - key: io.kubernetes.pod.namespace
-              operator: Exists
-    # allow egress to all pods, except pods in core namespaces that don't need ingress controllers (TODO: rm this for podLabels with ingress.home.arpa/nginx)
-    - toEndpoints:
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
-              operator: NotIn
-              values:
-                - kube-system
-                - flux-system
-                - rook-ceph
+              operator: Exists
+            - key: ingress.home.arpa/nginx
+              operator: In
+              values: [allow]
     # allow Flux notification-controller ingress
     - toEndpoints:
         - matchLabels:
@@ -203,23 +184,12 @@ spec:
         - matchLabels:
             k8s-app: hubble-ui
             io.kubernetes.pod.namespace: kube-system
-    # DNS proxy to kube-dns, DNS L7 visibility
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-          rules:
-            dns:
-              - matchPattern: "*"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: "egress-to-ingress-nginx-internal"
+  name: "ingress-nginx-internal"
   namespace: ingress
 spec:
   # TODO: simplify this entire netpols file
@@ -236,12 +206,21 @@ spec:
             - key: egress.home.arpa/nginx-internal
               operator: In
               values: ["allow"]
+  egress:
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: ingress.home.arpa/nginx-internal
+              operator: In
+              values: [allow]
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: "egress-to-ingress-nginx-external"
+  name: "ingress-nginx-external"
   namespace: ingress
 spec:
   # TODO: simplify this entire netpols file
@@ -258,12 +237,21 @@ spec:
             - key: egress.home.arpa/nginx-external
               operator: In
               values: ["allow"]
+  egress:
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: ingress.home.arpa/nginx-external
+              operator: In
+              values: [allow]
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: "egress-to-ingress-nginx-public"
+  name: "ingress-nginx-public"
   namespace: ingress
 spec:
   # TODO: simplify this entire netpols file
@@ -280,6 +268,15 @@ spec:
             - key: egress.home.arpa/nginx-public
               operator: In
               values: ["allow"]
+  egress:
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: ingress.home.arpa/nginx-public
+              operator: In
+              values: [allow]
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -291,7 +288,6 @@ spec:
     matchLabels:
       ingress.home.arpa/nginx: allow
   ingress:
-    # ingress controller webhook admission
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: ingress-nginx
@@ -308,7 +304,6 @@ spec:
     matchLabels:
       ingress.home.arpa/nginx-internal: allow
   ingress:
-    # ingress controller webhook admission
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-internal
@@ -325,7 +320,6 @@ spec:
     matchLabels:
       ingress.home.arpa/nginx-external: allow
   ingress:
-    # ingress controller webhook admission
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-external
@@ -342,7 +336,6 @@ spec:
     matchLabels:
       ingress.home.arpa/nginx-public: allow
   ingress:
-    # ingress controller webhook admission
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-public
@@ -359,7 +352,6 @@ spec:
     matchLabels:
       egress.home.arpa/nginx-internal: allow
   egress:
-    # ingress controller webhook admission
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-internal
@@ -376,7 +368,6 @@ spec:
     matchLabels:
       egress.home.arpa/nginx-external: allow
   egress:
-    # ingress controller webhook admission
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-external
@@ -393,144 +384,8 @@ spec:
     matchLabels:
       egress.home.arpa/nginx-public: allow
   egress:
-    # ingress controller webhook admission
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/instance: nginx-public
             app.kubernetes.io/name: ingress-nginx
             io.kubernetes.pod.namespace: ingress
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "egress-to-nginx-internal"
-spec:
-  description: "Allow pods that require egress to ingress-nginx, no port restrictions"
-  endpointSelector:
-    matchLabels:
-      egress.home.arpa/nginx-internal: allow
-  egress:
-    # ingress controller webhook admission
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-internal
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "egress-to-nginx-external"
-spec:
-  description: "Allow pods that require egress to ingress-nginx, no port restrictions"
-  endpointSelector:
-    matchLabels:
-      egress.home.arpa/nginx-external: allow
-  egress:
-    # ingress controller webhook admission
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-external
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "egress-to-nginx-public"
-spec:
-  description: "Allow pods that require egress to ingress-nginx, no port restrictions"
-  endpointSelector:
-    matchLabels:
-      egress.home.arpa/nginx-public: allow
-  egress:
-    # ingress controller webhook admission
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-public
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "ingress-nginx-webhook"
-spec:
-  endpointSelector: {}
-  egress:
-    # ingress controller webhook admission
-    - toServices:
-        - k8sService:
-            serviceName: ingress-nginx-controller-admission
-            namespace: ingress
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: ingress-nginx
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
-      toPorts:
-        - ports:
-            - port: "8443"
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "nginx-internal-webhook"
-spec:
-  endpointSelector: {}
-  egress:
-    # ingress controller webhook admission
-    - toServices:
-        - k8sService:
-            serviceName: nginx-internal-controller-admission
-            namespace: ingress
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-internal
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
-      toPorts:
-        - ports:
-            - port: "8443"
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "nginx-external-webhook"
-spec:
-  endpointSelector: {}
-  egress:
-    # ingress controller webhook admission
-    - toServices:
-        - k8sService:
-            serviceName: nginx-external-controller-admission
-            namespace: ingress
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-external
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
-      toPorts:
-        - ports:
-            - port: "8443"
----
-apiVersion: "cilium.io/v2"
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "nginx-public-webhook"
-spec:
-  endpointSelector: {}
-  egress:
-    # ingress controller webhook admission
-    - toServices:
-        - k8sService:
-            serviceName: nginx-public-controller-admission
-            namespace: ingress
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/instance: nginx-public
-            app.kubernetes.io/name: ingress-nginx
-            io.kubernetes.pod.namespace: ingress
-      toPorts:
-        - ports:
-            - port: "8443"

@@ -1,54 +1,55 @@
----
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: &app vm-ad
-  namespace: *app
-spec:
-  endpointSelector: {}
-  ingress:
-    # WireGuard from router & same namespace
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-      toPorts:
-        - ports:
-            - port: "45678"
-              protocol: UDP
-    - fromCIDRSet:
-        - cidr: "${IP_ROUTER_LAN}/32"
-      toPorts:
-        - ports:
-            - port: "45678"
-              protocol: UDP
-    # Tailscale default port
-    - fromEntities:
-        - all
-      toPorts:
-        - ports:
-            - port: "41641"
-              protocol: UDP
-  egress:
-    # same namespace
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-    # WireGuard to router
-    - toCIDRSet:
-        - cidr: "${IP_ROUTER_LAN}/32"
-      toPorts:
-        - ports:
-            - port: "45678"
-              protocol: UDP
-    # egress to Tailscale default port
-    - toEntities:
-        - all
-      toPorts:
-        - ports:
-            - port: "41641"
-              protocol: UDP
-    # internet
-    - toCIDRSet:
-        - cidr: "0.0.0.0/0"
-          except: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"] # private IP ranges should go through WireGuard with OPNsense rules or Tailscale's ACLs, but internet egress should still go through Cilium for DNS netpols and whatnot
+#---
+# NOTE: disabled due to using Multus instead of Cilium CNI, so this netpol won't do anything
+## yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+#apiVersion: cilium.io/v2
+#kind: CiliumNetworkPolicy
+#metadata:
+#  name: &app vm-ad
+#  namespace: *app
+#spec:
+#  endpointSelector: {}
+#  ingress:
+#    # WireGuard from router & same namespace
+#    - fromEndpoints:
+#        - matchLabels:
+#            io.kubernetes.pod.namespace: *app
+#      toPorts:
+#        - ports:
+#            - port: "45678"
+#              protocol: UDP
+#    - fromCIDRSet:
+#        - cidr: "${IP_ROUTER_LAN}/32"
+#      toPorts:
+#        - ports:
+#            - port: "45678"
+#              protocol: UDP
+#    # Tailscale default port
+#    - fromEntities:
+#        - all
+#      toPorts:
+#        - ports:
+#            - port: "41641"
+#              protocol: UDP
+#  egress:
+#    # same namespace
+#    - toEndpoints:
+#        - matchLabels:
+#            io.kubernetes.pod.namespace: *app
+#    # WireGuard to router
+#    - toCIDRSet:
+#        - cidr: "${IP_ROUTER_LAN}/32"
+#      toPorts:
+#        - ports:
+#            - port: "45678"
+#              protocol: UDP
+#    # egress to Tailscale default port
+#    - toEntities:
+#        - all
+#      toPorts:
+#        - ports:
+#            - port: "41641"
+#              protocol: UDP
+#    # internet
+#    - toCIDRSet:
+#        - cidr: "0.0.0.0/0"
+#          except: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"] # private IP ranges should go through WireGuard with OPNsense rules or Tailscale's ACLs, but internet egress should still go through Cilium for DNS netpols and whatnot
