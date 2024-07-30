@@ -24,7 +24,7 @@ spec:
       apiGroup: volsync.backube
       kind: ReplicationDestination
       name: victoria-vmsingle-bootstrap
-  resources: # TODO: refine
+  resources:
     requests:
       cpu: 200m
     limits:
@@ -51,15 +51,16 @@ spec:
   volumes:
     - name: &vol vmsingle-data
       emptyDir:
-        medium: Memory
-        sizeLimit: 1Gi
+        #medium: Memory
+        #sizeLimit: 2Gi
+        sizeLimit: 5Gi
   volumeMounts:
     - name: *vol
       mountPath: *path
   terminationGracePeriodSeconds: 60
-  resources: # TODO: refine
+  resources:
     requests:
       cpu: 200m
     limits:
       cpu: 1
-      memory: 3Gi
+      memory: 2Gi
