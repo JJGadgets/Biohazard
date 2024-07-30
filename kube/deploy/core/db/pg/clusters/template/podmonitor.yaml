@@ -16,8 +16,8 @@ spec:
       relabelings:
         - sourceLabels: ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_postgres_operator_crunchydata_com_cluster"]
           targetLabel: pg_cluster
-          separator: ":"
-          replacement: '$1-$2'
+          separator: "/"
+          replacement: '$1$2'
   selector:
     matchLabels:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
@@ -41,8 +41,8 @@ spec:
       relabelings:
         - sourceLabels: ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_postgres_operator_crunchydata_com_cluster"]
           targetLabel: pg_cluster
-          separator: ":"
-          replacement: '$1-$2'
+          separator: "/"
+          replacement: '$1$2'
   selector:
     matchLabels:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
