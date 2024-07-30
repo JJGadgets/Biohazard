@@ -16,6 +16,8 @@ spec:
   vmAgentExternalLabelName: prometheus
   externalLabels:
     cluster: "${CLUSTER_NAME}"
+  extraArgs:
+    promscrape.maxScrapeSize: "200000000" # kubelet cadvisor fails to scrape without increasing this
   #inlineRelabelConfig:
   #  - action: labeldrop
   #    source_labels: [prometheus, service, endpoint]
