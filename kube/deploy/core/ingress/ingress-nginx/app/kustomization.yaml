@@ -7,10 +7,10 @@ configMapGenerator:
     namespace: "ingress"
     files:
       - common-values.yaml
-  - name: "default-backend-html"
-    namespace: "ingress"
-    files:
-      - index.html=https://jjgadgets.tech/error.zstd
+  #- name: "default-backend-html"
+  #  namespace: "ingress"
+  #  files:
+  #    - index.html=https://jjgadgets.tech/error.zstd
 configurations:
   - kustomizeconfig.yaml
 resources:
