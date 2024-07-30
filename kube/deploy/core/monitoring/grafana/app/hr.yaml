@@ -19,6 +19,7 @@ spec:
     podLabels:
       tailscale.com/expose: "true"
       authentik.home.arpa/https: "allow"
+      ingress.home.arpa/nginx-internal: allow
     hostAliases:
       - ip: "${APP_IP_AUTHENTIK}"
         hostnames: ["${APP_DNS_AUTHENTIK}"]
