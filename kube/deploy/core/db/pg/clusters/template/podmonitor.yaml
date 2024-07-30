@@ -13,9 +13,15 @@ spec:
     - honorLabels: true
       path: /metrics
       port: exporter
+      relabelings:
+        - sourceLabels: ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_postgres_operator_crunchydata_com_cluster"]
+          targetLabel: pg_cluster
+          separator: ":"
+          replacement: '$1-$2'
   selector:
     matchLabels:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
+      postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
       postgres-operator.crunchydata.com/role: master
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -32,7 +38,13 @@ spec:
     - honorLabels: true
       path: /metrics
       port: exporter
+      relabelings:
+        - sourceLabels: ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_postgres_operator_crunchydata_com_cluster"]
+          targetLabel: pg_cluster
+          separator: ":"
+          replacement: '$1-$2'
   selector:
     matchLabels:
       postgres-operator.crunchydata.com/cluster: "pg-${PG_APP_NAME}"
+      postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
       postgres-operator.crunchydata.com/role: replica
