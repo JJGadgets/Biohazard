@@ -59,7 +59,7 @@ spec:
         initContainers:
           01-cp:
             <<: *ct
-            command: ["/bin/sh", "-c", "cp -a /home/steam/. /home/fake/"]
+            command: ["/bin/sh", "-c", "cp -r /home/steam/. /home/fake/"]
             resources: {}
     service:
       satisfactory:
