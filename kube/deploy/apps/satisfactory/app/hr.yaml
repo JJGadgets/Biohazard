@@ -83,6 +83,12 @@ spec:
         globalMounts:
           - subPath: game
             path: /config/gamefiles
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: configdir
+            path: /home/steam/.config
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
