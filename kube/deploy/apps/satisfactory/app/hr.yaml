@@ -26,7 +26,7 @@ spec:
             ingress.home.arpa/wg-guest: allow
             egress.home.arpa/internet: allow
         containers:
-          main:
+          main: &ct
             image: &img
               repository: docker.io/wolveix/satisfactory-server
               tag: v1.6.2@sha256:5443b92765d330834ab767bb2dc63f303ee1775711753781a86c96b0add4a327
@@ -56,6 +56,11 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "20Gi"
+        initContainers:
+          01-cp:
+            <<: *ct
+            command: ["/bin/sh", "-c", "cp -a /home/steam/. /home/fake/"]
+            resources: {}
     service:
       satisfactory:
         controller: satisfactory
@@ -86,9 +91,14 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: configdir
-            path: /home/steam/.config
+        advancedMounts:
+          satisfactory:
+            01-cp:
+              - subPath: configdir
+                path: /home/fake
+            main:
+              - subPath: configdir
+                path: /home/steam
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
