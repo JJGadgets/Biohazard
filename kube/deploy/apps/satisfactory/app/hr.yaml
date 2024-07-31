@@ -99,8 +99,8 @@ spec:
             main:
               - subPath: configdir
                 path: /home/steam
-              - subPath: dumps
-                path: /tmp/dumps
+              - subPath: tmp
+                path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
