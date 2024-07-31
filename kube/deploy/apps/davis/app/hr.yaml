@@ -156,8 +156,17 @@ spec:
         data:
           Caddyfile: |
             {
+              log {
+                level info
+                output stderr
+                format console
+              }
               http_port 8080
               https_port 8443
+              servers {
+                trusted_proxies static ${IP_POD_CIDR_V4}
+                trusted_proxies_strict
+              }
             }
             ${APP_DNS_DAVIS:=sample}:8080 {
               header -Server
