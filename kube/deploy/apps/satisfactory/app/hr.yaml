@@ -5,84 +5,98 @@ metadata:
   name: &app satisfactory
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 3.1.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    controller:
-      type: statefulset
-    image:
-      repository: docker.io/wolveix/satisfactory-server
-      tag: v1.6.2@sha256:5443b92765d330834ab767bb2dc63f303ee1775711753781a86c96b0add4a327
-    podSecurityContext:
-      runAsUser: 0 # image uses PUID & PGID to fix permissions for Docker users, which requires starting as rootless :sadge: TODO: open issue to allow envvar to configure if rootless is allowed
-      runAsGroup: &uid ${APP_UID_SATISFACTORY}
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    env:
-      TZ: "${CONFIG_TZ}"
-      AUTOPAUSE: "true"
-      AUTOSAVEINTERVAL: "60"
-      AUTOSAVENUM: "60"
-      AUTOSAVEONDISCONNECT: "true"
-      CRASHREPORT: "false"
-      MAXPLAYERS: "4"
-      MAXTICKRATE: "120" # default is a low 30
-      NETWORKQUALITY: "3" # 0-3, 3 is Ultra (default)
-      PGID: *uid
-      PUID: *uid
-      TIMEOUT: "300"
+    controllers:
+      satisfactory:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/lan: allow
+            ingress.home.arpa/jjgadgets: allow
+            ingress.home.arpa/wg-guest: allow
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/wolveix/satisfactory-server
+              tag: v1.6.2@sha256:5443b92765d330834ab767bb2dc63f303ee1775711753781a86c96b0add4a327
+            securityContext: &sc
+              runAsUser: &uid ${APP_UID_SATISFACTORY:=1000}
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              ROOTLESS: "true"
+              AUTOPAUSE: "true"
+              AUTOSAVEINTERVAL: "60"
+              AUTOSAVENUM: "60"
+              AUTOSAVEONDISCONNECT: "true"
+              CRASHREPORT: "false"
+              MAXPLAYERS: "4"
+              MAXTICKRATE: "120" # default is a low 30
+              NETWORKQUALITY: "3" # 0-3, 3 is Ultra (default)
+              #PGID: *uid
+              #PUID: *uid
+              TIMEOUT: "300"
+            resources:
+              requests:
+                cpu: "200m"
+              limits:
+                cpu: "3000m"
+                memory: "20Gi"
     service:
-      main:
-        enabled: true
+      satisfactory:
+        controller: satisfactory
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
         annotations:
+          coredns.io/hostname: "${APP_DNS_SATISFACTORY}"
           "io.cilium/lb-ipam-ips": "${APP_IP_SATISFACTORY}"
         ports:
-          http:
-            enabled: false
-            primary: false
-          query:
-            enabled: true
-            port: 15777
-            protocol: UDP
-          beacon:
-            enabled: true
-            port: 15000
-            protocol: UDP
           game:
-            enabled: true
-            primary: true
             port: 7777
             protocol: UDP
-    probes:
-      startup:
-        enabled: false
-      liveness:
-        enabled: false
-      readiness:
-        enabled: false
-    volumeClaimTemplates:
-      - name: data
-        mountPath: /config
-        accessMode: ReadWriteOnce
-        size: 10Gi
-        storageClass: block
-      - name: runtime
-        mountPath: /config/gamefiles
-        accessMode: ReadWriteOnce
-        size: 50Gi
-        storageClass: block
-    resources:
-      requests:
-        cpu: 200m
-        memory: 11000Mi
-      limits:
-        cpu: 3000m
-        memory: 20000Mi
+          beacon:
+            port: 15000
+            protocol: UDP
+          query:
+            port: 15777
+            protocol: UDP
+    persistence:
+      data:
+        existingClaim: satisfactory-data
+        globalMounts:
+          - path: /data
+      game:
+        existingClaim: satisfactory-game
+        globalMounts:
+          - subPath: game
+            path: /config/gamefiles
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: *uid
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/satisfactory
+                    operator: DoesNotExist
