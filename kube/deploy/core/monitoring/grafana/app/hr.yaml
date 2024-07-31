@@ -282,39 +282,25 @@ spec:
       postgres:
         crunchy-pgbackrest:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/pgbackrest.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-pod-details:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/pod_details.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-postgresql-details:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_details.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-postgresql-overview:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_overview.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-postgresql-service_health:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/postgresql_service_health.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-prometheus-alerts:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/prometheus_alerts.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
         crunchy-query-statistics:
           url: https://raw.githubusercontent.com/CrunchyData/postgres-operator-examples/main/kustomize/monitoring/grafana/dashboards/query_statistics.json
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: Prometheus
       victoriametrics:
         vmsingle:
           gnetId: 10229
