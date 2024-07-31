@@ -2,7 +2,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: &name "pg-${PG_APP_NAME}"
+  name: &name "pg-${PG_APP_NAME}-crunchy"
   namespace: &ns "${PG_APP_NS}"
 spec:
   jobLabel: *name
