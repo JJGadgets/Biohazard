@@ -60,7 +60,7 @@ prometheus:
     image: # testing out dedupe labels https://github.com/prometheus/prometheus/releases/tag/v2.51.0-rc.0%2Bdedupelabels
       registry: quay.io
       repository: prometheus/prometheus
-      tag: v2.51.0-rc.0-dedupelabels
+      tag: v2.54.0-rc.0-dedupelabels@sha256:8a7989353b391984cc0ad178ca028cae15d1e5382e34cef354023e0443ac32bd
     # external AlertManager (non-KPS)
     alertingEndpoints:
       - apiVersion: v2
