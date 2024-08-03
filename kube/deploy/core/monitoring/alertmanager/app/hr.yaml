@@ -19,7 +19,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
-          labels:
+          labels: &pl
             ingress.home.arpa/nginx-internal: "allow"
             ingress.home.arpa/nginx-external: "allow"
             egress.home.arpa/discord: "allow"
@@ -102,10 +102,7 @@ spec:
         type: statefulset
         replicas: 3
         pod:
-          labels:
-            ingress.home.arpa/nginx-internal: allow
-            egress.home.arpa/discord: allow
-            dns.home.arpa/l7: "false"
+          labels: *pl
         containers: *ct
         statefulset:
           volumeClaimTemplates:
