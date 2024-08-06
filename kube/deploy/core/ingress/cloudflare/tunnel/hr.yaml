@@ -21,7 +21,7 @@ spec:
       prom.home.arpa/kps: "allow"
     image:
       repository: cloudflare/cloudflared
-      tag: 2024.3.0@sha256:8acfc9e4e65e0d1e26686177a3a0c4baa3b0330c0fc6adc899c2b673bc938e77
+      tag: 2024.8.2@sha256:004f4b7b60bab652d478148c138843c24eae1feee4c58fddd435b9b79c953957
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
