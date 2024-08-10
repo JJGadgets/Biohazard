@@ -1,0 +1,70 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name cryptpad-secrets
+  namespace: cryptpad
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "CryptPad - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        config.js: |
+          module.exports = {
+              httpUnsafeOrigin: 'https://{{ .APP_DNS_CRYPTPAD }}',
+              httpSafeOrigin: "https://{{ .APP_DNS_CRYPTPAD_SAFE }}",
+              httpAddress: '0.0.0.0',
+              httpPort: 3000,
+              websocketPort: 3003,
+              maxWorkers: 3,
+              otpSessionExpiration: 7*24, // hours
+              enforceMFA: false, // SSO
+              logIP: true, // internal use only, so no public IPs logged
+              adminKeys: [],
+              inactiveTime: 180, // days
+              archiveRetentionTime: 30, // days
+              maxUploadSize: 100 * 1024 * 1024, // 100MB
+              filePath: './datastore/',
+              archivePath: './data/archive',
+              pinPath: './data/pins',
+              taskPath: './data/tasks',
+              blockPath: './block',
+              blobPath: './blob',
+              blobStagingPath: './data/blobstage',
+              decreePath: './data/decrees',
+              logPath: '', // disable logging to disk
+              logToStdout: true,
+              logLevel: 'feedback', // feedback + info and below
+              logFeedback: true,
+              verbose: false,
+          };
+        sso.js: |
+          module.exports = {
+              enabled: true,
+              enforced: true,
+              cpPassword: true,
+              forceCpPassword: false,
+              list: [
+              {
+                  name: 'JJGadgets Auth',
+                  type: 'oidc',
+                  url: 'https://${APP_DNS_AUTHENTIK}/application/o/cryptpad/',
+                  client_id: "{{ .AUTHENTIK_CLIENT_ID }}",
+                  client_secret: "{{ .AUTHENTIK_CLIENT_SECRET }}}",
+                  jwt_alg: 'RS256',
+                  username_scope: 'profile',
+                  username_claim: 'preferred_username',
+              }
+              ]
+          };

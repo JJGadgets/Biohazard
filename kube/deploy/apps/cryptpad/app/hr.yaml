@@ -1,0 +1,165 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app cryptpad
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      cryptpad:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+            egress.home.arpa/github: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/cryptpad/cryptpad
+              tag: version-2024.6.1@sha256:601a3af0f7837de6683d6c25dca55597b4f2671ac0e9b51e70e5f8fd1c7aa981
+            command: ["npm", "start"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "3000m"
+                memory: "6Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+        initContainers:
+          01-install-onlyoffice:
+            image: *img
+            env: *env
+            command: ["/cryptpad/install-onlyoffice.sh", "--accept-license", "--trust-repository"]
+            securityContext: *sc
+          02-install-plugin-sso:
+            image: *img
+            env:
+              # renovate: datasource=github-tags depName=cryptpad/sso
+              SSO_VERSION: "0.1.0"
+            command: ["/usr/bin/env", "bash", "-c"]
+            args:
+              - |
+                cd /cryptpad/lib/plugins
+                git clone --depth 1 --branch $(SSO_VERSION) https://github.com/cryptpad/sso || git pull
+            securityContext: *sc
+          99-npm-build:
+            image: *img
+            env: *env
+            command: ["npm", "run", "build"]
+            securityContext: *sc
+    service:
+      cryptpad:
+        controller: cryptpad
+        ports:
+          http:
+            port: 3000
+            protocol: HTTP
+            appProtocol: http
+          ws:
+            port: 3003
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_CRYPTPAD:=cryptpad}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: cryptpad
+                  port: http
+              - path: /cryptpad_websocket
+                pathType: Prefix
+                service:
+                  identifier: cryptpad
+                  port: ws
+          - host: &hostSafe "${APP_DNS_CRYPTPAD_SAFE:=cryptpad}"
+            paths: *paths
+        tls:
+          - hosts: [*host, *hostSafe]
+    persistence:
+      config:
+        type: secret
+        name: cryptpad-secrets
+        globalMounts:
+          - subPath: config.js
+            path: /cryptpad/config/config.js
+          - subPath: sso.js
+            path: /cryptpad/config/sso.js
+        advancedMounts:
+          main:
+            main:
+              - subPath: server.toml
+                path: /data/server.toml
+      data:
+        existingClaim: cryptpad-data
+        globalMounts:
+          - subPath: data
+            path: /cryptpad/data
+          - subPath: blob
+            path: /cryptpad/blob
+          - subPath: block
+            path: /cryptpad/block
+          - subPath: customize
+            path: /cryptpad/customize
+          - subPath: files
+            path: /cryptpad/datastore
+          - subPath: plugins
+            path: /cryptpad/lib/plugins
+          - subPath: onlyoffice-dist
+            path: /cryptpad/www/common/onlyoffice/dist
+          - subPath: onlyoffice-conf
+            path: /cryptpad/onlyoffice-conf
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_CRYPTPAD:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/cryptpad
+                    operator: DoesNotExist
