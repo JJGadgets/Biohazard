@@ -32,6 +32,8 @@ spec:
             command: ["npm", "start"]
             env: &env
               TZ: "${CONFIG_TZ}"
+              GIT_CONFIG_GLOBAL: "/dev/null"
+              GIT_CONFIG_SYSTEM: "/dev/null"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -112,8 +114,6 @@ spec:
             path: /cryptpad/config/config.js
           - subPath: sso.js
             path: /cryptpad/config/sso.js
-          - subPath: empty
-            path: /cryptpad/.gitconfig
       data:
         existingClaim: cryptpad-data
         globalMounts:
