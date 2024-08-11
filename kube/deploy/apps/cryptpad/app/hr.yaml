@@ -112,11 +112,6 @@ spec:
             path: /cryptpad/config/config.js
           - subPath: sso.js
             path: /cryptpad/config/sso.js
-        advancedMounts:
-          main:
-            main:
-              - subPath: server.toml
-                path: /data/server.toml
       data:
         existingClaim: cryptpad-data
         globalMounts:
