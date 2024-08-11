@@ -139,7 +139,7 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_CRYPTPAD:=1000}
+        runAsUser: &uid 4001 # upstream `cryptpad` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
