@@ -32,8 +32,8 @@ spec:
             command: ["npm", "start"]
             env: &env
               TZ: "${CONFIG_TZ}"
-              GIT_CONFIG_GLOBAL: "/dev/null"
-              GIT_CONFIG_SYSTEM: "/dev/null"
+              GIT_CONFIG_GLOBAL: &gitc "/tmp/.gitconfig"
+              GIT_CONFIG_SYSTEM: *gitc
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -133,6 +133,12 @@ spec:
             path: /cryptpad/www/common/onlyoffice/dist
           - subPath: onlyoffice-conf
             path: /cryptpad/onlyoffice-conf
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
