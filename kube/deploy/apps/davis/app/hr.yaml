@@ -169,6 +169,7 @@ spec:
               }
             }
             ${APP_DNS_DAVIS:=sample}:8080 {
+              log
               header -Server
               header -X-Powered-By
               header Referrer-Policy no-referrer-when-downgrade
