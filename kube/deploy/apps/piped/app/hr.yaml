@@ -92,10 +92,13 @@ spec:
           - hosts:
               - *frontend
       backend:
-        ingressClassName: "nginx-internal"
+        ingressClassName: "nginx-external"
         annotations:
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
+          # for Google pubsub webhook for refreshing feeds in realtime, path and source limiting done on Cloudflare side
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &backend "${APP_DNS_PIPED_BACKEND:=piped-backend}"
             paths:

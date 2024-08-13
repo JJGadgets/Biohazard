@@ -72,6 +72,10 @@ spec:
                 #originRequest:
                 #  originServerName: "social.jjgadgets.tech"
 
+              - hostname: "${APP_DNS_PIPED_BACKEND}"
+                path: "^/webhooks"
+                service: http://piped-backend.piped.svc.cluster.local:8080
+
               - hostname: "${APP_DNS_HEADSCALE}"
                 service: https://headscale.headscale.svc.cluster.local.:8080
                 originRequest:
