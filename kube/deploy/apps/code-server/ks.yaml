@@ -36,7 +36,8 @@ spec:
     substitute:
       PVC: "code-server-data"
       SIZE: "50Gi"
-      CACHESIZE: "10Gi"
+      CACHESIZE: "15Gi"
+      RGW_CRON: "0 */12 * * *"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
