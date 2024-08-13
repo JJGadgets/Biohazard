@@ -132,6 +132,7 @@ tasks:
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g' %
 
   shortnames:
     desc: List all installed CRDs and their short names.
@@ -146,6 +147,7 @@ tasks:
       - |-
         while true; do
           kubectl delete pod -A --field-selector=status.phase==Failed || true;
+          kubectl delete pod -A --field-selector=status.phase==Pending || true;
           kubectl delete pod -A --field-selector=status.phase==Succeeded || true;
         done
 
@@ -153,15 +155,29 @@ tasks:
     aliases: [delpvc]
     desc: Delete PVC which is stuck, e.g. if it's a local-path PVC and the node has been wiped and reset.
     vars:
+      #NS: '{{.NS | default "default"}}'
       NS: '{{ or .NS (fail "Missing `NS` environment variable!") }}'
       PVC: '{{ or .PVC (fail "Missing `PVC` environment variable!") }}'
     cmds:
+      #- |
+      #  kubectl get pvc -n {{.NS}} {{.PVC}} -o jsonpath='{.spec.volumeName}'
       - |
         kubectl delete pvc -n {{.NS}} {{.PVC}} --wait=false
       - |
         kubectl patch pvc -n {{.NS}} {{.PVC}} --type='json' -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
       - |
         until kubectl wait --for=delete pvc -n {{.NS}} {{.PVC}} --timeout=3600s; do sleep 1; done
+
+  delete-all-reset-node-pvcs:
+    desc: Delete all PVCs that are stuck because they're tied to a node that has been reset.
+    vars:
+      NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
+      FAILCONTINUE: '{{ .FAILCONTINUE | default "false" }}'
+    cmds:
+      - |
+        kubectl get pv -o jsonpath='{range .items[?(@.spec.nodeAffinity.required.nodeSelectorTerms[*].matchExpressions[*].values[*]=="{{.NODE}}")]}{"NS="}{.spec.claimRef.namespace}{" "}{"PVC="}{.spec.claimRef.name}{"\n"}{end}' | while read -r i; do
+          task k8s:delete-stuck-pvc ${i} || {{.FAILCONTINUE}}
+        done
 
   iperf2:
     desc: Start a iperf2 server on one node, and iperf2 client on another node, to benchmark network performance.

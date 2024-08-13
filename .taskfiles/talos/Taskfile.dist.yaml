@@ -41,7 +41,7 @@ tasks:
     cmds:
       - pwd
       - op user get --me # check signin status, fail if not signed in
-      - op run -- task --taskfile /{{.ROOT_DIR}}/.taskfiles/bootstrap/Taskfile.dist.yaml 1p-vars-env-run C={{.C}} -- talhelper genconfig
+      - op --cache=false run -- task --taskfile /{{.ROOT_DIR}}/.taskfiles/bootstrap/Taskfile.dist.yaml 1p-vars-env-run C={{.C}} -- talhelper genconfig
 
   bootstrap:
     aliases: [bs]
@@ -74,3 +74,12 @@ tasks:
       NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
     cmds:
       - talosctl reboot --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address')
+
+  gensecret:
+    desc: Generate secrets and push to 1Password
+    dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+    cmds:
+      - op user get --me # check signin status, fail if not signed in
+      - export $(talhelper gensecret | yq --input-format yaml --output-format shell | sed -e 's/\'$//g' -e 's/=\'/=/g'); op item create --category=PASSWORD --title='.{{.C}}-talos' --vault='{{.C}}' --generate-password='64,letters,digits,symbols' Secrets.cluster_id[password]="$cluster_id" Secrets.cluster_secret[password]="$cluster_secret" Secrets.secrets_bootstraptoken[password]="$secrets_bootstraptoken" Secrets.secrets_secretboxencryptionsecret[password]="$secrets_secretboxencryptionsecret" Secrets.trustdinfo_token[password]="$trustdinfo_token" Secrets.certs_etcd_crt[password]="$certs_etcd_crt" Secrets.certs_etcd_key[password]="$certs_etcd_key" Secrets.certs_k8s_crt[password]="$certs_k8s_crt" Secrets.certs_k8s_key[password]="$certs_k8s_key" Secrets.certs_k8saggregator_crt[password]="$certs_k8saggregator_crt" Secrets.certs_k8saggregator_key[password]="$certs_k8saggregator_key" Secrets.certs_k8sserviceaccount_key[password]="$certs_k8sserviceaccount_key" Secrets.certs_os_crt[password]="$certs_os_crt" Secrets.certs_os_key[password]="$certs_os_key" # TODO: this is a fish command, check if it works on Task's sh interpreter

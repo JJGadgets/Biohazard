@@ -27,8 +27,10 @@ tasks:
       PRE_ARGS: '{{.PRE_ARGS}}'
       POST_ARGS: '{{.POST_ARGS}}'
     cmds:
+      #- |
+      #  {{.PRE_ARGS}}op item get --vault {{.C}} ".{{.C}}-vars" --format=json | yq --input-format json '.fields | with(.[]; (.label | key) = "key") | (.[] | select(has("value") | not) | .value) |= "" | map(.key + "=" + (.value | @sh)) | .[]'{{.POST_ARGS}} {{.CLI_ARGS}}
       - |
-        {{.PRE_ARGS}}op item get --vault {{.C}} ".{{.C}}-vars" --format=json | yq --input-format json '.fields | with(.[]; (.label | key) = "key") | (.[] | select(has("value") | not) | .value) |= "" | map(.key + "=" + (.value | @sh)) | .[]'{{.POST_ARGS}} {{.CLI_ARGS}}
+        {{.PRE_ARGS}}op item get --vault {{.C}} ".{{.C}}-vars" --format=json | yq --input-format json '.fields | with(.[]; (.label | key) = "key") | (.[] | select(has("value") | not) | .value) |= "" | map(.key + "=" + .value) | .[]'{{.POST_ARGS}} {{.CLI_ARGS}}
 
   1p-vars-env-run:
     dir: '{{.USER_WORKING_DIR}}'
@@ -70,8 +72,8 @@ tasks:
       - task: 1p-vars-env-shell
         vars:
           C: *c
-          POST_ARGS: " | kubectl create secret generic -n flux-system sinon-vars --from-env-file=/dev/stdin"
-      - kubectl create secret generic -n flux-system sinon-secrets # currently nothing hopefully maybe?
+          POST_ARGS: " | kubectl create secret generic -n flux-system {{.C}}-vars --from-env-file=/dev/stdin"
+      - kubectl create secret generic -n flux-system {{.C}}-secrets # currently nothing hopefully maybe?
       - op read "op://{{.C}}/Flux/agekey" | kubectl create secret generic -n flux-system agekey --from-file=age.agekey=/dev/stdin
       - yq '.spec.values | explode(.)' ./kube/deploy/core/secrets/external-secrets/app/hr.yaml | helm install -n external-secrets external-secrets oci://ghcr.io/external-secrets/charts/external-secrets --version $(yq '.spec.chart.spec.version' ./kube/deploy/core/secrets/external-secrets/app/hr.yaml) -f -
-      - kubectl apply --server-side -f /{{.ROOT_DIR}}/kube/clusters/sinon/flux/flux-repo.yaml
+      - kubectl apply --server-side -f /{{.ROOT_DIR}}/kube/clusters/{{.C}}/flux/flux-repo.yaml

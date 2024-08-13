@@ -148,6 +148,19 @@ tasks:
           NODE: "humming"
           CEPH_DISK: "/dev/disk/by-id/ata-INTEL_SSDSC2BB016T4_BTWD709202L91P6HGN"
 
+  wipe-nodes-sinon:
+    desc: Wipe all nodes in cluster "sinon"
+    dir: '/{{.ROOT_DIR}}/.taskfiles/rook'
+    cmds:
+      - task: wipe-node
+        vars:
+          NODE: "sinon"
+          CEPH_DISK: "/dev/disk/by-id/ata-WDC_WD120EFBX-68B0EN0_5QKKKY0B"
+      - task: wipe-node
+        vars:
+          NODE: "sinon"
+          CEPH_DISK: "/dev/disk/by-id/ata-WDC_WD120EFBX-68B0EN0_5QKLS2WB"
+
   force-delete-cluster:
     desc: |-
       Sometimes Rook seems to fail applying the cluster and want to delete it before it even gets anything set up, this Task will force delete all finalizers to delete all unready Ceph resources.
@@ -174,9 +187,9 @@ tasks:
     vars:
       C: '{{ or .C (fail "Missing `C` environment variable for cluster!") }}'
     cmds:
-      - task: cluster:cluster-switch
-        vars:
-          C: '{{.C}}'
+      #- task: cluster:cluster-switch
+      #  vars:
+      #    C: '{{.C}}'
       - flux suspend ks 0-{{.C}}-config
       - flux suspend ks 1-core-storage-rook-ceph-app
       - flux suspend ks 1-core-storage-rook-ceph-cluster-{{.C}}
