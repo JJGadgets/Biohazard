@@ -61,9 +61,9 @@ These can be found under the `./kube/deploy/core` folder, allowing for clear sep
 
 My "production" home network is currently primarily powered by Fortinet.
 
-Firewall: **FortiGate 40F**
-1GbE switch: **FortiSwitch 108E**, managed, using NAC for VLAN assignment.
-10GbE switch: **TP-Link TL-ST1008F**, unmanaged, downstream of FortiSwitch so its NAC handles VLAN assignment.
-WiFi Access Point: **FortiAP 221E**
+- Firewall: **FortiGate 40F**
+- 1GbE switch: **FortiSwitch 108E**, managed, using NAC for VLAN assignment.
+- 10GbE switch: **TP-Link TL-ST1008F**, unmanaged, downstream of FortiSwitch so its NAC handles VLAN assignment.
+- WiFi Access Point: **FortiAP 221E**
 
 I also tinker with and have previously used other platforms, such as OPNsense firewall, Brocade ICX6450 switch, Aruba S1500-12p switch, Cisco Catalyst 3750G, etc.
