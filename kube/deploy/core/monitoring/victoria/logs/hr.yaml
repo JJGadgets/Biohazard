@@ -67,3 +67,8 @@ spec:
     fluent-bit:
       enabled: false # TODO: explore this
     extraObjects: []
+    global:
+      nameOverride: *app
+      victoriaLogs:
+        server:
+          fullnameOverride: *app
