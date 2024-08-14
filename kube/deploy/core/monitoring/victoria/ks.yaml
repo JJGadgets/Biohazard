@@ -54,3 +54,47 @@ spec:
       RUID: "1000"
       RGID: "1000"
       RFSG: "1000"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-victoria-logs
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "victoria"
+    app.kubernetes.io/instance: "logs"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/victoria/logs
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-monitoring-victoria-app
+    - name: 1-core-monitoring-victoria-logs-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-monitoring-victoria-logs-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "victoria"
+    app.kubernetes.io/instance: "logs"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "monitoring"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "victoria-logs-data"
+      SIZE: "20Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: "1000"
+      RGID: "2000"
+      RFSG: "1000"

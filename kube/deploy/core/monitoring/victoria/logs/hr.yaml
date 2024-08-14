@@ -1,0 +1,69 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app victoria-logs
+  namespace: monitoring
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: victoria-logs-single
+      version: 0.5.4
+      sourceRef:
+        name: victoria
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    server:
+      enabled: true
+      podLabels: {}
+      image:
+        repository: docker.io/victoriametrics/victoria-logs
+        tag: "v0.28.0-victorialogs@sha256:dd1685ffb6ce0be3729b27e197e864be1bd9c274e097406d4005a83360846ff1"
+        pullPolicy: IfNotPresent
+      retentionPeriod: 1 # months
+      persistentVolume:
+        enabled: true
+        existingClaim: victoria-logs-data
+        subPath: data
+      ingress:
+        enabled: true
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            ${IP_JJ_V4}
+        ingressClassName: nginx-internal
+        pathType: Prefix
+        hosts:
+          - name: &host "${APP_DNS_VICTORIA_LOGS}"
+            path: /
+            port: http
+        tls:
+          - hosts: [*host]
+      resources: # TODO: tune
+        requests:
+          cpu: 10m
+          memory: 512Mi
+        limits:
+          cpu: 3000m
+          memory: 4Gi
+      securityContext:
+        enabled: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities: { drop: [ALL] }
+      podSecurityContext:
+        enabled: true
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_VICTORIA_LOGS:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      statefulSet:
+        enabled: false
+      serviceMonitor:
+        enabled: true
+      affinity: {} # TODO: add fuck-off
+    fluent-bit:
+      enabled: false # TODO: explore this
+    extraObjects: []
