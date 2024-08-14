@@ -17,10 +17,11 @@ spec:
     automountServiceAccountToken: false
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
-      egress.home.arpa/ingress-nginx: "allow"
+      ingress.home.arpa/nginx-external: "allow"
       egress.home.arpa/nginx-internal: "allow"
+      egress.home.arpa/nginx-external: "allow"
       db.home.arpa/pg: "pg-default"
-      egress.home.arpa/world: "allow"
+      egress.home.arpa/internet: "allow"
     postgresql:
       enabled: false
     backend:
