@@ -7,7 +7,6 @@ metadata:
 spec:
   path: ./kube/deploy/apps/piped/app
   dependsOn:
-    - name: 1-core-ingress-nginx-app
     - name: 1-core-db-pg-clusters-default
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
