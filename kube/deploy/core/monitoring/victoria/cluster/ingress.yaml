@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: "nginx-internal"
   rules:
-    - host: &host "${APP_DNS_VMSINGLE}"
+    - host: &host "${APP_DNS_VMSINGLE:=vmsingle}"
       http:
         paths:
           - pathType: Prefix
