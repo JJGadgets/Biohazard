@@ -95,6 +95,9 @@ spec:
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: "1000"
-      RGID: "2000"
-      RFSG: "1000"
+      RUID: !!str &uid |
+        ${APP_UID_VICTORIA_LOGS}
+      RGID: !!str |
+        ${APP_UID_VICTORIA_LOGS}
+      RFSG: !!str |
+        ${APP_UID_VICTORIA_LOGS}
