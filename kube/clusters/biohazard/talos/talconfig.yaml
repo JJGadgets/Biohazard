@@ -1,7 +1,7 @@
 ---
 clusterName: biohazard
-talosVersion: v1.6.4
-kubernetesVersion: v1.29.2
+talosVersion: v1.7.6
+kubernetesVersion: v1.30.1
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -49,48 +49,38 @@ nodes:
             metric: 1
           - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
-        #vip:
-        #  ip: "${IP_CLUSTER_VIP}"
+        vip:
+          ip: "${IP_CLUSTER_VIP}"
       - &m720q-bond0
         interface: bond0
         mtu: 1500
         bond: &bond0
           mode: active-backup
           miimon: 100
-          primary: enp1s0 # TODO: wen eta Talos bond primary device selector
-          primaryReselect: better
+          primary: eno1
           deviceSelectors:
-            # Mellanox ConnectX (enp1s0)
-            - driver: "mlx4_core"
             # Onboard Intel 1GbE (eno1)
             - driver: e1000e
-      #- &m720q-br1
-      #  interface: br1
-      #  mtu: 1500
-      #  dhcp: true # native/untagged VLAN will be either undefined or an empty VLAN with no DHCP in prod, this is for emergency/recovery use
-      #  bridge:
-      #    interfaces: [bond1]
-      #    stp: {enabled: true}
-      #  # tagged VLANs for Multus handled by FortiSwitch NAC using static MACs on bridge CNI plugin
-      #- &m720q-bond1
-      #  interface: bond1
-      #  mtu: 1500
-      #  bond:
-      #    mode: active-backup
-      #    miimon: 100
-      #    deviceSelectors:
+            # Mellanox ConnectX (enp1s0)
+            - driver: "mlx4_core"
+    machineSpec:
+      secureboot: true
     schematic:
       customization:
         systemExtensions:
           officialExtensions:
+            - siderolabs/gvisor
+            - siderolabs/gvisor-debug
             - siderolabs/i915-ucode
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
-    inlinePatch:
-      machine:
-        sysfs:
-          devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
-          devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+            - siderolabs/kata-containers
+    patches:
+      - |
+        machine:
+          sysfs:
+            devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
+            devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -99,35 +89,20 @@ nodes:
       - <<: *m720q-net
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
       - *m720q-bond0
-      #  bond:
-      #    <<: *bond0
-      #    deviceSelectors:
-      #      # Mellanox ConnectX (enp1s0)
-      #      - driver: "mlx4_core"
-      #        hardwareAddr: "*:6a"
-      #- *m720q-br1
-      #- *m720q-bond1
 
   - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - <<: *m720q-net
-        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
       - *m720q-bond0
-      #  bond:
-      #    <<: *bond0
-      #    deviceSelectors:
-      #      # Mellanox ConnectX (enp1s0)
-      #      - driver: "mlx4_core"
-      #        hardwareAddr: "*:40"
-      #- *m720q-br1
-      #- *m720q-bond1
-    inlinePatch:
-      machine:
-        sysfs:
-          devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
-          devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+    patches:
+      - |
+        machine:
+          sysfs:
+            devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
+            devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
 patches:
   # set all disks to no scheduler
@@ -172,6 +147,16 @@ patches:
 #          - name: e1000e
 #            parameters: ["Node=0"]
 
+  - &LUKS |
+    machine:
+      systemDiskEncryption:
+        ephemeral: &fde
+          provider: luks2
+          keys:
+            - slot: 0
+              tpm: {}
+        state: *fde
+
   - &clusterPatch |-
     cluster:
       allowSchedulingOnMasters: true
@@ -193,6 +178,14 @@ patches:
           enabled: true
           port: 7445
 
+  - &hostDNS |
+    machine:
+      features:
+        hostDNS:
+          enabled: true
+          resolveMemberNames: true
+          forwardKubeDNSToHost: false
+
   - &kubeletSubnet |-
     machine:
       kubelet:
@@ -207,7 +200,7 @@ patches:
           maxPods: 200
 
   # patch containerd for spegel (discard)
-  - |-
+  - &spegel |
     machine:
       files:
         - op: create
@@ -220,6 +213,39 @@ patches:
             [plugins."io.containerd.grpc.v1.cri".containerd]
               discard_unpacked_layers = false
 
+  - &nfsMountOptions |
+    machine:
+      files:
+        - op: overwrite
+          path: /etc/nfsmount.conf
+          permissions: 420
+          content: |
+            [ NFSMount_Global_Options ]
+            nfsvers=4.2
+            hard=True
+            noatime=True
+            nodiratime=True
+            rsize=131072
+            wsize=131072
+            nconnect=8
+
+  - &kubeletLogs |
+    machine:
+      kubelet:
+        extraMounts:
+          - type: bind
+            options: [bind, rshared, rw]
+            source: /run/kubelet-logs
+            destination: /var/log
+          - type: bind
+            options: [bind, rshared, rw]
+            source: /run/kubelet-logs-containers
+            destination: /var/log/containers
+          - type: bind
+            options: [bind, rshared, rw]
+            source: /run/kubelet-logs-pods
+            destination: /var/log/pods
+
 controlPlane:
   patches:
     - &apiServerResources |-
@@ -228,9 +254,20 @@ controlPlane:
           resources:
             requests:
               cpu: 200m
-              memory: 2Gi
+              memory: 4Gi
             limits:
               memory: 8Gi
+
+    - &apiServerLogs |
+      cluster:
+        apiServer:
+          extraArgs:
+            audit-log-path: "/dev/null"
+          auditPolicy:
+            apiVersion: audit.k8s.io/v1
+            kind: Policy
+            rules:
+              - level: None
 
     - &nodeCidrSize |-
       - op: add
@@ -278,19 +315,3 @@ controlPlane:
                           topologyKey: "topology.kubernetes.io/zone"
                           whenUnsatisfiable: ScheduleAnyway
 
-    # TODO: can't create files outside /var, maybe open FR to whitelist this?
-    # - &nfsMountOptions |-
-    #   machine:
-    #     files:
-    #       - op: create
-    #         path: /etc/nfsmount.conf
-    #         permissions: 0o644
-    #         content: |
-    #           [ NFSMount_Global_Options ]
-    #           nfsvers=4.2
-    #           hard=True
-    #           noatime=True
-    #           nodiratime=True
-    #           rsize=131072
-    #           wsize=131072
-    #           nconnect=8
