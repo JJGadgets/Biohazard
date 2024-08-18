@@ -32,7 +32,10 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               PROMETHEUS_URL: http://vmsingle-victoria.monitoring.svc.cluster.local.:8429
-              PORT: &port 8080
+              SERVER_HOST: "::"
+              SERVER_PORT: &http 8080
+              HEALTH_HOST: "::"
+              HEALTH_PORT: &health 8888
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -44,24 +47,35 @@ spec:
               limits:
                 memory: "128Mi"
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
-                spec:
+                spec: &probes
                   httpGet:
-                    path: /-/ready
-                    port: *port
+                    path: /-/health
+                    port: *health
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  <<: *probes
+                  httpGet:
+                    path: /-/ready
+                    port: *health
     service:
       kromgo:
         controller: kromgo
         ports:
           http:
-            port: *port
+            port: *http
+            protocol: HTTP
+            appProtocol: http
+          health:
+            port: *health
             protocol: HTTP
             appProtocol: http
     ingress:
