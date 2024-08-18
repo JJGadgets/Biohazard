@@ -84,8 +84,8 @@ l2announcements:
 bpf:
   masquerade: false # not beneficial for homelab, and tends to conflict with other networking stuff
   tproxy: true # L7 netpols stuff
-  mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
-  #policyMapMax # TODO: if above doesn't change this, change this manually
+  #mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
+  policyMapMax: "40960" # 2.5x default, dynamic size ratio doesn't increase this
 l7Proxy: true # enables L7 netpols
 dnsProxy:
   enableTransparentMode: true
