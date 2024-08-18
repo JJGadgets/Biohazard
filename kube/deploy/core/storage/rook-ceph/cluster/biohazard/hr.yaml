@@ -271,7 +271,7 @@ spec:
                 min_size: "2"
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
-            - name: &fsec21 "${CLUSTER_NAME}-fs-ec-2-1-data0"
+            - name: "ec-2-1-min-2"
               failureDomain: "host"
               deviceClass: "ssd"
               erasureCoded:
