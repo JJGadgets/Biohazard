@@ -1,0 +1,41 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-1-deps
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/part-of: "media"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/media/_deps/app
+  targetNamespace: "media"
+  dependsOn:
+    - name: media-data-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-data-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/part-of: "media"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "media"
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "media-data"
+      SIZE: "200Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: &uid "6969"
+      RGID: *uid
+      RFSG: *uid

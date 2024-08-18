@@ -9,8 +9,8 @@ metadata:
 spec:
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/kavita/app
-  targetNamespace: "kavita"
+  path: ./kube/deploy/apps/media/kavita/app
+  targetNamespace: "media"
   dependsOn:
     - name: kavita-pvc
 ---
@@ -25,7 +25,7 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "kavita"
+  targetNamespace: "media"
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster

@@ -9,8 +9,8 @@ metadata:
 spec:
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/komga/app
-  targetNamespace: "komga"
+  path: ./kube/deploy/apps/media/komga/app
+  targetNamespace: "media"
   dependsOn:
     - name: komga-pvc
 ---
@@ -25,14 +25,14 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "komga"
+  targetNamespace: "media"
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
       PVC: "komga-data"
-      SIZE: "200Gi"
+      SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"

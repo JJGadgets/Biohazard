@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app kavita
-  namespace: *app
+  namespace: media
 spec:
   interval: 5m
   chart:
@@ -23,7 +23,6 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/internet: "allow" # metadata fetching
-            tailscale.com/expose: "true"
         containers:
           main:
             image: &img
@@ -54,7 +53,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_KAVITA}"
+          - host: &host "${APP_DNS_KAVITA:=kavita}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -63,28 +62,31 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
-      tailscale:
-        enabled: true
-        primary: true
-        className: "tailscale"
-        hosts:
-          - host: &host "${APP_DNS_TS_KAVITA}"
-            paths: *paths
-        tls:
-          - hosts: [*host]
     persistence:
       config:
         enabled: true
         existingClaim: "kavita-config"
         globalMounts:
           - path: "/kavita/config"
-      media:
+      nas:
         enabled: true
         type: nfs
         server: "${IP_TRUENAS}"
         path: "${PATH_NAS_MEDIA}"
         globalMounts:
+          - path: "/nas"
+            readOnly: true
+      media:
+        enabled: true
+        existingClaim: "media-data" # VolSync
+        globalMounts:
           - path: "/media"
+            readOnly: true
+      bulk:
+        enabled: true
+        existingClaim: "media-bulk" # no backups
+        globalMounts:
+          - path: "/bulk"
             readOnly: true
       backups:
         enabled: true
@@ -107,11 +109,11 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_KAVITA}
+        runAsUser: &uid ${APP_UID_KAVITA:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
-        supplementalGroups: [6969]
+        supplementalGroups: [6969] # NAS
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
