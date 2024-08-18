@@ -219,19 +219,19 @@ spec:
       #   storageClass:
       #     <<: *rbd-sc
       #     name: "block-hdd-ec-2-2"
-      - name: "games-ec-2-1"
-        spec:
-          failureDomain: "osd"
-          deviceClass: "ssd"
-          erasureCoded:
-            dataChunks: 2
-            codingChunks: 1
-          parameters:
-            min_size: "2" # not recommended but it's just game files so who cares
-            compression_mode: "aggressive"
-            compression_algorithm: "lz4" # some games compress pretty good
-        storageClass:
-          enabled: false # only my gaming PC will be accessing this
+      #- name: "games-ec-2-1"
+      #  spec:
+      #    failureDomain: "osd"
+      #    deviceClass: "ssd"
+      #    erasureCoded:
+      #      dataChunks: 2
+      #      codingChunks: 1
+      #    parameters:
+      #      min_size: "2" # not recommended but it's just game files so who cares
+      #      compression_mode: "aggressive"
+      #      compression_algorithm: "lz4" # some games compress pretty good
+      #  storageClass:
+      #    enabled: false # only my gaming PC will be accessing this
       - name: "builtin-mgr"
         spec:
           name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
@@ -271,7 +271,7 @@ spec:
                 min_size: "2"
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
-          metadataServer:
+          metadataServer: &mds
             activeCount: 3 # 3 active 3 standby
             activeStandby: true
             placement:
@@ -305,6 +305,27 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: "rook-csi-cephfs-node"
             csi.storage.k8s.io/node-stage-secret-namespace: "rook-ceph"
             csi.storage.k8s.io/fstype: "ext4"
+      - name: &fs "${CLUSTER_NAME}-fs-ec-2-1" # random misc PVCs, bulk media, cache etc
+        spec:
+          <<: *cephfsSpec
+          dataPools:
+            - name: &fsec21 "${CLUSTER_NAME}-fs-ec-2-1-data0"
+              failureDomain: "host"
+              deviceClass: "ssd"
+              erasureCoded:
+                dataChunks: 2
+                codingChunks: 1
+              parameters:
+                min_size: "2" # not fully safe against EC >1 OSD down, but it's mostly unimportant data so whatever
+                compression_mode: "aggressive"
+                compression_algorithm: "lz4"
+          metadataServer:
+            <<: *mds
+            activeCount: 1
+        storageClass:
+          <<: *cephfsSC
+          name: file-ec-2-1
+          pool: *fsec21
       # - <<: *cephfs
       #   name: &fs "nas"
       #   spec:
