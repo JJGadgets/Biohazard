@@ -55,9 +55,9 @@ ipam:
 kubeProxyReplacement: true
 ### Talos 1.5 and above come with KubePrism which is an internal TCP load balancer for kube-apiserver. DO NOT COPY IF NOT ON TALOS OR A KUBEPRISM-SUPPORTED KUBERNETES DISTRIBUTION!!!
 k8sServiceHost: "127.0.0.1"
-#k8sServicePort: "7445"
-k8sServicePort: "6443" # TODO: testing for CiliumEndpoint create and delete timeouts, all nodes are controlplane so this works for now
+k8sServicePort: "7445"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+
 
 ## Multus compatibility
 cni:
@@ -71,8 +71,8 @@ operator:
 ## NOTE: Cilium L2 LoadBalancer service IP announcements
 externalIPs:
   enabled: true
-#l2announcements:
-#  enabled: false
+l2announcements:
+  enabled: true
 #  leaseDuration: "120s"
 #  leaseRenewDeadline: "60s"
 #  leaseRetryPeriod: "1s"
@@ -84,12 +84,14 @@ externalIPs:
 bpf:
   masquerade: false # not beneficial for homelab, and tends to conflict with other networking stuff
   tproxy: true # L7 netpols stuff
+  mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
+  #policyMapMax # TODO: if above doesn't change this, change this manually
 l7Proxy: true # enables L7 netpols
 dnsProxy:
-  enableTransparentMode: false # TODO: 2024-06-02: temporarily turned off to attempt fixing endpoint creation timeout
+  enableTransparentMode: true
 socketLB:
-  enabled: false # supposed to be default off, but it's enabled anyway, and looks fun lol # TODO: 2024-06-02: temporarily turned off to attempt fixing endpoint creation timeout
-  hostNamespaceOnly: true # KubeVirt compatibility
+  enabled: true # supposed to be default off, but it's enabled anyway, and looks fun lol
+  #hostNamespaceOnly: true # KubeVirt compatibility with k8s services # disabled because KubeVirt VMs now use Multus bridging rather than CNI
 
 bgpControlPlane:
   enabled: true
@@ -99,7 +101,7 @@ localRedirectPolicy: false
 nodePort:
   enabled: false
 bandwidthManager:
-  enabled: false
+  enabled: true
   bbr: false # enable after Talos kernel updated to >= 5.18
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
 ### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled
