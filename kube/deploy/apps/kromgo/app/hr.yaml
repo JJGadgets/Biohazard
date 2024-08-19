@@ -32,9 +32,9 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               PROMETHEUS_URL: http://vmsingle-victoria.monitoring.svc.cluster.local.:8429
-              SERVER_HOST: "::"
+              SERVER_HOST: &host "[::]"
               SERVER_PORT: &http 8080
-              HEALTH_HOST: "::"
+              HEALTH_HOST: *host
               HEALTH_PORT: &health 8888
             securityContext: &sc
               readOnlyRootFilesystem: true

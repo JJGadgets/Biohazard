@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/kashalls/kromgo/main/config.schema.json
 metrics:
   - name: cluster_cpu_usage
-    query: round((sum by(cluster) (irate(node_cpu_seconds_total{kubernetes_node!="",mode!="idle"}[1m])) / on(cluster) group_left sum by (cluster)((irate(node_cpu_seconds_total{kubernetes_node!=""}[1m])))) * 100, 0.1)
+    query: round((sum by(cluster) (irate(node_cpu_seconds_total{kubernetes_node!="",mode!="idle"}[1m])) / on(cluster) group_left sum by (cluster)((irate(node_cpu_seconds_total{kubernetes_node!=""}[1m])))) * 100, 0.01)
     suffix: "%"
     colors:
       - { color: "green", min: 0, max: 35 }
@@ -10,7 +10,7 @@ metrics:
       - { color: "red", min: 76, max: 1000 }
 
   - name: cluster_memory_usage
-    query: round(sum(node_memory_MemTotal_bytes{kubernetes_node!=""} - node_memory_MemAvailable_bytes{kubernetes_node!=""}) / sum(node_memory_MemTotal_bytes{kubernetes_node!=""}) * 100, 0.1)
+    query: round(sum(node_memory_MemTotal_bytes{kubernetes_node!=""} - node_memory_MemAvailable_bytes{kubernetes_node!=""}) / sum(node_memory_MemTotal_bytes{kubernetes_node!=""}) * 100, 0.01)
     suffix: "%"
     colors:
       - { color: "green", min: 0, max: 35 }
@@ -25,7 +25,7 @@ metrics:
       - { color: "red", min: 0, max: 1 }
 
   - name: cluster_network_transmit_usage
-    query: round(sum by(cluster) (irate(node_network_transmit_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.1)
+    query: round(sum by(cluster) (irate(node_network_transmit_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
     suffix: "Mb/s"
     colors:
       - { color: "red", min: 0, max: 199 }
@@ -33,7 +33,7 @@ metrics:
       - { color: "green", min: 1000, max: 10000 }
 
   - name: cluster_network_receive_usage
-    query: round(sum by(cluster) (irate(node_network_receive_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.1)
+    query: round(sum by(cluster) (irate(node_network_receive_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
     suffix: "Mb/s"
     colors:
       - { color: "red", min: 0, max: 199 }
@@ -55,7 +55,7 @@ metrics:
       - { color: "green", min: 360, max: 99999 }
 
   - name: cluster_uptime_days
-    query: round(avg((node_time_seconds - node_boot_time_seconds) / 3600 / 24), 0.1)
+    query: round(avg((node_time_seconds - node_boot_time_seconds) / 3600 / 24), 0.01)
     suffix: " days"
     colors:
       - { color: "red", min: 0, max: 6 }
@@ -78,7 +78,7 @@ metrics:
       - { color: "red", min: 5, max: 9999 }
 
   - name: blackhawk_battery_percent
-    query: round(node_power_supply_capacity{instance="blackhawk:9100"}, 0.1)
+    query: round(node_power_supply_capacity{instance="blackhawk.*"}, 0.01)
     suffix: "%"
     colors:
       - { color: "red", min: 0, max: 19 }
@@ -86,7 +86,7 @@ metrics:
       - { color: "green", min: 51, max: 99999 }
 
   - name: blackhawk_battery_cycles
-    query: round(node_power_supply_cyclecount{instance="blackhawk:9100"}, 0.1)
+    query: round(node_power_supply_cyclecount{instance="blackhawk.*"}, 0.01)
     suffix: " cycles"
     colors:
       - { color: "red", min: 0, max: 199 }
@@ -94,9 +94,103 @@ metrics:
       - { color: "green", min: 400, max: 99999 }
 
   - name: blackhawk_battery_health
-    query: round((node_power_supply_energy_full{instance="blackhawk:9100"} / node_power_supply_energy_full_design{instance="blackhawk:9100"} * 100), 0.1)
+    query: round((node_power_supply_energy_full{instance="blackhawk.*"} / node_power_supply_energy_full_design{instance="blackhawk.*"} * 100), 0.01)
     suffix: "%"
     colors:
       - { color: "red", min: 0, max: 79 }
       - { color: "orange", min: 80, max: 89 }
       - { color: "green", min: 90, max: 99999 }
+
+  - name: nighthawk_cpu_usage
+    #query: round(sum by(instance) (100 - avg(irate(windows_cpu_time_total{instance=~"nighthawk.*",mode="idle"}[1m]))*100), 0.01)
+    #query: round(sum by(instance) (irate(windows_cpu_time_total{mode!~"idle|privileged"}[1m]))*10, 0.01)
+    query: round((sum by(instance) (irate(windows_cpu_processor_utility_total{instance=~"nighthawk.*"}[1m])) / 10000000), 0.01)
+    suffix: "%"
+    colors:
+      - { color: "green", min: 0, max: 35 }
+      - { color: "orange", min: 36, max: 75 }
+      - { color: "red", min: 76, max: 1000 }
+
+  - name: nighthawk_memory_usage
+    query: round(((windows_cs_physical_memory_bytes - windows_memory_available_bytes) / windows_cs_physical_memory_bytes), 0.01)
+    suffix: "%"
+    colors:
+      - { color: "green", min: 0, max: 35 }
+      - { color: "orange", min: 36, max: 75 }
+      - { color: "red", min: 76, max: 1000 }
+
+  - name: nighthawk_memory_bytes
+    query: round((((windows_cs_physical_memory_bytes - windows_memory_available_bytes)) / 1024 / 1024 / 1024), 0.01)
+    suffix: "%"
+    colors:
+      - { color: "green", min: 0, max: 35 }
+      - { color: "orange", min: 36, max: 75 }
+      - { color: "red", min: 76, max: 1000 }
+
+  - name: nighthawk_nvidia_temperature
+    query: round(nvidia_smi_temperature_gpu{instance=~"nighthawk.*"}, 0.01)
+    suffix: "°C"
+    colors:
+      - { color: "green", min: 0, max: 60 }
+      - { color: "orange", min: 61, max: 70 }
+      - { color: "red", min: 71, max: 99999 }
+
+  - name: nighthawk_nvidia_power_draw_watts
+    query: round(nvidia_smi_power_draw_watts{instance=~"nighthawk.*"}, 0.01)
+    suffix: "W"
+    colors:
+      - { color: "green", min: 0, max: 50 }
+      - { color: "orange", min: 51, max: 80 }
+      - { color: "red", min: 81, max: 99999 }
+
+  - name: nighthawk_nvidia_power_draw_percent
+    query: round(nvidia_smi_power_draw_watts{instance=~"nighthawk.*"} / nvidia_smi_enforced_power_limit_watts{instance=~"nighthawk.*"}, 0.01)
+    suffix: "W"
+    colors:
+      - { color: "green", min: 0, max: 39 }
+      - { color: "orange", min: 40, max: 69 }
+      - { color: "red", min: 70, max: 99999 }
+
+  - name: nighthawk_nvidia_fan_speed_percent
+    query: round(nvidia_smi_fan_speed_ratio{instance=~"nighthawk.*"}, 0.01)
+    suffix: "W"
+    colors:
+      - { color: "green", min: 0, max: 50 }
+      - { color: "orange", min: 51, max: 80 }
+      - { color: "red", min: 81, max: 99999 }
+
+  - name: nighthawk_nvidia_graphics_clock
+    query: round(nvidia_smi_clocks_current_graphics_clock_hz{instance=~"nighthawk.*"} / 1000000, 0.01)
+    suffix: "MHz"
+    colors:
+      - { color: "green", min: 0, max: 99999 }
+
+  - name: nighthawk_nvidia_graphics_usage
+    query: round(nvidia_smi_utilization_gpu_ratio{instance=~"nighthawk.*"} * 100, 0.01)
+    suffix: "MHz"
+    colors:
+      - { color: "green", min: 0, max: 99999 }
+
+  - name: nighthawk_nvidia_memory_used
+    query: round(nvidia_smi_memory_used_bytes{instance=~"nighthawk.*"} / 1000000000, 0.01)
+    suffix: "GB"
+    colors:
+      - { color: "red", min: 0, max: 2 }
+      - { color: "orange", min: 2.1, max: 5 }
+      - { color: "green", min: 5.1, max: 99999 }
+
+  - name: cilium_endpoints_unready
+    query: round((sum by(cluster) (avg_over_time(cilium_endpoint_state{endpoint_state!="ready"}[5m]))) / (sum by(cluster) (avg_over_time(cilium_endpoint_state[5m]))) * 100, 1)
+    suffix: "%"
+    colors:
+      - { color: "green", min: 0, max: 9 }
+      - { color: "orange", min: 10, max: 50 }
+      - { color: "red", min: 51, max: 99999 }
+
+  - name: cilium_bpf_map_pressure
+    query: round(sum by(cluster) (cilium_bpf_map_pressure * 100), 0.1)
+    suffix: "%"
+    colors:
+      - { color: "green", min: 0, max: 50 }
+      - { color: "orange", min: 50.1, max: 69.9 }
+      - { color: "red", min: 70, max: 99999 }

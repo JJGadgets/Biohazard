@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cilium
+  namespace: monitoring
+spec:
+  groups:
+    - name: cilium.rules
+      rules:
+        - alert: CiliumAgentAbsent
+          annotations:
+            summary: Cilium Agent has disappeared from Prometheus target discovery.
+          expr: |
+            absent(up{job="cilium-agent"})
+          for: 15m
+          labels:
+            severity: critical
+        - alert: CiliumEndpointsStuckNode
+          annotations:
+            summary: >-
+              Node `{{ $labels.node }}` has {{ $value }}% stuck Cilium endpoints, threshold 10%.
+          #expr: | # >10% of endpoints are un-ready # might be more noisy without averaging over 5 minutes?
+          #  round((sum by(node) (cilium_endpoint_state{endpoint_state!="ready"})) / (sum by(node) (cilium_endpoint_state)) * 100, 1) > 10
+          expr: | # >10% of endpoints are un-ready, calculated after some smoothening via averaging over 5 minutes
+            round((sum by(node) (avg_over_time(cilium_endpoint_state{endpoint_state!="ready"}[5m]))) / (sum by(node) (avg_over_time(cilium_endpoint_state[5m]))) * 100, 1) > 10
+          for: 10m
+          labels:
+            severity: critical
+        - alert: CiliumEndpointsStuckCluster
+          annotations:
+            summary: >-
+              Cluster `{{ $labels.cluster }}` has {{ $value }}% stuck Cilium endpoints, threshold 10%.
+          expr: | # >10% of endpoints across cluster are un-ready, calculated after some smoothening via averaging over 5 minutes
+            round((sum by(cluster) (avg_over_time(cilium_endpoint_state{endpoint_state!="ready"}[5m]))) / (sum by(cluster) (avg_over_time(cilium_endpoint_state[5m]))) * 100, 1) > 10
+          for: 10m
+          labels:
+            severity: critical
+        - alert: HighBPFMapPressureNode
+          annotations:
+            summary: >-
+              Node `{{ $labels.node }}` has high ({{ $value }}%) BPF map pressure for map `{{ $labels.map_name }}`, threshold 60%.
+          expr: |
+            max by (node, map_name) (cilium_bpf_map_pressure * 100) >= 60
+          for: 1m
+          labels:
+            severity: critical
+        - alert: HighBPFMapPressureNode
+          annotations:
+            summary: >-
+              Cluster `{{ $labels.cluster }}` has high ({{ $value }}%) BPF map pressure for map `{{ $labels.map_name }}`, threshold 60%.
+          expr: |
+            max by (cluster, map_name) (cilium_bpf_map_pressure * 100) >= 60
+          for: 1m
+          labels:
+            severity: critical
