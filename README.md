@@ -2,11 +2,28 @@
 
 Powered by Flux, Kubernetes, Cilium, Talos, and jank. Amongst others.
 
-![Biohazard - CPU](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dcluster_cpu_usage&style=flat&label=Biohazard%20-%20CPU)
+<!--![Biohazard - CPU](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dcluster_cpu_usage&style=flat&label=Biohazard%20-%20CPU)
 ![Biohazard - Memory](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dcluster_memory_usage&style=flat&label=Biohazard%20-%20Memory)
 ![Blackhawk - Battery Charge](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dblackhawk_battery_percent&style=flat&label=Blackhawk%20-%20Battery%20Charge&link=https%3A%2F%2Fgithub.com%2Fkashalls%2Fkromgo)
 ![Blackhawk - Battery Health](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dblackhawk_battery_health&style=flat&label=Blackhawk%20-%20Battery%20Health&link=https%3A%2F%2Fgithub.com%2Fkashalls%2Fkromgo)
-![Blackhawk - Battery Cycles](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dblackhawk_battery_cycles&style=flat&label=Blackhawk%20-%20Battery%20Health&link=https%3A%2F%2Fgithub.com%2Fkashalls%2Fkromgo)
+![Blackhawk - Battery Cycles](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dblackhawk_battery_cycles&style=flat&label=Blackhawk%20-%20Battery%20Health&link=https%3A%2F%2Fgithub.com%2Fkashalls%2Fkromgo)-->
+![Biohazard - Talos](https://biohazard-metrics.jjgadgets.tech/talos_build_version?format=badge)
+![Biohazard - Kubernetes](https://biohazard-metrics.jjgadgets.tech/kubernetes_build_version?format=badge)
+![Biohazard - Cilium](https://biohazard-metrics.jjgadgets.tech/cilium_version?format=badge)
+<br>
+![Biohazard - CPU](https://biohazard-metrics.jjgadgets.tech/cluster_cpu_usage?format=badge)
+![Biohazard - Memory](https://biohazard-metrics.jjgadgets.tech/cluster_memory_usage?format=badge)
+![Biohazard - Net TX](https://biohazard-metrics.jjgadgets.tech/cluster_network_transmit_usage?format=badge)
+![Biohazard - Net RX](https://biohazard-metrics.jjgadgets.tech/cluster_network_receive_usage?format=badge)
+<br>
+![Biohazard - Cluster Age](https://biohazard-metrics.jjgadgets.tech/cluster_age_days?format=badge)
+![Biohazard - Uptime](https://biohazard-metrics.jjgadgets.tech/cluster_uptime_days?format=badge)
+![Biohazard - Nodes](https://biohazard-metrics.jjgadgets.tech/cluster_node_count?format=badge)
+![Biohazard - Pods Running](https://biohazard-metrics.jjgadgets.tech/cluster_pods_running?format=badge)
+![Biohazard - Pods Unhealthy](https://biohazard-metrics.jjgadgets.tech/cluster_pods_unhealthy?format=badge)
+![Biohazard - Active Alerts](https://biohazard-metrics.jjgadgets.tech/prometheus_active_alerts?format=badge)
+![Biohazard - Cilium Endpoints Unhealthy](https://biohazard-metrics.jjgadgets.tech/cilium_endpoints_unhealthy?format=badge)
+![Biohazard - Cilium BPF Map Pressure](https://biohazard-metrics.jjgadgets.tech/cilium_bpf_map_pressure?format=badge)
 
 ---
 
