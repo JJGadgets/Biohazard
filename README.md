@@ -13,14 +13,14 @@ Powered by Flux, Kubernetes, Cilium, Talos, and jank. Amongst others.
 ![Biohazard - Kubernetes](https://biohazard-metrics.jjgadgets.tech/kubernetes_build_version?format=badge)
 ![Biohazard - Cilium](https://biohazard-metrics.jjgadgets.tech/cilium_version?format=badge)
 
-<br><br>
+<br>
 
 ![Biohazard - CPU](https://biohazard-metrics.jjgadgets.tech/cluster_cpu_usage?format=badge)
 ![Biohazard - Memory](https://biohazard-metrics.jjgadgets.tech/cluster_memory_usage?format=badge)
 ![Biohazard - Net TX](https://biohazard-metrics.jjgadgets.tech/cluster_network_transmit_usage?format=badge)
 ![Biohazard - Net RX](https://biohazard-metrics.jjgadgets.tech/cluster_network_receive_usage?format=badge)
 
-<br><br>
+<br>
 
 ![Biohazard - Cluster Age](https://biohazard-metrics.jjgadgets.tech/cluster_age_days?format=badge)
 ![Biohazard - Uptime](https://biohazard-metrics.jjgadgets.tech/cluster_uptime_days?format=badge)
