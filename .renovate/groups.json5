@@ -98,6 +98,17 @@
       }
     },
     {
+      "description": "Immich Group",
+      "groupName": "Immich",
+      "matchPackagePatterns": ["immich"],
+      "versioning": "semver",
+      "customChangelogUrl": "https://github.com/immich-app/immich",
+      "separateMinorPatch": true,
+      "group": {
+        "commitMessageTopic": "{{{groupName}}} group"
+      }
+    },
+    {
       "description": "Manually approve app-template major releases",
       "matchPackagePatterns": ["app-template"],
       "matchDatasources": ["helm"],

@@ -76,7 +76,7 @@ spec:
             prom.home.arpa/kps: allow
           securityContext:
             runAsNonRoot: true
-            runAsUser: &uid ${APP_UID_IMMICH}
+            runAsUser: &uid ${APP_UID_IMMICH:=1000}
             runAsGroup: *uid
             fsGroup: *uid
             fsGroupChangePolicy: Always
@@ -188,7 +188,7 @@ spec:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_IMMICH}"
+          - host: &host "${APP_DNS_IMMICH:=immich}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -223,6 +223,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
@@ -243,11 +244,11 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK}"
-          hostnames: ["${APP_DNS_AUTHENTIK}"]
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_IMMICH}
+        runAsUser: &uid ${APP_UID_IMMICH:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
