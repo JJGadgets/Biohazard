@@ -1,0 +1,17 @@
+---
+name: Purge README Image Cache
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 * * * * # hourly
+  push:
+    branches: ["main"]
+    paths:
+      - "README.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge
+        uses: kevincobain2000/action-camo-purge@9c9bd4556d41a22f6a13a83329c54635e0393215 # v1
