@@ -389,3 +389,360 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/helmpatches notin (false)
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: soft-serve
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: ssh://git@${APP_DNS_SOFT_SERVE}/Biohazard-apps
+  ref:
+    branch: main
+  secretRef:
+    name: soft-serve-ssh
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include Kubernetes
+    !/kube
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 0-biohazard-soft-serve
+  # I wanna see it on the top lol
+  namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/name: "flux"
+    kustomization.flux.home.arpa/default: "false"
+    wait.flux.home.arpa/disabled: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
+spec:
+  interval: 5m0s
+  path: ./kube/clusters/biohazard/flux
+  prune: false
+  wait: false
+  sourceRef:
+    kind: GitRepository
+    name: soft-serve
+  decryption:
+    provider: sops
+    secretRef:
+      name: agekey
+  postBuild:
+    substitute:
+      CLUSTER_NAME: "biohazard"
+    substituteFrom:
+      - kind: Secret
+        name: biohazard-vars
+        optional: false
+      - kind: Secret
+        name: biohazard-secrets
+        optional: false
+      # - kind: ConfigMap
+      #   name: biohazard-versions
+      #   optional: false
+  patches:
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          interval: 5m0s
+          timeout: 10m0s
+          decryption:
+            provider: sops
+            secretRef:
+              name: agekey
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          sourceRef:
+            kind: GitRepository
+            name: soft-serve
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/default notin (false)
+    - patch: |
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: 0-biohazard-config
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: 0-biohazard-config
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: 1-core-kyverno-crds
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: 1-core-monitoring-prom-crds
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: zzz-flux-repos-helm
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/default notin (false)
+    - patch: |
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: 1-core-1-networking-cilium-app
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          postBuild:
+            substitute:
+              CLUSTER_NAME: "biohazard"
+            substituteFrom:
+              - kind: Secret
+                name: biohazard-vars
+                optional: false
+              - kind: Secret
+                name: biohazard-secrets
+                optional: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: substitution.flux.home.arpa/disabled notin (true)
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: true
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: prune.flux.home.arpa/disabled notin (true) # default
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: prune.flux.home.arpa/disabled=true
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          prune: true
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: prune.flux.home.arpa/enabled=true
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          wait: true
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: wait.flux.home.arpa/disabled notin (true) # default
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          wait: false
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: wait.flux.home.arpa/disabled=true
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          patches:
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta1
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  interval: 5m
+                  timeout: 15m
+                  maxHistory: 10
+                  install:
+                    crds: CreateReplace
+                    createNamespace: true
+                    remediation:
+                      retries: 5
+                  upgrade:
+                    crds: CreateReplace
+                    cleanupOnFail: true
+                    remediation:
+                      retries: 5
+                      strategy: rollback
+                  rollback:
+                    recreate: true
+                    cleanupOnFail: true
+                  uninstall:
+                    keepHistory: false
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta1
+                kind: HelmRelease
+                labelSelector: helm.flux.home.arpa/default notin (false)
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta1
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  values:
+                    ingress:
+                      main:
+                        annotations:
+                          nginx.ingress.kubernetes.io/auth-url: |-
+                              http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+                          nginx.ingress.kubernetes.io/auth-response-headers: |-
+                              Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid
+                          nginx.ingress.kubernetes.io/auth-snippet: |
+                              proxy_set_header X-Forwarded-Host $http_host;
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta1
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type in (auth, auth-external, auth-external-only)
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta1
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  values:
+                    ingress:
+                      main:
+                        annotations:
+                          nginx.ingress.kubernetes.io/satisfy: "any"
+                          nginx.ingress.kubernetes.io/whitelist-source-range: |
+                            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta1
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type in (auth-external-only)
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta2
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  interval: 5m
+                  timeout: 15m
+                  maxHistory: 10
+                  install:
+                    crds: CreateReplace
+                    createNamespace: true
+                    remediation:
+                      retries: 5
+                  upgrade:
+                    crds: CreateReplace
+                    cleanupOnFail: true
+                    remediation:
+                      retries: 5
+                      strategy: uninstall
+                  rollback:
+                    recreate: true
+                    cleanupOnFail: true
+                  uninstall:
+                    keepHistory: false
+                  driftDetection:
+                    mode: warn # TODO: verify all running apps don't have drift, and enable
+                    ignore:
+                      - paths: ["/spec/replicas"] # helpful for scaling things down during debugging/troubleshooting without Helm interfering
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta2
+                kind: HelmRelease
+                labelSelector: helm.flux.home.arpa/default notin (false)
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta2
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  values:
+                    ingress:
+                      main:
+                        annotations:
+                          nginx.ingress.kubernetes.io/auth-url: |-
+                              http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+                          nginx.ingress.kubernetes.io/auth-response-headers: |-
+                              Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid
+                          nginx.ingress.kubernetes.io/auth-snippet: |
+                              proxy_set_header X-Forwarded-Host $http_host;
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta2
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type in (auth, auth-external, auth-external-only)
+            - patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2beta2
+                kind: HelmRelease
+                metadata:
+                  name: not-used
+                spec:
+                  values:
+                    ingress:
+                      main:
+                        annotations:
+                          nginx.ingress.kubernetes.io/satisfy: "any"
+                          nginx.ingress.kubernetes.io/whitelist-source-range: |
+                            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+              target:
+                group: helm.toolkit.fluxcd.io
+                version: v2beta2
+                kind: HelmRelease
+                labelSelector: nginx.ingress.home.arpa/type in (auth-external-only)
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: kustomization.flux.home.arpa/helmpatches notin (false)
