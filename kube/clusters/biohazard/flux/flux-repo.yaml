@@ -475,7 +475,21 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/default notin (false)
-    - patch: |
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+        spec:
+          sourceRef:
+            kind: GitRepository
+            name: flux-system
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: pvc.home.arpa/volsync=true
+    - patch: &dependsOn |
         - op: add
           path: /spec/dependsOn/-
           value:
@@ -501,6 +515,12 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/default notin (false)
+    - patch: *dependsOn
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+        labelSelector: pvc.home.arpa/volsync=true
     - patch: |
         - op: add
           path: /spec/dependsOn/-
