@@ -21,7 +21,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            db.home.arpa/pg: "pg-default"
+            #db.home.arpa/pg: "pg-default"
             ingress.home.arpa/world: "allow"
             ingress.home.arpa/cluster: "allow"
         containers:
@@ -45,8 +45,9 @@ spec:
               SOFT_SERVE_STATS_LISTEN_ADDR: ":23233"
               SOFT_SERVE_LFS_ENABLED: "true"
               SOFT_SERVE_LFS_SSH_ENABLED: "true"
-              SOFT_SERVE_DB_DRIVER: "postgres"
-              SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
+              SOFT_SERVE_DB_DRIVER: "sqlite"
+              #SOFT_SERVE_DB_DRIVER: "postgres"
+              #SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
               SOFT_SERVE_INITIAL_ADMIN_KEYS: {valueFrom: {secretKeyRef: {name: soft-serve-secrets, key: admin-keys}}}
             securityContext: &sc
               readOnlyRootFilesystem: true
@@ -114,7 +115,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_SOFT_SERVE}
+        runAsUser: &uid ${APP_UID_SOFT_SERVE:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
