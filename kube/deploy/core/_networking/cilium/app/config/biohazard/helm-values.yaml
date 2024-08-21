@@ -86,7 +86,7 @@ bpf:
   tproxy: true # L7 netpols stuff
   #mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
   policyMapMax: "40960" # 2.5x default, dynamic size ratio doesn't increase this
-l7Proxy: false # enables L7 non-DNS netpols via proxy, e.g. Envoy
+l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
 dnsProxy:
   enableTransparentMode: true
 socketLB:
