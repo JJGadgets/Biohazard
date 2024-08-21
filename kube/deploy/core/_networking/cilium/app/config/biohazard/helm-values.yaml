@@ -72,7 +72,7 @@ operator:
 externalIPs:
   enabled: true
 l2announcements:
-  enabled: true
+  enabled: false
 #  leaseDuration: "120s"
 #  leaseRenewDeadline: "60s"
 #  leaseRetryPeriod: "1s"
@@ -86,7 +86,7 @@ bpf:
   tproxy: true # L7 netpols stuff
   #mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
   policyMapMax: "40960" # 2.5x default, dynamic size ratio doesn't increase this
-l7Proxy: true # enables L7 netpols
+l7Proxy: false # enables L7 non-DNS netpols via proxy, e.g. Envoy
 dnsProxy:
   enableTransparentMode: true
 socketLB:
@@ -101,7 +101,7 @@ localRedirectPolicy: false
 nodePort:
   enabled: false
 bandwidthManager:
-  enabled: true
+  enabled: false
   bbr: false # enable after Talos kernel updated to >= 5.18
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
 ### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled

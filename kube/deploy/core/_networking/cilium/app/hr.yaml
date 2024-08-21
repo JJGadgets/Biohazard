@@ -110,7 +110,7 @@ spec:
           #enabled: true
           #annotations:
           #  grafana_folder: "Cilium"
-      eventQueueSize: "25000" # default is 6144 which fills up
+      eventQueueSize: "50000" # default is 6144 which fills up
     operator:
       prometheus:
         enabled: true
@@ -129,26 +129,10 @@ spec:
       enabled: true
       annotations:
         grafana_folder: "Cilium"
-    #resources: # for agent
-    #  limits:
-    #    memory: "3Gi"
-    debug: # for endpoint creation issue
-      enabled: true
-      verbose: "flow kvstore envoy datapath policy"
-  postRenderers:
-    - kustomize: # more reliable probe for endpoint creation issues
-        patches:
-          - target:
-              version: apps/v1
-              kind: DaemonSet
-              labelSelector: app.kubernetes.io/name=cilium-agent
-            patch: |
-              - op: replace
-                path: /spec/template/spec/containers/0/livenessProbe
-                value:
-                  failureThreshold: 10
-                  periodSeconds: 30
-                  successThreshold: 1
-                  timeoutSeconds: 5
-                  exec:
-                    command: ["cilium-health", "ping"]
+    resources: # for agent
+      requests:
+        cpu: "100m"
+        memory: "2Gi"
+      limits:
+        cpu: "1"
+        memory: "6Gi"
