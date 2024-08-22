@@ -24,41 +24,13 @@ spec:
         EMQX_DASHBOARD__DEFAULT_PASSWORD: "{{ .EMQX_DASHBOARD__DEFAULT_PASSWORD }}"
         X_EMQX_APIKEY_KEY: "{{ .X_EMQX_APIKEY_KEY }}"
         X_EMQX_APIKEY_SECRET: "{{ .X_EMQX_APIKEY_SECRET }}"
-        ldap-search.password: "{{ .GLAUTH_SEARCH_PASSWORD }}"
-        glauth.toml: |
-          debug = true
-          [ldap]
-            enabled = false
-          [ldaps]
-            enabled = true
-            listen = "0.0.0.0:6636"
-            cert = "/tls/tls.crt"
-            key = "/tls/tls.key"
-          [backend]
-            datastore = "config"
-            baseDN = "dc=emqx,dc=io"
-            nameformat = "cn"
-            groupformat = "ou"
-          [[users]]
-            name = "search"
-            uidnumber = 99991
-            primarygroup = 99991
-            passsha256 = "{{ .GLAUTH_SEARCH_PASSWORD_SHA256 }}"
-              [[users.capabilities]]
-              action = "search"
-              object = "*"
-          [[groups]]
-            name = "search"
-            gidnumber = 99991
-          [[users]]
-            name = "hass"
-            uidnumber = 99992
-            primarygroup = 99990
-            passsha256 = "{{ .GLAUTH_HASS_PASSWORD_SHA256 }}"
-              [[users.customattributes]]
-              mqttPublishTopic = ["homeassistant/pub/#", "zigbee2mqtt/pub/#"]
-              mqttSubscriptionTopic = ["homeassistant/sub/#", "zigbee2mqtt/sub/#"]
-              mqttPubSubTopic = ["homeassistant/pubsub/#", "zigbee2mqtt/pubsub/#"]
-          [[groups]]
-            name = "emqx"
-            gidnumber = 99990
+        init-user.json: |
+          [
+            {"user_id": "{{ .X_EMQX_MQTT_HASS_USERNAME }}", "password": "{{ .X_EMQX_MQTT_HASS_PASSWORD }}", "is_superuser": false}
+          ]
+        acl.conf: |
+          %% Allow MQTT client using username "dashboard"  to subscribe to "$SYS/#" topics
+          {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#"]}.
+
+          %% Default Deny All
+          {reject, all}.

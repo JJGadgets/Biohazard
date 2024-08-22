@@ -3,63 +3,44 @@
 apiVersion: apps.emqx.io/v2beta1
 kind: EMQX
 metadata:
-  name: emqx
+  name: &app emqx
   namespace: emqx
 spec:
-  image: public.ecr.aws/emqx/emqx:5.6.1
+  image: public.ecr.aws/emqx/emqx:5.7.2
   config:
     # the `$${env}` in the env var means Flux's Kustomize controller should escape the envsubst and output `${env}` exactly
     data: |
       authentication {
         enable = true
-        backend = "ldap"
+        backend = "built_in_database"
         mechanism = "password_based"
-        method {
-          type = bind
-          bind_password = "$${password}"
+        password_hash_algorithm {
+            name = "bcrypt"
         }
-        server = "glauth.emqx.svc.cluster.local.:636"
-        query_timeout = "10s"
-        username = "cn=search,ou=search,ou=users,dc=emqx,dc=io"
-        password = "file:///secrets/ldap-search.password"
-        pool_size = 1
-        base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
-        filter = "(objectClass=*)"
-        ssl {
-          enable = true
-          server_name_indication = "emqx-glauth.${DNS_SHORT}"
-        }
+        user_id_type = "username"
+        bootstrap_file = "/secrets/init-user.json"
+        bootstrap_type = "plain"
       }
       authorization {
+        no_match = "deny"
+        deny_action = "ignore"
         sources = [{
           enable = true
-          type = ldap
-          publish_attribute = "mqttPublishTopic"
-          subscribe_attribute = "mqttSubscriptionTopic"
-          all_attribute = "mqttPubSubTopic"
-          server = "glauth.emqx.svc.cluster.local.:636"
-          query_timeout = "10s"
-          username = "cn=search,ou=search,ou=users,dc=emqx,dc=io"
-          password = "file:///secrets/ldap-search.password"
-          pool_size = 1
-          base_dn = "cn=$${username},ou=emqx,ou=users,dc=emqx,dc=io"
-          filter = "(objectClass=*)"
-          ssl {
-            enable = true
-            server_name_indication = "emqx-glauth.${DNS_SHORT}"
-          }
+          type = "file"
+          path = "/secrets/acl.conf"
         }]
-        no_match = "deny"
       }
-
-#      listeners.ssl.default {
-#        bind = "0.0.0.0:8883"
-#        ssl_options {
-#          certfile = "/tls/cert.pem"
-#          keyfile = "/tls/key.pem"
-#          gc_after_handshake = true
-#        }
-#      }
+      listeners.ssl.default {
+        bind = "0.0.0.0:8883"
+        ssl_options {
+          certfile = "/tls/cert.pem"
+          keyfile = "/tls/key.pem"
+          gc_after_handshake = true
+          # no mTLS
+          verify = verify_none
+          fail_if_no_peer_cert = false
+        }
+      }
   bootstrapAPIKeys:
     - secretRef:
         key:
@@ -70,16 +51,16 @@ spec:
           secretKey: X_EMQX_APIKEY_SECRET
   coreTemplate:
     spec:
-      replicas: 3
+      replicas: 2
       envFrom: &envFrom
         - secretRef:
             name: emqx-secrets
-      volumeClaimTemplates:
-        storageClassName: local
-        accessModes: [ReadWriteOnce]
-        resources:
-          requests:
-            storage: 1Gi
+      #volumeClaimTemplates:
+      #  storageClassName: local
+      #  accessModes: [ReadWriteOnce]
+      #  resources:
+      #    requests:
+      #      storage: 1Gi
       extraVolumes:
         - name: emqx-secrets
           secret:
@@ -89,14 +70,29 @@ spec:
             secretName: short-domain-tls
       extraVolumeMounts:
         - name: emqx-secrets
-          subPath: ldap-search.password
-          mountPath: /secrets/ldap-search.password
+          subPath: init-user.json
+          mountPath: /secrets/init-user.json
+          readOnly: true
+        - name: emqx-secrets
+          subPath: acl.conf
+          mountPath: /secrets/acl.conf
+          readOnly: true
         - name: tls
           subPath: tls.crt
           mountPath: /tls/cert.pem
+          readOnly: true
         - name: tls
           subPath: tls.key
           mountPath: /tls/key.pem
+          readOnly: true
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              apps.emqx.io/instance: *app
+              apps.emqx.io/db-role: core
   listenersServiceTemplate:
     metadata:
       annotations:
