@@ -33,4 +33,4 @@ spec:
           {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#"]}.
 
           %% Default Deny All
-          {reject, all}.
+          {deny, all}.
