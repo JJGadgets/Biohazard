@@ -242,7 +242,8 @@ spec:
           microservices: *misc
           ml:
             main:
-              - &mlpvc subPath: ml-models-cache
+              - &mlpvc
+                subPath: ml-models-cache
                 path: /cache
                 readOnly: true
           ml-model-pull:
