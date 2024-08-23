@@ -108,8 +108,11 @@ spec:
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
       ml:
-        type: statefulset
+        type: deployment
         replicas: 3
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             db.home.arpa/pg: pg-home
@@ -136,14 +139,31 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "6Gi"
-        statefulset:
-          volumeClaimTemplates:
-            - name: data
-              size: 10Gi
-              storageClass: local
-              accessMode: ReadWriteOnce
-              globalMounts:
-                - path: /cache
+      ml-model-pull:
+        type: cronjob
+        cronjob:
+          schedule: "@daily"
+          concurrencyPolicy: "Replace"
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image:
+              repository: ghcr.io/immich-app/immich-machine-learning
+              tag: v1.112.1@sha256:9600eff5a66ae426293f00b171711bc1647c85cf966d759ee08ab2d05e0580b5
+            env:
+              #<<: *env
+              # default models as of v1.112.1
+              MACHINE_LEARNING_PRELOAD__CLIP: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION: buffalo_l
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "1Gi"
       redis:
         type: deployment
         replicas: 1
@@ -220,6 +240,11 @@ spec:
               - subPath: thumbs
                 path: /data/thumbs
           microservices: *misc
+          ml:
+            main:
+              - subPath: ml-models-cache
+                path: /cache
+                readOnly: true
       tmp:
         type: emptyDir
         medium: Memory
@@ -263,8 +288,13 @@ spec:
     networkpolicies:
       immich:
         podSelector: &sel
-          matchLabels:
-            app.kubernetes.io/name: immich
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values: [immich]
+            - key: app.kubernetes.io/instance
+              operator: NotIn
+              values: [ml-model-pull]
         policyTypes: [Ingress, Egress]
         rules:
           ingress:
