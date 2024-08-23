@@ -26,8 +26,8 @@ spec:
         containers:
           main:
             image: &img
-              repository: "docker.io/kizaing/kavita"
-              tag: "0.7.8"
+              repository: "ghcr.io/kareadita/kavita"
+              tag: "0.8.2@sha256:0fc5cef9fa015431f8b083a53a6cabbcb500b16d2acf55045539dee1f3a0b07a"
             env:
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
