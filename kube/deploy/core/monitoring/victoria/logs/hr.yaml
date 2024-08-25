@@ -1,3 +1,4 @@
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -16,7 +17,8 @@ spec:
   values:
     server:
       enabled: true
-      podLabels: {}
+      podLabels:
+        ingress.home.arpa/nginx-internal: allow
       image:
         repository: docker.io/victoriametrics/victoria-logs
         tag: "v0.28.0-victorialogs@sha256:dd1685ffb6ce0be3729b27e197e864be1bd9c274e097406d4005a83360846ff1"
