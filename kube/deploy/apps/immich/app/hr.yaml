@@ -152,7 +152,7 @@ spec:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
               tag: v1.112.1@sha256:9600eff5a66ae426293f00b171711bc1647c85cf966d759ee08ab2d05e0580b5
-            command: ["/tini", "--"]
+            command: ["tini", "--"]
             args: ["/bin/sh", "-c", "tini -s -g -- /bin/sh -c 'exec ./start.sh' & read -t 600 || kill -SIGINT $!"] # run for 10 minutes to pull models via preload, then kill process, hopefully it doesn't crash
             env:
               # default models as of v1.112.1
