@@ -78,7 +78,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_FLUENTBIT:=1000}
+        runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
