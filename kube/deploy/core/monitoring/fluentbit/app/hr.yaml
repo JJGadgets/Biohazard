@@ -77,7 +77,6 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       securityContext:
-        runAsNonRoot: true
         runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
         fsGroup: *uid
