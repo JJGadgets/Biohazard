@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: fluentbit-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "fluentbit"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/fluentbit/app
+  targetNamespace: "fluentbit"
+  dependsOn: []
