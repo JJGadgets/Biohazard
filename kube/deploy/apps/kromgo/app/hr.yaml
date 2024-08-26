@@ -102,13 +102,13 @@ spec:
           - subPath: config.yaml
             path: /kromgo/config.yaml
             readOnly: true
-      fonts:
-        type: configMap
-        name: kromgo-fonts
-        globalMounts:
-          - subPath: TimesNewRamen.woff
-            path: /kromgo/TimesNewRamen.woff
-            readOnly: true
+      #fonts:
+      #  type: configMap
+      #  name: kromgo-fonts
+      #  globalMounts:
+      #    - subPath: TimesNewRamen.woff
+      #      path: /kromgo/TimesNewRamen.woff
+      #      readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
