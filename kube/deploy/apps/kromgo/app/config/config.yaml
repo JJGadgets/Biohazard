@@ -1,5 +1,8 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/kashalls/kromgo/main/config.schema.json
+badge:
+  font: TimesNewRamen.woff
+  size: 12
 metrics:
   # Kubernetes cluster
   - name: cluster_cpu_usage
@@ -89,7 +92,8 @@ metrics:
 
   - name: prometheus_active_alerts
     title: Biohazard - Active Alerts
-    query: count(ALERTS{alertstate="firing"})
+    #query: count(ALERTS{alertstate="firing"})
+    query: max(alertmanager_alerts{state="active"}) # doesn't count suppressed
     colors:
       - { color: "green", min: 0, max: 1 }
       - { color: "orange", min: 2, max: 4 }
