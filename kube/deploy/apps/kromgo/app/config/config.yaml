@@ -74,7 +74,7 @@ metrics:
 
   - name: kubernetes_build_version
     title: Biohazard - Kubernetes
-    query: sum by(git_version) kubernetes_build_info{service="kubernetes"}
+    query: sum by(git_version) (kubernetes_build_info{service="kubernetes"})
     label: git_version
 
   - name: talos_build_version
