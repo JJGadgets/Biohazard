@@ -7,6 +7,46 @@
 " ---
 " CREDITS:
 "   https://github.com/amix/vimrc - Basic Config
+"
+
+" nocompatible, placed first so all others below follow this
+set nocompatible
+
+" set vim tmp files (https://stackoverflow.com/a/61585014)
+if has('win32')
+    set noundofile
+    set nobackup
+    set noswapfile
+    set undodir=
+    set backupdir=
+    set directory=
+elseif has('mac') || has('unix')
+    set undofile
+    set undolevels=1000         " How many undos
+    set undoreload=10000        " number of lines to save for undo
+    
+    set backup                        " enable backups
+    set swapfile                      " enable swaps
+    
+    set undodir=/tmp/.vim/tmp/undo"     " undo files
+    set backupdir=/tmp/.vim/tmp/backup " backups
+    set directory=/tmp/.vim/tmp/swap   " swap files
+endif
+
+" Make those folders automatically if they don't already exist.
+if !isdirectory(expand(&undodir))
+    call mkdir(expand(&undodir), "p")
+endif
+if !isdirectory(expand(&backupdir))
+    call mkdir(expand(&backupdir), "p")
+endif
+if !isdirectory(expand(&directory))
+    call mkdir(expand(&directory), "p")
+endif
+
+" set yank to: remember last 100 files' marks, yank across files if <10k lines
+" and <5MB, and disable search highlighting on startup
+set viminfo='100,<10000,s5000,h
 
 " Sets how many lines of history VIM has to remember
 set history=500

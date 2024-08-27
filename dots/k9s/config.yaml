@@ -1,0 +1,29 @@
+---
+k9s:
+  #skin: dracula
+  skin: transparent
+  liveViewAutoRefresh: true
+  ui:
+    enableMouse: true
+    reactive: true
+  #imageScans:
+  #  enable: false
+  #  exclusions:
+  #    namespaces: []
+  #    labels: {}
+  logger:
+    tail: -1
+    sinceSeconds: -1
+    fullScreen: true
+    textWrap: true
+  thresholds:
+    cpu:
+      critical: 90
+      warn: 70
+    memory:
+      critical: 90
+      warn: 70
+  namespace:
+    active: all
+    lockFavorites: true
+    favorites: [all, kube-system, rook-ceph, monitoring, dns, flux-system, ingress, pg]

@@ -1,0 +1,26 @@
+k9s:
+  cluster: biohazard
+  skin: transparent
+  namespace:
+    active: all
+    lockFavorites: true
+    favorites:
+    - all
+    - kube-system
+    - rook-ceph
+    - monitoring
+    - dns
+    - flux-system
+    - ingress
+    - pg
+    - minio-nas
+    - authentik
+    - media
+    - apps
+    - vm-ad
+    - system-upgrade-controller
+  view:
+    active: pods
+  featureGates:
+    nodeShell: true
+  portForwardAddress: '[::]'
