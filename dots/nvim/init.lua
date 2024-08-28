@@ -20,6 +20,7 @@ vim.opt.rtp:prepend(lazypath)
 vim.cmd("source ~/.vimrc")
 
 -- Clipboard via OSC 52
+vim.o.clipboard = "unnamedplus"
 vim.g.clipboard = {
   name = 'OSC 52',
   copy = {
@@ -41,10 +42,10 @@ require("lazy").setup({
       "folke/tokyonight.nvim",
       lazy = false, -- make sure we load this during startup if it is your main colorscheme
       priority = 1000, -- make sure to load this before all the other start plugins
-      opts = { style = "storm" },
+      opts = { style = "night" },
       -- load the colorscheme here
       config = function()
-        vim.cmd([[colorscheme tokyonight]])
+        vim.cmd([[colorscheme tokyonight-night]])
       end,
     },
     --- on-screen key prompts
@@ -64,7 +65,7 @@ require("lazy").setup({
     },
     --- Git UI
     { "lewis6991/gitsigns.nvim", opts = {
-      signs_staged_enable = true,
+      --signs_staged_enable = true,
       signcolumn = true,
       numhl      = true,
       linehl     = true,
@@ -86,17 +87,20 @@ require("lazy").setup({
       end
     },
     -- LSP
-    { "williamboman/mason.nvim" },
-    { "williamboman/mason-lspconfig.nvim", opts = { automatic_installation = true } },
+    { "williamboman/mason.nvim", lazy = true },
+    { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
+    { "b0o/schemastore.nvim", lazy = true },
+    --{ "diogo464/kubernetes.nvim" },
     {
       "neovim/nvim-lspconfig",
       -- run lspconfig setup outside lazy stuff
       config = function(_, opts)
         -- Mason must load first? I know it's not the best way, but it's the simplest config lol
         require('mason').setup()
-        if vim.fn.isdirectory('~/.local/share/nvim/mason/registries') == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this
+        if vim.fn.isdirectory(vim.fs.normalize('~/.local/share/nvim/mason/registries')) == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this, only run on first init
         require('mason-lspconfig').setup{ automatic_installation = true }
-        require('lspconfig').yamlls.setup {
+        local lsp = require('lspconfig')
+        lsp.yamlls.setup {
           format = true,
           opts = {
             capabilities = {
@@ -118,18 +122,12 @@ require("lazy").setup({
                 completion = true,
                 hover = true,
                 validate = true,
-                schemaStore = {
-                  --[[ enable = true, ]]
-                  --[[ url = "https://www.schemastore.org/api/json/catalog.json", ]]
-                  -- disable and set URL to null value to allow SchemaStore.nvim plugin to manage YAML schema stores, default in mason-lspconfig
-                  enable = false,
-                  url = "",
-                },
-                --schemas = require('schemastore').yaml.schemas(),
+                schemaStore = { enable = false, url = "" }, -- disable and set URL to null value to manually choose which SchemaStore, Kubernetes and custom schemas to use
                 schemas = {
                   kubernetes = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace,}.yaml" },
                   -- TODO: not working on Cosmic, presumably due to lazy loading or chaining or something
-                  --[[ [require('kubernetes').yamlls_schema()] = "*.yaml", ]]
+                  --[require('kubernetes').yamlls_schema()] = "*.yaml",
+                  --[require('kubernetes').yamlls_schema()] = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace,}.yaml" },
                   --[k8s_crds.yamlls_schema()] = "*.{yml,yaml}",
                   ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
                   ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
@@ -145,6 +143,28 @@ require("lazy").setup({
             },
           },
         }
+        lsp.taplo.setup{ settings = { evenBetterToml = { schema = { associations = {
+          ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
+        }}}}}
+        lsp.jsonls.setup {
+          settings = {
+            json = {
+              validate = { enable = true },
+              schemas = require('schemastore').json.schemas {
+                select = {
+                  'Renovate',
+                  'GitHub Workflow Template Properties'
+                }
+              },
+            }
+          }
+        }
+        lsp.helm_ls.setup{}
+        lsp.lua_ls.setup{}
+        lsp.dockerls.setup{}
+        lsp.gopls.setup{}
+        lsp.tsserver.setup{}
+        lsp.pyright.setup{}
       end
     },
   },
@@ -153,6 +173,8 @@ require("lazy").setup({
   install = { colorscheme = { "tokyonight" } },
   -- automatically check for plugin updates
   checker = { enabled = true },
+  -- default to latest stable semver
+  defaults = { version = "*" },
 })
 
 vim.g.rainbow_delimiters = {}
