@@ -1,4 +1,5 @@
 [tools]
+neovim = ["0.10.1"]
 kubectl = ["1.29.2"]
 krew = ["0.4.4"]
 kubectx = ["0.9.5"]
@@ -28,6 +29,8 @@ python = ["3.11"]
 KUBECTL_INTERACTIVE_DELETE = "true"
 KUBECTL_COMMAND_HEADERS = "true"
 K9S_CONFIG_DIR = "{{config_root}}/dots/k9s"
+K9S_DEFAULT_PF_ADDRESS = "[::]"
+K9S_FG_NODE_SHELL = "true"
 #SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
 _.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
 
