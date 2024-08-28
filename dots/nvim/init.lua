@@ -86,92 +86,64 @@ require("lazy").setup({
       end
     },
     -- LSP
-    {
-      "williamboman/mason.nvim",
-      --cmd = "Mason",
-      --keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
-      --build = ":MasonUpdate",
-      --opts_extend = { "ensure_installed" },
-      --opts = {
-      --  ensure_installed = {
-      --    "stylua",
-      --    "shfmt",
-      --    "yamlls",
-      --  },
-      --},
-    },
-    {
-      "williamboman/mason-lspconfig.nvim",
-      opts = { automatic_installation = true },
-    },
+    { "williamboman/mason.nvim" },
+    { "williamboman/mason-lspconfig.nvim", opts = { automatic_installation = true } },
     {
       "neovim/nvim-lspconfig",
-      --dependencies = {
-      --},
-      --opts = function()
-      --  local ret = {
-      --    servers = {
-      --      yamlls = {
-      --      },
-      --    },
-      --    setup = { ["*"] = function(server, opts) end, },
-      --  }
-      --  return ret
-      --end,
-      -- run lspconfig setup
+      -- run lspconfig setup outside lazy stuff
       config = function(_, opts)
         -- Mason must load first? I know it's not the best way, but it's the simplest config lol
         require('mason').setup()
         vim.cmd('MasonUpdate') -- lazy.nvim build not working for this
         require('mason-lspconfig').setup{ automatic_installation = true }
         require('lspconfig').yamlls.setup {
-              format = true,
-              opts = {
-                capabilities = {
-                  textDocument = {
-                    foldingRange = {
-                      dynamicRegistration = false,
-                      lineFoldingOnly = true,
-                    },
-                  },
-                },
-                settings = {
-                  redhat = { telemetry = { enabled = false } },
-                  yaml = {
-                    format = {
-                      enable = true,
-                      singleQuote = false,
-                    },
-                    keyOrdering = false,
-                    completion = true,
-                    hover = true,
-                    validate = true,
-                    schemaStore = {
-                      --[[ enable = true, ]]
-                      --[[ url = "https://www.schemastore.org/api/json/catalog.json", ]]
-                      -- disable and set URL to null value to allow SchemaStore.nvim plugin to manage YAML schema stores, default in mason-lspconfig
-                      enable = false,
-                      url = "",
-                    },
-                    --schemas = require('schemastore').yaml.schemas(),
-                    schemas = {
-                      kubernetes = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace,}.yaml" },
-                      -- TODO: not working on Cosmic, presumably due to lazy loading or chaining or something
-                      --[[ [require('kubernetes').yamlls_schema()] = "*.yaml", ]]
-                      --[k8s_crds.yamlls_schema()] = "*.{yml,yaml}",
-                      ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
-                      ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
-                      ["https://json.schemastore.org/chart"] = "Chart.{yml,yaml}",
-                      ["https://flux.jank.ing/kustomization-kustomize-v1.json"] = "ks.{yml,yaml}",
-                      ["https://flux.jank.ing/helmrelease-helm-v2beta2.json"] = "hr.{yml,yaml}",
-                      ["https://crds.jank.ing/volsync.backube/replicationdestination_v1alpha1.json"] = "rdst.{yml,yaml}",
-                      ["https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json"] = "rsrc.{yml,yaml}",
-                      ["https://crds.jank.ing/external-secrets.io/clustersecretstore_v1beta1.json"] = "clustersecretstore*.{yml,yaml}",
-                      ["https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json"] = "externalsecret*.{yml,yaml}",
-                    },
-                  },
+          format = true,
+          opts = {
+            capabilities = {
+              textDocument = {
+                foldingRange = {
+                  dynamicRegistration = false,
+                  lineFoldingOnly = true,
                 },
               },
+            },
+            settings = {
+              redhat = { telemetry = { enabled = false } },
+              yaml = {
+                format = {
+                  enable = true,
+                  singleQuote = false,
+                },
+                keyOrdering = false,
+                completion = true,
+                hover = true,
+                validate = true,
+                schemaStore = {
+                  --[[ enable = true, ]]
+                  --[[ url = "https://www.schemastore.org/api/json/catalog.json", ]]
+                  -- disable and set URL to null value to allow SchemaStore.nvim plugin to manage YAML schema stores, default in mason-lspconfig
+                  enable = false,
+                  url = "",
+                },
+                --schemas = require('schemastore').yaml.schemas(),
+                schemas = {
+                  kubernetes = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace,}.yaml" },
+                  -- TODO: not working on Cosmic, presumably due to lazy loading or chaining or something
+                  --[[ [require('kubernetes').yamlls_schema()] = "*.yaml", ]]
+                  --[k8s_crds.yamlls_schema()] = "*.{yml,yaml}",
+                  ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+                  ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
+                  ["https://json.schemastore.org/chart"] = "Chart.{yml,yaml}",
+                  ["https://flux.jank.ing/kustomization-kustomize-v1.json"] = "ks.{yml,yaml}",
+                  ["https://flux.jank.ing/helmrelease-helm-v2beta2.json"] = "hr.{yml,yaml}",
+                  ["https://crds.jank.ing/volsync.backube/replicationdestination_v1alpha1.json"] = "rdst.{yml,yaml}",
+                  ["https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json"] = "rsrc.{yml,yaml}",
+                  ["https://crds.jank.ing/external-secrets.io/clustersecretstore_v1beta1.json"] = "clustersecretstore*.{yml,yaml}",
+                  ["https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json"] = "externalsecret*.{yml,yaml}",
+                },
+              },
+            },
+          },
         }
       end
     },
@@ -184,54 +156,4 @@ require("lazy").setup({
 })
 
 vim.g.rainbow_delimiters = {}
-
--- load indent-blanklines
---require("ibl").setup()
---require("ibl").setup( return require("indent-rainbowline").make_opts{} )
---local highlight = {
---    "RainbowRed",
---    "RainbowYellow",
---    "RainbowBlue",
---    "RainbowOrange",
---    "RainbowGreen",
---    "RainbowViolet",
---    "RainbowCyan",
---}
-----local highlightBg = {
-----    "BgRainbowRed",
-----    "BgRainbowYellow",
-----    "BgRainbowBlue",
-----    "BgRainbowOrange",
-----    "BgRainbowGreen",
-----    "BgRainbowViolet",
-----    "BgRainbowCyan",
-----}
---
---local hooks = require "ibl.hooks"
----- create the highlight groups in the highlight setup hook, so they are reset
----- every time the colorscheme changes
---hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
---    vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
---    vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
---    vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
---    vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
---    vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
---    vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
---    vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
---    vim.api.nvim_set_hl(0, "RainbowScope", { fg = "#f1fa8c" })
---end)
---    --vim.api.nvim_set_hl(0, "BgRainbowRed", { fg = "#E06C7512" })
---    --vim.api.nvim_set_hl(0, "BgRainbowYellow", { fg = "#E5C07B12" })
---    --vim.api.nvim_set_hl(0, "BgRainbowBlue", { fg = "#61AFEF12" })
---    --vim.api.nvim_set_hl(0, "BgRainbowOrange", { fg = "#D19A6612" })
---    --vim.api.nvim_set_hl(0, "BgRainbowGreen", { fg = "#98C37912" })
---    --vim.api.nvim_set_hl(0, "BgRainbowViolet", { fg = "#C678DD12" })
---    --vim.api.nvim_set_hl(0, "BgRainbowCyan", { fg = "#56B6C212" })
---
---require("ibl").setup {
---  --scope = { highlight = {"RainbowScope"} },
---  indent = { highlight = highlight, char = "" },
---  whitespace = { highlight = highlight, remove_blankline_trail = false }
---}
---hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
 
