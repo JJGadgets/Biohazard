@@ -94,7 +94,7 @@ require("lazy").setup({
       config = function(_, opts)
         -- Mason must load first? I know it's not the best way, but it's the simplest config lol
         require('mason').setup()
-        vim.cmd('MasonUpdate') -- lazy.nvim build not working for this
+        if vim.fn.isdirectory('~/.local/share/nvim/mason/registries') == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this
         require('mason-lspconfig').setup{ automatic_installation = true }
         require('lspconfig').yamlls.setup {
           format = true,
