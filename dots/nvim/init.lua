@@ -124,6 +124,9 @@ require("lazy").setup({
         "hrsh7th/cmp-nvim-lsp",
         "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path",
+        "hrsh7th/cmp-nvim-lsp-signature-help",
+        "FelipeLema/cmp-async-path",
+        "rasulomaroff/cmp-bufname",
       },
       opts = function()
         vim.api.nvim_set_hl(0, "CmpGhostText", { link = "Comment", default = true })
@@ -137,9 +140,12 @@ require("lazy").setup({
               vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
             end,
           },
-          sources = cmp.config.sources({
+          sources = cmp.config.sources({ -- TODO: git sources
+            { name = "nvim_lsp_signature_help" },
             { name = "nvim_lsp" },
-            { name = "path" },
+            { name = "bufname" },
+            { name = "async_path" },
+            { name = "fish" },
           }, {
             { name = "buffer" },
           }),
@@ -147,6 +153,16 @@ require("lazy").setup({
             completeopt = "menu,menuone,noinsert" .. (auto_select and "" or ",noselect"),
           },
           preselect = auto_select and cmp.PreselectMode.Item or cmp.PreselectMode.None,
+          mapping = cmp.mapping.preset.insert({
+            ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+            ['<C-f>'] = cmp.mapping.scroll_docs(4),
+            ['<C-Space>'] = function()
+              if cmp.visible() then cmp.abort(); else cmp.complete(); end
+            end,
+            ['<C-esc>'] = cmp.mapping.abort(),
+            ['<C-c>'] = cmp.mapping.abort(),
+            ['<CR>'] = cmp.mapping.confirm({ select = false }),
+          }),
           experimental = {
             ghost_text = {
               hl_group = "CmpGhostText",
@@ -156,15 +172,17 @@ require("lazy").setup({
         }
       end,
     },
+    { "mtoohey31/cmp-fish", ft = "fish" },
+    { "ray-x/lsp_signature.nvim", event = "VeryLazy", opts = {}, },
     -- LSP
     { "williamboman/mason.nvim", lazy = true },
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
     { "b0o/schemastore.nvim", lazy = true },
-    { "diogo464/kubernetes.nvim", ft = { "yaml"}, opts = {}, },
-    --{ "someone-stole-my-name/yaml-companion.nvim",
-    { "msvechla/yaml-companion.nvim",
+    { "diogo464/kubernetes.nvim", lazy = true, opts = {}, },
+    { "someone-stole-my-name/yaml-companion.nvim",
+    --{ "msvechla/yaml-companion.nvim",
+    --  branch = "kubernetes_crd_detection",
       ft = { "yaml"},
-      branch = "kubernetes_crd_detection",
       dependancies = { "nvim-lua/plenary.nvim" },
       config = function()
         require("telescope").load_extension("yaml_schema")
@@ -235,7 +253,7 @@ require("lazy").setup({
         }
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, kubernetes_crd = { enabled = true } }, lspconfig = yamlls_config, schemas = {} } ); end
+        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = {} } ); end
         lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
