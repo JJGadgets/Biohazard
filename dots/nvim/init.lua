@@ -232,42 +232,29 @@ require("lazy").setup({
         }
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        -- manual
         if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = {} } ); end
-        --local lspsetup = function(lspserver, lspuserconfig)
-        --  for _, v in ipairs(require('lspconfig')[lspserver].document_config.default_config.filetypes) do
-        --    if vim.bo.filetype == v then
-        --      require('lspconfig')[lspserver].setup(lspuserconfig)
-        --    end
-        --  end
-        --end
-        --lspsetup("yamlls", require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = {} } )
-        --local lsp_user_configs = {
-        --  taplo = { settings = { evenBetterToml = { schema = { associations = {
-        --    ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
-        --  }}}}},
-        --  jsonls = {
-        --    settings = {
-        --      json = {
-        --        validate = { enable = true },
-        --        schemas = require('schemastore').json.schemas {
-        --          select = {
-        --            'Renovate',
-        --            'GitHub Workflow Template Properties'
-        --          }
-        --        },
-        --      }
-        --    }
-        --  },
-        --  helm_ls = {},
-        --  lua_ls = {},
-        --  dockerls = {},
-        --  gopls = {},
-        --  tsserver = {},
-        --  pyright = {},
-        --}
-        -- function to iterate configs and only setup on startup if current buffer is filetype, to avoid loading plugins required by LSP configs
-        --for _, lspserver in ipairs(vim.tbl_keys(lsp_user_configs)) do -- normal lua pairs won't work as it will load the `require('plugin')`s
+        lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
+          ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
+        }}}}}
+        if vim.bo.filetype == "json" then lsp.jsonls.setup {
+          settings = {
+            json = {
+              validate = { enable = true },
+              schemas = require('schemastore').json.schemas {
+                select = {
+                  'Renovate',
+                  'GitHub Workflow Template Properties'
+                }
+              },
+            }
+          }
+        }; end
+        lsp.helm_ls.setup{}
+        lsp.lua_ls.setup{}
+        lsp.dockerls.setup{}
+        lsp.gopls.setup{}
+        lsp.tsserver.setup{}
+        lsp.pyright.setup{}
       end
     },
   },
