@@ -160,9 +160,10 @@ require("lazy").setup({
     { "williamboman/mason.nvim", lazy = true },
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
     { "b0o/schemastore.nvim", lazy = true },
-    { "diogo464/kubernetes.nvim", opts = {}, },
+    { "diogo464/kubernetes.nvim", ft = { "yaml"}, opts = {}, },
     --{ "someone-stole-my-name/yaml-companion.nvim",
     { "msvechla/yaml-companion.nvim",
+      ft = { "yaml"},
       branch = "kubernetes_crd_detection",
       dependancies = { "nvim-lua/plenary.nvim" },
       config = function()
@@ -171,6 +172,7 @@ require("lazy").setup({
     },
     {
       "neovim/nvim-lspconfig",
+      event = { "FileType" },
       -- run lspconfig setup outside lazy stuff
       config = function(_, opts)
         -- Mason must load first? I know it's not the best way, but it's the simplest config lol
@@ -179,6 +181,10 @@ require("lazy").setup({
         require('mason-lspconfig').setup{ automatic_installation = true }
         local lsp = require('lspconfig')
         local cmp_caps = require('cmp_nvim_lsp').default_capabilities()
+        -- lazy load Kubernetes.nvim
+        local kubernetes_nvim_load = function()
+          if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
+        end
         --- LSP servers config
         local yamlls_schemas = { -- TODO: use same Lua table for yaml-companion and SchemaStore.nvim
           { name = "Kubernetes", fileMatch = "*.yaml", url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1-standalone-strict/all.json" },
@@ -212,12 +218,8 @@ require("lazy").setup({
               validate = true,
               schemaStore = { enable = false, url = "" }, -- disable and set URL to null value to manually choose which SchemaStore, Kubernetes and custom schemas to use
               schemas = {
-                --["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1-standalone-strict/persistentvolumeclaim-v1.json"] = "pvc.yaml",
-                --kubernetes = "*.yaml",
                 --kubernetes = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace}.yaml" },
-                -- TODO: not working on Cosmic, presumably due to lazy loading or chaining or something
-                [require('kubernetes').yamlls_schema()] = "*.yaml",
-                --[require('kubernetes').yamlls_schema()] = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace,}.yaml" },
+                [kubernetes_nvim_load()] = "*.yaml",
                 ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
                 ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
                 ["https://json.schemastore.org/chart"] = "Chart.{yml,yaml}",
@@ -233,11 +235,11 @@ require("lazy").setup({
         }
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, kubernetes_crd = { enabled = true } }, lspconfig = yamlls_config, schemas = {} } )
+        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, kubernetes_crd = { enabled = true } }, lspconfig = yamlls_config, schemas = {} } ); end
         lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
-        lsp.jsonls.setup {
+        if vim.bo.filetype == "json" then lsp.jsonls.setup {
           settings = {
             json = {
               validate = { enable = true },
@@ -249,7 +251,7 @@ require("lazy").setup({
               },
             }
           }
-        }
+        }; end
         lsp.helm_ls.setup{}
         lsp.lua_ls.setup{}
         lsp.dockerls.setup{}
