@@ -176,14 +176,20 @@ require("lazy").setup({
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
     { "b0o/schemastore.nvim", lazy = true },
     { "diogo464/kubernetes.nvim", lazy = true, opts = {}, },
-    { "someone-stole-my-name/yaml-companion.nvim",
+    --{ "someone-stole-my-name/yaml-companion.nvim",
     --{ "msvechla/yaml-companion.nvim",
     --  branch = "kubernetes_crd_detection",
+    { "cenk1cenk2/schema-companion.nvim",
       ft = { "yaml"},
-      dependancies = { "nvim-lua/plenary.nvim" },
+      dependancies = { { "nvim-lua/plenary.nvim" }, { "nvim-telescope/telescope.nvim" }, },
       config = function()
-        require("telescope").load_extension("yaml_schema")
-      end,
+        require("schema-companion").setup({
+          enable_telescope = true,
+          matchers = {
+            require("schema-companion.matchers.kubernetes").setup({ version = "1.30.1" }),
+          },
+      	})
+      end
     },
     { "neovim/nvim-lspconfig",
       event = { "FileType" },
@@ -232,7 +238,7 @@ require("lazy").setup({
         }
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = {} } ); end
+        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("schema-companion").setup_client{yamlls_config} ); end
         lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
