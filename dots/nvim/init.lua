@@ -199,6 +199,63 @@ require("lazy").setup({
         local kubernetes_nvim_load = function()
           if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
         end
+        local yaml_schemas = {
+          {
+            name = 'Kubernetes.nvim',
+            --description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
+            fileMatch = '*.yaml',
+            url = kubernetes_nvim_load(),
+            --fileMatch = { 'kube/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit*.yaml', },
+          },
+          {
+            name = 'Flux Kustomization',
+            --description = 'Kubernetes CRD - Flux Kustomization v1',
+            fileMatch = 'ks.yaml',
+            url = "https://flux.jank.ing/kustomization-kustomize-v1.json",
+          },
+          {
+            name = 'Flux HelmRelease',
+            --description = 'Kubernetes CRD - Flux HelmRelease v2beta2',
+            fileMatch = 'hr.yaml',
+            url = "https://flux.jank.ing/helmrelease-helm-v2beta2.json",
+          },
+        }
+        local schemaStoreCatalog = {
+          -- select subset from the JSON schema catalog
+          'Talhelper',
+          'kustomization.yaml',
+          'Taskfile config',
+          'Helm Chart.yaml',
+          'Helm Chart.lock',
+          'docker-compose.yml',
+          'GitHub Workflow',
+          'GitHub automatically generated release notes configuration',
+        }
+        local schemaStoreSelect = function(catalog)
+          local schemaStoreSchemas = {}
+          for k, v in pairs(catalog) do
+            schemaStoreSchemas[k] = v
+          end
+          for _, v in ipairs(yaml_schemas) do
+            table.insert(schemaStoreSchemas, v['name'])
+          end
+          return schemaStoreSchemas
+        end
+        local yamlCompanionSchemas = function()
+          local ycSchemas = {}
+          for _, v in ipairs(yaml_schemas) do
+            table.insert(ycSchemas, {name = v['name'], uri = v['url']})
+          end
+          for _, v in ipairs(schemaStoreCatalog) do -- assumes 1 entry per catalog item
+            local schemaUrl
+            for k, _ in pairs(require('schemastore').yaml.schemas({select={v}})) do
+              schemaUrl = k
+              break
+            end
+            table.insert(ycSchemas, {name = v, uri = schemaUrl})
+          end
+          return ycSchemas
+        end
         --- LSP servers config
         local yamlls_config = {
           capabilities = cmp_caps,
@@ -214,25 +271,16 @@ require("lazy").setup({
               hover = true,
               validate = true,
               schemaStore = { enable = false, url = "" }, -- disable and set URL to null value to manually choose which SchemaStore, Kubernetes and custom schemas to use
-              schemas = {
-                --kubernetes = { "{pvc,deploy,sts,secret*,configmap,cm,cron*,rbac,ns,namespace}.yaml" },
-                [kubernetes_nvim_load()] = "*.yaml",
-                ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
-                ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
-                ["https://json.schemastore.org/chart"] = "Chart.{yml,yaml}",
-                ["https://flux.jank.ing/kustomization-kustomize-v1.json"] = "ks.{yml,yaml}",
-                ["https://flux.jank.ing/helmrelease-helm-v2beta2.json"] = "hr.{yml,yaml}",
-                ["https://crds.jank.ing/volsync.backube/replicationdestination_v1alpha1.json"] = "rdst.{yml,yaml}",
-                ["https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json"] = "rsrc.{yml,yaml}",
-                ["https://crds.jank.ing/external-secrets.io/clustersecretstore_v1beta1.json"] = "clustersecretstore*.{yml,yaml}",
-                ["https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json"] = "externalsecret*.{yml,yaml}",
-              },
+              schemas = require('schemastore').yaml.schemas({
+                extra = yaml_schemas,
+                select = schemaStoreSelect(schemaStoreCatalog),
+              }),
             },
           },
         }
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = {} } ); end
+        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } ); end
         lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
