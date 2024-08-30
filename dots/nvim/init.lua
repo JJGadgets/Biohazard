@@ -47,23 +47,17 @@ require("lazy").setup({
   spec = {
     -- # Plugins
     -- colorscheme
-    {
-      "folke/tokyonight.nvim",
-      lazy = false, -- make sure we load this during startup if it is your main colorscheme
-      priority = 1000, -- make sure to load this before all the other start plugins
-      opts = { style = "night" },
-      -- load the colorscheme here
-      config = function()
+    { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, config = function()
+        -- load the colorscheme here
         vim.cmd([[colorscheme tokyonight-night]])
       end,
     },
     --- on-screen key prompts
-    {
-      "folke/which-key.nvim", event = "VeryLazy", opts = {} },
+    { "folke/which-key.nvim", event = "VeryLazy", opts = {} },
     -- rainbow indents
-    { "HiPhish/rainbow-delimiters.nvim" },
-    {
-    	"lukas-reineke/indent-blankline.nvim",
+    { "HiPhish/rainbow-delimiters.nvim", event = { "BufReadPre", "BufNewFile" }, },
+    { "lukas-reineke/indent-blankline.nvim",
+      event = { "BufReadPre", "BufNewFile" },
     	dependencies = { "TheGLander/indent-rainbowline.nvim", },
       main = "ibl",
     	opts = function(_, opts)
@@ -73,7 +67,7 @@ require("lazy").setup({
     	end,
     },
     --- Git UI
-    { "lewis6991/gitsigns.nvim", opts = {
+    { "lewis6991/gitsigns.nvim", event = { "BufReadPre", "BufNewFile" }, opts = {
       signs_staged_enable = true,
       signcolumn = true,
       numhl      = true,
@@ -85,39 +79,39 @@ require("lazy").setup({
     -- notifications
     { "rcarriga/nvim-notify", event = "VeryLazy", opts = { stages = "static", render = "compact" } }, -- any animations will cause lag over remote connections, especially SSH via iSH on iOS
     -- UI stuff
-    {
-      "folke/noice.nvim",
-      dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify", },
-      event = "VeryLazy",
-      opts = {
-        -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-        lsp = { override = { ["vim.lsp.util.convert_input_to_markdown_lines"] = true, ["vim.lsp.util.stylize_markdown"] = true, ["cmp.entry.get_documentation"] = true, }, }, -- cmp option requires nvim_cmp
-        -- suggested presets
-        presets = {
-          command_palette = true,
-          long_message_to_split = true,
-        },
-      },
-    },
+    --{ "folke/noice.nvim",
+    --  dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify", },
+    --  event = "VeryLazy",
+    --  opts = {
+    --    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+    --    lsp = { override = { ["vim.lsp.util.convert_input_to_markdown_lines"] = true, ["vim.lsp.util.stylize_markdown"] = true, ["cmp.entry.get_documentation"] = true, }, }, -- cmp option requires nvim_cmp
+    --    -- suggested presets
+    --    presets = {
+    --      command_palette = true,
+    --      long_message_to_split = true,
+    --    },
+    --  },
+    --},
     -- TreeSitter
-    {
-      "nvim-treesitter/nvim-treesitter",
+    { "nvim-treesitter/nvim-treesitter",
       --branch = "master",
+      event = "VeryLazy",
       build = ":TSUpdate",
-      config = function () 
+      config = function()
         require("nvim-treesitter.configs").setup({
           ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css" },
           sync_install = false,
           highlight = { enable = true },
-          indent = { enable = true },  
+          indent = { enable = true },
         })
       end
     },
     -- telescope
-    { "nvim-telescope/telescope.nvim" },
+    { "nvim-telescope/telescope.nvim", event = "VeryLazy", },
+    -- auto brackets
+    { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}, },
     -- Autocomplete
-    {
-      "hrsh7th/nvim-cmp",
+    { "hrsh7th/nvim-cmp",
       version = false, -- last release is way too old
       event = "InsertEnter",
       dependencies = {
@@ -131,6 +125,9 @@ require("lazy").setup({
       opts = function()
         vim.api.nvim_set_hl(0, "CmpGhostText", { link = "Comment", default = true })
         local cmp = require("cmp")
+        -- autopairs
+        cmp.event:on('confirm_done', require('nvim-autopairs.completion.cmp').on_confirm_done())
+        -- actual cmp config
         local defaults = require("cmp.config.default")()
         local auto_select = true
         return {
@@ -188,8 +185,7 @@ require("lazy").setup({
         require("telescope").load_extension("yaml_schema")
       end,
     },
-    {
-      "neovim/nvim-lspconfig",
+    { "neovim/nvim-lspconfig",
       event = { "FileType" },
       -- run lspconfig setup outside lazy stuff
       config = function(_, opts)
@@ -204,25 +200,8 @@ require("lazy").setup({
           if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
         end
         --- LSP servers config
-        local yamlls_schemas = { -- TODO: use same Lua table for yaml-companion and SchemaStore.nvim
-          { name = "Kubernetes", fileMatch = "*.yaml", url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1-standalone-strict/all.json" },
-          { name = "Flux HelmRelease", fileMatch = "hr.{y,ya}ml", url = "https://flux.jank.ing/helmrelease-helm-v2beta2.json" },
-          { name = "Flux Kustomization", fileMatch = "ks.{y,ya}ml", url = "https://flux.jank.ing/kustomization-kustomize-v1.json" },
-          { name = "VolSync ReplicationSource", fileMatch = "{rsrc,replicationsource}*.{y,ya}ml", url = "https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json" },
-          { name = "VolSync ReplicationDestination", fileMatch = "{rdst,replicationdestination}*.{y,ya}ml", url = "https://crds.jank.ing/volsync.backube/replicationdestination_v1alpha1.json" },
-          { name = "ExternalSecret", fileMatch = "{es,externalsecret}*.{y,ya}ml", url = "https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json" },
-          { name = "ExternalSecret ClusterSecretStore", fileMatch = "{css|clustersecretstore*}.{y,ya}ml", url = "https://crds.jank.ing/external-secrets.io/clustersecretstore_v1beta1.json" },
-        }
         local yamlls_config = {
           capabilities = cmp_caps,
-          --capabilities = {
-          --  textDocument = {
-          --    foldingRange = {
-          --      dynamicRegistration = false,
-          --      lineFoldingOnly = true,
-          --    },
-          --  },
-          --},
           settings = {
             redhat = { telemetry = { enabled = false } },
             yaml = {
@@ -279,10 +258,6 @@ require("lazy").setup({
       end
     },
   },
-  -- Configure any other settings here. See the documentation for more details.
-  -- colorscheme that will be used when installing plugins.
-  install = { colorscheme = { "tokyonight" } },
-  -- automatically check for plugin updates
   checker = { enabled = true, notify = false },
   -- default to latest stable semver
   --defaults = { version = "*" },
