@@ -12,10 +12,10 @@
 " nocompatible, placed first so all others below follow this
 set nocompatible
 
-" Prepend mise shims to PATH
-if has('mac') || has('unix')
-    let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
-endif
+" Prepend mise shims to PATH # TODO: disabled due to `gopls` failing to install
+"if has('mac') || has('unix')
+"    let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
+"endif
 
 " set vim tmp files (https://stackoverflow.com/a/61585014)
 if has('win32')
@@ -163,8 +163,16 @@ if has("gui_macvim")
     autocmd GUIEnter * set vb t_vb=
 endif
 
-" " Add a bit extra margin to the left
-" set foldcolumn=1
+" folding/collapse
+set foldenable
+set foldcolumn=1 " minimum column width
+nnoremap <Tab> za
+augroup remember_folds
+  autocmd!
+  autocmd BufWinLeave *.* mkview
+  autocmd BufWinEnter *.* silent! loadview
+  autocmd BufWinEnter *.* set viewoptions-=curdir
+augroup END
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -47,11 +47,7 @@ require("lazy").setup({
   spec = {
     -- # Plugins
     -- colorscheme
-    { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, config = function()
-        -- load the colorscheme here
-        vim.cmd([[colorscheme tokyonight-night]])
-      end,
-    },
+    { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, config = function() vim.cmd([[colorscheme tokyonight-night]]); end, },
     --- on-screen key prompts
     { "folke/which-key.nvim", event = "VeryLazy", opts = {} },
     -- rainbow indents
@@ -100,6 +96,8 @@ require("lazy").setup({
       config = function()
         require("nvim-treesitter.configs").setup({
           ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css" },
+          --ensure_installed = 'all',
+          ignore_install = { 'org' }, -- nvim-orgmode compatibility
           sync_install = false,
           highlight = { enable = true },
           indent = { enable = true },
@@ -110,6 +108,12 @@ require("lazy").setup({
     { "nvim-telescope/telescope.nvim", event = "VeryLazy", },
     -- auto brackets
     { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}, },
+    ---- folding
+    { "kevinhwang91/nvim-ufo", dependencies = { "kevinhwang91/promise-async" }, event = { "BufReadPre", "BufNewFile" }, opts = {
+      provider_selector = function(bufnr, filetype, buftype)
+        return { "treesitter", "indent" } -- LSP takes too long to init
+      end
+    }},
     -- Autocomplete
     { "hrsh7th/nvim-cmp",
       version = false, -- last release is way too old
@@ -130,14 +134,27 @@ require("lazy").setup({
         -- actual cmp config
         local defaults = require("cmp.config.default")()
         local auto_select = true
+        cmp.setup.filetype('gitcommit', {
+          sources = cmp.config.sources({
+            { name = 'conventionalcommits' },
+            { name = 'commit' },
+            { name = 'git' },
+          }, {
+            { name = "async_path" },
+            { name = 'buffer' },
+          })
+        })
+        cmp.setup.filetype('org', {
+          sources = cmp.config.sources({
+            { name = "orgmode" },
+            { name = "async_path" },
+            { name = 'buffer' },
+          })
+        })
         return {
-          snippet = {
-            -- REQUIRED - you must specify a snippet engine
-            expand = function(args)
-              vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
-            end,
-          },
-          sources = cmp.config.sources({ -- TODO: git sources
+          snippet = { expand = function(args) vim.snippet.expand(args.body); end, }, -- REQUIRED to specify snippet engine -- `vim.snippet` for native neovim snippets (Neovim v0.10+)
+          sources = cmp.config.sources({ -- multiple tables is so the first table must have no results before the second table is shown, etc
+          -- TODO: git sources
             { name = "nvim_lsp_signature_help" },
             { name = "nvim_lsp" },
             { name = "bufname" },
@@ -146,10 +163,8 @@ require("lazy").setup({
           }, {
             { name = "buffer" },
           }),
-          completion = {
-            completeopt = "menu,menuone,noinsert" .. (auto_select and "" or ",noselect"),
-          },
-          preselect = auto_select and cmp.PreselectMode.Item or cmp.PreselectMode.None,
+          completion = { completeopt = "menu,menuone,noinsert" .. (auto_select and "" or ",noselect"), }, -- suggested config
+          preselect = auto_select and cmp.PreselectMode.Item or cmp.PreselectMode.None, -- suggested config
           mapping = cmp.mapping.preset.insert({
             ['<C-b>'] = cmp.mapping.scroll_docs(-4),
             ['<C-f>'] = cmp.mapping.scroll_docs(4),
@@ -160,16 +175,15 @@ require("lazy").setup({
             ['<C-c>'] = cmp.mapping.abort(),
             ['<CR>'] = cmp.mapping.confirm({ select = false }),
           }),
-          experimental = {
-            ghost_text = {
-              hl_group = "CmpGhostText",
-            },
-          },
-          sorting = defaults.sorting,
+          experimental = { ghost_text = { hl_group = "CmpGhostText", }, }, -- suggested config
+          sorting = defaults.sorting, -- suggested config
         }
       end,
     },
     { "mtoohey31/cmp-fish", ft = "fish" },
+    { "davidsierradz/cmp-conventionalcommits", ft = "gitcommit", },
+    { "Dosx001/cmp-commit", ft = "gitcommit", },
+    { "petertriho/cmp-git", ft = "gitcommit", },
     { "ray-x/lsp_signature.nvim", event = "VeryLazy", opts = {}, },
     -- LSP
     { "williamboman/mason.nvim", lazy = true },
@@ -179,7 +193,8 @@ require("lazy").setup({
     { "someone-stole-my-name/yaml-companion.nvim",
     --{ "msvechla/yaml-companion.nvim",
     --  branch = "kubernetes_crd_detection",
-      ft = { "yaml"},
+      --event = "VeryLazy",
+      ft = { "yaml" },
       dependancies = { "nvim-lua/plenary.nvim" },
       config = function()
         require("telescope").load_extension("yaml_schema")
@@ -194,7 +209,13 @@ require("lazy").setup({
         if vim.fn.isdirectory(vim.fs.normalize('~/.local/share/nvim/mason/registries')) == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this, only run on first init
         require('mason-lspconfig').setup{ automatic_installation = true }
         local lsp = require('lspconfig')
-        local cmp_caps = require('cmp_nvim_lsp').default_capabilities()
+        local caps = function()
+          local default_caps = vim.lsp.protocol.make_client_capabilities()
+          default_caps.textDocument.completion = require('cmp_nvim_lsp').default_capabilities()['textDocument'].completion --- nvim-cmp completion
+          --local default_caps = require('cmp_nvim_lsp').default_capabilities() --- nvim-cmp completion
+          default_caps.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } --- nvim-ufo folding
+          return default_caps
+        end
         -- lazy load Kubernetes.nvim
         local kubernetes_nvim_load = function()
           if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
@@ -219,6 +240,12 @@ require("lazy").setup({
             fileMatch = 'hr.yaml',
             url = "https://flux.jank.ing/helmrelease-helm-v2beta2.json",
           },
+          --{ -- TODO: this seems to do nothing...? not sure how the MachineConfig schema is supposed to look like, but it doesn't look right?
+          --  name = 'Talos Linux MachineConfig',
+          --  fileMatch = '{*/clusterconfig/,/tmp/MachineConfigs.config.talos.dev-v1alpha1}*.yaml',
+          --  url = "https://www.talos.dev/v1.7/schemas/v1alpha1_config.schema.json",
+          --  --url = "https://raw.githubusercontent.com/siderolabs/talos/main/website/content/v1.7/schemas/config.schema.json",
+          --},
         }
         local schemaStoreCatalog = {
           -- select subset from the JSON schema catalog
@@ -258,7 +285,7 @@ require("lazy").setup({
         end
         --- LSP servers config
         local yamlls_config = {
-          capabilities = cmp_caps,
+          capabilities = caps(),
           settings = {
             redhat = { telemetry = { enabled = false } },
             yaml = {
@@ -281,10 +308,11 @@ require("lazy").setup({
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
         if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } ); end
-        lsp.taplo.setup { settings = { evenBetterToml = { schema = { associations = {
+        lsp.taplo.setup { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
         if vim.bo.filetype == "json" then lsp.jsonls.setup {
+          capabilities = caps(),
           settings = {
             json = {
               validate = { enable = true },
@@ -297,14 +325,19 @@ require("lazy").setup({
             }
           }
         }; end
-        lsp.helm_ls.setup{}
-        lsp.lua_ls.setup{}
-        lsp.dockerls.setup{}
-        lsp.gopls.setup{}
-        lsp.tsserver.setup{}
-        lsp.pyright.setup{}
+        lsp.helm_ls.setup{capabilities = caps(),}
+        lsp.lua_ls.setup{capabilities = caps(),}
+        lsp.dockerls.setup{capabilities = caps(),}
+        if vim.fn.executable('go') == 1 then lsp.gopls.setup{capabilities = caps(),} end
+        lsp.tsserver.setup{capabilities = caps(),}
+        lsp.pyright.setup{capabilities = caps(),}
       end
     },
+    -- Org
+    { 'nvim-orgmode/orgmode', ft = { 'org' }, opts = {
+      org_agenda_files = '~/orgfiles/**/*',
+      org_default_notes_file = '~/orgfiles/refile.org',
+    }},
   },
   checker = { enabled = true, notify = false },
   -- default to latest stable semver
@@ -315,3 +348,9 @@ require("lazy").setup({
 vim.g.rainbow_delimiters = {}
 -- use nvim-notify for notifications
 vim.notify = require("notify")
+-- nvim-ufo
+vim.o.foldmethod = "manual" -- override vimrc value as that is meant for pluginless
+vim.o.foldlevel = 99
+vim.o.foldlevelstart = 99
+vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
