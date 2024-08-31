@@ -12,6 +12,11 @@
 " nocompatible, placed first so all others below follow this
 set nocompatible
 
+" Prepend mise shims to PATH
+if has('mac') || has('unix')
+    let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
+endif
+
 " set vim tmp files (https://stackoverflow.com/a/61585014)
 if has('win32')
     set noundofile
@@ -47,6 +52,9 @@ endif
 " set yank to: remember last 100 files' marks, yank across files if <10k lines
 " and <5MB, and disable search highlighting on startup
 set viminfo='100,<10000,s5000,h
+
+" set clipboard to work across OS
+set clipboard+=unnamedplus
 
 " Sets how many lines of history VIM has to remember
 set history=500
