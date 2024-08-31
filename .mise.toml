@@ -29,16 +29,15 @@ restic = ["0.16.4"]
 k9s = ["0.32.5"]
 soft-serve = ["0.7.4"]
 #pulumi = ["3.95.0"]
+# experimental backends, use `mise up` to install because `mise install` is currently broken for these https://github.com/jdx/mise/issues/2458
 python = ["3.11"]
 uv = ["0.4.1"] # faster than pipx, and can be installed with mise directly
 "pipx:flux-local" = ["5.5.1"]
 "pipx:robusta-dev/krr" = ["v1.13.0"]
-
-# TODO: experimental backends
-#rust = ["1.80.1"]
-#"cargo:cargo-binstall" = ["1.10.2"]
-#"cargo:atac" = ["0.17.0"]
-#go = ["1.22.6"]
-#"go:github.com/gcla/termshark/v2/cmd/termshark" = ["2.4.0"]
+rust = ["1.80.1"]
+"cargo:cargo-binstall" = ["1.10.3"]
+"cargo:atac" = ["0.17.0"]
+go = ["1.22.6"]
+"go:github.com/gcla/termshark/v2/cmd/termshark" = ["2.4.0"]
 
 
