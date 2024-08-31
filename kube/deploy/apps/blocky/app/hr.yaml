@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -101,7 +102,9 @@ spec:
         controller: blocky
         type: LoadBalancer
         annotations:
-          "io.cilium/lb-ipam-ips": "${APP_IP_BLOCKY}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_BLOCKY:=127.0.0.1}"
+          tailscale.com/expose: "true"
+          tailscale.com/tags: "tag:dns"
         labels:
           exposeSvc: dns
         ports:
@@ -119,7 +122,7 @@ spec:
       main:
         className: nginx-external
         hosts:
-          - host: &host "${APP_DNS_BLOCKY}"
+          - host: &host "${APP_DNS_BLOCKY:=blocky}"
             paths: &paths
               - path: /dns-query
                 pathType: Prefix
