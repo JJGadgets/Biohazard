@@ -335,9 +335,16 @@ require("lazy").setup({
     },
     -- Org
     { 'nvim-orgmode/orgmode', ft = { 'org' }, opts = {
-      org_agenda_files = '~/orgfiles/**/*',
-      org_default_notes_file = '~/orgfiles/refile.org',
+      org_agenda_files = '~/notes/**/*',
+      org_default_notes_file = '~/notes/_inbox.org',
     }},
+    --{ "chipsenkbeil/org-roam.nvim", ft = { "org" }, opts = {
+    --  directory = "~/notes/Org/Roam",
+    --  -- optional
+    --  org_files = {"~/notes/**/*.org"}
+    --}},
+    { "akinsho/org-bullets.nvim", ft = { "org" }, opts = {} },
+    { "lukas-reineke/headlines.nvim", ft = { "org" }, opts = {} }, -- uses treesitter
   },
   checker = { enabled = true, notify = false },
   -- default to latest stable semver

@@ -167,7 +167,7 @@ endif
 set foldenable
 set foldcolumn=1 " minimum column width
 nnoremap <Tab> za
-augroup remember_folds
+augroup remember_folds " https://github.com/kevinhwang91/nvim-ufo/issues/115 https://github.com/neovim/neovim/blob/bfe6b49447744cea1cd941660b2a3a501a0701cb/runtime/doc/fold.txt#L42-L43
   autocmd!
   autocmd BufWinLeave *.* mkview
   autocmd BufWinEnter *.* silent! loadview
