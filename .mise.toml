@@ -1,3 +1,18 @@
+[env]
+KUBECTL_INTERACTIVE_DELETE = "true"
+KUBECTL_COMMAND_HEADERS = "true"
+K9S_CONFIG_DIR = "{{config_root}}/dots/k9s"
+K9S_DEFAULT_PF_ADDRESS = "[::]"
+K9S_FG_NODE_SHELL = "true"
+#SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
+_.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
+
+[settings]
+experimental = true # Cargo backend
+python_venv_auto_create = true
+python_default_packages_file = "{{config_root}}/.venv/.mise-py-pkg"
+pipx_uvx = true
+
 [tools]
 neovim = ["0.10.1"]
 kubectl = ["1.29.2"]
@@ -15,6 +30,9 @@ k9s = ["0.32.5"]
 soft-serve = ["0.7.4"]
 #pulumi = ["3.95.0"]
 python = ["3.11"]
+uv = ["0.4.1"] # faster than pipx, and can be installed with mise directly
+"pipx:flux-local" = ["5.5.1"]
+"pipx:robusta-dev/krr" = ["v1.13.0"]
 
 # TODO: experimental backends
 #rust = ["1.80.1"]
@@ -22,18 +40,5 @@ python = ["3.11"]
 #"cargo:atac" = ["0.17.0"]
 #go = ["1.22.6"]
 #"go:github.com/gcla/termshark/v2/cmd/termshark" = ["2.4.0"]
-#[settings]
-#experimental = true # Cargo backend
 
-[env]
-KUBECTL_INTERACTIVE_DELETE = "true"
-KUBECTL_COMMAND_HEADERS = "true"
-K9S_CONFIG_DIR = "{{config_root}}/dots/k9s"
-K9S_DEFAULT_PF_ADDRESS = "[::]"
-K9S_FG_NODE_SHELL = "true"
-#SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
-_.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
-
-[plugins]
-talhelper = "https://github.com/bjw-s/asdf-talhelper.git"
 
