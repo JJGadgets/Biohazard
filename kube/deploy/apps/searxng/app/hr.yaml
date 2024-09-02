@@ -264,6 +264,10 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
         seccompProfile: { type: "RuntimeDefault" }
+      dnsConfig: # avoid flooding Cilium dnsproxy
+        options:
+          - name: ndots
+            value: "1"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"

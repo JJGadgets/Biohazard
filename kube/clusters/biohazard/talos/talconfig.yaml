@@ -104,6 +104,47 @@ nodes:
             devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
             devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
+  - &r730xd
+    hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
+    controlPlane: false
+    installDisk: /dev/vda
+    nameservers: ["${IP_ROUTER_VLAN_K8S}"]
+    disableSearchDomain: true
+    networkInterfaces:
+      - interface: br0
+        mtu: 1500
+        dhcp: false
+        bridge:
+          interfaces: [bond0]
+          stp: {enabled: true}
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}4/28"]
+        routes:
+          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
+            metric: 1
+          - network: "0.0.0.0/0"
+            gateway: "${IP_ROUTER_VLAN_K8S}"
+      - interface: bond0
+        mtu: 1500
+        bond:
+          mode: active-backup
+          miimon: 100
+          deviceSelectors:
+            # VirtIO NIC
+            - driver: virtio_net
+    machineSpec:
+      secureboot: true
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/gvisor
+            - siderolabs/gvisor-debug
+            - siderolabs/i915-ucode
+            - siderolabs/intel-ucode
+            - siderolabs/iscsi-tools
+            - siderolabs/kata-containers
+
 patches:
   # set all disks to no scheduler
   - |-
@@ -234,15 +275,7 @@ patches:
       kubelet:
         extraMounts:
           - type: bind
-            options: [bind, rshared, rw]
-            source: /run/kubelet-logs
-            destination: /var/log
-          - type: bind
-            options: [bind, rshared, rw]
-            source: /run/kubelet-logs-containers
-            destination: /var/log/containers
-          - type: bind
-            options: [bind, rshared, rw]
+            options: [bind, rw, exec, suid, size=2g]
             source: /run/kubelet-logs-pods
             destination: /var/log/pods
 
