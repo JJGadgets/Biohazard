@@ -104,6 +104,10 @@ spec:
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"
         - matchPattern: "*.${DNS_SHORT}"
+    # allow Let's Encrypt traffic for e.g. OCSP or CRLs
+    - toFQDNs:
+        - matchPattern: "*.lencr.org"
+        - matchPattern: "*.*.lencr.org"
     # DNS proxy to kube-dns, DNS L7 visibility
     - toEndpoints:
         - matchLabels:
