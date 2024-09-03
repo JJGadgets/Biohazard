@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v1.113.0@sha256:9d1c9ab40f3171f1dc06d5c6bc32541ff4b0835c1d217ff5cc61c85e26d2452f
+              tag: v1.113.1@sha256:b1922303018a9bece29cce8d196ae4f66d13afdf6ab109a19e1ed50663bbf98c
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
             args: ["immich"]
             env: &env
@@ -129,7 +129,7 @@ spec:
           main:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.113.0@sha256:f7964140e00bd615497d37040eb907a7cd87db6f06baea784d411cda572a29df
+              tag: v1.113.1@sha256:cae3c8d907d8b35160c02116f292c55ba91c489050abbd0fa2db2e5db70ed1a7
             env: *env
             securityContext: *sc
             resources:
@@ -151,7 +151,7 @@ spec:
           main:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.113.0@sha256:f7964140e00bd615497d37040eb907a7cd87db6f06baea784d411cda572a29df
+              tag: v1.113.1@sha256:cae3c8d907d8b35160c02116f292c55ba91c489050abbd0fa2db2e5db70ed1a7
             command: ["tini", "--"]
             args: ["/bin/sh", "-c", "tini -s -g -- /bin/sh -c 'exec ./start.sh' & read -t 600 || kill -SIGINT $!"] # run for 10 minutes to pull models via preload, then kill process, hopefully it doesn't crash
             env:
