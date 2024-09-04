@@ -109,11 +109,10 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_KAVITA:=1000}
+        runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
-        supplementalGroups: [6969] # NAS
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
