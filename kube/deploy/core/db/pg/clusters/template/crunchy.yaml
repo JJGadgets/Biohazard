@@ -65,15 +65,17 @@ spec:
         archive-timeout: "60"
         compress-type: "bz2"
         compress-level: "9"
+        repo1-storage-host: "${APP_DNS_MINIO_NAS_S3}."
         repo1-bundle: "y"
         repo1-block: "y"
         repo1-retention-full-type: "time"
         repo1-retention-full: "15" # keep 2 weeks of backups
-        repo1-retention-diff-type: "time"
+        #repo1-retention-diff-type: "time"
         repo1-retention-diff: "7"
         #repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}" # NFS
         repo1-path: "/${PG_APP_NAME}"
         repo1-s3-uri-style: "path"
+        repo2-storage-host: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
         repo2-bundle: "y"
         repo2-block: "y"
         repo2-path: "/${PG_APP_NAME}"
@@ -81,6 +83,7 @@ spec:
         repo2-retention-full-type: "time"
         repo2-retention-full: "15" # keep 2 weeks of backups
         repo2-cipher-type: "aes-256-cbc"
+        repo3-storage-host: "${APP_DNS_RGW_HTTPS}."
         repo3-bundle: "y"
         repo3-block: "y"
         repo3-s3-uri-style: "path"
@@ -93,7 +96,7 @@ spec:
       repos:
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
-            endpoint: "${APP_DNS_RGW_HTTPS}." # trailing dot to prevent ndots
+            endpoint: "${APP_DNS_RGW_HTTPS}" # trailing dot to prevent ndots
             bucket: "pg-${PG_APP_NAME}"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
@@ -102,7 +105,7 @@ spec:
             incremental: "15 1-5,7-23 * * *" # every hour except 06:15
         - name: "repo1" # NFS
           s3: &minio
-            endpoint: "${APP_DNS_MINIO_NAS_S3}."
+            endpoint: "${APP_DNS_MINIO_NAS_S3}"
             bucket: "${SECRET_PGBACKREST_WAL_MINIO_BUCKET}"
             region: "us-east-1"
           #volume: &nfs
@@ -118,7 +121,7 @@ spec:
             differential: "0 6 * * 2-6" # every day at 06:00 except Monday
         - name: "repo2" # Cloudflare R2
           s3: &r2
-            endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
+            endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
             bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}-${PG_APP_NAME}"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks

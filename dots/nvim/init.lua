@@ -1,3 +1,30 @@
+-- Vim setup here
+--- Basic highly and backwards compatible plugin-less vimrc, including leader mappings for Lazy
+vim.cmd("source ~/.vimrc")
+
+--- Clipboard via OSC 52
+local function normalPaste() -- restore non-OSC 52 paste
+  return {
+    vim.fn.split(vim.fn.getreg(""), "\n"),
+    vim.fn.getregtype(""),
+  }
+end
+vim.o.clipboard = "unnamedplus"
+vim.g.clipboard = {
+  name = 'OSC 52',
+  cache_enabled = 1,
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+  },
+  paste = {
+    --['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+    --['*'] = require('vim.ui.clipboard.osc52').paste('*'),
+    ['+'] = normalPaste,
+    ['*'] = normalPaste,
+  },
+}
+
 -- Bootstrap lazy.nvim (https://github.com/folke/lazy.nvim/blob/09d4f0db23d0391760c9e1a0501e95e21678c11a/docs/installation.mdx?plain=1#L100-L144)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -15,42 +42,19 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Vim setup here
--- Basic highly and backwards compatible plugin-less vimrc, including leader mappings for Lazy
-vim.cmd("source ~/.vimrc")
-
--- Clipboard via OSC 52
-local function normalPaste() -- restore non-OSC 52 paste
-  return {
-    vim.fn.split(vim.fn.getreg(""), "\n"),
-    vim.fn.getregtype(""),
-  }
-end
-vim.o.clipboard = "unnamedplus"
-vim.g.clipboard = {
-  name = 'OSC 52',
-  copy = {
-    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
-  },
-  paste = {
-    --['+'] = require('vim.ui.clipboard.osc52').paste('+'),
-    --['*'] = require('vim.ui.clipboard.osc52').paste('*'),
-    ['+'] = normalPaste,
-    ['*'] = normalPaste,
-  },
-  cache_enabled = 1,
-}
-
 -- Setup lazy.nvim
 require("lazy").setup({
+  -- default to latest stable semver
+  --defaults = { version = "*" },
+  -- check updates but don't notify
+  checker = { enabled = true, notify = false },
+  -- # Plugins
   spec = {
-    -- # Plugins
-    -- colorscheme
+    --- colorscheme
     { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, config = function() vim.cmd([[colorscheme tokyonight-night]]); end, },
     --- on-screen key prompts
     { "folke/which-key.nvim", event = "VeryLazy", opts = {} },
-    -- rainbow indents
+    --- rainbow indents
     { "HiPhish/rainbow-delimiters.nvim", event = { "BufReadPre", "BufNewFile" }, },
     { "lukas-reineke/indent-blankline.nvim",
       event = { "BufReadPre", "BufNewFile" },
@@ -72,9 +76,9 @@ require("lazy").setup({
       current_line_blame = true,
       watch_gitdir = { follow_files = true },
     }},
-    -- notifications
+    --- notifications
     { "rcarriga/nvim-notify", event = "VeryLazy", opts = { stages = "static", render = "compact" } }, -- any animations will cause lag over remote connections, especially SSH via iSH on iOS
-    -- UI stuff
+    --- UI stuff
     --{ "folke/noice.nvim",
     --  dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify", },
     --  event = "VeryLazy",
@@ -88,33 +92,36 @@ require("lazy").setup({
     --    },
     --  },
     --},
-    -- TreeSitter
+    --- TreeSitter
     { "nvim-treesitter/nvim-treesitter",
       --branch = "master",
-      event = "VeryLazy",
+      event = "VeryLazy", -- causes syntax highlighting to be weird
       build = ":TSUpdate",
       config = function()
         require("nvim-treesitter.configs").setup({
-          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css" },
+          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix" },
           --ensure_installed = 'all',
           ignore_install = { 'org' }, -- nvim-orgmode compatibility
           sync_install = false,
-          highlight = { enable = true },
+          highlight = {
+            enable = true,
+            --disable = { "yaml", },
+          },
           indent = { enable = true },
         })
       end
     },
-    -- telescope
+    --- telescope
     { "nvim-telescope/telescope.nvim", event = "VeryLazy", },
-    -- auto brackets
+    --- auto brackets
     { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}, },
-    ---- folding
+    --- folding
     { "kevinhwang91/nvim-ufo", dependencies = { "kevinhwang91/promise-async" }, event = { "BufReadPre", "BufNewFile" }, opts = {
       provider_selector = function(bufnr, filetype, buftype)
         return { "treesitter", "indent" } -- LSP takes too long to init
       end
     }},
-    -- Autocomplete
+    --- Autocomplete
     { "hrsh7th/nvim-cmp",
       version = false, -- last release is way too old
       event = "InsertEnter",
@@ -185,7 +192,7 @@ require("lazy").setup({
     { "Dosx001/cmp-commit", ft = "gitcommit", },
     { "petertriho/cmp-git", ft = "gitcommit", },
     { "ray-x/lsp_signature.nvim", event = "VeryLazy", opts = {}, },
-    -- LSP
+    --- LSP
     { "williamboman/mason.nvim", lazy = true },
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
     { "b0o/schemastore.nvim", lazy = true },
@@ -200,6 +207,19 @@ require("lazy").setup({
         require("telescope").load_extension("yaml_schema")
       end,
     },
+    --{ "cenk1cenk2/schema-companion.nvim",
+    --  dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
+    --  ft = "yaml",
+    --  --opts = {
+    --  config = function()
+    --    require("schema-companion").setup({
+    --      enable_telescope = true,
+    --      matchers = {
+    --        require("schema-companion.matchers.kubernetes").setup({ version = "v1.30.1" }),
+    --      },
+    --    })
+    --  end
+    --},
     { "neovim/nvim-lspconfig",
       event = { "FileType" },
       -- run lspconfig setup outside lazy stuff
@@ -224,9 +244,12 @@ require("lazy").setup({
           {
             name = 'Kubernetes.nvim',
             --description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
+            --fileMatch = 'kube*/*.yaml',
+            --url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1/all.json",
+            --fileMatch = { 'kube/clusters/*/flux/*.yaml', 'kube/clusters/*/config/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit*.yaml', },
+            --url = vim.fn.stdpath("data") .. "/kubernetes.nvim/schema.json",
             fileMatch = '*.yaml',
             url = kubernetes_nvim_load(),
-            --fileMatch = { 'kube/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit*.yaml', },
           },
           {
             name = 'Flux Kustomization',
@@ -308,6 +331,7 @@ require("lazy").setup({
         -- Run LSP server setup
         -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
         if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } ); end
+        --if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("schema-companion").setup_client(yamlls_config) ); end
         lsp.taplo.setup { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
@@ -331,6 +355,7 @@ require("lazy").setup({
         if vim.fn.executable('go') == 1 then lsp.gopls.setup{capabilities = caps(),} end
         lsp.tsserver.setup{capabilities = caps(),}
         lsp.pyright.setup{capabilities = caps(),}
+        lsp.nil_ls.setup{capabilities = caps(),}
       end
     },
     -- Org
@@ -346,9 +371,6 @@ require("lazy").setup({
     { "akinsho/org-bullets.nvim", ft = { "org" }, opts = {} },
     { "lukas-reineke/headlines.nvim", ft = { "org" }, opts = {} }, -- uses treesitter
   },
-  checker = { enabled = true, notify = false },
-  -- default to latest stable semver
-  --defaults = { version = "*" },
 })
 
 -- start rainbow_delimiters
