@@ -65,7 +65,7 @@ spec:
         archive-timeout: "60"
         compress-type: "bz2"
         compress-level: "9"
-        repo1-storage-host: "${APP_DNS_MINIO_NAS_S3}."
+        # repo1-storage-host: "${APP_DNS_MINIO_NAS_S3}."
         repo1-bundle: "y"
         repo1-block: "y"
         repo1-retention-full-type: "time"
@@ -75,7 +75,7 @@ spec:
         #repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}" # NFS
         repo1-path: "/${PG_APP_NAME}"
         repo1-s3-uri-style: "path"
-        repo2-storage-host: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
+        # repo2-storage-host: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
         repo2-bundle: "y"
         repo2-block: "y"
         repo2-path: "/${PG_APP_NAME}"
@@ -83,7 +83,7 @@ spec:
         repo2-retention-full-type: "time"
         repo2-retention-full: "15" # keep 2 weeks of backups
         repo2-cipher-type: "aes-256-cbc"
-        repo3-storage-host: "${APP_DNS_RGW_HTTPS}."
+        # repo3-storage-host: "${APP_DNS_RGW_HTTPS}."
         repo3-bundle: "y"
         repo3-block: "y"
         repo3-s3-uri-style: "path"
