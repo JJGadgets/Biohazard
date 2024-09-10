@@ -50,7 +50,8 @@ spec:
       metadata:
         labels:
           egress.home.arpa/apiserver: "allow"
-          egress.home.arpa/r2: "allow"
+          #egress.home.arpa/r2: "allow" # TODO: this uses L7 DNS netpols, and each WAL push makes a new DNS request, on top of recursing ndots per request, causing Cilium dnsproxy to crash
+          egress.home.arpa/world: "allow"
           s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
           s3.home.arpa/minio-nas: "allow"
       configuration: &brcfg
@@ -103,22 +104,22 @@ spec:
             full: "15 6 * * 1" # every Monday at 06:15
             differential: "15 6 * * 0,2-6" # every day at 06:15 except Monday
             incremental: "15 1-5,7-23 * * *" # every hour except 06:15
-        - name: "repo1" # NFS
-          s3: &minio
-            endpoint: "${APP_DNS_MINIO_NAS_S3}"
-            bucket: "${SECRET_PGBACKREST_WAL_MINIO_BUCKET}"
-            region: "us-east-1"
-          #volume: &nfs
-          #  volumeClaimSpec:
-          #    storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
-          #    volumeName: "pg-${PG_APP_NAME}-wal-nfs"
-          #    accessModes: ["ReadWriteMany"]
-          #    resources:
-          #      requests:
-          #        storage: "1Mi" # doesn't matter with NFS
-          schedules: # more aggressive for NAS (over NFS)
-            full: "0 6 * * 1" # every Monday at 06:00
-            differential: "0 6 * * 2-6" # every day at 06:00 except Monday
+        #- name: "repo1" # NFS # TODO: commented out as NAS won't be up during move
+        #  s3: &minio
+        #    endpoint: "${APP_DNS_MINIO_NAS_S3}"
+        #    bucket: "${SECRET_PGBACKREST_WAL_MINIO_BUCKET}"
+        #    region: "us-east-1"
+        #  #volume: &nfs
+        #  #  volumeClaimSpec:
+        #  #    storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
+        #  #    volumeName: "pg-${PG_APP_NAME}-wal-nfs"
+        #  #    accessModes: ["ReadWriteMany"]
+        #  #    resources:
+        #  #      requests:
+        #  #        storage: "1Mi" # doesn't matter with NFS
+        #  schedules: # more aggressive for NAS (over NFS)
+        #    full: "0 6 * * 1" # every Monday at 06:00
+        #    differential: "0 6 * * 2-6" # every day at 06:00 except Monday
         - name: "repo2" # Cloudflare R2
           s3: &r2
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
@@ -150,11 +151,8 @@ spec:
       configuration: *brcfg
       global: *brflag
       repo:
-        name: "repo2"
-        s3:
-          endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
-          bucket: "${SECRET_PGBACKREST_WAL_R2_BUCKET}"
-          region: "us-east-1"
+        name: "repo3"
+        s3: *rgw
   proxy:
     pgBouncer:
       port: 5432
