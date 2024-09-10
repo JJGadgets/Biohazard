@@ -38,8 +38,8 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       RUID: !!str &uid |
-        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
+        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
       RGID: !!str |
-        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
+        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
       RFSG: !!str |
-        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
+        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
