@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -9,58 +10,31 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: 3.4.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      go-discord-modtools:
         # type: statefulset
         type: deployment
         replicas: 1
         pod:
           labels:
-            db.home.arpa/pg: "pg-default"
             egress.home.arpa/discord: "allow"
         containers:
           main:
             image: &img
               repository: "ghcr.io/tyzbit/go-discord-modtools"
               tag: "0.2.3@sha256:f340b4059fcbc826bcb2ae88f78d7033eae29ba9e1312e3cb3b45e8a3c404574"
-            env:
+            env: &env
               TZ: "${CONFIG_TZ}"
-              DB_TYPE: "postgresql"
-              DB_HOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: &pg "pg-default-pguser-godiscordmodtools"
-                    key: "pgbouncer-host"
-              DB_PORT:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pg
-                    key: "pgbouncer-port"
-              DB_NAME:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pg
-                    key: "dbname"
-              DB_USER:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pg
-                    key: "user"
-              DB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pg
-                    key: "password"
-            envFrom:
+            envFrom: &envFrom
               - secretRef:
-                  name: "go-discord-modtools-secrets"
-            securityContext:
+                  name: go-discord-modtools-secrets
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
@@ -70,25 +44,42 @@ spec:
                 cpu: "50m"
               limits:
                 memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      go-discord-modtools:
+        controller: go-discord-modtools
         ports:
           http:
             port: 8080
+            protocol: HTTP
+            appProtocol: http
+    persistence:
+      data:
+        existingClaim: go-discord-modtools-data
+        globalMounts:
+          - subPath: data
+            path: /var/go-discord-modtools
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 49726
+        runAsUser: &uid ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
@@ -97,5 +88,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/go-discord-modtools"
-                    operator: "DoesNotExist"
+                  - key: fuckoff.home.arpa/go-discord-modtools
+                    operator: DoesNotExist

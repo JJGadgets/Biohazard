@@ -5,34 +5,41 @@ metadata:
   name: go-discord-modtools-app
   namespace: flux-system
   labels: &l
-    app.kubernetes.io/name: &app "go-discord-modtools"
+    app.kubernetes.io/name: "go-discord-modtools"
 spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/go-discord-modtools/app
-  targetNamespace: *app
+  targetNamespace: "go-discord-modtools"
   dependsOn:
-    - name: go-discord-modtools-db
+    - name: go-discord-modtools-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: go-discord-modtools-db
+  name: go-discord-modtools-pvc
   namespace: flux-system
   labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
-    app.kubernetes.io/name: &app "go-discord-modtools"
+    app.kubernetes.io/name: "go-discord-modtools"
 spec:
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: "go-discord-modtools"
   dependsOn:
-    - name: 1-core-db-pg-clusters-default
-    - name: 1-core-secrets-es-k8s
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-snapscheduler-app
+    - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
-      PG_NAME: "default"
-      PG_DB_USER: "godiscordmodtools"
-      PG_APP_NS: *app
+      PVC: "go-discord-modtools-data"
+      SIZE: "2Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      RUID: !!str &uid |
+        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
+      RGID: !!str |
+        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
+      RFSG: !!str |
+        ${APP_UID_GO-DISCORD-MODTOOLS:=1000}
