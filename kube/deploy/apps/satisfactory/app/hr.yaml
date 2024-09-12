@@ -29,7 +29,7 @@ spec:
           main: &ct
             image: &img
               repository: docker.io/wolveix/satisfactory-server
-              tag: v1.7.4@sha256:2570735308d6a17876a638dda047a4effc8b02a2bdb01e83c85d4affd60f9b14
+              tag: v1.8.0@sha256:a16ad5d230cc1b887de1326eb44b8b5fc31bef9736d9a3a725887db0a7049993
             securityContext: &sc
               runAsUser: &uid ${APP_UID_SATISFACTORY:=1000}
               readOnlyRootFilesystem: true
