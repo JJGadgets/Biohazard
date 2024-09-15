@@ -20,8 +20,8 @@ spec:
         replicas: 1
         pod:
           labels:
-            egress.home.arpa/world: "true"
-            egress.home.arpa/world-https: "true"
+            ingress.home.arpa/internet: "allow"
+            egress.home.arpa/internet: "allow"
             tailscale.com/expose: "true"
         containers:
           main:
