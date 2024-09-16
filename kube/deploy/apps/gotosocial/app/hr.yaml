@@ -50,11 +50,11 @@ spec:
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "postgres"
               GTS_DB_TLS_MODE: "enable"
-              GTS_DB_ADDRESS:
-                valueFrom:
-                  secretKeyRef:
-                    name: &pgsec "pg-gotosocial-pguser-gotosocial"
-                    key: "pgbouncer-host"
+              GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
+              #  valueFrom:
+              #    secretKeyRef:
+              #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
+              #      key: "pgbouncer-host"
               GTS_DB_DATABASE:
                 valueFrom:
                   secretKeyRef:
@@ -74,7 +74,8 @@ spec:
               GTS_STORAGE_BACKEND: "s3"
               GTS_STORAGE_S3_PROXY: "true"
               GTS_STORAGE_S3_USE_SSL: "false"
-              GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local.:6953"
+              #GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local.:6953"
+              GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
               GTS_STORAGE_S3_BUCKET: "gotosocial-media"
               GTS_STORAGE_S3_ACCESS_KEY:
                 valueFrom:
@@ -133,6 +134,13 @@ spec:
         tls:
           - hosts: [*host]
             secretName: gotosocial-tls
+    persistence:
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp # ffmpeg WASM stuff
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -146,6 +154,10 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
+      dnsConfig: # avoid flooding Cilium dnsproxy
+        options:
+          - name: ndots
+            value: "1"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
