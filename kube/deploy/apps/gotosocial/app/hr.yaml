@@ -58,7 +58,7 @@ spec:
               GTS_DB_DATABASE:
                 valueFrom:
                   secretKeyRef:
-              #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
+                    name: &pgsec "pg-gotosocial-pguser-gotosocial"
                     key: "dbname"
               GTS_DB_USER:
                 valueFrom:
