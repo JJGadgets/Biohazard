@@ -55,6 +55,7 @@ spec:
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "postgres"
               GTS_DB_TLS_MODE: "enable"
+              GTS_DB_TLS_CA_CERT: &pgca /secrets/pg/ca.crt
               GTS_DB_ADDRESS: "pg-gotosocial-primary.gotosocial.svc.cluster.local"
               #  valueFrom:
               #    secretKeyRef:
@@ -146,6 +147,14 @@ spec:
         globalMounts:
           - subPath: tmp
             path: /tmp # ffmpeg WASM stuff
+      pg-ca:
+        type: secret
+        #name: pg-authentik-pgbouncer
+        name: pg-gotosocial-cluster-cert
+        defaultMode: 0400
+        globalMounts:
+          - subPath: ca.crt
+            path: *pgca
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
