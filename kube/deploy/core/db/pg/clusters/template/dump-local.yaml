@@ -73,7 +73,7 @@ spec:
               resources:
                 limits:
                   cpu: 1000m
-                  memory: 1Gi
+                  memory: ${PG_DUMP_LOCAL_MEM:=1Gi}
 ---
 apiVersion: v1
 kind: PersistentVolume

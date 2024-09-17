@@ -16,7 +16,8 @@ spec:
       metadata:
         labels:
           egress.home.arpa/apiserver: "allow"
-          egress.home.arpa/r2: "allow"
+          #egress.home.arpa/r2: "allow" # TODO: this uses L7 DNS netpols, and each WAL push makes a new DNS request, on top of recursing ndots per request, causing Cilium dnsproxy to crash
+          egress.home.arpa/world: "allow"
           s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
           s3.home.arpa/minio-nas: "allow"
           prom.home.arpa/kps: "allow"
