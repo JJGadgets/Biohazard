@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -32,8 +33,8 @@ spec:
         containers:
           main:
             image: &img
-              repository: "jank.ing/jjgadgets/gotosocial"
-              tag: "0.16.0@sha256:0a0f4d2f1c349f9029f5e339ff5fa460b1c69ceb4d13b7854223ab3c22e6eb76"
+              repository: "docker.io/superseriousbusiness/gotosocial"
+              tag: "0.16.0sha256:54c0e2833f426b810861d8bc7b5633ca8119f2fa234a4ddaeb422519c04fca97"
             env: &env
               TZ: "${CONFIG_TZ}"
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -50,7 +51,7 @@ spec:
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "postgres"
               GTS_DB_TLS_MODE: "enable"
-              GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
+              GTS_DB_ADDRESS: "pg-gotosocial-primary.gotosocial.svc.cluster.local"
               #  valueFrom:
               #    secretKeyRef:
               #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
@@ -172,3 +173,10 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/gotosocial
                     operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
