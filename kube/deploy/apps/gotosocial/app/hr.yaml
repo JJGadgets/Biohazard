@@ -37,6 +37,10 @@ spec:
               tag: "0.16.0@sha256:54c0e2833f426b810861d8bc7b5633ca8119f2fa234a4ddaeb422519c04fca97"
             env: &env
               TZ: "${CONFIG_TZ}"
+              # tmp
+              GTS_LOG_LEVEL: trace
+              GTS_LOG_DB_QUERIES: "true"
+              # tmp
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
               GTS_LANDING_PAGE_USER: "jj"
               GTS_HOST: &host "social.jjgadgets.tech"
