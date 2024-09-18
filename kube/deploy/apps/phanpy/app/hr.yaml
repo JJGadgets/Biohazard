@@ -25,7 +25,7 @@ spec:
       replicas: 1
     image:
       repository: "ghcr.io/jjgadgets/phanpy"
-      tag: "production"
+      tag: "rolling" # versioning is weird
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
     service:
