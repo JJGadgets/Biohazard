@@ -95,7 +95,7 @@ require("lazy").setup({
     --- TreeSitter
     { "nvim-treesitter/nvim-treesitter",
       --branch = "master",
-      event = "VeryLazy", -- causes syntax highlighting to be weird
+      --event = "VeryLazy", -- causes syntax highlighting to be slower to init
       build = ":TSUpdate",
       config = function()
         require("nvim-treesitter.configs").setup({
@@ -354,8 +354,14 @@ require("lazy").setup({
         lsp.dockerls.setup{capabilities = caps(),}
         if vim.fn.executable('go') == 1 then lsp.gopls.setup{capabilities = caps(),} end
         lsp.tsserver.setup{capabilities = caps(),}
-        lsp.pyright.setup{capabilities = caps(),}
+        lsp.ruff.setup{capabilities = caps(),}
+        lsp.basedpyright.setup{capabilities = caps(),}
         lsp.nil_ls.setup{capabilities = caps(),}
+        if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then lsp.nixd.setup{capabilities = caps(),} end
+        -- show filetype on buffer switch
+        vim.api.nvim_create_autocmd('BufEnter', { pattern = '*', callback = function() vim.notify(vim.bo.filetype); end } )
+        -- keymap to show LSP info
+        --:lua vim.notify(vim.inspect(require('lspconfig').util.get_config_by_ft(vim.bo.filetype)))
       end
     },
     -- Org
@@ -383,3 +389,6 @@ vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
 vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+
+-- exrc
+vim.o.exrc = true
