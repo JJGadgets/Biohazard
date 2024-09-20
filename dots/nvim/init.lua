@@ -195,6 +195,7 @@ require("lazy").setup({
     --- LSP
     { "williamboman/mason.nvim", lazy = true },
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
+    { "dgagn/diagflow.nvim", event = "LspAttach", opts = {} },
     { "b0o/schemastore.nvim", lazy = true },
     { "diogo464/kubernetes.nvim", lazy = true, opts = {}, },
     { "someone-stole-my-name/yaml-companion.nvim",
