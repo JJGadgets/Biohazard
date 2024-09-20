@@ -197,7 +197,7 @@ require("lazy").setup({
     { "rachartier/tiny-inline-diagnostic.nvim", event = "LspAttach", opts = {
       options = {
         show_source = true,
-        multilines = true,
+        multilines = false, -- Neovim native inline diagnostics virtual text takes care of multilines
       },
     } },
     --- LSP
