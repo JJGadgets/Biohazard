@@ -191,11 +191,18 @@ require("lazy").setup({
     { "davidsierradz/cmp-conventionalcommits", ft = "gitcommit", },
     { "Dosx001/cmp-commit", ft = "gitcommit", },
     { "petertriho/cmp-git", ft = "gitcommit", },
-    { "ray-x/lsp_signature.nvim", event = "VeryLazy", opts = {}, },
+    { "ray-x/lsp_signature.nvim", event = "LspAttach", opts = {}, },
+    --- diagnostics
+    { "folke/trouble.nvim", event = "VeryLazy", cmd = "Trouble", opts = {} },
+    { "rachartier/tiny-inline-diagnostic.nvim", event = "LspAttach", opts = {
+      options = {
+        show_source = true,
+        multilines = true,
+      },
+    } },
     --- LSP
     { "williamboman/mason.nvim", lazy = true },
     { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
-    { "dgagn/diagflow.nvim", event = "LspAttach", opts = {} },
     { "b0o/schemastore.nvim", lazy = true },
     { "diogo464/kubernetes.nvim", lazy = true, opts = {}, },
     { "someone-stole-my-name/yaml-companion.nvim",
@@ -354,7 +361,7 @@ require("lazy").setup({
         lsp.lua_ls.setup{capabilities = caps(),}
         lsp.dockerls.setup{capabilities = caps(),}
         if vim.fn.executable('go') == 1 then lsp.gopls.setup{capabilities = caps(),} end
-        lsp.tsserver.setup{capabilities = caps(),}
+        lsp.vtsls.setup{capabilities = caps(),}
         lsp.ruff.setup{capabilities = caps(),}
         lsp.basedpyright.setup{capabilities = caps(),}
         lsp.nil_ls.setup{capabilities = caps(),}
