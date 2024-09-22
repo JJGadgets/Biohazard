@@ -100,7 +100,15 @@ spec:
                 - topologyKey: kubernetes.io/hostname
                   labelSelector:
                     matchLabels:
-                      flux: localhost
+                      flux: localhost # schedule all Flux pods on the same node
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node-role.kubernetes.io/control-plane # only schedule on control plane nodes
+                        operator: Exists
+                      - key: fuckoff.home.arpa/flux # don't schedule on this node
+                        operator: DoesNotExist
       target:
         kind: Deployment
     - patch: |
@@ -217,7 +225,8 @@ spec:
         - op: add
           path: /spec/template/spec/tolerations
           value:
-            - operator: Exists
+            - key: node.cilium.io/agent-not-ready
+              operator: Exists
         - op: replace
           path: /spec/strategy
           value:
