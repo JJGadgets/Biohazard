@@ -364,7 +364,7 @@ require("lazy").setup({
         lsp.vtsls.setup{capabilities = caps(),}
         lsp.ruff.setup{capabilities = caps(),}
         lsp.basedpyright.setup{capabilities = caps(),}
-        lsp.nil_ls.setup{capabilities = caps(),}
+        if vim.fn.executable('cargo') then lsp.nil_ls.setup{capabilities = caps(),} end
         if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then lsp.nixd.setup{capabilities = caps(),} end
         -- show filetype on buffer switch
         vim.api.nvim_create_autocmd('BufEnter', { pattern = '*', callback = function() vim.notify(vim.bo.filetype); end } )
