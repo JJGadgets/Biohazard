@@ -67,16 +67,15 @@ spec:
         archive-timeout: "60"
         compress-type: "bz2"
         compress-level: "9"
-        # repo1-storage-host: "${APP_DNS_MINIO_NAS_S3}."
-        repo1-bundle: "y"
-        repo1-block: "y"
-        repo1-retention-full-type: "time"
-        repo1-retention-full: "15" # keep 2 weeks of backups
-        #repo1-retention-diff-type: "time"
-        repo1-retention-diff: "7"
-        #repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}" # NFS
-        repo1-path: "/${PG_APP_NAME}"
-        repo1-s3-uri-style: "path"
+        #repo1-bundle: "y"
+        #repo1-block: "y"
+        #repo1-retention-full-type: "time"
+        #repo1-retention-full: "15" # keep 2 weeks of backups
+        ##repo1-retention-diff-type: "time"
+        #repo1-retention-diff: "7"
+        ##repo1-path: "/pgbackrest/repo1/${PG_APP_NAME}" # NFS
+        #repo1-path: "/${PG_APP_NAME}"
+        #repo1-s3-uri-style: "path"
         # repo2-storage-host: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}."
         repo2-bundle: "y"
         repo2-block: "y"
@@ -105,22 +104,22 @@ spec:
             full: "15 6 * * 1" # every Monday at 06:15
             differential: "15 6 * * 0,2-6" # every day at 06:15 except Monday
             incremental: "15 1-5,7-23 * * *" # every hour except 06:15
-        - name: "repo1" # NFS
-          s3: &minio
-            endpoint: "${APP_DNS_MINIO_NAS_S3}"
-            bucket: "${SECRET_PGBACKREST_WAL_MINIO_BUCKET}"
-            region: "us-east-1"
-          #volume: &nfs
-          #  volumeClaimSpec:
-          #    storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
-          #    volumeName: "pg-${PG_APP_NAME}-wal-nfs"
-          #    accessModes: ["ReadWriteMany"]
-          #    resources:
-          #      requests:
-          #        storage: "1Mi" # doesn't matter with NFS
-          schedules: # more aggressive for NAS (over NFS)
-            full: "0 6 * * 1" # every Monday at 06:00
-            differential: "0 6 * * 2-6" # every day at 06:00 except Monday
+        #- name: "repo1" # NFS
+        #  s3: &minio
+        #    endpoint: "${APP_DNS_MINIO_NAS_S3}"
+        #    bucket: "${SECRET_PGBACKREST_WAL_MINIO_BUCKET}"
+        #    region: "us-east-1"
+        #  #volume: &nfs
+        #  #  volumeClaimSpec:
+        #  #    storageClassName: "pg-${PG_APP_NAME}-wal-nfs"
+        #  #    volumeName: "pg-${PG_APP_NAME}-wal-nfs"
+        #  #    accessModes: ["ReadWriteMany"]
+        #  #    resources:
+        #  #      requests:
+        #  #        storage: "1Mi" # doesn't matter with NFS
+        #  schedules: # more aggressive for NAS (over NFS)
+        #    full: "0 6 * * 1" # every Monday at 06:00
+        #    differential: "0 6 * * 2-6" # every day at 06:00 except Monday
         - name: "repo2" # Cloudflare R2
           s3: &r2
             endpoint: "${SECRET_PGBACKREST_WAL_R2_ENDPOINT}"
@@ -204,10 +203,10 @@ metadata:
   namespace: "${PG_APP_NS}"
 type: Opaque
 stringData:
+    #repo1-s3-key=${SECRET_PGBACKREST_WAL_MINIO_ID}
+    #repo1-s3-key-secret=${SECRET_PGBACKREST_WAL_MINIO_KEY}
   s3.conf: |
     [global]
-    repo1-s3-key=${SECRET_PGBACKREST_WAL_MINIO_ID}
-    repo1-s3-key-secret=${SECRET_PGBACKREST_WAL_MINIO_KEY}
     repo2-s3-key=${SECRET_PGBACKREST_WAL_R2_ID}
     repo2-s3-key-secret=${SECRET_PGBACKREST_WAL_R2_KEY}
   encryption.conf: |
