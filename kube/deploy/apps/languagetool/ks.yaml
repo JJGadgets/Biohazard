@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: languagetool-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "languagetool"
+spec:
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/languagetool/app
+  targetNamespace: "languagetool"
+  dependsOn: []

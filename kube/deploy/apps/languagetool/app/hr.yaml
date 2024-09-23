@@ -1,0 +1,96 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app languagetool
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.4.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      languagetool:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/erikvl87/languagetool
+              tag: latest@sha256:4052ce437ea99616350dd3932eb76aad9b3b43f40e8b0628589ba050c83a24d2 # 6.4-docker-2 is a weird tag version scheme and I'm lazy
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      languagetool:
+        controller: languagetool
+        ports:
+          http:
+            port: 8010
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_LANGUAGETOOL:=languagetool}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: languagetool
+                  port: http
+        tls:
+          - hosts: [*host]
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_LANGUAGETOOL:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/languagetool
+                    operator: DoesNotExist
