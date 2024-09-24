@@ -1,0 +1,130 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app mlc-llm
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.4.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      mlc-llm:
+        type: deployment
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: jank.ing/jjgadgets/mlc-llm
+              tag: rolling@sha256:07faffd10763be433d4c3f3aadfbc4711d4257b62aabfcfda8aa5e896239129a
+            args: ["HF://mlc-ai/Llama-3-8B-Instruct-q4f16_1-MLC"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              MLC_JIT_POLICY: "READONLY"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "10Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      ml-model-pull:
+        type: cronjob
+        cronjob:
+          schedule: "@daily"
+          concurrencyPolicy: "Replace"
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: *img
+            command: ["tini", "-g", "--", "/bin/bash", "-c"]
+            args: ["echo '/exit' | mlc_llm chat HF://mlc-ai/Llama-3-8B-Instruct-q4f16_1-MLC"] # run for 10 minutes to pull models via preload, then kill process, hopefully it doesn't crash
+            env: *env
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "1Gi"
+    service:
+      mlc-llm:
+        controller: mlc-llm
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_MLC_LLM:=APPNAME}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: mlc-llm
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      misc:
+        existingClaim: mlc-llm-misc
+        globalMounts:
+          - subPath: cache
+            path: /app/.cache
+          - subPath: testdata
+            path: /app/.tvm_test_data
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_MLC_LLM:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        supplementalGroups: ["44"]
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/mlc-llm
+                    operator: DoesNotExist
