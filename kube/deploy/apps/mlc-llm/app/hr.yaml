@@ -112,7 +112,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: ["44"]
+        supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
