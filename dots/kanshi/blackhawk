@@ -1,0 +1,56 @@
+profile default{
+    output eDP-1 mode 1920x1080
+}
+
+profile HomePiKVM {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "The Linux Foundation PiKVM 0x00008800" mode 1920x1080@60Hz transform normal position 0,-1080 adaptive_sync off
+}
+
+profile iPad {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output HEADLESS-1 mode 2224x1668 transform normal position -1668,0 scale 1.5
+    #output HDMI-A-1 mode 2224x1668@100Hz scale 1.5
+}
+
+profile HomeLenovo {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "Lenovo Group Limited P27h-20 V906DGZN" mode 2560x1440 transform 90 position -1440,-1480
+#    output "Lenovo Group Limited P27h-20 V906DGZN" mode 2560x1440 transform 90 position 1920,-1480
+}
+
+profile HomeCaptureCard {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "HJW HDMI TO USB 0x00000001" mode 1920x1080 transform normal position 0,-1080
+}
+
+profile HomeTripleCaptureCard {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "Lenovo Group Limited P27h-20 V906DGZN" mode 2560x1440 transform 90 position -1440,-1480
+    output "HJW HDMI TO USB 0x00000001" mode 1920x1080 transform normal position 0,-1080
+}
+
+profile HomeTriple {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "Lenovo Group Limited P27h-20 V906DGZN" mode 2560x1440 transform 90 position -1440,-1480
+    output "AOC 24G2W1G4 0x00000024" mode 1920x1080@144Hz transform normal position 0,-1080 adaptive_sync off
+    #adaptive_sync on # TODO: cannot enable adaptive sync on 24G2 over HDMI yet
+}
+
+profile HomeAOC {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "AOC 24G2W1G4 0x00000024" mode 1920x1080@144Hz transform normal position 0,-1080 adaptive_sync off
+    #adaptive_sync on # TODO: cannot enable adaptive sync on 24G2 over HDMI yet
+}
+
+profile iPadHome {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "Lenovo Group Limited P27h-20 V906DGZN" mode 2560x1440 transform 90 position -1920,-1480
+    output HEADLESS-1 mode 2224x1668@120Hz transform normal scale 1.5 position 3360,-892
+    #output "Unknown fitHeadlessGS 0x0000DFDB" mode 2224x1668@108Hz scale 1.5 position 3360,0
+}
+
+profile TV {
+    output eDP-1 mode 1920x1080 position 0,0 transform normal
+    output "LG Electronics LG TV 0x00000101" mode 3840x2160@60Hz scale 1.0 position -960,-2160
+}
