@@ -74,7 +74,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "3Gi"
+                memory: "1Gi"
     service:
       mlc-llm:
         controller: mlc-llm
@@ -104,8 +104,13 @@ spec:
             path: /app/.cache
           - subPath: testdata
             path: /app/.tvm_test_data
+          # - subPath: tmp
+          #   path: /tmp # used for downloading models, so why not download straight to disk
+      tmp:
+        type: emptyDir
+        globalMounts:
           - subPath: tmp
-            path: /tmp # used for downloading models, so why not download straight to disk
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
