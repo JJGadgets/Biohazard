@@ -75,6 +75,7 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
+                gpu.intel.com/i915: "1"
     service:
       mlc-llm:
         controller: mlc-llm
