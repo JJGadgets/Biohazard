@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: docker.io/ollama/ollama
-              tag: 0.1.32@sha256:c5018bf71b27a38f50da37d86fa0067105eea488cdcc258ace6d222dde632f75
+              tag: 0.3.12@sha256:e458178cf2c114a22e1fe954dd9a92c785d1be686578a6c073a60cf259875470
             env:
               TZ: "${CONFIG_TZ}"
               OLLAMA_MODELS: &pvc /models
