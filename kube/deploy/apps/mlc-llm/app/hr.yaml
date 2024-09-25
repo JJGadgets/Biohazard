@@ -33,6 +33,7 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "READONLY"
+              MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -63,7 +64,10 @@ spec:
             image: *img
             command: ["tini", "-g", "--", "/bin/bash", "-c"]
             args: ["echo '/exit' | mlc_llm chat HF://mlc-ai/Llama-3-8B-Instruct-q4f16_1-MLC"] # run for 10 minutes to pull models via preload, then kill process, hopefully it doesn't crash
-            env: *env
+            env:
+              TZ: "${CONFIG_TZ}"
+              MLC_JIT_POLICY: "ON"
+              MLC_DOWNLOAD_CACHE_POLICY: "ON"
             securityContext: *sc
             resources:
               requests:
@@ -100,6 +104,13 @@ spec:
             path: /app/.cache
           - subPath: testdata
             path: /app/.tvm_test_data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 128Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
