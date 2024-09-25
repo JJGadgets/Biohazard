@@ -104,13 +104,8 @@ spec:
             path: /app/.cache
           - subPath: testdata
             path: /app/.tvm_test_data
-      tmp:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 128Mi
-        globalMounts:
           - subPath: tmp
-            path: /tmp
+            path: /tmp # used for downloading models, so why not download straight to disk
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
