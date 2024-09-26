@@ -17,7 +17,7 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      mlc-llm:
+      llama3: &deploy
         type: deployment
         replicas: 1
         strategy: RollingUpdate
@@ -25,33 +25,42 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          main: &mlc
             image: &img
               repository: jank.ing/jjgadgets/mlc-llm
               tag: rolling@sha256:07faffd10763be433d4c3f3aadfbc4711d4257b62aabfcfda8aa5e896239129a
-            args: ["HF://mlc-ai/Llama-3-8B-Instruct-q4f16_1-MLC"]
-            env: &env
+            args: ["HF://mlc-ai/$(MODEL)"]
+            env: &envMain
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "READONLY"
               MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
+              MODEL: "Llama-3-8B-Instruct-q4f16_1-MLC"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
+            resources: &resources
               requests:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "10Gi"
+                memory: "12Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-      ml-model-pull:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  periodSeconds: 2
+                  failureThreshold: 300
+                  tcpSocket:
+                    port: 8080
+      llama3-pull: &job
         type: cronjob
         cronjob:
           schedule: "@daily"
@@ -60,40 +69,72 @@ spec:
           labels:
             egress.home.arpa/internet: allow
         containers:
-          main:
+          main: &pull
             image: *img
             command: ["tini", "-g", "--", "/bin/bash", "-c"]
-            args: ["echo '/exit' | mlc_llm chat HF://mlc-ai/Llama-3-8B-Instruct-q4f16_1-MLC"] # run for 10 minutes to pull models via preload, then kill process, hopefully it doesn't crash
-            env:
+            args:
+              - |
+                if [ -d "/app/.cache/mlc_llm/model_weights/hf/mlc_ai/$(MODEL)" ] && [ -z "$(ls -A "/app/.cache/mlc_llm/model_weights/hf/mlc_ai/$(MODEL)")" ]; then
+                  true;
+                else
+                  echo '/exit' | mlc_llm chat HF://mlc-ai/$(MODEL)
+                fi
+            env: &envPull
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "ON"
               MLC_DOWNLOAD_CACHE_POLICY: "ON"
+              MODEL: "Llama-3-8B-Instruct-q4f16_1-MLC"
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1000m"
-                memory: "2Gi"
-                gpu.intel.com/i915: "1"
+            resources: *resources
+      codellama:
+        <<: *deploy
+        containers:
+          main:
+            <<: *mlc
+            env:
+              <<: *envMain
+              MODEL: "CodeLlama-7b-hf-q4f32_1-MLC"
+      codellama-pull:
+        <<: *job
+        containers:
+          main:
+            <<: *pull
+            env:
+              <<: *envPull
+              MODEL: "CodeLlama-7b-hf-q4f32_1-MLC"
     service:
-      mlc-llm:
-        controller: mlc-llm
+      llama3: &svc
+        controller: llama3
         ports:
           http:
             port: 8080
             protocol: HTTP
             appProtocol: http
+      codellama:
+        <<: *svc
+        controller: codellama
     ingress:
-      main:
+      llama3:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_MLC_LLM:=APPNAME}"
+          - host: &host "llama3.${DNS_SHORT}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: mlc-llm
+                  identifier: llama3
+                  port: http
+        tls:
+          - hosts: [*host]
+      codellama:
+        className: nginx-internal
+        hosts:
+          - host: &host "codellama.${DNS_SHORT}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: codellama
                   port: http
         tls:
           - hosts: [*host]
@@ -124,12 +165,12 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: [44] # iGPU
-        seccompProfile: { type: "RuntimeDefault" }
+        supplementalGroups: [44, 226] # iGPU
+        seccompProfile: { type: "Unconfined" } # GPU hangs with RuntimeDefault
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
+          whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
