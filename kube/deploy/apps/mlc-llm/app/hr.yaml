@@ -45,7 +45,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "12Gi"
+                memory: "6Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -84,7 +84,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "2Gi"
+                memory: "1Gi"
                 gpu.intel.com/i915: "1"
       codellama:
         <<: *deploy
@@ -94,6 +94,13 @@ spec:
             env:
               <<: *envMain
               MODEL: &codellama-model "CodeLlama-7b-hf-q4f32_1-MLC"
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "12Gi"
+                gpu.intel.com/i915: "1"
       codellama-pull:
         <<: *job
         containers:
@@ -142,17 +149,10 @@ spec:
       misc:
         existingClaim: mlc-llm-misc
         globalMounts:
-          - subPath: cache
-            path: /app/.cache
-          - subPath: testdata
-            path: /app/.tvm_test_data
-          # - subPath: tmp
-          #   path: /tmp # used for downloading models, so why not download straight to disk
-      tmp:
-        type: emptyDir
-        globalMounts:
+          - subPath: data
+            path: /data
           - subPath: tmp
-            path: /tmp
+            path: /tmp # reduce time for moving downloaded model
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
