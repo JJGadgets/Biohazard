@@ -32,9 +32,9 @@ spec:
             args: ["HF://mlc-ai/$(MODEL)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
-              MLC_JIT_POLICY: "READONLY"
+              MLC_JIT_POLICY: "ON"
               MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
-              MODEL: "Llama-3-8B-Instruct-q4f16_1-MLC"
+              MODEL: &llama3-model "Llama-3.2-3B-Instruct-q4f16_1-MLC"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -63,7 +63,7 @@ spec:
       llama3-pull: &job
         type: cronjob
         cronjob:
-          schedule: "@daily"
+          schedule: "@weekly"
           concurrencyPolicy: "Replace"
         pod:
           labels:
@@ -72,20 +72,20 @@ spec:
           main: &pull
             image: *img
             command: ["tini", "-g", "--", "/bin/bash", "-c"]
-            args:
-              - |
-                if [ -d "/app/.cache/mlc_llm/model_weights/hf/mlc_ai/$(MODEL)" ] && [ -z "$(ls -A "/app/.cache/mlc_llm/model_weights/hf/mlc_ai/$(MODEL)")" ]; then
-                  true;
-                else
-                  echo '/exit' | mlc_llm chat HF://mlc-ai/$(MODEL)
-                fi
+            args: ["echo '/exit' | mlc_llm chat HF://mlc-ai/$(MODEL) || true"]
             env: &envPull
               TZ: "${CONFIG_TZ}"
-              MLC_JIT_POLICY: "ON"
+              MLC_JIT_POLICY: "OFF" # do on runtime
               MLC_DOWNLOAD_CACHE_POLICY: "ON"
-              MODEL: "Llama-3-8B-Instruct-q4f16_1-MLC"
+              MODEL: *llama3-model
             securityContext: *sc
-            resources: *resources
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "2Gi"
+                gpu.intel.com/i915: "1"
       codellama:
         <<: *deploy
         containers:
@@ -93,7 +93,7 @@ spec:
             <<: *mlc
             env:
               <<: *envMain
-              MODEL: "CodeLlama-7b-hf-q4f32_1-MLC"
+              MODEL: &codellama-model "CodeLlama-7b-hf-q4f32_1-MLC"
       codellama-pull:
         <<: *job
         containers:
@@ -101,7 +101,7 @@ spec:
             <<: *pull
             env:
               <<: *envPull
-              MODEL: "CodeLlama-7b-hf-q4f32_1-MLC"
+              MODEL: *codellama-model
     service:
       llama3: &svc
         controller: llama3
