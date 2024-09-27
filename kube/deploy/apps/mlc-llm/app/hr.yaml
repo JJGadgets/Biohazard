@@ -84,7 +84,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "1Gi"
+                memory: "2Gi"
                 gpu.intel.com/i915: "1"
       codellama:
         <<: *deploy
@@ -151,9 +151,9 @@ spec:
         globalMounts:
           - subPath: data
             path: /data
-      tmp:
-        type: emptyDir
-        globalMounts:
+      #tmp:
+      #  type: emptyDir
+      #  globalMounts:
           - subPath: tmp
             path: /tmp # TODO: check why /tmp on CephFS breaks Git clone
     defaultPodOptions:
