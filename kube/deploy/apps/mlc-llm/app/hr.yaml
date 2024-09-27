@@ -151,8 +151,11 @@ spec:
         globalMounts:
           - subPath: data
             path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
           - subPath: tmp
-            path: /tmp # reduce time for moving downloaded model
+            path: /tmp # TODO: check why /tmp on CephFS breaks Git clone
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
