@@ -105,6 +105,8 @@ spec:
           tolerations:
             - key: "node-role.kubernetes.io/control-plane"
               operator: "Exists"
+            - key: "node.cilium.io/agent-not-ready" # only RGW uses CNI
+              operator: "Exists"
             - key: "node-role.kubernetes.io/unschedulable"
               operator: "Exists"
       resources: # defaults are very aggressive
@@ -271,6 +273,15 @@ spec:
                 min_size: "2"
                 compression_mode: "aggressive"
                 compression_algorithm: "zstd"
+            - name: "replicas-2"
+              failureDomain: "host"
+              deviceClass: "ssd"
+              replicated:
+                size: 2
+              parameters:
+                min_size: "2"
+                compression_mode: "aggressive"
+                compression_algorithm: "lz4"
             - name: "ec-2-1-min-2"
               failureDomain: "host"
               deviceClass: "ssd"
@@ -284,6 +295,7 @@ spec:
           metadataServer: &mds
             activeCount: 3 # 3 active 3 standby
             activeStandby: true
+            priorityClassName: system-cluster-critical
             placement:
               topologySpreadConstraints:
                 - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
@@ -298,7 +310,7 @@ spec:
                 memory: 2Gi
               limits:
                 cpu: 2000m # 2 cores
-                memory: 4Gi
+                memory: 2Gi
         storageClass: &cephfsSC
           enabled: true
           isDefault: false

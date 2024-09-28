@@ -1,0 +1,46 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: file-ec-2-1
+  annotations:
+    description: "Generally used for non-important mass storage."
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: rook-ceph.cephfs.csi.ceph.com
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+parameters:
+  clusterID: rook-ceph
+  fsName: biohazard-fs
+  pool: biohazard-fs-ec-2-1-min-2
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: file-size-2
+  annotations:
+    description: "Generally used for important mass storage (e.g. Immich library), reclaimPolicy=Retain to avoid accidentally deleting mass storage data."
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: rook-ceph.cephfs.csi.ceph.com
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+parameters:
+  clusterID: rook-ceph
+  fsName: biohazard-fs
+  pool: biohazard-fs-replicas-2
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
