@@ -8,18 +8,20 @@ spec:
   chart:
     spec:
       chart: spegel
-      version: v0.0.18
+      version: v0.0.24
       sourceRef:
         name: spegel
         kind: HelmRepository
         namespace: flux-system
   values:
     spegel:
+      appendMirrors: true
       containerdSock: /run/containerd/containerd.sock
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
-      registries:
+      additionalMirrorRegistries:
         - https://registry.developers.crunchydata.com
         - https://jank.ing
+        - https://jjgadgets.tech
         - https://registry.jjgadgets.tech
         - https://images.jjgadgets.tech
         - https://cr.jjgadgets.tech
@@ -27,14 +29,10 @@ spec:
         - https://containers.jjgadgets.tech
         - https://omgimg.jjgadgets.tech
         - https://containersandshit.jjgadgets.tech
-        - https://docker.io
-        - https://ghcr.io
-        - https://quay.io
-        - https://mcr.microsoft.com
-        - https://public.ecr.aws
-        - https://gcr.io
-        - https://registry.k8s.io
-        - https://k8s.gcr.io
-        - https://lscr.io
     serviceMonitor:
       enabled: true
+    grafanaDashboard:
+      enabled: true
+    service:
+      registry:
+        hostPort: 29999 # host port range conflict (but I somehow haven't hit this?)
