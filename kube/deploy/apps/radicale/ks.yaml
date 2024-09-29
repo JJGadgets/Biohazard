@@ -10,7 +10,7 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/radicale/app
-  targetNamespace: "radicale"
+  #targetNamespace: "radicale" # authentik forward-auth
   dependsOn:
     - name: radicale-pvc
 ---
