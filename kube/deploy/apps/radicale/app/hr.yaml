@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: &app radicale
   namespace: *app
+  labels:
+    nginx.ingress.home.arpa/type: auth
 spec:
   interval: 5m
   chart:
@@ -58,8 +60,11 @@ spec:
     ingress:
       main:
         className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: |-
+            https://${APP_DNS_RADICALE}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
-          - host: &host "${APP_DNS_RADICALE:=RADICALE}"
+          - host: &host "${APP_DNS_RADICALE:=radicale}"
             paths: &paths
               - path: /
                 pathType: Prefix

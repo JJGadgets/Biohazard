@@ -22,21 +22,22 @@ spec:
       data:
         config: |
           [server]
-          hosts = 0.0.0.0:8080
+          hosts = 0.0.0.0:8080, [::]:8080
           ssl = False
           [encoding]
           request = utf-8
           stock = utf-8
           [auth]
-          type = radicale_auth_ldap
-          realm = Radicale - Password Required
-          ldap_url = ldaps://{{ .LDAP_SERVER }}:636
-          ldap_base = {{ .LDAP_BASE }}
-          ldap_attribute = cn
-          ldap_filter = {{ .LDAP_FILTER }}
-          ldap_binddn = {{ .LDAP_BINDDN }}
-          ldap_password = {{ .LDAP_PASSWORD }}
-          ldap_scope = SUBTREE
+          type = http_x_remote_user
+          #type = radicale_auth_ldap
+          #realm = Radicale - Password Required
+          #ldap_url = ldaps://{{ .LDAP_SERVER }}:636
+          #ldap_base = {{ .LDAP_BASE }}
+          #ldap_attribute = cn
+          #ldap_filter = {{ .LDAP_FILTER }}
+          #ldap_binddn = {{ .LDAP_BINDDN }}
+          #ldap_password = {{ .LDAP_PASSWORD }}
+          #ldap_scope = SUBTREE
           [rights]
           type = owner_only
           [storage]
