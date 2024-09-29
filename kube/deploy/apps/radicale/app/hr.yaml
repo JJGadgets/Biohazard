@@ -63,9 +63,13 @@ spec:
           nginx.ingress.kubernetes.io/auth-url: |-
               http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
           nginx.ingress.kubernetes.io/auth-response-headers: |-
-              Set-Cookie,X-Remote-User
+              Set-Cookie,X-Remote-User,WWW-Authenticate
           nginx.ingress.kubernetes.io/auth-snippet: |
               proxy_set_header X-Forwarded-Host $http_host;
+          nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+            if ($http_authorization = "") {
+                add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
+            }
         hosts:
           - host: &host "${APP_DNS_RADICALE:=radicale}"
             paths: &paths
