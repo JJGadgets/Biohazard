@@ -72,12 +72,24 @@ spec:
             }
         hosts:
           - host: &host "${APP_DNS_RADICALE:=radicale}"
-            paths: &paths
-              - path: /
+            paths:
+              - &path
+                path: /
                 pathType: Prefix
                 service:
                   identifier: radicale
                   port: http
+        tls:
+          - hosts: [*host]
+      unauth:
+        className: nginx-internal
+        hosts:
+          - host: *host
+            paths:
+              - <<: *path
+                path: /.web
+              - <<: *path
+                path: /.well-known
         tls:
           - hosts: [*host]
     persistence:
