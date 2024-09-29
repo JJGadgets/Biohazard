@@ -1,0 +1,22 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radicale-authentik
+  namespace: authentik
+spec:
+  ingressClassName: "nginx-internal"
+  rules:
+    - host: &host "${APP_DNS_RADICALE:=radicale}"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/outpost.goauthentik.io"
+            backend:
+              service:
+                name: authentik
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - *host
