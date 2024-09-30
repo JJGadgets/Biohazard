@@ -29,6 +29,7 @@ spec:
   targetNamespace: "${APPNAME}"
   dependsOn:
     - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-snapscheduler-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:

@@ -158,8 +158,6 @@ nodes:
         mtu: 9000
         dhcp: false
     patches:
-      # required for Talos to initialize i915 VFIO devices
-      - *i915
       # FRR routing
       - |-
         machine:
