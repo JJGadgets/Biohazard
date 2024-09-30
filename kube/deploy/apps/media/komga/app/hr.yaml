@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/gotson/komga
-              tag: 1.11.1@sha256:a21459c33136d2d65336e15683e8dba8330dece8747036edaae02d6ebc0fabbe
+              tag: 1.14.0@sha256:243e6c3d06bf64adf29923f9f6d6a1c2ef4ffc5a000317fa90ab2431f6cf978d
             env: &env
               TZ: "${CONFIG_TZ}"
               KOMGA_CONFIGDIR: &pvc /config
