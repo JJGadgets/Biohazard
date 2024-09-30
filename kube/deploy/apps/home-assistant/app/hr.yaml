@@ -107,7 +107,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_HOME_ASSISTANT}"
+          - host: &host "${APP_DNS_HOME_ASSISTANT:=home-assistant}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -121,7 +121,7 @@ spec:
         primary: false
         className: "tailscale"
         hosts:
-          - host: &host "hass-edit.${DNS_TS}"
+          - host: &host "hass-edit.${DNS_TS:=ts.net}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -157,7 +157,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_HOME_ASSISTANT}
+        runAsUser: &uid ${APP_UID_HOME_ASSISTANT:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"

@@ -41,7 +41,7 @@ spec:
         primary: true
         ingressClassName: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_THELOUNGE}"
+          - host: &host "${APP_DNS_THELOUNGE:=thelounge}"
             paths:
               - path: /
                 pathType: Prefix
@@ -49,7 +49,7 @@ spec:
           - hosts:
               - *host
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_THELOUNGE}
+      runAsUser: &uid ${APP_UID_THELOUNGE:=1000}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always

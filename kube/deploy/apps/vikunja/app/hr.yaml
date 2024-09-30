@@ -95,7 +95,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_VIKUNJA}"
+          - host: &host "${APP_DNS_VIKUNJA:=vikunja}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -130,11 +130,11 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK}"
-          hostnames: ["${APP_DNS_AUTHENTIK}"]
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_VIKUNJA}
+        runAsUser: &uid ${APP_UID_VIKUNJA:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"

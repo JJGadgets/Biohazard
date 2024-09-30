@@ -40,13 +40,13 @@ spec:
         primary: true
         ingressClassName: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_ATUIN}"
+          - host: &host "${APP_DNS_ATUIN:=atuin}"
             paths:
               - path: /
                 pathType: Prefix
         tls: [hosts: [*host]]
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_ATUIN}
+      runAsUser: &uid ${APP_UID_ATUIN:=1000}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always

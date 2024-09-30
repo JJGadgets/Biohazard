@@ -92,8 +92,8 @@ spec:
       data:
         enabled: true
         type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}"
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_PERSIST_K8S:=/restic}"
         advancedMounts:
           main:
             main:

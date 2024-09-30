@@ -83,7 +83,7 @@ spec:
         #   external-dns.alpha.kubernetes.io/target: "${DNS_SHORT_CF}"
         #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
-          - host: &host "${APP_DNS_JOPLIN}"
+          - host: &host "${APP_DNS_JOPLIN:=joplin}"
             paths:
               - path: /
                 pathType: Prefix
@@ -91,7 +91,7 @@ spec:
           - hosts:
               - *host
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_JOPLIN}
+      runAsUser: &uid ${APP_UID_JOPLIN:=1000}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always

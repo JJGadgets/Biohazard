@@ -26,7 +26,7 @@ spec:
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       db.home.arpa/pg: "pg-default"
-      egress.home.arpa/world: "allow"
+      egress.home.arpa/internet: "allow"
       egress.home.arpa/nginx-external: "allow" # authentik
     env:
       TZ: "${CONFIG_TZ}"
@@ -56,7 +56,7 @@ spec:
         primary: true
         ingressClassName: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_MINIFLUX}"
+          - host: &host "${APP_DNS_MINIFLUX:=miniflux}"
             paths:
               - path: /
                 pathType: Prefix
@@ -64,7 +64,7 @@ spec:
           - hosts:
               - *host
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_MINIFLUX}
+      runAsUser: &uid ${APP_UID_MINIFLUX:=1000}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always

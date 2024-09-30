@@ -72,8 +72,8 @@ spec:
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
-          coredns.io/hostname: "vs-ssh.${DNS_SHORT}"
-          io.cilium/lb-ipam-ips: "${APP_IP_CODE_SERVER_SSH}"
+          coredns.io/hostname: "vs-ssh.${DNS_SHORT:=internal}"
+          io.cilium/lb-ipam-ips: "${APP_IP_CODE_SERVER_SSH:=127.0.0.1}"
           tailscale.com/expose: "true"
           tailscale.com/hostname: "vs-ssh"
         labels:
@@ -95,7 +95,7 @@ spec:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
             ${IP_JJ_V4}
         hosts:
-          - host: &host "vs.${DNS_SHORT}"
+          - host: &host "vs.${DNS_SHORT:=internal}"
             paths:
               - &path
                 path: /
@@ -103,13 +103,13 @@ spec:
                 service: &http
                   name: main
                   port: http
-          - host: &host "hugo.${DNS_SHORT}"
+          - host: &host "hugo.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &hugo
                   name: main
                   port: hugo
-          - host: &host "vs-test.${DNS_SHORT}"
+          - host: &host "vs-test.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &test
@@ -124,7 +124,7 @@ spec:
         annotations:
           tailscale.com/tags: "tag:jjgadgets-apps"
         hosts:
-          - host: &host "vs.${DNS_TS}"
+          - host: &host "vs.${DNS_TS:=ts.net}"
             paths:
               - <<: *path
                 service: *http
@@ -203,7 +203,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
-      hostname: "${CLUSTER_NAME}-code-server"
+      hostname: "${CLUSTER_NAME:=biohazard}-code-server"
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000 # `coder` user

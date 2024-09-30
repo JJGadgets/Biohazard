@@ -81,9 +81,23 @@ spec:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
-          - host: &host "${APP_DNS_NAVIDROME}"
+          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
             paths: &paths
               - path: /
+                pathType: Prefix
+                service:
+                  name: main
+                  port: http
+        tls:
+          - hosts: [*host]
+      subsonic: # bypass forward auth
+        enabled: true
+        primary: false
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
+            paths: &paths
+              - path: /rest
                 pathType: Prefix
                 service:
                   name: main
@@ -100,8 +114,8 @@ spec:
       nfs:
         enabled: true
         type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_MEDIA}"
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
         globalMounts:
           - subPath: Music
             path: /media
@@ -118,7 +132,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_NAVIDROME}
+        runAsUser: &uid ${APP_UID_NAVIDROME:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         supplementalGroups: [6969] # NAS

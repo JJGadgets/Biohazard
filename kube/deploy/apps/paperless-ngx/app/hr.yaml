@@ -166,7 +166,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_PAPERLESS_NGX}"
+          - host: &host "${APP_DNS_PAPERLESS_NGX:=paperless}"
             paths:
               - path: "/"
                 pathType: Prefix
@@ -194,8 +194,8 @@ spec:
       nas:
         enabled: true
         type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_PERSIST_K8S}/paperless-ngx"
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_PERSIST_K8S:=/data}/paperless-ngx"
         advancedMounts:
           main:
             main:
@@ -239,8 +239,8 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK}"
-          hostnames: ["${APP_DNS_AUTHENTIK}"]
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       securityContext:
         runAsNonRoot: false
         runAsUser: &uid 1000 # hardcoded `paperless` user

@@ -58,11 +58,11 @@ spec:
         primary: true
         className: "nginx-external"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=127.0.0.1}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           # external auth managed by Cloudflare Zero Trust, so authentik won't be SPoF if internal access not working
         hosts:
-          - host: &host "${APP_DNS_KARMA}"
+          - host: &host "${APP_DNS_KARMA:=karma}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -76,7 +76,7 @@ spec:
         primary: true
         className: "tailscale"
         hosts:
-          - host: &host "${APP_DNS_TS_KARMA}"
+          - host: &host "${APP_DNS_TS_KARMA:=karma}"
             paths: *paths
         tls:
           - hosts: [*host]
@@ -85,7 +85,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_KARMA}
+        runAsUser: &uid ${APP_UID_KARMA:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"

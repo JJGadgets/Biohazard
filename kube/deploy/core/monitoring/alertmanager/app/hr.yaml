@@ -37,12 +37,14 @@ spec:
               - --web.route-prefix=/
               - --web.listen-address=:9093
               - --cluster.listen-address=[$(POD_IP)]:9094
+              - --cluster.advertise-address=$(POD_IP):9094
               - "--cluster.label=${CLUSTER_NAME}"
               - --cluster.peer=alertmanager.monitoring.svc.cluster.local:9094
               - --cluster.peer=alertmanager-local-0.monitoring.svc.cluster.local:9094
               - --cluster.peer=alertmanager-local-1.monitoring.svc.cluster.local:9094
               - --cluster.peer=alertmanager-local-2.monitoring.svc.cluster.local:9094
-              - --cluster.reconnect-timeout=5m
+              - --cluster.reconnect-timeout=1h
+              #- --cluster.probe-interval=5s # hopefully lower DNS requests?
             env:
               TZ: "${CONFIG_TZ}"
               POD_IP:
@@ -142,10 +144,10 @@ spec:
         primary: true
         className: "nginx-external"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=127.0.0.1}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
-          - host: &host "${APP_DNS_ALERTMANAGER}"
+          - host: &host "${APP_DNS_ALERTMANAGER:=alertmanager}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -159,7 +161,7 @@ spec:
         primary: false
         className: "tailscale"
         hosts:
-          - host: &host "${APP_DNS_ALERTMANAGER_TS}"
+          - host: &host "${APP_DNS_ALERTMANAGER_TS:=alertmanager}"
             paths: *paths
         tls:
           - hosts: [*host]

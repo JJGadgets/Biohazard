@@ -49,7 +49,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_AUDIOBOOKSHELF}"
+          - host: &host "${APP_DNS_AUDIOBOOKSHELF:=audiobookshelf}"
             paths:
               - path: /
                 pathType: Prefix
@@ -84,7 +84,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       securityContext:
-        runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF}
+        runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always

@@ -38,7 +38,7 @@ spec:
         primary: true
         ingressClassName: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_CYBERCHEF}"
+          - host: &host "${APP_DNS_CYBERCHEF:=cyberchef}"
             paths:
               - path: /
                 pathType: Prefix
@@ -46,7 +46,7 @@ spec:
           - hosts:
               - *host
     podSecurityContext:
-      runAsUser: &uid ${APP_UID_CYBERCHEF}
+      runAsUser: &uid ${APP_UID_CYBERCHEF:=1000}
       runAsGroup: *uid
       fsGroup: *uid
       fsGroupChangePolicy: Always

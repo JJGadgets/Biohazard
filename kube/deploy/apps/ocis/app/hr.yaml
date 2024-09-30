@@ -33,7 +33,7 @@ spec:
             env:
               TZ: "${CONFIG_TZ}"
               OCIS_INSECURE: true
-              OCIS_URL: "https://${APP_DNS_OCIS}"
+              OCIS_URL: "https://${APP_DNS_OCIS:=ocis}"
               PROXY_TLS: false
               DEMO_USERS: false
               PROXY_HTTP_ADDR: 0.0.0.0:9200
@@ -101,7 +101,7 @@ spec:
         annotations:
           nginx.ingress.kubernetes.io/custom-http-errors: "502"
         hosts:
-          - host: &host "${APP_DNS_OCIS}"
+          - host: &host "${APP_DNS_OCIS:=ocis}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -138,7 +138,7 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK}"]
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_OCIS}
+        runAsUser: &uid ${APP_UID_OCIS:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
