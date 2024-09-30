@@ -44,6 +44,7 @@ spec:
               GTS_PROTOCOL: "https" # not HTTP server listen mode, but used for generating URLs etc
               GTS_PORT: "8080"
               GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              GTS_ADVANCED_RATE_LIMIT_EXCEPTIONS: "${IP_JJ_V4}"
               GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
               GTS_METRICS_ENABLED: "true"
               GTS_OIDC_ENABLED: "true"
