@@ -65,18 +65,6 @@ nodes:
         mtu: 9000
         dhcp: false
     patches:
-      # required for Talos to initialize i915 VFIO devices
-      - &i915 |-
-        machine:
-          install:
-            extensions:
-              - image: ghcr.io/siderolabs/i915-ucode:20240115@sha256:7e0b9e94ce7b2387f01e181f46226e3254ae7a3cc61a03d89eeea4c0cefe4321
-      # ZFS support for NAS
-      - &zfs-install |-
-        machine:
-          install:
-            extensions:
-              - image: ghcr.io/siderolabs/zfs:2.1.12-v1.5.0-beta.1
       - &zfs-modprobe |-
         - op: add
           path: /machine/kernel
