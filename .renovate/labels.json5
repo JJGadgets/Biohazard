@@ -2,14 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "labels": ["renovate/datasource/{{datasource}}"]
+      "labels": ["renovate/type/{{updateType}}"]
+    },
+    {
+      "matchDatasources": ["!github-releases", "!github-tags"],
+      "addLabels": ["renovate/datasource/{{datasource}}"]
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
-      "labels": ["renovate/datasource/github-release"]
-    },
-    {
-      "addLabels": ["renovate/type/{{updateType}}"]
+      "addLabels": ["renovate/datasource/github-release"]
     },
     {
       "matchFileNames": ["kube/deploy/**"],
@@ -20,7 +21,12 @@
       "addLabels": ["kube/clusters/{{ lookup (split packageFileDir '/') 2 }}"]
     },
     {
+      "matchDatasources": ["!docker"],
       "addLabels": ["renovate/name/{{depNameSanitized}}"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "addLabels": ["oci/registry/{{ lookup (split depNameSanitized '/') 0 }}", "oci/owner/{{ lookup (split depNameSanitized '/') 1 }}", "oci/image/{{ lookup (split depNameSanitized '/') 2 }}"]
     },
     {
       "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
