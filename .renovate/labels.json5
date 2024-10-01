@@ -2,44 +2,22 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchUpdateTypes": ["major"],
-      "labels": ["type/major"]
-    },
-    {
-      "matchUpdateTypes": ["minor"],
-      "labels": ["type/minor"]
-    },
-    {
-      "matchUpdateTypes": ["patch"],
-      "labels": ["type/patch"]
-    },
-    {
-      "matchDatasources": ["docker"],
-      "addLabels": ["renovate/container"]
-    },
-    {
-      "matchDatasources": ["helm"],
-      "addLabels": ["renovate/helm"]
+      "labels": ["renovate/datasource/{{datasource}}"]
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
-      "addLabels": ["renovate/github-release"]
+      "labels": ["renovate/datasource/github-release"]
     },
     {
-      "matchManagers": ["github-actions"],
-      "addLabels": ["renovate/github-action"]
+      "addLabels": ["renovate/type/{{updateType}}"]
     },
     {
-      "matchFileNames": ["kube/deploy/apps/**"],
-      "addLabels": ["kube-deploy-apps"]
-    },
-    {
-      "matchFileNames": ["kube/deploy/core/**"],
-      "addLabels": ["kube-deploy-core"]
+      "matchFileNames": ["kube/deploy/**"],
+      "addLabels": ["kube/deploy/{{ lookup (split packageFileDir '/') 2 }}"]
     },
     {
       "matchFileNames": ["kube/clusters/**"],
-      "addLabels": ["{{ lookup (split packageFileDir '/') 2 }}"]
+      "addLabels": ["kube/clusters/{{ lookup (split packageFileDir '/') 2 }}"]
     },
     {
       "addLabels": ["renovate/name/{{depNameSanitized}}"]
