@@ -28,6 +28,24 @@
     {
       "matchManagers": ["github-actions"],
       "addLabels": ["renovate/github-action"]
+    },
+    {
+      "matchFileNames": ["kube/deploy/apps/**"],
+      "addLabels": ["kube-deploy-apps"]
+    },
+    {
+      "matchFileNames": ["kube/deploy/core/**"],
+      "addLabels": ["kube-deploy-core"]
+    },
+    {
+      "matchFileNames": ["kube/clusters/**"],
+      "addLabels": ["{{ lookup (split packageFileDir '/') 2 }}"]
+    },
+    {
+      "addLabels": ["renovate/name/{{depNameSanitized}}"]
+    },
+    {
+      "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
     }
   ]
 }
