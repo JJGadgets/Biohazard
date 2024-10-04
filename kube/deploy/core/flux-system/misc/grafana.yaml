@@ -1,0 +1,35 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux2-monitoring-example
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://github.com/fluxcd/flux2-monitoring-example.git
+  ref:
+    commit: 5bf921a7b553df4dde59a186549f450b6c306be8
+  ignore: |
+    # exclude all to whitelist
+    /*
+    # include dashboards
+    !/monitoring/configs/dashboards
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zzz-flux-monitoring-grafana-dashboards
+  namespace: flux-system
+  labels: # for my repo's Fluxtomization patching, can be ignored for those passing by
+    kustomization.flux.home.arpa/name: "flux"
+    kustomization.flux.home.arpa/default: "false"
+    kustomization.flux.home.arpa/helmpatches: "false"
+    substitution.flux.home.arpa/disabled: "true"
+spec:
+  interval: 1h
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux2-monitoring-example
+  dependsOn: []
