@@ -3,3 +3,17 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ks.yaml
+configMapGenerator:
+  - name: flux-dashboards
+    namespace: flux-system
+    files:
+      - cluster.json=https://raw.githubusercontent.com/fluxcd/flux2-monitoring-example/5bf921a7b553df4dde59a186549f450b6c306be8/monitoring/configs/dashboards/cluster.json
+      - control-plane.json=https://raw.githubusercontent.com/fluxcd/flux2-monitoring-example/5bf921a7b553df4dde59a186549f450b6c306be8/monitoring/configs/dashboards/control-plane.json
+      - logs.json=https://raw.githubusercontent.com/fluxcd/flux2-monitoring-example/5bf921a7b553df4dde59a186549f450b6c306be8/monitoring/configs/dashboards/logs.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: "disabled"
+    grafana_folder: "Flux"
+  labels:
+    grafana_dashboard: "true"
