@@ -1,0 +1,14 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: &app flux-system
+  namespace: *app
+  labels:
+    flux: localhost
+spec:
+  selector:
+    matchLabels:
+      flux: localhost
+  endpoints:
+    - port: metrics
