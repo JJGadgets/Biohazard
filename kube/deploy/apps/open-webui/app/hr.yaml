@@ -35,11 +35,14 @@ spec:
               # General
               WEBUI_NAME: "${CLUSTER_NAME}"
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
+              GLOBAL_LOG_LEVEL: "DEBUG"
               # Backends
               OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-codellama.mlc-llm.svc.cluster.local:8080/v1"
               OPENAI_API_KEY: "fuck" # key required even if bogus and/or server doesn't give a fuck
-              RAG_EMBEDDING_ENGINE: "openai"
               ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
+              # Airgap
+              RAG_EMBEDDING_ENGINE: "openai"
+              LITELLM_LOCAL_MODEL_COST_MAP: "True"
               # Security
               WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
               WEBUI_SESSION_COOKIE_SECURE: "True"
@@ -49,6 +52,7 @@ spec:
               OAUTH_PROVIDER_NAME: "JJGadgets Auth"
               OAUTH_USERNAME_CLAIM: "preferred_username"
               OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
+              # Airgap
             envFrom: &envFrom
               - secretRef:
                   name: open-webui-secrets
@@ -109,6 +113,8 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "0.0.0.0"
+          hostnames: ["api.github.com"] # disable version checks
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_OPEN_WEBUI:=1000}
