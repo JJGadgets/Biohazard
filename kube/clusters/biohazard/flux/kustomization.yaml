@@ -6,6 +6,8 @@ resources:
   - ../config/
   #- flux-install.yaml
   - ../../../bootstrap/flux/flux-install-localhost.yaml
+  - ../../../bootstrap/flux/svc-metrics.yaml
+  - ../../../bootstrap/flux/servicemonitor.yaml
   - flux-repo.yaml
   - ../../../repos/flux/
   - ../../../deploy/core/_networking/cilium/
@@ -136,6 +138,7 @@ resources:
   - ../../../deploy/apps/cryptpad/
   - ../../../deploy/apps/languagetool/
   - ../../../deploy/apps/mlc-llm/
+  - ../../../deploy/apps/open-webui/
   - ../../../deploy/vm/_kubevirt/
   #- ../../../deploy/vm/_base/
   - ../../../deploy/vm/ad/
