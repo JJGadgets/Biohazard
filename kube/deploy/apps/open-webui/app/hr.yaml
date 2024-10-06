@@ -39,7 +39,7 @@ spec:
               OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
               RAG_EMBEDDING_ENGINE: "openai"
               # Security
-              WEBUI_SESSION_COOKIE_SAME_SITE: "strict"
+              WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
               WEBUI_SESSION_COOKIE_SECURE: "True"
               # Auth
               ENABLE_LOGIN_FORM: "False"
@@ -130,8 +130,7 @@ spec:
                   - key: fuckoff.home.arpa/open-webui
                     operator: DoesNotExist
     networkpolicies:
-      same-ns:
-        controller: open-webui
+      to-llm:
         podSelector: {}
         policyTypes: [Ingress, Egress]
         rules:

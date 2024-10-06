@@ -72,7 +72,7 @@ spec:
           main: &pull
             image: *img
             command: ["tini", "-g", "--", "/bin/bash", "-c"]
-            args: ["echo '/exit' | mlc_llm chat HF://mlc-ai/$(MODEL) || true"]
+            args: ["rm -rf /tmp/* && echo '/exit' | mlc_llm chat HF://mlc-ai/$(MODEL) || true; rm -rf /tmp/*"]
             env: &envPull
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "OFF" # do on runtime
@@ -85,7 +85,6 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
-                gpu.intel.com/i915: "1"
       codellama:
         <<: *deploy
         containers:
@@ -184,3 +183,13 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/mlc-llm
                     operator: DoesNotExist
+    networkpolicies:
+      from-open-webui:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: open-webui
