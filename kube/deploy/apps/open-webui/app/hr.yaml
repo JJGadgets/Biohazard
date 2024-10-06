@@ -38,6 +38,7 @@ spec:
               # Backends
               OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
               RAG_EMBEDDING_ENGINE: "openai"
+              ENABLE_OLLAMA_API: "False"
               # Security
               WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
               WEBUI_SESSION_COOKIE_SECURE: "True"
@@ -58,10 +59,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "3000m"
-                memory: "6Gi"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
