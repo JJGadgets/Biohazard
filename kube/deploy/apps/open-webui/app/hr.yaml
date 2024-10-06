@@ -37,6 +37,7 @@ spec:
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
               # Backends
               OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
+              RAG_EMBEDDING_ENGINE: "openai"
               # Security
               WEBUI_SESSION_COOKIE_SAME_SITE: "strict"
               WEBUI_SESSION_COOKIE_SECURE: "True"
