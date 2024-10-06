@@ -36,7 +36,7 @@ spec:
               WEBUI_NAME: "${CLUSTER_NAME}"
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
               # Backends
-              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
+              OPENAI_API_BASE_URL: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
               RAG_EMBEDDING_ENGINE: "openai"
               ENABLE_OLLAMA_API: "False"
               # Security
