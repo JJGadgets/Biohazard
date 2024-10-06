@@ -36,9 +36,10 @@ spec:
               WEBUI_NAME: "${CLUSTER_NAME}"
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
               # Backends
-              OPENAI_API_BASE_URL: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1"
+              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-codellama.mlc-llm.svc.cluster.local:8080/v1"
+              OPENAI_API_KEY: "fuck" # key required even if bogus and/or server doesn't give a fuck
               RAG_EMBEDDING_ENGINE: "openai"
-              ENABLE_OLLAMA_API: "False"
+              ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
               # Security
               WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
               WEBUI_SESSION_COOKIE_SECURE: "True"
