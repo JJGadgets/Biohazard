@@ -27,8 +27,8 @@ spec:
         containers:
           main: &mlc
             image: &img
-              repository: jank.ing/jjgadgets/mlc-llm
-              tag: rolling@sha256:3fc2798d5c8001468975401a5a36a023165bfce75eede91cfc57a2542fd416a0
+              repository: jank.ing/jjgadgets/mlc-llm-nightly
+              tag: 2024.10.07@sha256:078f7b37a15cd9d3c5172b118d9b724c4b71c1b6054ff6ff54e3ea5d06c8cc51
             args: ["HF://mlc-ai/$(MODEL)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
@@ -85,29 +85,52 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
-      codellama:
+      # codellama:
+      #   <<: *deploy
+      #   containers:
+      #     main:
+      #       <<: *mlc
+      #       env:
+      #         <<: *envMain
+      #         MODEL: &codellama-model "CodeLlama-7b-hf-q4f32_1-MLC"
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "1000m"
+      #           memory: "12Gi"
+      #           gpu.intel.com/i915: "1"
+      # codellama-pull:
+      #   <<: *job
+      #   containers:
+      #     main:
+      #       <<: *pull
+      #       env:
+      #         <<: *envPull
+      #         MODEL: *codellama-model
+      phi3:
         <<: *deploy
         containers:
           main:
             <<: *mlc
             env:
               <<: *envMain
-              MODEL: &codellama-model "CodeLlama-7b-hf-q4f32_1-MLC"
+              MODEL: &phi3-model "Phi-3.5-mini-instruct-q4f16_1-MLC"
             resources:
               requests:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "12Gi"
+                memory: "6Gi"
                 gpu.intel.com/i915: "1"
-      codellama-pull:
+      phi3-pull:
         <<: *job
         containers:
           main:
             <<: *pull
             env:
               <<: *envPull
-              MODEL: *codellama-model
+              MODEL: *phi3-model
     service:
       llama3: &svc
         controller: llama3
@@ -116,9 +139,12 @@ spec:
             port: 8080
             protocol: HTTP
             appProtocol: http
-      codellama:
+      # codellama:
+      #   <<: *svc
+      #   controller: codellama
+      phi3:
         <<: *svc
-        controller: codellama
+        controller: phi3
     ingress:
       llama3:
         className: nginx-internal
@@ -132,15 +158,27 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
-      codellama:
+      # codellama:
+      #   className: nginx-internal
+      #   hosts:
+      #     - host: &host "codellama.${DNS_SHORT}"
+      #       paths: &paths
+      #         - path: /
+      #           pathType: Prefix
+      #           service:
+      #             identifier: codellama
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
+      phi3:
         className: nginx-internal
         hosts:
-          - host: &host "codellama.${DNS_SHORT}"
+          - host: &host "phi3.${DNS_SHORT}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: codellama
+                  identifier: phi3
                   port: http
         tls:
           - hosts: [*host]
@@ -150,9 +188,9 @@ spec:
         globalMounts:
           - subPath: data
             path: /data
-      #tmp:
-      #  type: emptyDir
-      #  globalMounts:
+      tmp:
+        type: emptyDir
+        globalMounts:
           - subPath: tmp
             path: /tmp # TODO: check why /tmp on CephFS breaks Git clone
     defaultPodOptions:
