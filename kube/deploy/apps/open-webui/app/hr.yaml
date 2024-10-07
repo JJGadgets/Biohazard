@@ -37,7 +37,7 @@ spec:
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
               GLOBAL_LOG_LEVEL: "DEBUG"
               # Backends
-              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-codellama.mlc-llm.svc.cluster.local:8080/v1"
+              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1"
               OPENAI_API_KEY: "fuck" # key required even if bogus and/or server doesn't give a fuck
               ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
               # Airgap
@@ -52,7 +52,6 @@ spec:
               OAUTH_PROVIDER_NAME: "JJGadgets Auth"
               OAUTH_USERNAME_CLAIM: "preferred_username"
               OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
-              # Airgap
             envFrom: &envFrom
               - secretRef:
                   name: open-webui-secrets
@@ -65,7 +64,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "3000m"
+                cpu: "1000m"
                 memory: "1Gi"
             probes:
               liveness:
