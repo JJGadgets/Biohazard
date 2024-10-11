@@ -86,6 +86,8 @@ spec:
         globalMounts:
           - subPath: tmp
             path: /tmp
+          - subPath: backups # temporarily not using due to VolSync
+            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
