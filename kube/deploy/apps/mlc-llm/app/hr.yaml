@@ -222,7 +222,7 @@ spec:
                   - key: fuckoff.home.arpa/mlc-llm
                     operator: DoesNotExist
     networkpolicies:
-      from-open-webui:
+      from-frontends:
         podSelector: {}
         policyTypes: [Ingress, Egress]
         rules:
@@ -231,3 +231,6 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: open-webui
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: sillytavern
