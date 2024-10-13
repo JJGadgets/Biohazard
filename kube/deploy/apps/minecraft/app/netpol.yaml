@@ -7,23 +7,9 @@ metadata:
   namespace: *app
 spec:
   endpointSelector: {}
-  ingress:
-    # same namespace
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-    # players
-    - fromCIDRSet:
-        - cidr: "${IP_ROUTER_LAN_CIDR}"
-        - cidr: "${IP_WG_USER_1_V4}"
-        - cidr: "${IP_WG_GUEST_V4}"
+  ingressDeny:
+    - fromEntities: [all]
       toPorts:
         - ports:
-            - port: "25565"
-  egress:
-    # same namespace
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-    - toEntities:
-        - world
+            - port: "25575"
+              protocol: ANY

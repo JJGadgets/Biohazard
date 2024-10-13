@@ -26,42 +26,44 @@ spec:
         containers:
           main:
             image: &image
-              repository: "ghcr.io/jjgadgets/minecraft-server"
-              tag: "java17-graalvm"
+              repository: ghcr.io/itzg/minecraft-server
+              tag: 2024.10.0@sha256:8e4850952064ac4e55ac7d302bf1beff6e25bb52f96d0bc524b9349e34b0ef4a
             env:
               TZ: "${CONFIG_TZ}"
               MEMORY: "2048M"
               EULA: "TRUE"
-              TYPE: "FABRIC"
-              VERSION: "1.20.1"
-              FABRIC_LOADER_VERSION: "0.15.6"
-              MODRINTH_ALLOWED_VERSION_TYPE: "release"
-              MODRINTH_DOWNLOAD_DEPENDENCIES: "required"
-              MODRINTH_PROJECTS: |-
-                lithium:ZSNsJrPI
-                lazydfu
-                fabric-api:tFw0iWAk
-                ferrite-core
-                krypton:jiDwS0W1
-                carpet
-                ledger:pOxgWfwI
-                spark
-                chunky
-                servertick:IOYJbkmQ
-                fabric-language-kotlin:48ri5y9r
-                memoryleakfix:dGlflhb6
-                cardinal-components-api:qW85eawp
-                cloth-config:s7VTKfLA
-                travelersbackpack:xoAo10oT
-                architectury-api:Sbew3kXe
-                simply-swords:EvFZh7u0
-                knaves-needs:FH2xrVIB
-                playeranimator:yDqYTUaf
-                better-combat:Z6wHaEla
-                dual-swords:7KDebPb5
-              DISABLED_MODS: |- # this is for my reference
-                servercore:exA4UxFq # disabled due to the 1.20.1 Fabric version causing mixin launch errors
-                tick-stasis # disabled due to kube-probe never succeeding from paused server, have to check if timeout config exists
+              TYPE: "VANILLA"
+              VERSION: "1.21.1"
+              # TYPE: "FABRIC"
+              # VERSION: "1.20.1"
+              # FABRIC_LOADER_VERSION: "0.15.6"
+              # MODRINTH_ALLOWED_VERSION_TYPE: "release"
+              # MODRINTH_DOWNLOAD_DEPENDENCIES: "required"
+              # MODRINTH_PROJECTS: |-
+              #   lithium:ZSNsJrPI
+              #   lazydfu
+              #   fabric-api:tFw0iWAk
+              #   ferrite-core
+              #   krypton:jiDwS0W1
+              #   carpet
+              #   ledger:pOxgWfwI
+              #   spark
+              #   chunky
+              #   servertick:IOYJbkmQ
+              #   fabric-language-kotlin:48ri5y9r
+              #   memoryleakfix:dGlflhb6
+              #   cardinal-components-api:qW85eawp
+              #   cloth-config:s7VTKfLA
+              #   travelersbackpack:xoAo10oT
+              #   architectury-api:Sbew3kXe
+              #   simply-swords:EvFZh7u0
+              #   knaves-needs:FH2xrVIB
+              #   playeranimator:yDqYTUaf
+              #   better-combat:Z6wHaEla
+              #   dual-swords:7KDebPb5
+              # DISABLED_MODS: |- # this is for my reference
+              #   servercore:exA4UxFq # disabled due to the 1.20.1 Fabric version causing mixin launch errors
+              #   tick-stasis # disabled due to kube-probe never succeeding from paused server, have to check if timeout config exists
               SERVER_NAME: "${CONFIG_MINECRAFT_NAME}"
               OPS: "${CONFIG_MINECRAFT_OPS}"
               ICON: "${CONFIG_MINECRAFT_ICON}"
@@ -84,7 +86,7 @@ spec:
               MAX_TICK_TIME: "-1"
               VIEW_DISTANCE: "10"
               OVERRIDE_SERVER_PROPERTIES: "true"
-              ENABLE_RCON: "false"
+              ENABLE_RCON: "true"
               ENABLE_AUTOPAUSE: "TRUE"
               AUTOPAUSE_SUDO: "false"
               AUTOPAUSE_KNOCK_INTERFACE: "eth0"
@@ -95,13 +97,15 @@ spec:
               SNOOPER_ENABLED: "false"
               SYNC_CHUNK_WRITES: "false"
               USE_AIKAR_FLAGS: "true"
+              RCON_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: "minecraft-secrets"
+                    key: "RCON_PASSWORD"
             resources:
-              requests:
-                cpu: "100m"
-                memory: "3072Mi"
               limits:
-                cpu: "2000m"
-                memory: "6000Mi"
+                cpu: "1.5"
+                memory: "4Gi"
             probes:
               liveness: &probe
                 enabled: true
