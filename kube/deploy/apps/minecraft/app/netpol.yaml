@@ -7,6 +7,11 @@ metadata:
   namespace: *app
 spec:
   endpointSelector: {}
+  ingress:
+    - fromCIDRSet:
+        - cidr: "${IP_NIGHTHAWK}/32"
+        - cidr: "${IP_JJ_V4}"
+        - cidr: "${IP_WG_GUEST_V4}"
   ingressDeny:
     - fromEntities: [all]
       toPorts:
