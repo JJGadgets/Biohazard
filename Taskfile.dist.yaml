@@ -52,6 +52,13 @@ tasks:
       - git config remote.origin.pushurl git@github.com:JJGadgets/Biohazard.git
       - test -d $HOME/../usr/etc/termux/ && git config gpg.program $HOME/../usr/bin/okc-gpg || true
 
+  mise:
+    desc: Use this repo's Mise config for the whole Linux user, via symlink.
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - mv ~/.config/mise/config.toml ~/.config/mise/config.toml.old$(date +%Y-%m-%d) || true
+      - ln -s $(pwd)/.mise.toml ~/.config/mise/config.toml
+
   n:
     desc: Create new folder and file within new folder at the same time.
     vars:
