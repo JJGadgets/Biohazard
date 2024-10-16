@@ -10,7 +10,7 @@ tasks:
       FLUXDIR:
         sh: mktemp -d
       # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
-      FLUX_DEFAULT_VERSION: "v2.2.3"
+      FLUX_DEFAULT_VERSION: "v2.4.0"
       FLUXVER: '{{ .FLUXVER | default .FLUX_DEFAULT_VERSION }}'
       C: '{{ .C | default "biohazard" }}'
     cmds:
