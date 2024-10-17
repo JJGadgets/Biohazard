@@ -106,6 +106,8 @@ spec:
         globalMounts:
           - subPath: "redis"
             path: "/redis"
+          - subPath: "tmp"
+            path: "/tmp"
     configMaps:
       config:
         enabled: true
