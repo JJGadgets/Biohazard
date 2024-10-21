@@ -34,7 +34,7 @@ spec:
       enableCSIHostNetwork: true
       # enableCSIEncryption: true
       enableCSIEncryption: false # TODO: disable for now till needed, and key management is decided
-      cephFSKernelMountOptions: "ms_mode=prefer-secure" # needed for mounting CephFS on a cluster with network encryption enabled
+      cephFSKernelMountOptions: "ms_mode=prefer-secure,recover_session=clean" # needed for mounting CephFS on a cluster with network encryption enabled, and recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
       enableMetadata: true # I love my verbosity
       csiAddons: # for RBD NodeLoss failover
         enabled: true
