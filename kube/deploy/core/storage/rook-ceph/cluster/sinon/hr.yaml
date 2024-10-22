@@ -49,7 +49,7 @@ spec:
     #bdev_async_discard = true
     cephClusterSpec:
       cephVersion:
-        image: "quay.io/ceph/ceph:v18.2.2" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
+        image: "quay.io/ceph/ceph:v18.2.4@sha256:6ac7f923aa1d23b43248ce0ddec7e1388855ee3d00813b52c3172b0b23b37906" # TODO: temp rolled back to 18.2.0 for Prom metrics, 18.2.1 breaks some metrics
       network:
         provider: host
         addressRanges:
