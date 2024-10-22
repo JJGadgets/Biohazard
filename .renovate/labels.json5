@@ -26,7 +26,7 @@
     },
     {
       "matchDatasources": ["docker"],
-      "addLabels": ["oci/registry/{{ lookup (split depNameSanitized '/') 0 }}", "oci/owner/{{ lookup (split depNameSanitized '/') 1 }}", "oci/image/{{ lookup (split depNameSanitized '/') 2 }}"]
+      "addLabels": ["oci/registry/{{ lookup (split depName '/') 0 }}", "oci/owner/{{ lookup (split depName '/') 1 }}", "oci/image/{{ lookup (split depName '/') 2 }}"]
     },
     {
       "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
