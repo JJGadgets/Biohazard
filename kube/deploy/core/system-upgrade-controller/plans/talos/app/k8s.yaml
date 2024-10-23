@@ -27,7 +27,7 @@ spec:
       operator: Exists
       effect: NoSchedule
   prepare: &prepare
-    image: "registry.k8s.io/kubectl:v1.29.2@sha256:ac66c804f411269a1caa8cc907447fcd00a4476cfb627a4756845c85e685a671"
+    image: "registry.k8s.io/kubectl:v1.31.2@sha256:d31de5468fb5c0943358671e3dcf8e4d8281108027efd1f211262d09aedd5519"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
       - "--timeout=300s"
