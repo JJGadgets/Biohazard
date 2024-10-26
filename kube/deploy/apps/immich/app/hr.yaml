@@ -16,42 +16,24 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
-    defaultPodOptions: # need to put this here for podsc anchor LOL
-      automountServiceAccountToken: false
-      enableServiceLinks: false
-      hostAliases:
-        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      securityContext: &podsc
-        runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_IMMICH:=1000}
-        runAsGroup: *uid
-        fsGroup: *uid
-        fsGroupChangePolicy: Always
-        seccompProfile: { type: "RuntimeDefault" }
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: fuckoff.home.arpa/immich
-                    operator: DoesNotExist
+    X-pod-securityContext: &podsc
+      runAsNonRoot: true
+      runAsUser: &uid ${APP_UID_IMMICH:=1000}
+      runAsGroup: *uid
+      fsGroup: *uid
+      fsGroupChangePolicy: Always
+      seccompProfile: { type: "RuntimeDefault" }
     controllers:
       immich:
         type: deployment
-        replicas: 3
+        replicas: 1
         strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "90%"
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
             authentik.home.arpa/https: allow
-          securityContext:
-            <<: *podsc
-            supplementalGroups: [44, 104, 109, 128, 226] # GPU
         containers:
           main:
             image: &img
@@ -63,13 +45,19 @@ spec:
               LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libmimalloc.so.2
               NODE_ENV: production
               LOG_LEVEL: verbose
+              IMMICH_WORKERS_INCLUDE: "api"
               IMMICH_MEDIA_LOCATION: &pvc /data
               IMMICH_METRICS: "true"
               IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local:3001
-              IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local:3003
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
               DB_VECTOR_EXTENSION: pgvector # I couldn't really care less for worser machine learning, over half my library is screenshots
+              IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local:3003
+              MACHINE_LEARNING_HTTP_KEEPALIVE_TIMEOUT_S: "0" # avoid keep-alive to better load balance requests across replicas
+              MACHINE_LEARNING_MODEL_TTL: "0" # keep models loaded, for predictable resource requests
+              # default models as of v1.112.1
+              MACHINE_LEARNING_PRELOAD__CLIP: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION: buffalo_l
               DB_URL:
                 valueFrom:
                   secretKeyRef:
@@ -91,6 +79,44 @@ spec:
                 cpu: "1"
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
+      microservices:
+        type: deployment
+        replicas: 3
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
+        pod:
+          labels:
+            db.home.arpa/pg: pg-home
+            prom.home.arpa/kps: allow
+          securityContext:
+            <<: *podsc
+            supplementalGroups: [44, 104, 109, 128, 226] # GPU
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: *app
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/component: microservices
+        containers:
+          main:
+            image: *img
+            command: *cmd
+            env:
+              <<: *env
+              IMMICH_WORKERS_INCLUDE: "microservices"
+            envFrom: *ef
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "300Mi"
+              limits:
+                cpu: "1000m"
+                memory: "2Gi"
       ml:
         type: deployment
         replicas: 3
@@ -144,7 +170,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "1Gi"
+                memory: "2Gi"
       ml-model-pull-facial:
         <<: *ml-model-pull
         containers:
@@ -174,6 +200,11 @@ spec:
         ports:
           http:
             port: 2283
+          metrics:
+            port: 8081
+      microservices:
+        controller: microservices
+        ports:
           metrics:
             port: 8081
       ml:
@@ -207,6 +238,7 @@ spec:
             main:
               - subPath: data
                 path: *pvc
+          microservices: *mount
           redis:
             redis:
               - subPath: redis
@@ -220,6 +252,7 @@ spec:
                 path: /data/encoded-video
               - subPath: thumbs
                 path: /data/thumbs
+          microservices: *misc
           ml-model-pull-clip:
             main:
               - &mlpvc
@@ -258,6 +291,20 @@ spec:
         globalMounts:
           - subPath: ca.crt
             path: /secrets/pg/ca.crt
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext: *podsc
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/immich
+                    operator: DoesNotExist
     networkpolicies:
       immich:
         podSelector: &sel
@@ -277,6 +324,14 @@ spec:
     serviceMonitor:
       immich:
         serviceName: immich
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s
+      microservices:
+        serviceName: microservices
         endpoints:
           - port: metrics
             scheme: http
