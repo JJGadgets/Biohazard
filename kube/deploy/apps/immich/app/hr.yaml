@@ -176,11 +176,6 @@ spec:
             port: 2283
           metrics:
             port: 8081
-      microservices:
-        controller: microservices
-        ports:
-          metrics:
-            port: 8081
       ml:
         controller: ml
         ports:
@@ -212,7 +207,6 @@ spec:
             main:
               - subPath: data
                 path: *pvc
-          microservices: *mount
           redis:
             main:
               - subPath: redis
@@ -226,7 +220,6 @@ spec:
                 path: /data/encoded-video
               - subPath: thumbs
                 path: /data/thumbs
-          microservices: *misc
           ml-model-pull-clip:
             main:
               - &mlpvc
@@ -284,14 +277,6 @@ spec:
     serviceMonitor:
       immich:
         serviceName: immich
-        endpoints:
-          - port: metrics
-            scheme: http
-            path: /metrics
-            interval: 1m
-            scrapeTimeout: 30s
-      microservices:
-        serviceName: microservices
         endpoints:
           - port: metrics
             scheme: http
