@@ -18,10 +18,10 @@ spec:
       kind: HelmRelease
       name: crunchy-pgo
       namespace: crunchy-pgo
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: minio-nas
-      namespace: minio-nas
+    # - apiVersion: apps/v1
+    #   kind: Deployment
+    #   name: minio-nas
+    #   namespace: minio-nas
     - apiVersion: apps/v1
       kind: Deployment
       name: rook-ceph-rgw-biohazard-a
