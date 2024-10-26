@@ -16,23 +16,48 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
+    defaultPodOptions: # need to put this here for podsc anchor LOL
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext: &podsc
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_IMMICH:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/immich
+                    operator: DoesNotExist
     controllers:
       immich:
         type: deployment
-        replicas: 1
+        replicas: 3
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
             authentik.home.arpa/https: allow
+          securityContext:
+            <<: *podsc
+            supplementalGroups: [44, 104, 109, 128, 226] # GPU
         containers:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
               tag: v1.118.2@sha256:f158810c90f80162f9b08729bbaec963731f12662960be38ff93093b78a0bbdf
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
-            args: ["immich"]
             env: &env
               TZ: "${CONFIG_TZ}"
               LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libmimalloc.so.2
@@ -63,49 +88,7 @@ spec:
                 cpu: "10m"
                 memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "2Gi"
-      microservices:
-        type: deployment
-        replicas: 3
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "90%"
-        pod:
-          labels:
-            db.home.arpa/pg: pg-home
-            prom.home.arpa/kps: allow
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: &uid ${APP_UID_IMMICH:=1000}
-            runAsGroup: *uid
-            fsGroup: *uid
-            fsGroupChangePolicy: Always
-            supplementalGroups: [44, 104, 109, 128, 226] # GPU
-            seccompProfile: { type: "RuntimeDefault" }
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/component: microservices
-        containers:
-          main:
-            image: *img
-            command: *cmd
-            args: ["microservices"]
-            env: *env
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "100m"
-                memory: "300Mi"
-                gpu.intel.com/i915: "1"
-              limits:
-                cpu: "1000m" # my machine will actually die
+                cpu: "1"
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
       ml:
@@ -282,26 +265,6 @@ spec:
         globalMounts:
           - subPath: ca.crt
             path: /secrets/pg/ca.crt
-    defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
-      hostAliases:
-        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_IMMICH:=1000}
-        runAsGroup: *uid
-        fsGroup: *uid
-        fsGroupChangePolicy: Always
-        seccompProfile: { type: "RuntimeDefault" }
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: fuckoff.home.arpa/immich
-                    operator: DoesNotExist
     networkpolicies:
       immich:
         podSelector: &sel
