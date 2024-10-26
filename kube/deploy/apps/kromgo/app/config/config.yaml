@@ -33,7 +33,7 @@ metrics:
 
   - name: cluster_network_transmit_usage
     title: Biohazard - Net TX
-    query: round(sum by(cluster) (irate(node_network_transmit_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
+    query: round(sum by(cluster) (irate(node_network_transmit_bytes_total{kubernetes_node!="",device=~"eth.+|en.+|wl.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
     suffix: "Mb/s"
     colors:
       - { color: "red", min: 0, max: 199 }
@@ -42,7 +42,7 @@ metrics:
 
   - name: cluster_network_receive_usage
     title: Biohazard - Net RX
-    query: round(sum by(cluster) (irate(node_network_receive_bytes_total{kubernetes_node!="",device!~".+\\..+|lo|lxc.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
+    query: round(sum by(cluster) (irate(node_network_receive_bytes_total{kubernetes_node!="",device=~"eth.+|en.+|wl.+",job="node-exporter"}[1m])*8/1024/1024),0.01)
     suffix: "Mb/s"
     colors:
       - { color: "red", min: 0, max: 199 }
