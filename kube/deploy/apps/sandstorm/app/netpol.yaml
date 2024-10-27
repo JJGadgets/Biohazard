@@ -8,10 +8,6 @@ metadata:
 spec:
   endpointSelector: {}
   ingress:
-    # same namespace
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
     # players
     - fromCIDRSet:
         - cidr: "${IP_ROUTER_LAN_CIDR}"
@@ -21,10 +17,3 @@ spec:
         - ports:
             - port: "27102"
             - port: "27131"
-  egress:
-    # same namespace
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: *app
-    - toEntities:
-        - world
