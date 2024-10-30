@@ -98,34 +98,34 @@ spec:
               limits:
                 cpu: "1"
                 memory: "256Mi"
-      refresh:
-        type: cronjob
-        cronjob:
-          schedule: "@hourly"
-          concurrencyPolicy: Forbid
-          successfulJobsHistory: 0
-          failedJobsHistory: 1
-        pod:
-          labels:
-            db.home.arpa/pg: pg-default
-        containers:
-          main:
-            image: &img
-              repository: ghcr.io/bjw-s-labs/piped-scripts
-              tag: 0.0.1@sha256:55dcbc2d65eb47d7a7f2c49c4fba1bc05ab3a715ae5b3f63a9653d804c704e69
-            env:
-              SCRIPT_NAME: update_subscriptions.sh
-              PIPED_BACKEND: http://piped-backend.piped.svc.cluster.local:8080
-            envFrom:
-              - secretRef:
-                  name: piped-secrets
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
+      # refresh: # TODO: got rate limited from this
+      #   type: cronjob
+      #   cronjob:
+      #     schedule: "@hourly"
+      #     concurrencyPolicy: Forbid
+      #     successfulJobsHistory: 0
+      #     failedJobsHistory: 1
+      #   pod:
+      #     labels:
+      #       db.home.arpa/pg: pg-default
+      #   containers:
+      #     main:
+      #       image: &img
+      #         repository: ghcr.io/bjw-s-labs/piped-scripts
+      #         tag: 0.0.1@sha256:55dcbc2d65eb47d7a7f2c49c4fba1bc05ab3a715ae5b3f63a9653d804c704e69
+      #       env:
+      #         SCRIPT_NAME: update_subscriptions.sh
+      #         PIPED_BACKEND: http://piped-backend.piped.svc.cluster.local:8080
+      #       envFrom:
+      #         - secretRef:
+      #             name: piped-secrets
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "1"
+      #           memory: "128Mi"
     service:
       frontend:
         controller: frontend
@@ -193,6 +193,19 @@ spec:
             paths: &paths
               - path: /ytproxy(/|$)(.*)
                 pathType: ImplementationSpecific
+                service:
+                  identifier: ytproxy
+                  port: http
+        tls:
+          - hosts: [*host]
+      ytproxy-api:
+        className: nginx-internal
+        annotations: *cors
+        hosts:
+          - host: *host
+            paths: &paths
+              - path: /api
+                pathType: Prefix
                 service:
                   identifier: ytproxy
                   port: http
