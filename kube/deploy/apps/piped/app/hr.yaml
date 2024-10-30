@@ -207,6 +207,14 @@ spec:
             main:
               - subPath: config.properties
                 path: /app/config.properties
+      tmp:
+        type: emptyDir
+        medium: Memory
+        advancedMounts:
+          backend:
+            main:
+              - subPath: tmp
+                path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
