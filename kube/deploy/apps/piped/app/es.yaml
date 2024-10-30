@@ -72,7 +72,7 @@ spec:
       type: Opaque
       data:
         # subscriptions fetch cron
-        PGHOST: 'pg-default-pgbouncer.pg.svc.cluster.local'
+        PGHOST: '{{ index . "pgbouncer-host" }}.cluster.local'
         PGUSER: '{{ .user }}'
         PGPASSWORD: '{{ .password }}'
         PGDATABASE: '{{ .dbname }}'
@@ -86,8 +86,8 @@ spec:
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
           FEED_RETENTION: 365
-          hibernate.connection.url: '{{ index . "pgbouncer-jdbc-uri" | replace "svc:" "svc.cluster.local:" }}'
-          hibernate.connection.username: '{{ .user }}'
-          hibernate.connection.password: '{{ .password }}'
+          hibernate.connection.url: jdbc:postgresql://{{ index . "pgbouncer-host" }}.cluster.local:{{ index . "pgbouncer-port" }}/{{ .dbname }}
+          hibernate.connection.username: {{ .user }}
+          hibernate.connection.password: {{ .password }}
           SENTRY_DSN: ""
           MATRIX_SERVER: ""
