@@ -61,6 +61,7 @@ spec:
             db.home.arpa/pg: pg-default
             # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             egress.home.arpa/internet: allow
+            egress.home.arpa/mullvad: allow
         containers:
           main:
             image: &img
