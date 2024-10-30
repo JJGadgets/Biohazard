@@ -50,42 +50,44 @@ spec:
         serviceAccount:
           name: "external-secrets-kubernetes-provider"
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/external-secrets.io/externalsecret_v1beta1.json
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: &name "pg-default-pguser-piped"
-  namespace: "piped"
+  name: &name piped-secrets
+  namespace: piped
 spec:
-  refreshInterval: "1m"
+  refreshInterval: 1m
   secretStoreRef:
     kind: "SecretStore"
     name: "kubernetes-piped"
+  dataFrom:
+    - extract:
+        key: "pg-default-pguser-piped"
   target:
-    name: "pg-default-pguser-piped-fixed"
-    creationPolicy: "Owner"
-    deletionPolicy: "Retain"
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
     template:
-      type: "Opaque"
+      type: Opaque
       data:
-        DB_HOSTNAME: "{{ .host }}"
-        DB_DATABASE_NAME: "{{ .dbname }}"
-        DB_USERNAME: "{{ .user }}"
-        DB_PASSWORD: "{{ .password }}"
-  data:
-    - secretKey: "host"
-      remoteRef: &src
-        key: *name
-        property: "pgbouncer-host"
-    - secretKey: &key "dbname"
-      remoteRef:
-        <<: *src
-        property: *key
-    - secretKey: &key "user"
-      remoteRef:
-        <<: *src
-        property: *key
-    - secretKey: &key "password"
-      remoteRef:
-        <<: *src
-        property: *key
+        # subscriptions fetch cron
+        PGHOST: 'pg-default-pgbouncer.pg.svc.cluster.local'
+        PGUSER: '{{ .user }}'
+        PGPASSWORD: '{{ .password }}'
+        PGDATABASE: '{{ .dbname }}'
+        # backend
+        config.properties: |
+          PORT: 8080
+          HTTP_WORKERS: 2
+          PROXY_PART: https://${APP_DNS_PIPED}/ytproxy
+          API_URL: https://${APP_DNS_PIPED}/server
+          FRONTEND_URL: https://${APP_DNS_PIPED}
+          COMPROMISED_PASSWORD_CHECK: true
+          DISABLE_REGISTRATION: true
+          FEED_RETENTION: 365
+          hibernate.connection.url: '{{ index . "pgbouncer-jdbc-uri" | replace "svc:" "svc.cluster.local:" }}'
+          hibernate.connection.username: '{{ .user }}'
+          hibernate.connection.password: '{{ .password }}'
+          SENTRY_DSN: ""
+          MATRIX_SERVER: ""

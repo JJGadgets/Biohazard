@@ -1,122 +1,240 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app piped
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
-      chart: piped
-      version: 6.0.4
+      chart: app-template
+      version: 3.4.0
       sourceRef:
-        name: piped
+        name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    automountServiceAccountToken: false
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      ingress.home.arpa/nginx-external: "allow"
-      ingress.home.arpa/cloudflare: "allow"
-      egress.home.arpa/nginx-internal: "allow"
-      egress.home.arpa/nginx-external: "allow"
-      db.home.arpa/pg: "pg-default"
-      egress.home.arpa/internet: "allow"
-    postgresql:
-      enabled: false
-    backend:
-      image:
-        repository: "docker.io/1337kavin/piped"
+    controllers:
+      frontend:
+        type: deployment
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/bjw-s-labs/piped-frontend
+              tag: 2024.10.28@sha256:32787f43c388a6d1016fa07e41d0099a9bb87bf5a43cacf1b8b65ba79d62dc03
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              BACKEND_HOSTNAME: "${APP_DNS_PIPED:=piped}/server"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "128Mi"
+            probes: &probes
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              #startup:
+              #  enabled: true
+      backend:
+        type: deployment
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/cloudflare: allow
+            db.home.arpa/pg: pg-default
+            # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/1337kavin/piped
+              tag: latest@sha256:18e77857414236edc7245bebb3fb8ab3ac49c44bd76701bfce24f6ba0170d4b8
+            env: *env
+            securityContext: *sc
+            probes: *probes
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+      ytproxy:
+        type: deployment
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/1337kavin/piped-proxy
+              tag: latest@sha256:833ca24c048619c9cd6fe58e2d210bfc7b1e43875ba5108aeddea0b171f04dbd
+            command: ["/app/piped-proxy"]
+            env: *env
+            securityContext: *sc
+            probes: *probes
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "256Mi"
+      refresh:
+        type: cronjob
+        cronjob:
+          schedule: "@hourly"
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 0
+          failedJobsHistory: 1
+        pod:
+          labels:
+            db.home.arpa/pg: pg-default
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/bjw-s-labs/piped-scripts
+              tag: 0.0.1@sha256:55dcbc2d65eb47d7a7f2c49c4fba1bc05ab3a715ae5b3f63a9653d804c704e69
+            env:
+              SCRIPT_NAME: update_subscriptions.sh
+              PIPED_BACKEND: http://piped-backend.piped.svc.cluster.local:8080
+            envFrom:
+              - secretRef:
+                  name: piped-secrets
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "128Mi"
+    service:
+      frontend:
+        controller: frontend
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+      backend:
+        controller: backend
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+      ytproxy:
+        controller: ytproxy
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      frontend:
+        className: nginx-internal
+        annotations: &cors
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED:=piped}"
+        hosts:
+          - host: &host "${APP_DNS_PIPED:=piped}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: frontend
+                  port: http
+        tls:
+          - hosts: [*host]
+      backend:
+        className: nginx-internal
+        annotations:
+          <<: *cors
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}" # cloudflared handles proxying to backend pod directly
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
+        hosts:
+          - host: *host
+            paths: &paths
+              - path: /server(/|$)(.*)
+                pathType: ImplementationSpecific
+                service:
+                  identifier: backend
+                  port: http
+        tls:
+          - hosts: [*host]
+      ytproxy:
+        className: nginx-internal
+        annotations:
+          <<: *cors
+          nginx.ingress.kubernetes.io/use-regex: "true"
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
+        hosts:
+          - host: *host
+            paths: &paths
+              - path: /ytproxy(/|$)(.*)
+                pathType: ImplementationSpecific
+                service:
+                  identifier: ytproxy
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
       config:
-        PORT: 8080
-        HTTP_WORKERS: 2
-        PROXY_PART: "https://${APP_DNS_PIPED_YTPROXY}"
-        COMPROMISED_PASSWORD_CHECK: true
-        DISABLE_REGISTRATION: true
-        database:
-          connection_url: "jdbc:postgresql://pg-default-pgbouncer.pg.svc:5432/piped"
-          driver_class: "org.postgresql.Driver"
-          secret:
-            name: "pg-default-pguser-piped"
-            username: "user"
-            password: "password"
-      podSecurityContext: &psc
+        type: secret
+        name: piped-secrets
+        advancedMounts:
+          backend:
+            main:
+              - subPath: config.properties
+                path: /app/config.properties
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
         runAsUser: &uid ${APP_UID_PIPED:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-      resources:
-        requests:
-          cpu: 10m
-          memory: 500Mi
-        limits:
-          memory: 2000Mi
-    frontend:
-      image:
-        repository: "docker.io/1337kavin/piped-frontend"
-      args: ["-c", "sed -i s/pipedapi.kavin.rocks/$BACKEND_HOSTNAME/g /usr/share/nginx/html/assets/* && sed -i 's/80;/8080;/g' /etc/nginx/conf.d/default.conf && /docker-entrypoint.sh nginx -g 'daemon off;'"]
-      env:
-        BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped-backend}"
-      service:
-        main:
-          ports:
-            http:
-              port: 8080
-      # podSecurityContext: *psc # TODO: /etc/nginx and /usr/share/nginx isn't writable by root but entrypoint script requires write perms to them
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          memory: 256Mi
-    ytproxy:
-      image:
-        repository: "docker.io/1337kavin/piped-proxy"
-      podSecurityContext: *psc
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          memory: 500Mi
-    ingress:
-      main:
-        ingressClassName: "nginx-internal"
-        annotations:
-          nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
-        hosts:
-          - host: &frontend "${APP_DNS_PIPED_FRONTEND:=piped-frontend}"
-            paths:
-              - path: "/"
-        tls:
-          - hosts:
-              - *frontend
-      backend:
-        ingressClassName: "nginx-external"
-        annotations:
-          nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
-          # for Google pubsub webhook for refreshing feeds in realtime, path and source limiting done on Cloudflare side
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: &backend "${APP_DNS_PIPED_BACKEND:=piped-backend}"
-            paths:
-              - path: "/"
-        tls:
-          - hosts:
-              - *backend
-      ytproxy:
-        ingressClassName: "nginx-internal"
-        annotations:
-          nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED_FRONTEND}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
-        hosts:
-          - host: &ytproxy "${APP_DNS_PIPED_YTPROXY:=piped-ytproxy}"
-            paths:
-              - path: "/"
-        tls:
-          - hosts:
-              - *ytproxy
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/piped
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
