@@ -86,8 +86,8 @@ spec:
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
           FEED_RETENTION: 365
-          hibernate.connection.url: jdbc:postgresql://{{ index . "pgbouncer-host" }}.cluster.local:{{ index . "pgbouncer-port" }}/{{ .dbname }}
+          hibernate.connection.url: '{{ index . "pgbouncer-jdbc-uri" | replace "svc:" "svc.cluster.local:" }}'
           hibernate.connection.username: {{ .user }}
           hibernate.connection.password: {{ .password }}
-          SENTRY_DSN: ""
+          SENTRY_DSN:
           MATRIX_SERVER: ""
