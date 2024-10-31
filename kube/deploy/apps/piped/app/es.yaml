@@ -77,15 +77,13 @@ spec:
         PGPASSWORD: '{{ .password }}'
         PGDATABASE: '{{ .dbname }}'
         # backend
-        # TODO: Mullvad SOCKS5 proxy temporarily due to ISP IP being rate limited from refresh cron
-        #  MATRIX_SERVER: ""
+        #   MATRIX_SERVER: ""
         config.properties: |
           PORT: 8080
           HTTP_WORKERS: 2
           PROXY_PART: https://${APP_DNS_PIPED}/ytproxy
           API_URL: https://${APP_DNS_PIPED}/server
           FRONTEND_URL: https://${APP_DNS_PIPED}
-          REQWEST_PROXY: socks5://10.124.0.221:1080
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
           FEED_RETENTION: 365
