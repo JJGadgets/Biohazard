@@ -31,7 +31,7 @@ spec:
               tag: 2024.10.28@sha256:32787f43c388a6d1016fa07e41d0099a9bb87bf5a43cacf1b8b65ba79d62dc03
             env: &env
               TZ: "${CONFIG_TZ}"
-              BACKEND_HOSTNAME: "${APP_DNS_PIPED:=piped}/server"
+              BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped}"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -149,11 +149,13 @@ spec:
             protocol: HTTP
             appProtocol: http
     ingress:
-      frontend:
+      main:
         className: nginx-internal
         annotations: &cors
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF}" # cloudflared handles proxying to backend pod directly, exposed for webhook
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED:=piped}"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED:=piped}, https://${APP_DNS_PIPED_BACKEND}, https://${APP_DNS_PIPED_YTPROXY}"
         hosts:
           - host: &host "${APP_DNS_PIPED:=piped}"
             paths: &paths
@@ -162,58 +164,87 @@ spec:
                 service:
                   identifier: frontend
                   port: http
-        tls:
-          - hosts: [*host]
-      backend:
-        className: nginx-internal
-        annotations:
-          <<: *cors
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}" # cloudflared handles proxying to backend pod directly
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/use-regex: "true"
-          nginx.ingress.kubernetes.io/rewrite-target: /$2
-        hosts:
-          - host: *host
-            paths: &paths
-              - path: /server(/|$)(.*)
-                pathType: ImplementationSpecific
+          - host: "${APP_DNS_PIPED_BACKEND:=piped-backend}"
+            paths:
+              - path: /
+                pathType: Prefix
                 service:
                   identifier: backend
                   port: http
-        tls:
-          - hosts: [*host]
-      ytproxy:
-        className: nginx-internal
-        annotations:
-          <<: *cors
-          nginx.ingress.kubernetes.io/use-regex: "true"
-          nginx.ingress.kubernetes.io/rewrite-target: /$2
-        hosts:
-          - host: *host
-            paths: &paths
-              - path: /ytproxy(/|$)(.*)
-                pathType: ImplementationSpecific
-                service:
-                  identifier: ytproxy
-                  port: http
-        tls:
-          - hosts: [*host]
-      ytproxy-api:
-        className: nginx-internal
-        annotations: *cors
-        hosts:
-          - host: *host
-            paths: &paths
-              - &path
-                path: /api
+          - host: "${APP_DNS_PIPED_YTPROXY:=piped-ytproxy}"
+            paths:
+              - path: /
                 pathType: Prefix
                 service:
                   identifier: ytproxy
                   port: http
-              - <<: *path
-                path: /videoplayback
         tls:
           - hosts: [*host]
+      # frontend:
+      #   className: nginx-internal
+      #   annotations: &cors
+      #     nginx.ingress.kubernetes.io/enable-cors: "true"
+      #     nginx.ingress.kubernetes.io/cors-allow-origin: "https://${APP_DNS_PIPED:=piped}"
+      #   hosts:
+      #     - host: &host "${APP_DNS_PIPED:=piped}"
+      #       paths: &paths
+      #         - path: /
+      #           pathType: Prefix
+      #           service:
+      #             identifier: frontend
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
+      # backend:
+      #   className: nginx-internal
+      #   annotations:
+      #     <<: *cors
+      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF}" # cloudflared handles proxying to backend pod directly
+      #     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      #     nginx.ingress.kubernetes.io/use-regex: "true"
+      #     nginx.ingress.kubernetes.io/rewrite-target: /$2
+      #   hosts:
+      #     - host: *host
+      #       paths: &paths
+      #         - path: /server(/|$)(.*)
+      #           pathType: ImplementationSpecific
+      #           service:
+      #             identifier: backend
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
+      # ytproxy:
+      #   className: nginx-internal
+      #   annotations:
+      #     <<: *cors
+      #     nginx.ingress.kubernetes.io/use-regex: "true"
+      #     nginx.ingress.kubernetes.io/rewrite-target: /$2
+      #   hosts:
+      #     - host: *host
+      #       paths: &paths
+      #         - path: /ytproxy(/|$)(.*)
+      #           pathType: ImplementationSpecific
+      #           service:
+      #             identifier: ytproxy
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
+      # ytproxy-api:
+      #   className: nginx-internal
+      #   annotations: *cors
+      #   hosts:
+      #     - host: *host
+      #       paths: &paths
+      #         - &path
+      #           path: /api
+      #           pathType: Prefix
+      #           service:
+      #             identifier: ytproxy
+      #             port: http
+      #         - <<: *path
+      #           path: /videoplayback
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       config:
         type: secret

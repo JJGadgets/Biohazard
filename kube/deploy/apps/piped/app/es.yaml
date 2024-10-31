@@ -81,8 +81,8 @@ spec:
         config.properties: |
           PORT: 8080
           HTTP_WORKERS: 2
-          PROXY_PART: https://${APP_DNS_PIPED}/ytproxy
-          API_URL: https://${APP_DNS_PIPED}/server
+          PROXY_PART: https://${APP_DNS_PIPED_YTPROXY}
+          API_URL: https://${APP_DNS_PIPED_BACKEND}
           FRONTEND_URL: https://${APP_DNS_PIPED}
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
