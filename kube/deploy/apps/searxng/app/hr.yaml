@@ -23,7 +23,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
             egress.home.arpa/mullvad: "allow"
-            egress.home.arpa/internet-https: "allow"
+            # egress.home.arpa/internet-https: "allow"
         containers:
           main:
             image: &img
@@ -248,7 +248,7 @@ spec:
               - 'Tracker URL remover'
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
-              - 'Hostname replace'
+              - 'Hostnames plugin'
             hostnames:
               replace:
                 '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
