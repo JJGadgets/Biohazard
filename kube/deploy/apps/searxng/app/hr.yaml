@@ -239,19 +239,23 @@ spec:
               theme_args:
                 simple_style: "dark"
             enabled_plugins:
+              - 'Basic Calculator'
+              - 'Unit converter plugin'
               - 'Hash plugin'
               - 'Search on category select'
               - 'Self Information'
+              - 'Self Informations'
               - 'Tracker URL remover'
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
               - 'Hostname replace'
-            hostname_replace:
-              '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
-              '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
-              '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
-              '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
-              '(.*\.)?medium\.com$': 'scribe.rip'
+            hostnames:
+              replace:
+                '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
+                '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
+                '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
+                '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
+                '(.*\.)?medium\.com$': 'scribe.rip'
             redis:
               url: "unix:///redis/redis.sock?db=0"
     # NOTE: Search engines disabled:
