@@ -19,6 +19,8 @@ spec:
     cacheStorageClassName: "${SC:=block}"
     cacheAccessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
     cacheCapacity: "${CACHESIZE:=2Gi}"
+    cleanupTempPVC: true
+    cleanupCachePVC: true
     moverSecurityContext:
       runAsNonRoot: true
       runAsUser: ${RUID:=1000}
@@ -36,3 +38,14 @@ spec:
       limits:
         cpu: 1
         memory: 6Gi
+    moverAffinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/created-by: volsync
+            namespaceSelector:
+              matchExpressions:
+                - key: kubernetes.io/metadata.name
+                  operator: Exists

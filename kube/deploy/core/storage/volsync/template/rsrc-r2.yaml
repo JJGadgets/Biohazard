@@ -12,7 +12,7 @@ spec:
     schedule: "${CRON:=0 */12 * * *}" # 8am & 8pm GMT+8
   restic:
     copyMethod: "Snapshot"
-    repository: "${PVC}-r2-restic"
+    repository: "vs-${PVC}-r2-restic"
     volumeSnapshotClassName: "${SNAP:=block}"
     storageClassName: "${SC:=block}"
     accessModes: ["${SNAP_ACCESSMODE:=ReadOnlyMany}"] # CephFS shallow snapshot, and allow rsrc pod to schedule anywhere
@@ -35,3 +35,14 @@ spec:
       limits:
         cpu: 500m
         memory: 2Gi
+    moverAffinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/created-by: volsync
+            namespaceSelector:
+              matchExpressions:
+                - key: kubernetes.io/metadata.name
+                  operator: Exists
