@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
 talosVersion: v1.7.6
 kubernetesVersion: v1.30.1
@@ -104,13 +105,16 @@ nodes:
             devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
             devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
-  - &r730xd
-    hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
+  - hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
     controlPlane: false
     installDisk: /dev/vda
     nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
+    nodeLabels:
+      node-role.kubernetes.io/vm: ""
+      node-role.kubernetes.io/pve: ""
+      node-role.kubernetes.io/worker: ""
     networkInterfaces:
       - interface: br0
         mtu: 1500
@@ -139,13 +143,16 @@ nodes:
         systemExtensions:
           officialExtensions:
             - siderolabs/gvisor
-            - siderolabs/gvisor-debug
-            - siderolabs/i915-ucode
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
-            - siderolabs/kata-containers
+            - siderolabs/nvidia-open-gpu-kernel-modules
 
 patches:
+  # Cilium BGP set to active listen
+  - |-
+    machine:
+      nodeAnnotations:
+        cilium.io/bgp-virtual-router.${ASN_ROUTER}="local-port=179"
   # set all disks to no scheduler
   - |-
     machine:
@@ -164,8 +171,6 @@ patches:
       network:
         extraHostEntries:
           - ip: "${IP_CLUSTER_VIP}"
-            aliases: ["c.${DNS_CLUSTER}"]
-          - ip: "${IP_ROUTER_VLAN_K8S}"
             aliases: ["c.${DNS_CLUSTER}"]
           - ip: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
             aliases: ["c.${DNS_CLUSTER}"]
@@ -348,3 +353,14 @@ controlPlane:
                           topologyKey: "topology.kubernetes.io/zone"
                           whenUnsatisfiable: ScheduleAnyway
 
+    - &talosAPI |
+      machine:
+        features:
+          kubernetesTalosAPIAccess:
+            enabled: true
+            allowedRoles:
+              - os:admin
+            allowedKubernetesNamespaces:
+              - system-upgrade-controller
+              - talos-backup
+              - code-server
