@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/postgres-operator.crunchydata.com/postgrescluster_v1beta1.json
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
@@ -39,6 +40,13 @@ spec:
         limits:
           cpu: "${PG_CPU_LIMIT:=2000m}"
           memory: "${PG_MEM_LIMIT:=2Gi}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: Exists
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
