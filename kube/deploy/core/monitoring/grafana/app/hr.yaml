@@ -183,7 +183,7 @@ spec:
         cloudflared:
           gnetId: 17457 # https://grafana.com/grafana/dashboards/17457?tab=revisions
           revision: 6
-          datasource:
+          datasource: &DSP
             - { name: DS_PROMETHEUS, value: Prometheus }
         external-dns:
           gnetId: 15038 # https://grafana.com/grafana/dashboards/15038?tab=revisions
@@ -195,8 +195,7 @@ spec:
         fortigate:
           gnetId: 14011 # https://grafana.com/grafana/dashboards/14011?tab=revisions
           revision: 5
-          datasource:
-            - { name: DS_PROMETHEUS, value: Prometheus }
+          datasource: *DSP
         node-exporter-full:
           gnetId: 1860 # https://grafana.com/grafana/dashboards/1860?tab=revisions
           revision: 31
@@ -205,8 +204,7 @@ spec:
           # renovate: depName="Spegel"
           gnetId: 18089
           revision: 1
-          datasource:
-            - { name: DS_PROMETHEUS, value: Prometheus }
+          datasource: *DSP
         golang:
           gnetId: 14061
           revision: 1
@@ -215,9 +213,15 @@ spec:
           # renovate: depName="Dashboard for smartctl_exporter"
           gnetId: 20204
           revision: 1
-          datasource:
-            - name: DS_PROMETHEUS
-              value: Prometheus
+          datasource: *DSP
+        smartctl-thomas:
+          url: https://gist.githubusercontent.com/uhthomas/bd55e991369cf6073294421d4bf88ec6/raw/e78f26846b40b6bfbabc10c4c502397c88375829/smartctl.json
+          datasource: &DSV
+            - { name: DS_VICTORIAMETRICS, value: Prometheus }
+        etcd-thomas:
+          gnetId: 22236
+          revision: 1
+          datasource: *DSV
       ceph:
         ceph-cluster-galexrt:
           gnetId: 2842
@@ -240,12 +244,10 @@ spec:
           datasource: Prometheus
         hubble-dns-namespace:
           url: https://raw.githubusercontent.com/cilium/cilium/main/install/kubernetes/cilium/files/hubble/dashboards/hubble-dns-namespace.json
-          datasource:
-            - { name: DS_PROMETHEUS, value: Prometheus }
+          datasource: *DSP
         hubble-network-overview-namespace:
           url: https://raw.githubusercontent.com/cilium/cilium/main/install/kubernetes/cilium/files/hubble/dashboards/hubble-network-overview-namespace.json
-          datasource:
-            - { name: DS_PROMETHEUS, value: Prometheus }
+          datasource: *DSP
       flux:
         flux-cluster:
           url: https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/monitoring/monitoring-config/dashboards/cluster.json
@@ -338,8 +340,7 @@ spec:
         windows-status-prometheus-gattancha:
           gnetId: 16523
           revision: 1
-          datasource:
-            - { name: DS_PROMETHEUS, value: Prometheus }
+          datasource: *DSP
         windows-node-jakub-pinkas:
           gnetId:
           revision: 3
