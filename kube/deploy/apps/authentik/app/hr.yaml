@@ -85,7 +85,7 @@ spec:
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
               AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
-              AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4}"
+              AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               AUTHENTIK_OUTPOSTS__DISCOVER: "false"
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
@@ -146,7 +146,7 @@ spec:
             #    enabled: true
       ldap:
         type: deployment
-        replicas: 3
+        replicas: 2
         pod:
           labels:
             authentik.home.arpa/https: allow
@@ -184,7 +184,7 @@ spec:
             #    enabled: true
       radius:
         type: deployment
-        replicas: 3
+        replicas: 2
         pod:
           labels:
             authentik.home.arpa/https: allow
@@ -265,7 +265,7 @@ spec:
         type: LoadBalancer
         annotations:
           io.cilium/internal: "true"
-          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK}"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK:=127.0.0.1}"
         ports:
           http:
             port: 443
@@ -277,8 +277,8 @@ spec:
         controller: ldap
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_AUTHENTIK_LDAP}"
-          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_LDAP}"
+          coredns.io/hostname: "${APP_DNS_AUTHENTIK_LDAP:=authentik-ldap}"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_LDAP:=127.0.0.1}"
         ports:
           ldap-tcp: &ldap
             port: 389
@@ -299,8 +299,8 @@ spec:
         controller: radius
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_AUTHENTIK_RADIUS}"
-          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_RADIUS}"
+          coredns.io/hostname: "${APP_DNS_AUTHENTIK_RADIUS:=authentik-radius}"
+          io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_RADIUS:=127.0.0.1}"
         ports:
           radius-udp: &radius
             port: 1812
