@@ -20,6 +20,7 @@ spec:
           labelSources: ["custom", "cpu", "pci", "usb", "system"]
         sources:
           usb:
+            deviceClassWhitelist: ["00", "03", "0B", "0e", "10", "ef", "fe", "ff"]
             deviceLabelFields: ["class", "vendor", "device"]
           custom:
             - name: "e1000"
