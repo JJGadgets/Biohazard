@@ -15,6 +15,12 @@ on:
         description: Log-Level
         default: debug
         required: false
+      paths:
+        description: Paths to run Renovate on. Comma separated without spaces for multiple.
+        required: false
+      managers:
+        description: Managers that Renovate should use. Comma separated without spaces for multiple.
+        required: false
   schedule:
     - cron: "0 * * * *" # every hour
   push:
@@ -59,6 +65,8 @@ jobs:
         run: |
           echo "RENOVATE_DRY_RUN=${{ github.event.inputs.dryRun || env.RENOVATE_DRY_RUN }}" >> "${GITHUB_ENV}"
           echo "LOG_LEVEL=${{ github.event.inputs.logLevel || env.LOG_LEVEL }}" >> "${GITHUB_ENV}"
+          if [[ ! -z "${{ github.event.inputs.paths }}" ]]; then echo "RENOVATE_INCLUDE_PATHS=${{ github.event.inputs.paths }}" >> "${GITHUB_ENV}"
+          if [[ ! -z "${{ github.event.inputs.managers }}" ]]; then echo "RENOVATE_ENABLED_MANAGERS=${{ github.event.inputs.managers }}" >> "${GITHUB_ENV}"
 
       - name: Renovate
         uses: renovatebot/github-action@67a664fc9b4481b33a3eff6ee9edfb7a7b9dfa1e # v41.0.2
