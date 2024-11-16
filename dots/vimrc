@@ -62,6 +62,7 @@ set history=500
 " Enable filetype plugins
 filetype plugin on
 filetype indent on
+autocmd BufNewFile,BufRead *.json5 set filetype=jsonc
 
 " Set to auto read when a file is changed from the outside
 set autoread
