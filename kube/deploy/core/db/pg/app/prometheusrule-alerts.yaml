@@ -1,0 +1,49 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: &app crunchy-pgo
+  namespace: *app
+spec:
+  groups:
+    - name: crunchy-pgo.rules
+      rules:
+        - alert: PostgresWALsStopped
+          annotations:
+            summary: >-
+              {{ $labels.pg_cluster }}'s master has stopped WALs generation.
+          expr: |
+            (sum by(pg_cluster, role) (increase(pg_wal_size_bytes{role="master"}[1h]))) < 100000000
+          for: 1h
+          labels:
+            severity: critical
+        - alert: PostgresReplicasReplayStuck
+          annotations:
+            summary: >-
+              {{ $labels.pg_cluster }}'s replicas are stuck replaying.
+          expr: |
+            (sum by (pg_cluster, role) (ccp_replication_lag_replay_time{role="replica"}[1h]))
+          for: 1h
+          labels:
+            severity: critical
+        - alert: PostgresReplicasArchiveError
+          annotations:
+            summary: >-
+              {{ $labels.pg_cluster }}'s replicas have archive errors.
+          expr: |
+            (sum by (pg_cluster, role) (ccp_archive_command_status_seconds_since_last_fail{role="replica"}[1h]))
+          for: 1h
+          labels:
+            severity: critical
+        - alert: PostgresReplicationBad
+          annotations:
+            summary: >-
+              {{ $labels.pg_cluster }} is in a bad replication state.
+          expr: |
+            ( (sum by(pg_cluster) (increase(pg_wal_size_bytes{role="master"}[1h]))) <bool 100000000 ) +
+            ( (sum by(pg_cluster) (ccp_replication_lag_replay_time{role="replica"}[1h])) >bool 0 ) +
+            ( (sum by(pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"}[1h])) >bool 0 )
+          for: 1h
+          labels:
+            severity: critical
