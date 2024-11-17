@@ -1,69 +1,104 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: &app atuin
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 3.4.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: "ghcr.io/atuinsh/atuin"
-      tag: "18.3.0@sha256:678def8e9d59652a502759ca431f9c5b54ebdd5e9361507c7fcf24705c9862e0"
-    command: ["atuin", "server", "start"]
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      db.home.arpa/pg: "pg-atuin"
-    env:
-      TZ: "${CONFIG_TZ}"
-      ATUIN_HOST: "0.0.0.0"
-      ATUIN_PORT: &port "8888"
-      ATUIN_OPEN_REGISTRATION: "true"
-      ATUIN_DB_URI: {valueFrom: {secretKeyRef: {name: pg-atuin-pguser-atuin, key: pgbouncer-uri}}}
-    service: {main: {ports: {http: {port: *port}}}}
+    controllers:
+      atuin:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            db.home.arpa/pg: pg-default
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/atuinsh/atuin
+              tag: 18.3.0@sha256:678def8e9d59652a502759ca431f9c5b54ebdd5e9361507c7fcf24705c9862e0
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              ATUIN_HOST: "0.0.0.0"
+              ATUIN_PORT: &port 8888
+              ATUIN_OPEN_REGISTRATION: "true"
+              ATUIN_DB_URI:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-default-pguser-atuin
+                    key: pgbouncer-uri
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      atuin:
+        controller: atuin
+        ports:
+          http:
+            port: *port
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
+        className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_ATUIN:=atuin}"
-            paths:
+            paths: &paths
               - path: /
                 pathType: Prefix
-        tls: [hosts: [*host]]
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_ATUIN:=1000}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
+                service:
+                  identifier: atuin
+                  port: http
+        tls:
+          - hosts: [*host]
     persistence:
       config:
-        enabled: true
         type: emptyDir
         medium: Memory
-        mountPath: /config
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 512Mi
-    # initContainers:
-    #   01-init-db:
-    #     image: ghcr.io/onedr0p/postgres-init:14.8@sha256:d8391076d2c6449927a6409c4e72aaa5607c95be51969036f4feeb7c999638ea
-    #     imagePullPolicy: IfNotPresent
-    #     envFrom: [secretRef: {name: atuin-pg-superuser}]
+        sizeLimit: 64Mi
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_ATUIN:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/atuin
+                    operator: DoesNotExist
