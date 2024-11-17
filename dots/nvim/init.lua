@@ -99,7 +99,7 @@ require("lazy").setup({
       build = ":TSUpdate",
       config = function()
         require("nvim-treesitter.configs").setup({
-          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix" },
+          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "json", "json5", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix" },
           --ensure_installed = 'all',
           ignore_install = { 'org' }, -- nvim-orgmode compatibility
           sync_install = false,
@@ -343,20 +343,25 @@ require("lazy").setup({
         lsp.taplo.setup { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
           ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
         }}}}}
-        if vim.bo.filetype == "json" then lsp.jsonls.setup {
+        local jsonls_config = {
+        -- lsp.jsonls.setup {
+          filetypes = {"json", "jsonc", "json5"},
           capabilities = caps(),
           settings = {
             json = {
               validate = { enable = true },
-              schemas = require('schemastore').json.schemas {
+              schemas = require('schemastore').json.schemas({
                 select = {
                   'Renovate',
                   'GitHub Workflow Template Properties'
                 }
-              },
+              }),
             }
           }
-        }; end
+        }
+        if vim.bo.filetype == "json" then lsp.jsonls.setup(jsonls_config); end
+        if vim.bo.filetype == "json5" then lsp.jsonls.setup(jsonls_config); end
+        -- lsp.jsonls.setup(jsonls_config)
         lsp.helm_ls.setup{capabilities = caps(),}
         lsp.lua_ls.setup{capabilities = caps(),}
         lsp.dockerls.setup{capabilities = caps(),}

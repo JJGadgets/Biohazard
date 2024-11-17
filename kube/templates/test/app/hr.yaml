@@ -119,8 +119,8 @@ spec:
         controller: ${APPNAME}
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_APPNAME}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_APPNAME}"
+          coredns.io/hostname: "${APP_DNS_APPNAME:=${APPNAME}}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_APPNAME:=127.0.0.1}"
         ports:
           http:
             port: 443
@@ -138,7 +138,7 @@ spec:
       main:
         className: nginx-internal
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/backend-protocol: HTTPS
           # https://github.com/kubernetes/ingress-nginx/issues/6728

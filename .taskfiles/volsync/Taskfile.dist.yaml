@@ -11,13 +11,27 @@ includes:
     taskfile: ../k8s
 
 tasks:
-  unlock:
+  unlock: &un
     desc: Unlock Restic repo using env vars from cluster secrets.
     vars:
       NS: &ns-fail '{{ or .NS (fail "Missing `NS` environment variable!") }}'
       REPO: &restic-repo '{{ or .REPO (fail "Missing `REPO` environment variable!") }}'
+      TS: '{{now | unixEpoch}}'
+    cmds:
+      - kubectl patch --field-manager=flux-client-side-apply replicationsources -n {{.NS}} {{.REPO}} --type merge --patch '{"spec":{"restic":{"unlock":"{{.TS}}"}}}'
+  unlock-local:
+    <<: *un
     cmds:
       - env $(kubectl get secrets -n {{.NS}} {{.REPO}} -o yaml | yq '.data | to_entries | map(.key + "=" + (.value | @base64d | @sh)) | join("\n")') restic unlock --remove-all
+  unlock-all:
+    dir: "/{{.ROOT_DIR}}"
+    vars:
+      FAILCONTINUE: '{{ .FAILCONTINUE | default "false" }}'
+    cmds:
+      - |
+        kubectl get replicationsources -A -o jsonpath='{range .items[*]}{"NS="}{.metadata.namespace}{" "}{"REPO="}{.metadata.name}{"\n"}{end}' | while read -r i; do
+          task volsync:unlock ${i} || {{.FAILCONTINUE}}
+        done
   run:
     desc: Unlock Restic repo using env vars from cluster secrets.
     vars:

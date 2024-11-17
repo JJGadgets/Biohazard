@@ -5,6 +5,7 @@ K9S_CONFIG_DIR = "{{config_root}}/dots/k9s"
 K9S_DEFAULT_PF_ADDRESS = "[::]"
 K9S_FG_NODE_SHELL = "true"
 #SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
+UV_PYTHON = "3.11"
 _.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
 
 [settings]
@@ -15,7 +16,7 @@ pipx_uvx = true
 
 [tools]
 neovim = ["0.10.1"]
-kubectl = ["1.29.2"]
+kubectl = ["1.30.1"]
 krew = ["0.4.4"]
 kubectx = ["0.9.5"]
 fzf = ["0.52.1"] # used by kubectx interactive mode
@@ -34,7 +35,7 @@ soft-serve = ["0.7.4"]
 python = ["3.11"]
 uv = ["0.4.1"] # faster than pipx, and can be installed with mise directly
 "pipx:flux-local" = ["5.5.1"]
-"pipx:robusta-dev/krr" = ["v1.13.0"]
+"pipx:robusta-dev/krr" = ["v1.17.0"]
 rust = ["1.80.1"]
 "cargo:cargo-binstall" = ["1.10.3"]
 "cargo:atac" = ["0.17.0"]

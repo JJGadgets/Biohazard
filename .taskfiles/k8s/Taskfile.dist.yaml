@@ -131,8 +131,8 @@ tasks:
       # lowercase, used for resource names etc
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g;s/\(_{{.APP}}:=\)/\U\1/g' %
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g' %
 
   shortnames:
     desc: List all installed CRDs and their short names.

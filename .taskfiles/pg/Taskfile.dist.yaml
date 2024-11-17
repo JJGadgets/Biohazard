@@ -127,3 +127,7 @@ tasks:
       NS: *ns-default
     cmds:
       - kubectl get pods -n {{.NS}} -l postgres-operator.crunchydata.com/pgbackrest-dedicated=,postgres-operator.crunchydata.com/cluster={{.PG}} -o name | xargs -oI% kubectl exec -it -n {{.NS}} % -c pgbackrest -- pgbackrest expire --stanza=db --repo=1 --repo1-retention-full=1 --repo1-retention-diff=1
+
+  crunchy-wipe-replicas:
+    cmds:
+      - kubectl get pod -A -l postgres-operator.crunchydata.com/role=replica -o jsonpath='{range .items[*]}{.metadata.namespace}{range .metadata.ownerReferences[*]}{" "}{.name}{"\n"}{end}{end}' | while read -r i; do kubectl delete pvc -n ${i}-pgdata --wait=false; kubectl delete sts -n ${i}; done
