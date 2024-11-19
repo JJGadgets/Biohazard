@@ -6,13 +6,16 @@ metadata:
   name: victoria
   namespace: monitoring
 spec:
+  podMetadata:
+    labels:
+      ingress.home.arpa/nginx-internal: allow
   useStrictSecurity: true
   retentionPeriod: "6" # months if no unit specified
   extraArgs:
     dedup.minScrapeInterval: 60s
     maxLabelsPerTimeseries: "40"
     search.minStalenessInterval: 5m
-    vmalert.proxyURL: http://vmalert-victoria.svc.cluster.local:8080
+    vmalert.proxyURL: http://vmalert-victoria.monitoring.svc.cluster.local.:8080
   storage:
     storageClassName: block
     accessModes: [ReadWriteOnce]
@@ -47,7 +50,7 @@ spec:
     maxLabelsPerTimeseries: "40"
     search.minStalenessInterval: 5m
     storageDataPath: &path /vmdata
-    vmalert.proxyURL: http://vmalert-victoria.svc.cluster.local:8080
+    vmalert.proxyURL: http://vmalert-victoria.monitoring.svc.cluster.local.:8080
   volumes:
     - name: &vol vmsingle-data
       emptyDir:
