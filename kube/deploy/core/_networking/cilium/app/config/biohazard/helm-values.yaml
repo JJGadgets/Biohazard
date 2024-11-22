@@ -106,9 +106,9 @@ bandwidthManager:
 enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
 ### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled
 ### endpointStatus no longer enabled since it can cause large apiserver resource usage and latency spikes, check Cilium docs on alternative
-enableCnpStatusUpdates: false
-endpointStatus:
-  enabled: false
+# enableCnpStatusUpdates: false # REMOVED IN 1.16, left here for others to know
+# endpointStatus:
+#   enabled: false
 # wellKnownIdentities: # for use in netpols, by having well-known endpoint labels # TODO: broken on 1.14?
 #   enabled: true
 
