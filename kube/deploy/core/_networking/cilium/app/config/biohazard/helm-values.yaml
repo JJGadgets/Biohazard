@@ -12,7 +12,7 @@ cgroup:
 ## NOTE: Cluster identification, mainly for ClusterMesh
 cluster:
   name: "biohazard"
-  id: "1"
+  id: 1
 
 ## NOTE: ClusterMesh, for connecting multiple clusters
 # clustermesh:
@@ -85,7 +85,7 @@ bpf:
   masquerade: false # not beneficial for homelab, and tends to conflict with other networking stuff
   tproxy: true # L7 netpols stuff
   #mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
-  policyMapMax: "40960" # 2.5x default, dynamic size ratio doesn't increase this
+  policyMapMax: 40960 # 2.5x default, dynamic size ratio doesn't increase this
 l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
 dnsProxy:
   enableTransparentMode: true
