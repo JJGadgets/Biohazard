@@ -4,7 +4,7 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: main-pool
 spec:
-  cidrs:
+  blocks:
     - cidr: "${IP_LB_CIDR}"
   serviceSelector:
     matchExpressions:
@@ -18,7 +18,7 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: cilium-ingress
 spec:
-  cidrs:
+  blocks:
     - cidr: "${IP_LB_INGRESS_CIDR}"
   serviceSelector:
     matchLabels:
@@ -30,7 +30,7 @@ metadata:
   name: dns
 spec:
   allowFirstLastIPs: "Yes"
-  cidrs:
+  blocks:
     - cidr: "${IP_LB_DNS_CIDR}"
     - cidr: "${APP_IP_BLOCKY}/32"
   serviceSelector:
@@ -42,7 +42,7 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: internal-only
 spec:
-  cidrs:
+  blocks:
     - cidr: "${IP_LB_INTERNAL_CIDR}"
   serviceSelector:
     matchLabels:
@@ -53,7 +53,7 @@ kind: CiliumLoadBalancerIPPool
 metadata:
   name: vm-ad
 spec:
-  cidrs:
+  blocks:
     - cidr: "${IP_AD_CIDR}"
   serviceSelector:
     matchLabels:
