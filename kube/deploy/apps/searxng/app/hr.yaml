@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/searxng/searxng"
-              tag: "latest@sha256:722c308aab81b23c256205ab0cd90de87e8e2d68a3cefc7117250004e49160c9"
+              tag: "latest@sha256:263f20b1d0d8c69898499236577866f0e59648024bbff6d01d36569c5a4c5915"
             command: ["uwsgi", "--master", "--http-socket", "0.0.0.0:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
