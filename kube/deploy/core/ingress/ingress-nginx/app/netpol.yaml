@@ -30,9 +30,6 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-          rules:
-            http:
-              - {}
         - ports:
             - port: "443"
               protocol: TCP
@@ -155,9 +152,6 @@ spec:
               protocol: TCP
             - port: "80"
               protocol: TCP
-          rules:
-            http:
-              - {}
     # connect to Rook-Ceph RGW/S3 object store in-cluster
     - toServices:
         - k8sServiceSelector:
