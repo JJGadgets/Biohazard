@@ -1,5 +1,6 @@
 ---
-cleanState: true
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.16.4/install/kubernetes/cilium/values.schema.json
+cleanState: false
 sleepAfterInit: false
 
 ## NOTE: required for Talos
@@ -40,6 +41,8 @@ routingMode: native
 devices: 'br0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
+endpointRoutes: # supposedly helps with LB routing...? 1.16 introduced a bug where BGP LBs (L2 untested) would randomly timeout requests at unknown intervals, most noticeably is loading SearXNG front page would usually load practically instantly but would be stuck until timeout, FortiGate pcaps show connection does establish but TCP Previous Segment Not Captured
+  enabled: true
 loadBalancer:
   algorithm: maglev
   mode: dsr
@@ -93,7 +96,7 @@ l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
 dnsProxy:
   enableTransparentMode: true
 socketLB:
-  enabled: true # supposed to be default off, but it's enabled anyway, and looks fun lol
+  enabled: false # supposed to be default off, but it's enabled anyway, and looks fun lol
   #hostNamespaceOnly: true # KubeVirt compatibility with k8s services # disabled because KubeVirt VMs now use Multus bridging rather than CNI
 
 bgpControlPlane:
