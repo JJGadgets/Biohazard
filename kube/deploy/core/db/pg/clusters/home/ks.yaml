@@ -55,6 +55,8 @@ spec:
                 type: "AlphaNumeric" # Otherwise, PHP Symfony will throw "this parameter must be defined" errors, e.g. `This parameter "3C+" must be defined`, where 3C+ is a part of the password
             - name: "immich"
               databases: ["immich"]
+            - name: "gotosocial"
+              databases: ["gotosocial"]
           patroni:
             dynamicConfiguration:
               synchronous_mode: true
