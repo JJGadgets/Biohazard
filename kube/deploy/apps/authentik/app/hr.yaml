@@ -293,6 +293,7 @@ spec:
             port: 389
             targetPort: 3389
             protocol: TCP
+            appProtocol: ldap
           ldap-udp:
             <<: *ldap
             protocol: UDP
@@ -300,6 +301,7 @@ spec:
             port: 636
             targetPort: 6636
             protocol: TCP
+            appProtocol: ldaps
           ldaps-udp:
             <<: *ldaps
             protocol: UDP
@@ -311,13 +313,13 @@ spec:
           coredns.io/hostname: "${APP_DNS_AUTHENTIK_RADIUS:=authentik-radius}"
           io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK_RADIUS:=127.0.0.1}"
         ports:
-          radius-udp: &radius
+          radius-tcp: &radius
             port: 1812
-            protocol: UDP
-            appProtocol: radius
-          radius-tcp:
-            <<: *radius
             protocol: TCP
+            appProtocol: radius
+          radius-udp:
+            <<: *radius
+            protocol: UDP
     ingress:
       main:
         className: nginx-external
