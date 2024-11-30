@@ -104,14 +104,17 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
-            #probes:
-            #  liveness:
-            #    enabled: true
-            #  readiness:
-            #    enabled: true
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       worker:
         type: deployment
         replicas: 3
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             db.home.arpa/pg: pg-authentik
@@ -147,6 +150,9 @@ spec:
       ldap:
         type: deployment
         replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             authentik.home.arpa/https: allow
@@ -177,14 +183,17 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "512Mi"
-            #probes:
-            #  liveness:
-            #    enabled: true
-            #  readiness:
-            #    enabled: true
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       radius:
         type: deployment
         replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             authentik.home.arpa/https: allow
@@ -215,11 +224,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "512Mi"
-            #probes:
-            #  liveness:
-            #    enabled: true
-            #  readiness:
-            #    enabled: true
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       redis:
         type: deployment
         replicas: 1
