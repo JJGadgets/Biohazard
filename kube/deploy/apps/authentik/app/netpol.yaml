@@ -25,13 +25,13 @@ spec:
             io.kubernetes.pod.namespace: *app
     # allow Duo
     - toFQDNs:
-        - &duo matchPattern: "api-*.duosecurity.com"
+        - &duo { matchPattern: "api-*.duosecurity.com" }
       toPorts:
         - ports:
             - port: "443"
     # allow AWS SES
     - toFQDNs:
-        - &smtp matchPattern: "email-smtp.*.amazonaws.com"
+        - &smtp { matchPattern: "email-smtp.*.amazonaws.com" }
       toPorts:
         - ports:
             - port: "587"
