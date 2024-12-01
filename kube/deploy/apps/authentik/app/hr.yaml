@@ -107,11 +107,11 @@ spec:
                 memory: "2Gi"
             ports:
               - name: http
-                containerPort: 9000
+                containerPort: &http 9000
               - name: https
-                containerPort: 9443
+                containerPort: &https 9443
               - name: metrics
-                containerPort: 9300
+                containerPort: &metrics 9300
             probes:
               liveness:
                 enabled: true
@@ -269,16 +269,16 @@ spec:
         controller: authentik
         ports:
           http: &port
-            port: http
+            port: *http
             protocol: HTTP
             appProtocol: http
           http-80:
             <<: *port
             port: 80
-            targetPort: http
+            targetPort: *http
           metrics:
             <<: *port
-            port: metrics
+            port: *metrics
       redis:
         primary: false
         controller: redis
@@ -295,7 +295,7 @@ spec:
         ports:
           http:
             port: 443
-            targetPort: https
+            targetPort: *https
             protocol: HTTPS
             appProtocol: https
       ldap:
