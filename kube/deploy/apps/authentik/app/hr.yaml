@@ -117,7 +117,7 @@ spec:
                 enabled: true
                 type: HTTP
                 port: http
-                path: &livepath "/-/health/live/"
+                path: "/-/health/live/"
               readiness:
                 enabled: true
                 type: HTTP
@@ -212,13 +212,17 @@ spec:
                 cpu: "1000m"
                 memory: "512Mi"
             probes:
-              liveness:
+              liveness: &ldap-probe
                 enabled: true
-              readiness:
-                enabled: true
+                custom: true
+                spec: &lps
+                  exec:
+                    command: ["/ldap", "healthcheck"]
+              readiness: *ldap-probe
               startup:
-                enabled: true
-                spec: *startup
+                <<: *ldap-probe
+                spec:
+                  <<: [*startup, *lps]
       radius:
         type: deployment
         replicas: 2
@@ -256,13 +260,17 @@ spec:
                 cpu: "1000m"
                 memory: "512Mi"
             probes:
-              liveness:
+              liveness: &radius-probe
                 enabled: true
-              readiness:
-                enabled: true
+                custom: true
+                spec: &rps
+                  exec:
+                    command: ["/radius", "healthcheck"]
+              readiness: *radius-probe
               startup:
-                enabled: true
-                spec: *startup
+                <<: *radius-probe
+                spec:
+                  <<: [*startup, *rps]
       redis:
         type: deployment
         replicas: 1
