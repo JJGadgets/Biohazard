@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.5.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -9,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.1.0
+      version: 3.5.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -104,11 +105,24 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
+            ports:
+              - name: http
+                containerPort: 9000
+              - name: https
+                containerPort: 9443
+              - name: metrics
+                containerPort: 9300
             probes:
               liveness:
                 enabled: true
+                type: HTTP
+                port: http
+                path: "/-/health/live/"
               readiness:
                 enabled: true
+                type: HTTP
+                port: http
+                path: "/-/health/ready/"
       worker:
         type: deployment
         replicas: 3
@@ -142,11 +156,14 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
-            #probes:
-            #  liveness:
-            #    enabled: true
-            #  readiness:
-            #    enabled: true
+            probes:
+              liveness: &worker-probe
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: ["ak", "healthcheck"]
+              readiness: *worker-probe
       ldap:
         type: deployment
         replicas: 2
@@ -252,16 +269,16 @@ spec:
         controller: authentik
         ports:
           http: &port
-            port: 9000
+            port: http
             protocol: HTTP
             appProtocol: http
           http-80:
             <<: *port
             port: 80
-            targetPort: 9000
+            targetPort: http
           metrics:
             <<: *port
-            port: 9300
+            port: metrics
       redis:
         primary: false
         controller: redis
@@ -278,7 +295,7 @@ spec:
         ports:
           http:
             port: 443
-            targetPort: 9443
+            targetPort: https
             protocol: HTTPS
             appProtocol: https
       ldap:
@@ -324,16 +341,36 @@ spec:
       main:
         className: nginx-external
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_AUTHENTIK:=authentik}"
-            paths: &paths
+            paths:
               - path: /
                 pathType: Prefix
                 service:
                   identifier: authentik
                   port: http
+        tls:
+          - hosts: [*host]
+            secretName: authentik-tls
+      harden:
+        className: nginx-external
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: *host
+            paths:
+              - &path
+                path: /api/v3/policies/expression
+                pathType: Prefix
+                service:
+                  identifier: authentik
+                  port: http
+              - <<: *path
+                path: /api/v3/propertymappings
+              - <<: *path
+                path: /api/v3/managed/blueprints
         tls:
           - hosts: [*host]
             secretName: authentik-tls
