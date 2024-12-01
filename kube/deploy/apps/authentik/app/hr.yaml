@@ -117,7 +117,7 @@ spec:
                 enabled: true
                 type: HTTP
                 port: http
-                path: "/-/health/live/"
+                path: &livepath "/-/health/live/"
               readiness:
                 enabled: true
                 type: HTTP
@@ -125,6 +125,7 @@ spec:
                 path: "/-/health/ready/"
               startup:
                 <<: *probe
+                enabled: true
                 spec: &startup
                   periodSeconds: 1
                   failureThreshold: 300
