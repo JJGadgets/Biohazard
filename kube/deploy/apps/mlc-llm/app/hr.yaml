@@ -28,7 +28,7 @@ spec:
           main: &mlc
             image: &img
               repository: jank.ing/jjgadgets/mlc-llm-nightly
-              tag: 2024.11.30@sha256:3fa209fda40baf6ec6ad7a29baad10b4eca371c6d14b93d6254e2ac309b23cf6
+              tag: 2024.12.01@sha256:a01fcba75446c5ca3fcdf9016bb2bb56b1664327160e26965da396518dd5e345
             args: ["HF://mlc-ai/$(MODEL)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
