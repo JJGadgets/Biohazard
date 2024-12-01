@@ -113,7 +113,7 @@ spec:
               - name: metrics
                 containerPort: &metrics 9300
             probes:
-              liveness:
+              liveness: &probe
                 enabled: true
                 type: HTTP
                 port: http
@@ -123,6 +123,12 @@ spec:
                 type: HTTP
                 port: http
                 path: "/-/health/ready/"
+              startup:
+                <<: *probe
+                spec: &startup
+                  periodSeconds: 1
+                  failureThreshold: 300
+                  initialDelaySeconds: 15
       worker:
         type: deployment
         replicas: 3
@@ -160,10 +166,14 @@ spec:
               liveness: &worker-probe
                 enabled: true
                 custom: true
-                spec:
+                spec: &wps
                   exec:
                     command: ["ak", "healthcheck"]
               readiness: *worker-probe
+              startup:
+                <<: *worker-probe
+                spec:
+                  <<: [*startup, *wps]
       ldap:
         type: deployment
         replicas: 2
@@ -205,6 +215,9 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec: *startup
       radius:
         type: deployment
         replicas: 2
@@ -246,6 +259,9 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec: *startup
       redis:
         type: deployment
         replicas: 1
@@ -264,6 +280,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
       authentik:
         controller: authentik
