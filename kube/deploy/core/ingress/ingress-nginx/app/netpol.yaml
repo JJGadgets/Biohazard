@@ -30,7 +30,6 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-        - ports:
             - port: "443"
               protocol: TCP
             - port: "443"
@@ -46,8 +45,13 @@ spec:
       toPorts:
         - ports:
             - port: "80"
+              protocol: TCP
             - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
             - port: "8443"
+              protocol: TCP
     # allow traffic from CloudFlare's cloudflared tunnel
     - fromEndpoints:
         - matchLabels:
@@ -57,6 +61,9 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
     # allow traffic from pods with egress label
     - fromEndpoints:
         - matchExpressions:
@@ -80,6 +87,9 @@ spec:
       toPorts:
         - ports:
             - port: "10254"
+              protocol: TCP
+            - port: "10254"
+              protocol: UDP
     # allow VictoriaMetrics to scrape
     - fromEndpoints:
         - matchLabels:
@@ -88,15 +98,20 @@ spec:
       toPorts:
         - ports:
             - port: "10254"
+              protocol: TCP
+            - port: "10254"
+              protocol: UDP
   egress:
     # allow access to kube-apiserver to get Ingress/etc resources and push updates
     - toEntities:
         - kube-apiserver
-    - toEntities:
         - host
       toPorts:
         - ports:
             - port: "6443"
+              protocol: TCP
+            - port: "6443"
+              protocol: UDP
     # allow egress to all owned/controlled resources outside cluster
     - toFQDNs:
         - matchPattern: "*.${DNS_MAIN}"
@@ -125,10 +140,15 @@ spec:
       toPorts:
         - ports:
             - port: "80"
+              protocol: "ANY"
             - port: "443"
+              protocol: "ANY"
             - port: "9000"
+              protocol: "ANY"
             - port: "9443"
+              protocol: "ANY"
             - port: "8086"
+              protocol: "ANY"
     # allow ingress-nginx traffic
     - toEndpoints:
         - matchLabels:

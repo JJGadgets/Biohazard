@@ -21,7 +21,8 @@ spec:
             - port: "53"
             - port: "1053"
     - fromEndpoints:
-        - {}
+        - matchLabels:
+            io.kubernetes.pod.namespace: "dns"
       toPorts:
         - ports:
             - port: "53"
