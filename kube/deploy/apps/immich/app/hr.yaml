@@ -177,6 +177,9 @@ spec:
                 memory: "2Gi"
       ml-model-pull-facial:
         <<: *ml-model-pull
+        cronjob:
+          schedule: "@yearly"
+          concurrencyPolicy: "Replace"
         containers:
           main:
             <<: *ml-model-pull-ct
@@ -257,24 +260,12 @@ spec:
               - subPath: thumbs
                 path: /data/thumbs
           microservices: *misc
-          ml-model-pull-clip:
+          ml-model-pull-clip: &mlpvc
             main:
-              - &mlpvc
-                subPath: ml-models-cache
+              - subPath: ml-models-cache
                 path: /cache
-                readOnly: false
-          ml-model-pull-facial:
-            main:
-              - <<: *mlpvc
-          ml:
-            main:
-              - <<: *mlpvc
-                readOnly: true
-      tmp-ml-pull:
-        type: emptyDir
-        globalMounts:
-          - subPath: tmp
-            path: /ml-model-pull-tmp
+          ml-model-pull-facial: *mlpvc
+          ml: *mlpvc # buffalo needs to write to model file to add batch axis
       tmp:
         type: emptyDir
         medium: Memory
