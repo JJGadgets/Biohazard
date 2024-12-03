@@ -106,7 +106,7 @@ spec:
         primary: true
         className: "nginx-internal"
         hosts:
-          - host: &host "${APP_DNS_K8S_SCHEMAS}"
+          - host: &host "${APP_DNS_K8S_SCHEMAS:=schemas}"
             paths:
               - path: /
                 pathType: Prefix

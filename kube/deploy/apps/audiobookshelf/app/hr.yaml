@@ -70,8 +70,8 @@ spec:
       nfs:
         enabled: true
         type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_MEDIA}"
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
         advancedMounts:
           main:
             main:
