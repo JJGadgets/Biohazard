@@ -6,15 +6,16 @@ metadata:
   name: &app external-dns
   namespace: *app
 spec:
-  endpointSelector: {}
+  endpointSelector: &same-ns
+    matchLabels:
+      io.kubernetes.pod.namespace: *app
   ingress:
-    - {}
+    - fromEndpoints: [*same-ns]
   egress:
     - toEntities:
         - world
     - toEntities:
         - kube-apiserver
-    - toEntities:
         - host
       toPorts:
         - ports:
@@ -31,4 +32,4 @@ spec:
               protocol: TCP
           rules:
             dns:
-              - {}
+              - matchPattern: "*"
