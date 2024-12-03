@@ -14,6 +14,8 @@ spec:
     - fromCIDRSet:
         - cidr: "${IP_ROUTER_LAN_CIDR}"
         - cidr: "${IP_WG_USER_1_V4}"
+        - cidr: "${IP_ROUTER_VLAN_K8S}/32"
+        - cidr: "${IP_ROUTER_LAN}/32"
       toPorts:
         - ports:
             - port: "53"
@@ -49,7 +51,6 @@ spec:
             - port: "443"
     - toEntities:
         - kube-apiserver
-    - toEntities:
         - host
       toPorts:
         - ports:
