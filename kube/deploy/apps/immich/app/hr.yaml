@@ -260,12 +260,14 @@ spec:
               - subPath: thumbs
                 path: /data/thumbs
           microservices: *misc
-          ml-model-pull-clip: &mlpvc
+          ml: &mlpvc # buffalo needs to write to model file to add batch axis
             main:
               - subPath: ml-models-cache
                 path: /cache
+              - subPath: matplotlib
+                path: /.config/matplotlib
           ml-model-pull-facial: *mlpvc
-          ml: *mlpvc # buffalo needs to write to model file to add batch axis
+          ml-model-pull-clip: *mlpvc
       tmp:
         type: emptyDir
         medium: Memory
