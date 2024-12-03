@@ -11,7 +11,7 @@ spec:
     name: 1p
   dataFrom:
     - extract:
-        key: "Code Server (${CLUSTER_NAME})"
+        key: "Code Server - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -24,3 +24,4 @@ spec:
         ssh-privkey: |
           {{ .sshPrivKeyB64 | b64dec }}
         ssh-pubkey: "{{ .sshPubKey }}"
+        age.agekey: "{{ .agekey }}"
