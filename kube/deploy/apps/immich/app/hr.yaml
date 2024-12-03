@@ -264,7 +264,9 @@ spec:
             main:
               - subPath: ml-models-cache
                 path: /cache
-              - subPath: matplotlib
+              - subPath: matplotlib-config
+                path: /.config/matplotlib
+              - subPath: matplotlib-cache
                 path: /.config/matplotlib
           ml-model-pull-facial: *mlpvc
           ml-model-pull-clip: *mlpvc
