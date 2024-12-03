@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeeringpolicy_v2alpha1.json
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeeringPolicy
 # MAKE SURE CRDs ARE INSTALLED IN CLUSTER VIA cilium-config ConfigMap OR Cilium HelmRelease/values.yaml (bgpControlPlane.enabled: true), BEFORE THIS IS APPLIED!
@@ -23,12 +24,6 @@ spec:
           gracefulRestart:
             enabled: true
             restartTimeSeconds: 120
-    - localASN: &ec2 ${ASN_EC2_INGRESS}
-      exportPodCIDR: false
-      serviceSelector: *all
-      neighbors:
-        - peerAddress: "${IP_EC2_NON_K8S}/32"
-          peerASN: *ec2
     - localASN: ${ASN_CLUSTER_NODES}
       exportPodCIDR: false
       serviceSelector: *all
