@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/vikunja/vikunja"
-              tag: "0.23.0@sha256:f852e65b62e975a38d8db26c67417903cf7e0d9b533cb2d0a177d37b95375555"
+              tag: "0.24.5@sha256:1fb8454c9c04f3a86d16f9c8b9fa6cdbf685b6e6e3ff1da1d7ff3374bdbe46ad"
             command: ["/sbin/tini", "-g", "--", "/app/vikunja/vikunja"] # bypass entrypoint script, TODO: PR gcr.io/distroless:cc to upstream?
             env:
               VIKUNJA_SERVICE_TIMEZONE: "${CONFIG_TZ}"
