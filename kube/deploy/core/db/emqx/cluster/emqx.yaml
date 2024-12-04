@@ -6,7 +6,7 @@ metadata:
   name: &app emqx
   namespace: emqx
 spec:
-  image: public.ecr.aws/emqx/emqx:5.7.2
+  image: public.ecr.aws/emqx/emqx:5.8.2@sha256:76bc406d14107aa73539178f536c05e4df2f1f54388bbbbc9d846599a51317f9
   config:
     # the `$${env}` in the env var means Flux's Kustomize controller should escape the envsubst and output `${env}` exactly
     data: |
