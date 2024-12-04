@@ -1,16 +1,46 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "commitMessageTopic": "{{depName}}",
-  "commitMessageExtra": "to {{newVersion}}",
+  "commitMessageTopic": "",
+  "semanticCommitScope": "{{datasource}}/{{depName}}",
+  "commitMessageExtra": "{{oldVersion}} ➼ {{newVersion}}",
   "commitMessageSuffix": "",
   "packageRules": [
     {
-      "matchDatasources": ["helm"],
-      "commitMessageTopic": "chart {{depName}}"
+      "matchDatasources": ["docker", "helm"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat({{datasource}}/{{depName}})!: "
     },
     {
-      "matchDatasources": ["docker"],
-      "commitMessageTopic": "image {{depName}}"
+      "matchUpdateTypes": ["minor"],
+      "semanticCommitType": "feat"
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "matchUpdateTypes": ["digest"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(github/{{depName}})!: "
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "semanticCommitScope": "github/{{depName}}"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(gha/{{depName}})!: "
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "semanticCommitScope": "gha/{{depName}}"
     }
   ]
 }

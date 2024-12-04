@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "matchFileNames": ["**/clusters/**"],
+      "additionalBranchPrefix": ["{{ lookup (split (lookup (split packageFileDir 'clusters/') 1) '/') 0 }}/"]
+    }
+    //{
+    //  "matchFileNames": ["kube/clusters/**"],
+    //  "additionalBranchPrefix": ["{{ lookup (split packageFileDir '/') 2 }}/"]
+    //}
+  ]
+}
+
