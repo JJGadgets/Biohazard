@@ -1,9 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "commitMessageTopic": "",
-  "semanticCommitScope": "{{datasource}}/{{depName}}",
-  "commitMessageExtra": "{{oldVersion}} ➼ {{newVersion}}",
   "packageRules": [
+    {
+      "commitMessageTopic": "",
+      "semanticCommitScope": "{{datasource}}/{{depName}}",
+      "commitMessageExtra": "{{oldVersion}} ➼ {{newVersion}}"
+    },
     {
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat({{datasource}}/{{depName}})!: "
@@ -27,7 +29,7 @@
     {
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "{{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}"
+      "commitMessagePrefix": "feat({{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
@@ -40,13 +42,12 @@
     },
     {
       "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
       "semanticCommitScope": "gha/{{depName}}"
     },
     {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat(gha/{{depName}})!: "
-    },
+    }
   ]
 }
