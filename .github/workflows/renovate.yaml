@@ -32,6 +32,10 @@ on:
       - .github/renovate**
       - .github/workflows/renovate.yaml
 
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+
 env:
   LOG_LEVEL: debug
   RENOVATE_DRY_RUN: false
