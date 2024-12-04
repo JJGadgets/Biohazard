@@ -4,7 +4,7 @@
     {
       "commitMessageTopic": "",
       "semanticCommitScope": "{{datasource}}/{{depName}}",
-      "commitMessageExtra": "{{oldVersion}} ➼ {{newVersion}}"
+      "commitMessageExtra": "{{currentVersion}} ➼ {{newVersion}}"
     },
     {
       "matchUpdateTypes": ["major"],
@@ -24,12 +24,12 @@
     },
     {
       "matchDatasources": ["docker"],
-      "semanticCommitScope": "{{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}"
+      "semanticCommitScope": "{{datasource}}/{{#if lookup (split depName '/') 2}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{{else if lookup (split depName '/') 1}}{{ lookup (split depName '/') 1 }}{{else}}{{ lookup (split depName '/') 0 }}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat({{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }})!: "
+      "commitMessagePrefix": "feat({{datasource}}/{{#if lookup (split depName '/') 2}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{{else if lookup (split depName '/') 1}}{{ lookup (split depName '/') 1 }}{{else}}{{ lookup (split depName '/') 0 }}{{/if}})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
