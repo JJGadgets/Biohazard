@@ -12,7 +12,7 @@ users:
       - "github:jjgadgets"
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPkuFpjTwHzP1cw9XDtJOKKROwkZycvAx++w1j/7g2Yr"
 install:
-  image: &img "quay.io/kairos/debian:bookworm-standard-amd64-generic-v2.4.2-k3sv1.28.2-k3s1"
+  image: &img "quay.io/kairos/debian:bookworm-standard-amd64-generic-v2.4.2-k3sv1.28.2-k3s1@sha256:e696192f84a1682a9b8634b6094fea9d8a9d0bf2689c2351cdeb0fbd66632e3c"
   auto: true # for single node without P2P/VPN
   #device: "/dev/sda"
   reboot: true
