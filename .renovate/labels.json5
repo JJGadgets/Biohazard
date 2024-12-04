@@ -22,7 +22,18 @@
     },
     {
       "matchDatasources": ["docker"],
-      "addLabels": ["{{ #if (split depName '/').[2] }}oci/registry/{{ lookup (split depName '/') 0 }}{{/if}}", "{{ #if (split depName '/').[2] }}oci/owner/{{ lookup (split depName '/') 1 }}{{ else if (split depName '/').[1] }}oci/owner/{{ lookup (split depName '/') 0 }}{{/if}}", "oci/image/{{ #if (split depName '/').[2] }}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{ else if (split depName '/').[1] }}{{ lookup (split depName '/') 1 }}{{else}}{{ lookup (split depName '/') 0 }}{{/if}}"]
+      "matchDepNames": ["*"],
+      "addLabels": ["oci/image/{{depName}}"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["**/*"],
+      "addLabels": ["oci/owner/{{ lookup (split depName '/') 0 }}", "oci/image/{{ lookup (split depName '/') 1 }}"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["**/**/**"],
+      "addLabels": ["oci/registry/{{ lookup (split depName '/') 0 }}", "oci/owner/{{ lookup (split depName '/') 1 }}", "oci/image/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"]
     },
     {
       "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
