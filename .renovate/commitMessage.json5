@@ -47,13 +47,13 @@
       "matchDatasources": ["docker"],
       "matchDepNames": ["**/*"],
       "matchUpdateTypes": ["major"],
-      "semanticCommitScope": "feat({{datasource}}/{{ lookup (split depName '/') 1 }})!: "
+      "commitMessagePrefix": "feat({{datasource}}/{{ lookup (split depName '/') 1 }})!: "
     },
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["**/**/**"],
       "matchUpdateTypes": ["major"],
-      "semanticCommitScope": "feat({{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }})!: "
+      "commitMessagePrefix": "feat({{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
