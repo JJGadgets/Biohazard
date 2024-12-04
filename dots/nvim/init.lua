@@ -51,9 +51,22 @@ require("lazy").setup({
   -- # Plugins
   spec = {
     --- colorscheme
-    { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, config = function() vim.cmd([[colorscheme tokyonight-night]]); end, },
+    { "catppuccin/nvim", name = "catppuccin", lazy = false, priority = 1000, opts = {
+      flavour = "mocha",
+      highlight_overrides = { all = function(colors) return {
+        GitSignsAddLnInline = { fg = colors.teal, style = { "underdotted" } },
+        GitSignsChangeLnInline = { fg = colors.yellow, style = { "underdotted" } },
+      } end }, -- without this, word_diff inline changes become dark/light text no background
+      integrations = {
+        navic = { enabled = true },
+        mason = true,
+      },
+    }},
+    -- { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, },
     --- on-screen key prompts
     { "folke/which-key.nvim", event = "VeryLazy", opts = {} },
+    -- fancy
+    -- { 'rasulomaroff/reactive.nvim' },
     --- rainbow indents
     { "HiPhish/rainbow-delimiters.nvim", event = { "BufReadPre", "BufNewFile" }, },
     { "lukas-reineke/indent-blankline.nvim",
@@ -377,6 +390,10 @@ require("lazy").setup({
         --:lua vim.notify(vim.inspect(require('lspconfig').util.get_config_by_ft(vim.bo.filetype)))
       end
     },
+    --- LSP Context Breadcrumbs
+    { "SmiteshP/nvim-navic", lazy = true, opts = { highlight = true, click = true, lsp = { auto_attach = true } } },
+    { "utilyre/barbecue.nvim", name = "barbecue", version = "*", event = { "LspAttach" }, dependencies = { "SmiteshP/nvim-navic", }, opts = { theme = "catppuccin", } },
+    { "SmiteshP/nvim-navbuddy", dependencies = { "MunifTanjim/nui.nvim", "SmiteshP/nvim-navic" }, event = { "LspAttach" }, opts = { lsp = { auto_attach = true } } },
     -- Org
     { 'nvim-orgmode/orgmode', ft = { 'org' }, opts = {
       org_agenda_files = '~/notes/**/*',
@@ -389,9 +406,17 @@ require("lazy").setup({
     --}},
     { "akinsho/org-bullets.nvim", ft = { "org" }, opts = {} },
     { "lukas-reineke/headlines.nvim", ft = { "org" }, opts = {} }, -- uses treesitter
+    -- Caddyfile
+    { 'isobit/vim-caddyfile', config = function()
+    end },
+    -- something
+    -- { "SmiteshP/nvim-navic" },
+    -- { "utilyre/barbecue.nvim" },
   },
 })
 
+-- colorscheme
+vim.cmd.colorscheme "catppuccin"
 -- start rainbow_delimiters
 vim.g.rainbow_delimiters = {}
 -- use nvim-notify for notifications
