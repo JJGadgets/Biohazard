@@ -3,10 +3,8 @@
   "commitMessageTopic": "",
   "semanticCommitScope": "{{datasource}}/{{depName}}",
   "commitMessageExtra": "{{oldVersion}} ➼ {{newVersion}}",
-  "commitMessageSuffix": "",
   "packageRules": [
     {
-      "matchDatasources": ["docker", "helm"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat({{datasource}}/{{depName}})!: "
     },
@@ -23,24 +21,32 @@
       "semanticCommitType": "chore"
     },
     {
+      "matchDatasources": ["docker"],
+      "semanticCommitScope": "{{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "{{datasource}}/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}"
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "semanticCommitScope": "github/{{depName}}"
+    },
+    {
       "matchDatasources": ["github-releases", "github-tags"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat(github/{{depName}})!: "
     },
     {
-      "matchDatasources": ["github-releases", "github-tags"],
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
-      "semanticCommitScope": "github/{{depName}}"
+      "semanticCommitScope": "gha/{{depName}}"
     },
     {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat(gha/{{depName}})!: "
     },
-    {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "semanticCommitScope": "gha/{{depName}}"
-    }
   ]
 }
