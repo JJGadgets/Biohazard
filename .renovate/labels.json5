@@ -22,7 +22,7 @@
     },
     {
       "matchDatasources": ["docker"],
-      "addLabels": ["{{ #if (lookup (split depName '/') 2) }}oci/registry/{{ lookup (split depName '/') 0 }}{{/if}}", "{{ #if (lookup (split depName '/') 2) }}oci/owner/{{ lookup (split depName '/') 1 }}{{ else if (lookup (split depName '/') 1) }}oci/owner/{{ lookup (split depName '/') 0 }}{{/if}}", "oci/image/{{ #if (lookup (split depName '/') 2) }}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{ else if (lookup (split depName '/') 1) }}{{ lookup (split depName '/') 1 }}{{else}}{{ lookup (split depName '/') 0 }}{{/if}}"]
+      "addLabels": ["{{ #if (split depName '/').[2] }}oci/registry/{{ lookup (split depName '/') 0 }}{{/if}}", "{{ #if (split depName '/').[2] }}oci/owner/{{ lookup (split depName '/') 1 }}{{ else if (split depName '/').[1] }}oci/owner/{{ lookup (split depName '/') 0 }}{{/if}}", "oci/image/{{ #if (split depName '/').[2] }}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{ else if (split depName '/').[1] }}{{ lookup (split depName '/') 1 }}{{else}}{{ lookup (split depName '/') 0 }}{{/if}}"]
     },
     {
       "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
