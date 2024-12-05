@@ -4,7 +4,7 @@
     {
       "commitMessageTopic": "",
       "semanticCommitScope": "{{datasource}}/{{depName}}",
-      "commitMessageExtra": "{{currentVersion}} ➼ {{newVersion}}"
+      "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"
     },
     {
       "matchUpdateTypes": ["major"],
