@@ -157,9 +157,9 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_HOME_ASSISTANT:=1000}
-        runAsGroup: *uid
-        fsGroup: *uid
+        runAsUser: 65534
+        runAsGroup: &gid 65533
+        fsGroup: *gid
         fsGroupChangePolicy: "Always"
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
