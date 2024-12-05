@@ -37,9 +37,7 @@ spec:
       SC: "file"
       SNAP: "file"
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_HOME_ASSISTANT}
-      RGID: !!str |
-        ${APP_UID_HOME_ASSISTANT}
-      RFSG: !!str |
-        ${APP_UID_HOME_ASSISTANT}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: "65534"
+      RGID: &gid "65533"
+      RFSG: *gid
