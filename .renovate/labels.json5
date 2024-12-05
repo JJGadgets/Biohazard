@@ -16,10 +16,10 @@
       "matchFileNames": ["kube/deploy/**"],
       "addLabels": ["kube/deploy/{{ lookup (split packageFileDir '/') 2 }}"]
     },
-    {
-      "matchDatasources": ["!docker"],
-      "addLabels": ["renovate/{{datasource}}/{{depNameSanitized}}"]
-    },
+    //{
+    //  "matchDatasources": ["!docker"],
+    //  "addLabels": ["renovate/{{datasource}}/{{depNameSanitized}}"]
+    //},
     //{
     //  "matchDatasources": ["docker"],
     //  "matchDepNames": ["*"],
