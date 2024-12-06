@@ -219,37 +219,6 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: wait.flux.home.arpa/disabled=true
-    #- patch: |-
-    #    apiVersion: kustomize.toolkit.fluxcd.io/v1
-    #    kind: Kustomization
-    #    metadata:
-    #      name: not-used
-    #    spec:
-    #      patches:
-    #        - patch: |-
-    #            - op: add
-    #              path: "/metadata/labels"
-    #              value:
-    #                kustomize.toolkit.fluxcd.io/prune: "disabled"
-    #            - op: add
-    #              path: "/metadata/labels/kustomize.toolkit.fluxcd.io~1prune"
-    #              value: "disabled"
-    #          target:
-    #            kind: Namespace
-    #        - patch: |-
-    #            - op: add
-    #              path: "/metadata/labels"
-    #              value:
-    #                kustomize.toolkit.fluxcd.io/prune: "disabled"
-    #            - op: add
-    #              path: "/metadata/labels/kustomize.toolkit.fluxcd.io~1prune"
-    #              value: "disabled"
-    #          target:
-    #            kind: PersistentVolumeClaim
-    #  target:
-    #    group: kustomize.toolkit.fluxcd.io
-    #    kind: Kustomization
-    #    labelSelector: kustomization.flux.home.arpa/prunepatches notin (false)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
