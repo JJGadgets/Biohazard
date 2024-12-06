@@ -71,6 +71,17 @@ jobs:
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
 
+      - name: Renovate Cache
+        id: renovate-cache
+        uses: actions/cache@v4
+        if: github.event.inputs.cache != 'disabled'
+        continue-on-error: true
+        with:
+          path: "${{ env.GH_CACHE_DIR }}"
+          key: "renovate-cache-${{ runner.os }}-${{ github.run_id }}"
+          restore-keys: |
+            renovate-cache-${{ runner.os }}
+
       - name: Glue
         shell: bash
         run: |
@@ -84,17 +95,6 @@ jobs:
           # UID from https://github.com/renovatebot/renovate/blob/9c999fb13e8746830a0c163bad9c244b0b926c6a/tools/docker/Dockerfile#L114
           mkdir -p /tmp/renovate
           sudo chown -R 12021:$(id -g) /tmp/renovate
-
-      - name: Renovate Cache
-        id: renovate-cache
-        uses: actions/cache@v4
-        if: github.event.inputs.cache != 'disabled'
-        continue-on-error: true
-        with:
-          path: "${{ env.GH_CACHE_DIR }}"
-          key: "renovate-cache-${{ runner.os }}-${{ github.run_id }}"
-          restore-keys: |
-            renovate-cache-${{ runner.os }}
 
       - name: Renovate
         uses: renovatebot/github-action@936628dfbff213ab2eb95033c5e123cfcaf09ebb # v41.0.5
