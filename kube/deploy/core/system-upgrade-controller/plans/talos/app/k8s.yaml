@@ -5,7 +5,7 @@ metadata:
   name: kubernetes
 spec:
   # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-  version: "v1.29.2"
+  version: "v1.29.11"
   serviceAccountName: system-upgrade
   secrets:
     - name: talos
@@ -27,7 +27,7 @@ spec:
       operator: Exists
       effect: NoSchedule
   prepare: &prepare
-    image: "registry.k8s.io/kubectl:v1.29.2@sha256:ac66c804f411269a1caa8cc907447fcd00a4476cfb627a4756845c85e685a671"
+    image: "registry.k8s.io/kubectl:v1.29.11@sha256:6f807e3df3336fbab09120fd8c1b8a99213940fd1f248a8390e615486837a900"
     args: # if Ceph is completely healthy, surely k8s is healthy, right?
       - "wait"
       - "--timeout=300s"
