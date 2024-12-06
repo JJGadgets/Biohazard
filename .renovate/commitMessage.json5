@@ -3,7 +3,7 @@
   "packageRules": [
     {
       "commitMessageTopic": "",
-      "semanticCommitScope": "{{datasource}}/{{depName}}",
+      "semanticCommitScope": "{{datasource}}/{{#if groupName}}{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}",
       "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"
     },
     {
@@ -25,54 +25,54 @@
     {
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{depName}}"
+      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*"],
       "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{ lookup (split depName '/') 1 }}"
+      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"
+      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{depName}})!: "
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     },
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{ lookup (split depName '/') 1 }})!: "
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}})!: "
     },
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }})!: "
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
-      "semanticCommitScope": "github/{{depName}}"
+      "semanticCommitScope": "github/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(github/{{depName}})!: "
+      "commitMessagePrefix": "feat(github/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     },
     {
       "matchManagers": ["github-actions"],
-      "semanticCommitScope": "gha/{{depName}}"
+      "semanticCommitScope": "gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
     },
     {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(gha/{{depName}})!: "
+      "commitMessagePrefix": "feat(gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     }
   ]
 }

@@ -23,7 +23,7 @@
       "automerge": true,
       "automergeType": "branch",
       "ignoreTests": true,
-      "labels": ["renovate-itself"]
+      "addLabels": ["renovate-itself"]
     },
     {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
@@ -34,14 +34,12 @@
       "matchFileNames": ["kube/deploy/apps/**"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
-      "labels": ["kube-deploy-apps"]
     },
     {
       "description": "Don't auto merge specific apps in path ./kube/deploy/apps",
       "matchPackagePatterns": ["reactive-resume", "home-assistant"],
       "automerge": false,
       "matchFileNames": ["kube/deploy/apps/**"],
-      "labels": ["kube-deploy-apps"]
     },
     {
       "description": "Cilium Group",
@@ -51,9 +49,6 @@
       "sourceUrl": "https://github.com/cilium/cilium",
       "separateMinorPatch": true,
       "pinDigests": false,
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
     },
     {
       "description": "Flux Group",
@@ -63,9 +58,6 @@
       "versioning": "semver",
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2",
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
     },
     {
       "description": "Flux Group (Automerge Patch)",
@@ -78,22 +70,15 @@
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch",
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
     },
     {
       "description": "authentik Group",
       "groupName": "authentik",
       "matchPackagePatterns": ["authentik"],
-      "labels": ["authentik"],
       "sourceUrl": "https://github.com/goauthentik/authentik",
       "automerge": false,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
     },
     {
       "description": "Immich Group",
@@ -102,9 +87,6 @@
       "versioning": "semver",
       "sourceUrl": "https://github.com/immich-app/immich",
       "separateMinorPatch": true,
-      "group": {
-        "commitMessageTopic": "{{{groupName}}} group"
-      }
     },
     {
       "description": "Manually approve app-template major releases",
@@ -117,8 +99,6 @@
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
       "groupName": "app-template-major",
-      "commitMessagePrefix": "feat(app-template/major)!: ",
-      "labels": ["app-template", "major"]
     },
     {
       "description": "Auto merge patch app-template versions",
@@ -133,8 +113,6 @@
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
       "groupName": "app-template-patch",
-      "commitMessagePrefix": "fix(app-template/patch): ",
-      "labels": ["app-template", "patch"]
     },
     {
       "description": "Don't automerge app-template minor releases",
@@ -147,8 +125,6 @@
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
       "groupName": "app-template-minor",
-      "commitMessagePrefix": "feat(app-template/minor): ",
-      "labels": ["app-template", "major"]
     },
     {
       "description": "Miniflux enforce distroless images",
@@ -168,8 +144,8 @@
       "matchFileNames": ["kube/deploy/core/**"],
       "automerge": false, // enforce no automerge
       "separateMultipleMajor": true,
-      "separateMinorPatch": true,
-      "labels": ["kube-deploy-core"]
+      "separateMinorPatch": true
+      // labels handled in label subconfig
     },
     {
       "description": "Auto merge my own images with release dates as versions, these are images I couldn't think of a better way to do versioning because of too many moving parts",
