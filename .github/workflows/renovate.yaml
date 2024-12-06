@@ -72,7 +72,6 @@ jobs:
           token: "${{ steps.oauth-token.outputs.token }}"
 
       - name: Glue
-        uses: renovatebot/github-action@936628dfbff213ab2eb95033c5e123cfcaf09ebb # v41.0.5
         shell: bash
         run: |
           # Override default config from dispatch variables
