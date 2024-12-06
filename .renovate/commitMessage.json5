@@ -24,22 +24,22 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["**/**/**"],
-      "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"
-    },
-    {
-      "matchDatasources": ["docker"],
-      "matchDepNames": ["**/*"],
+      "matchDepNames": ["**/*", "!**/**/**"],
       "matchUpdateTypes": ["!major"],
       "semanticCommitScope": "oci/{{ lookup (split depName '/') 1 }}"
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["*"],
+      "matchDepNames": ["**/**/**", "**/*"],
       "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{depName}}"
+      "semanticCommitScope": "oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"
     },
+    //{
+    //  "matchDatasources": ["docker"],
+    //  "matchDepNames": ["*"],
+    //  "matchUpdateTypes": ["!major"],
+    //  "semanticCommitScope": "oci/{{depName}}"
+    //},
     {
       "matchDatasources": ["docker"],
       "matchDepNames": ["**/**/**"],
