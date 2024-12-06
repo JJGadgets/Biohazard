@@ -24,39 +24,37 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["**/*", "!**/**/**"],
+      "matchUpdateTypes": ["!major"],
+      "semanticCommitScope": "oci/{{depName}}"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["*/*"],
       "matchUpdateTypes": ["!major"],
       "semanticCommitScope": "oci/{{ lookup (split depName '/') 1 }}"
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["**/**/**", "**/*"],
+      "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["!major"],
       "semanticCommitScope": "oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"
     },
-    //{
-    //  "matchDatasources": ["docker"],
-    //  "matchDepNames": ["*"],
-    //  "matchUpdateTypes": ["!major"],
-    //  "semanticCommitScope": "oci/{{depName}}"
-    //},
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["**/**/**"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }})!: "
+      "commitMessagePrefix": "feat(oci/{{depName}})!: "
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["**/*"],
+      "matchDepNames": ["*/*"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat(oci/{{ lookup (split depName '/') 1 }})!: "
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["*"],
+      "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{depName}})!: "
+      "commitMessagePrefix": "feat(oci/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
