@@ -29,15 +29,15 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["*/*"],
-      "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}}"
-    },
-    {
-      "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["!major"],
       "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}}"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["*/*"],
+      "matchUpdateTypes": ["!major"],
+      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
@@ -46,15 +46,15 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchDepNames": ["*/*"],
-      "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}})!: "
-    },
-    {
-      "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["major"],
       "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}})!: "
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["*/*"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 1 }}{{/if}})!: "
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],

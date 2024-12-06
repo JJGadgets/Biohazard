@@ -39,7 +39,7 @@
       "description": "Don't auto merge specific apps in path ./kube/deploy/apps",
       "matchPackagePatterns": ["reactive-resume", "home-assistant"],
       "automerge": false,
-      "matchFileNames": ["kube/deploy/apps/**"],
+      "matchFileNames": ["kube/deploy/apps/**"]
     },
     {
       "description": "Cilium Group",
@@ -48,7 +48,7 @@
       "versioning": "semver",
       "sourceUrl": "https://github.com/cilium/cilium",
       "separateMinorPatch": true,
-      "pinDigests": false,
+      "pinDigests": false
     },
     {
       "description": "Flux Group",
@@ -57,7 +57,7 @@
       "matchDatasources": ["docker", "github-tags"],
       "versioning": "semver",
       "separateMinorPatch": true,
-      "sourceUrl": "https://github.com/fluxcd/flux2",
+      "sourceUrl": "https://github.com/fluxcd/flux2"
     },
     {
       "description": "Flux Group (Automerge Patch)",
@@ -69,7 +69,7 @@
       "matchUpdateTypes": ["patch"],
       "automerge": true,
       "automergeType": "pr",
-      "rebaseWhen": "behind-base-branch",
+      "rebaseWhen": "behind-base-branch"
     },
     {
       "description": "authentik Group",
@@ -78,7 +78,7 @@
       "sourceUrl": "https://github.com/goauthentik/authentik",
       "automerge": false,
       "separateMultipleMajor": true,
-      "separateMinorPatch": true,
+      "separateMinorPatch": true
     },
     {
       "description": "Immich Group",
@@ -86,7 +86,24 @@
       "matchPackagePatterns": ["immich"],
       "versioning": "semver",
       "sourceUrl": "https://github.com/immich-app/immich",
-      "separateMinorPatch": true,
+      "separateMinorPatch": true
+    },
+    {
+      "description": "1Password Group",
+      "groupName": "1Password",
+      "matchPackagePatterns": ["1password"],
+      "versioning": "semver"
+    },
+    {
+      "description": "Talos",
+      "matchPackageNames": ["**siderolabs/installer"],
+      "overrideDepName": "{{{ replace 'installer' 'talos' depName }}}"
+    },
+    {
+      "description": "Kubernetes Group",
+      "groupName": "Kubernetes",
+      "matchPackagePatterns": ["kubelet", "kubectl", "kube-apiserver"],
+      "versioning": "semver"
     },
     {
       "description": "Manually approve app-template major releases",
@@ -98,7 +115,7 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "groupName": "app-template-major",
+      "groupName": "app-template-major"
     },
     {
       "description": "Auto merge patch app-template versions",
@@ -112,7 +129,7 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "groupName": "app-template-patch",
+      "groupName": "app-template-patch"
     },
     {
       "description": "Don't automerge app-template minor releases",
@@ -124,7 +141,7 @@
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
       "separateMinorPatch": true,
-      "groupName": "app-template-minor",
+      "groupName": "app-template-minor"
     },
     {
       "description": "Miniflux enforce distroless images",
