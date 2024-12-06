@@ -71,14 +71,20 @@ jobs:
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
 
-      - name: Override default config from dispatch variables
+      - name: Glue
+        uses: renovatebot/github-action@936628dfbff213ab2eb95033c5e123cfcaf09ebb # v41.0.5
         shell: bash
         run: |
+          # Override default config from dispatch variables
           echo "RENOVATE_DRY_RUN=${{ github.event.inputs.dryRun || env.RENOVATE_DRY_RUN }}" >> "${GITHUB_ENV}"
           echo "LOG_LEVEL=${{ github.event.inputs.logLevel || env.LOG_LEVEL }}" >> "${GITHUB_ENV}"
           echo "RENOVATE_REPOSITORY_CACHE=${{ github.event.inputs.cache || env.RENOVATE_REPOSITORY_CACHE }}" >> "${GITHUB_ENV}"
           if [[ ! -z "${{ github.event.inputs.paths }}" ]]; then echo "RENOVATE_INCLUDE_PATHS=${{ github.event.inputs.paths }}" >> "${GITHUB_ENV}"; fi
           if [[ ! -z "${{ github.event.inputs.managers }}" ]]; then echo "RENOVATE_ENABLED_MANAGERS=${{ github.event.inputs.managers }}" >> "${GITHUB_ENV}"; fi
+          # chown /tmp/renovate due to cache screwing permissions
+          mkdir -p /tmp/renovate
+          id
+          chown -R $(id -u):$(id -g) /tmp/renovate
 
       - name: Renovate Cache
         id: renovate-cache
