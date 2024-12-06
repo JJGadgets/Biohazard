@@ -17,5 +17,5 @@ spec:
   postBuild:
     substitute:
       # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-      TALOS_VERSION: "v1.6.4"
+      TALOS_VERSION: "v1.6.8"
       TALOS_IMAGE: "factory.talos.dev/installer/fb46591af14131d1c3ae89c8ce50f0fd6705113d0493a90cd06b8c1d669c9199" # TODO: make custom talosctl image to make this dynamic per-node
