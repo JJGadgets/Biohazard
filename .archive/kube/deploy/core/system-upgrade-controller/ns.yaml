@@ -5,6 +5,6 @@ metadata:
   name: system-upgrade-controller
   labels:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    pod-security.kubernetes.io/enforce: &ps privileged
+    pod-security.kubernetes.io/enforce: &ps restricted # prevent pods from running for now
     pod-security.kubernetes.io/audit: *ps
     pod-security.kubernetes.io/warn: *ps
