@@ -21,7 +21,7 @@ spec:
       neighbors:
         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: *router
-          authSecretRef: cilium-bgp-password-router
+          # authSecretRef: cilium-bgp-password-router # doesn't work with FortiGate, reason unknown
           gracefulRestart:
             enabled: true
             restartTimeSeconds: 120
