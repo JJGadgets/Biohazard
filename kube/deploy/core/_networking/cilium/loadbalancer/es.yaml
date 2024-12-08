@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name cilium-bgp-password-router
+  namespace: kube-system
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Cilium - ${CLUSTER_NAME}"
+        # key: "Cilium - biohazard"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        password: '{{ .SECRET_CILIUM_BGP_PASSWORD_ROUTER }}'
+
