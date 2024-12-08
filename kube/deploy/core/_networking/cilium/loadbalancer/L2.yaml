@@ -4,12 +4,15 @@ kind: CiliumL2AnnouncementPolicy
 metadata:
   name: "l2"
 spec:
-  externalIPs: true
+  # externalIPs: true
   loadBalancerIPs: true # as a backup to BGP
   nodeSelector:
     matchLabels:
       kubernetes.io/os: "linux"
   serviceSelector:
-    matchExpressions:
-      - key: "io.cilium/l2"
-        operator: Exists
+        matchExpressions:
+          - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
+          - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
+    # matchExpressions:
+    #   - key: "io.cilium/l2"
+    #     operator: Exists
