@@ -43,9 +43,9 @@ autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 endpointRoutes: # supposedly helps with LB routing...? 1.16 introduced a bug where BGP LBs (L2 untested) would randomly timeout requests at unknown intervals, most noticeably is loading SearXNG front page would usually load practically instantly but would be stuck until timeout, FortiGate pcaps show connection does establish but TCP Previous Segment Not Captured
   enabled: true
-# loadBalancer:
-#   algorithm: maglev
-#   mode: dsr
+loadBalancer:
+  algorithm: maglev
+  mode: dsr
 ### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
 # routingMode: tunnel
 # tunnelProtocol: geneve
