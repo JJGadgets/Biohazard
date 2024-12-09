@@ -35,6 +35,27 @@ kubeProxyReplacement: true
 k8sServiceHost: "127.0.0.1"
 k8sServicePort: "7445"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+enableIPv4Masquerade: false # BGP advertise PodCIDR so only FortiGate does NAT
+directRoutingSkipUnreachable: true # use local L2 within cluster while outside cluster uses BGP
+bpf:
+  masquerade: true
+  # hostLegacyRouting: true # so pods can use the normal Linux routing table from the host
+  tproxy: true # L7 netpols stuff
+  preallocateMaps: true # reduce latency, increased memory usage
+  policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
+  enableTCX: true # testing if it causes Cilium 1.16 BGP LB timeouts
+l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
+socketLB:
+  enabled: true # faster and more direct same-node pod routing than tc/tcx # supposed to be default off, but it's enabled anyway if unspecified, and looks fun lol
+  #hostNamespaceOnly: true # KubeVirt compatibility with k8s services # disabled because KubeVirt VMs now use Multus bridging rather than CNI
+enableIPv4BIGTCP: true
+enableIPv6BIGTCP: true
+bandwidthManager:
+  enabled: true
+  bbr: true
+localRedirectPolicy: false
+nodePort:
+  enabled: false
 
 ## Multus compatibility
 cni:
@@ -52,30 +73,11 @@ l2announcements:
   enabled: false
 
 ## NOTE: Cilium additional features and/or CRDs
-bpf:
-  masquerade: true
-  # hostLegacyRouting: true # so pods can use the normal Linux routing table from the host
-  tproxy: true # L7 netpols stuff
-  preallocateMaps: true # reduce latency, increased memory usage
-  policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
-  enableTCX: true # testing if it causes Cilium 1.16 BGP LB timeouts
-l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
-socketLB:
-  enabled: true # faster and more direct same-node pod routing than tc/tcx # supposed to be default off, but it's enabled anyway if unspecified, and looks fun lol
-  #hostNamespaceOnly: true # KubeVirt compatibility with k8s services # disabled because KubeVirt VMs now use Multus bridging rather than CNI
 
 bgpControlPlane:
   enabled: true
   ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
   ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
-localRedirectPolicy: false
-nodePort:
-  enabled: false
-bandwidthManager:
-  enabled: false
-  bbr: false # enable after Talos kernel updated to >= 5.18
-enableIPv4BIGTCP: true
-enableIPv6BIGTCP: true
 
 ## NOTE: Hubble observability
 hubble:

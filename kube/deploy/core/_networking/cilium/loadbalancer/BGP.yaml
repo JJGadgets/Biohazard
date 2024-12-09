@@ -93,7 +93,6 @@ metadata:
   labels:
     bgp.home.arpa/peer: ciel
 spec:
-  #
   advertisements:
     - advertisementType: Service
       service:
@@ -102,3 +101,11 @@ spec:
         matchExpressions:
           - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
           - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
+    - advertisementType: Service
+      service:
+        addresses: [ClusterIP]
+      selector:
+        matchExpressions:
+          - {key: io.cilium/clusterip, operator: NotIn, values: ["deny", "false"]}
+    - advertisementType: PodCIDR
+
