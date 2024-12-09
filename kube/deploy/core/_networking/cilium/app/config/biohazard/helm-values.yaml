@@ -56,7 +56,7 @@ bpf:
   masquerade: true
   hostLegacyRouting: true # so pods can use the normal Linux routing table from the host
   tproxy: true # L7 netpols stuff
-  preallocateMaps: true # reduce latency, increased memory usage
+  # preallocateMaps: true # reduce latency, increased memory usage
   policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
   enableTCX: true # testing if it causes Cilium 1.16 BGP LB timeouts
 l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
