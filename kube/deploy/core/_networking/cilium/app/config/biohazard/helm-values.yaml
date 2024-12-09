@@ -1,7 +1,5 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.16.4/install/kubernetes/cilium/values.schema.json
-cleanState: false
-sleepAfterInit: false
 
 ## NOTE: required for Talos
 securityContext:
@@ -18,27 +16,9 @@ cluster:
   name: "biohazard"
   id: 1
 
-## NOTE: ClusterMesh, for connecting multiple clusters
-# clustermesh:
-#   useAPIServer: true
-#   apiserver:
-#     replicas: 1
-#     service:
-#       type: "NodePort"
-#       nodePort: 32371
-#       # type: "LoadBalancer"
-#       # annotations:
-#       #   "io.cilium/lb-ipam-ips": "${IP_CILIUM_CLUSTERMESH_BIOHAZARD}"
-#   config:
-#     enabled: true
-#     clusters:
-#       - name: "hercules"
-#         port: 32372
-#         ips: ["${IP_HERCULES}"]
-
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 routingMode: native
-devices: 'br0' # use specific VLAN # TODO: figure out how to regex to match all interfaces with VLAN 58
+devices: 'br0'
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
 endpointRoutes: # supposedly helps with LB routing...? 1.16 introduced a bug where BGP LBs (L2 untested) would randomly timeout requests at unknown intervals, most noticeably is loading SearXNG front page would usually load practically instantly but would be stuck until timeout, FortiGate pcaps show connection does establish but TCP Previous Segment Not Captured
@@ -46,14 +26,6 @@ endpointRoutes: # supposedly helps with LB routing...? 1.16 introduced a bug whe
 loadBalancer:
   algorithm: maglev
   mode: dsr
-### using Geneve tunnel for simpler routing and easier ClusterMesh across WireGuard
-# routingMode: tunnel
-# tunnelProtocol: geneve
-# loadBalancer:
-#   algorithm: maglev
-#   mode: dsr
-#   dsrDispatch: geneve
-  # acceleration: best-effort
 
 ## NOTE: Cilium's networking internals
 ipam:
@@ -64,7 +36,6 @@ k8sServiceHost: "127.0.0.1"
 k8sServicePort: "7445"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 
-
 ## Multus compatibility
 cni:
   exclusive: false
@@ -74,31 +45,23 @@ rollOutCiliumPods: true
 operator:
   rollOutPods: true
 
-## NOTE: Cilium L2 LoadBalancer service IP announcements
+## NOTE: Cilium L2 LoadBalancer service IP announcements # disabled since it seems to cause noticeable apiserver usage increase to the point of causing stuck endpoint creation
 externalIPs:
-  enabled: true
+  enabled: false
 l2announcements:
   enabled: false
-#  leaseDuration: "120s"
-#  leaseRenewDeadline: "60s"
-#  leaseRetryPeriod: "1s"
-#k8sClientRateLimit: # I set this high so I don't have to think about it later LOL
-#  qps: 50
-#  burst: 100
 
 ## NOTE: Cilium additional features and/or CRDs
 bpf:
-  masquerade: true # not beneficial for homelab, and tends to conflict with other networking stuff
+  masquerade: true
+  hostLegacyRouting: true # so pods can use the normal Linux routing table from the host
   tproxy: true # L7 netpols stuff
-  #mapDynamicSizeRatio: "0.005" # Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing
-  policyMapMax: 40960 # 2.5x default, dynamic size ratio doesn't increase this
-  enableTCX: false # testing if it causes Cilium 1.16 BGP LB timeouts
-  hostLegacyRouting: true
+  preallocateMaps: true # reduce latency, increased memory usage
+  policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
+  enableTCX: true # testing if it causes Cilium 1.16 BGP LB timeouts
 l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
-dnsProxy:
-  enableTransparentMode: true
 socketLB:
-  enabled: false # supposed to be default off, but it's enabled anyway, and looks fun lol
+  enabled: true # faster and more direct same-node pod routing than tc/tcx # supposed to be default off, but it's enabled anyway if unspecified, and looks fun lol
   #hostNamespaceOnly: true # KubeVirt compatibility with k8s services # disabled because KubeVirt VMs now use Multus bridging rather than CNI
 
 bgpControlPlane:
@@ -111,14 +74,8 @@ nodePort:
 bandwidthManager:
   enabled: false
   bbr: false # enable after Talos kernel updated to >= 5.18
-enableIPv6BIGTCP: false # cannot enable if routingMode=tunnel
-### `kubectl get` and `kubectl describe` will reflect CiliumNetworkPolicy (policy enforcement etc) with the below enabled
-### endpointStatus no longer enabled since it can cause large apiserver resource usage and latency spikes, check Cilium docs on alternative
-# enableCnpStatusUpdates: false # REMOVED IN 1.16, left here for others to know
-# endpointStatus:
-#   enabled: false
-# wellKnownIdentities: # for use in netpols, by having well-known endpoint labels # TODO: broken on 1.14?
-#   enabled: true
+enableIPv4BIGTCP: true
+enableIPv6BIGTCP: true
 
 ## NOTE: Hubble observability
 hubble:
@@ -131,3 +88,5 @@ hubble:
   ui:
     enabled: true
     rollOutPods: true
+
+### endpointStatus + enableCnpStatusUpdates no longer enabled since it can cause large apiserver resource usage and latency spikes, removed from Cilium 1.16, since netpols now have validation status
