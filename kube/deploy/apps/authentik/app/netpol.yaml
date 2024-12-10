@@ -90,9 +90,12 @@ spec:
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
-      toPorts:
+      toPorts: &port
         - ports:
             - port: "6636"
+    - fromCIDRSet:
+        - cidr: "${IP_ROUTER_VLAN_K8S}/32"
+      toPorts: *port
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
