@@ -2,19 +2,41 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: external-snapshotter-controller
+  name: external-snapshotter
   namespace: flux-system
 spec:
-  interval: 10m0s
+  interval: 1h
   url: https://github.com/kubernetes-csi/external-snapshotter.git
   ref:
-    #branch: release-6.2
     tag: v6.3.4
   ignore: |
     # exclude all to whitelist
     /*
+    # include CR
+    !/client/config/crd
     # include controller
     !/deploy/kubernetes/snapshot-controller
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-storage-ext-snapshot-crds
+  namespace: flux-system
+  labels: # for my repo's Fluxtomization patching, can be ignored for those passing by
+    kustomization.flux.home.arpa/name: "flux"
+    kustomization.flux.home.arpa/default: "false"
+    kustomization.flux.home.arpa/helmpatches: "false"
+    substitution.flux.home.arpa/disabled: "true"
+    prune.flux.home.arpa/disabled: "true"
+spec:
+  interval: 5m
+  prune: false
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: external-snapshotter
+  path: ./client/config/crd
+  dependsOn: []
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -33,7 +55,8 @@ spec:
   wait: true
   sourceRef:
     kind: GitRepository
-    name: external-snapshotter-controller
+    name: external-snapshotter
+  path: ./deploy/kubernetes/snapshot-controller
   dependsOn:
     - name: 1-core-storage-ext-snapshot-crds
   patches:
