@@ -51,13 +51,18 @@ env:
   RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository }}" # this is to prevent forks from running Renovate against upstream repo
   RENOVATE_USERNAME: "${{ secrets.BOT_USERNAME }}[bot]"
   RENOVATE_GIT_AUTHOR: "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
-  RENOVATE_REPOSITORY_CACHE: "enabled"
+  RENOVATE_DETECT_HOST_RULES_FROM_ENV: true # private registries/repos
+  DOCKER_GHCR_IO_USERNAME: "${{ github.actor }}"
+  DOCKER_GHCR_IO_PASSWORD: "${{ secrets.GITHUB_TOKEN }}"
+  RENOVATE_REPOSITORY_CACHE: "enabled" # hopefully speed up Renovate
   GH_CACHE_DIR: "/tmp/renovate/cache/renovate/repository"
 
 jobs:
   renovate:
     name: Renovate
     runs-on: ubuntu-latest
+    permissions:
+      packages: read # for private GHCR packages
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
