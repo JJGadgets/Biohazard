@@ -121,16 +121,6 @@ spec:
         - op: add
           path: /spec/dependsOn/-
           value:
-            name: 1-core-monitoring-prom-crds
-      target:
-        group: kustomize.toolkit.fluxcd.io
-        version: v1
-        kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
-    - patch: |
-        - op: add
-          path: /spec/dependsOn/-
-          value:
             name: zzz-flux-repos-helm
       target:
         group: kustomize.toolkit.fluxcd.io
@@ -502,10 +492,6 @@ spec:
           path: /spec/dependsOn/-
           value:
             name: 1-core-kyverno-crds
-        - op: add
-          path: /spec/dependsOn/-
-          value:
-            name: 1-core-monitoring-prom-crds
         - op: add
           path: /spec/dependsOn/-
           value:
