@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.5.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -9,19 +10,20 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: "3.5.1"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      home-assistant:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
+            ingress.home.arpa/world: "allow"
             egress.home.arpa/iot: "allow"
             egress.home.arpa/appletv: "allow"
           annotations:
@@ -33,6 +35,9 @@ spec:
                 "mac": "${APP_MAC_HOME_ASSISTANT_IOT}",
                 "gateway": "${IP_ROUTER_VLAN_IOT}"
               }]
+            # generate reproducible "locally assigned" (aka non-vendor-assigned) MAC address from a FQDN (e.g. for Home Assistant Multus)
+            # `echo "$FQDN" | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/'`
+            # source: https://serverfault.com/questions/299556/how-to-generate-a-random-mac-address-from-the-linux-command-line/299563#299563
         containers:
           main:
             image:
@@ -54,9 +59,14 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       vscode:
         type: deployment
-        replicas: 1
+        replicas: 0
         pod:
           labels:
             ingress.home.arpa/nginx-internal: "allow"
@@ -90,8 +100,14 @@ spec:
               limits:
                 cpu: "500m" # I previously had a code-server that would eat cores
                 memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      home-assistant:
+        controller: "home-assistant"
         ports:
           http:
             port: 8123
@@ -101,10 +117,18 @@ spec:
         ports:
           http:
             port: 8080
+      expose:
+        primary: false
+        controller: "home-assistant"
+        type: LoadBalancer
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_HOME_ASSISTANT}"
+        ports:
+          homekit:
+            port: 21061
+            protocol: TCP
     ingress:
       main:
-        enabled: true
-        primary: true
         className: "nginx-internal"
         hosts:
           - host: &host "${APP_DNS_HOME_ASSISTANT:=home-assistant}"
@@ -112,13 +136,11 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: home-assistant
                   port: http
         tls: &tls
           - hosts: [*host]
       vscode:
-        enabled: true
-        primary: false
         className: "tailscale"
         hosts:
           - host: &host "hass-edit.${DNS_TS:=ts.net}"
@@ -126,7 +148,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: vscode
+                  identifier: vscode
                   port: http
         tls:
           - hosts: [*host]
