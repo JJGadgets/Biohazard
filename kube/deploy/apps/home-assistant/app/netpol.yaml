@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app home-assistant
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromCIDR: &privIPv4
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+        - "100.64.0.0/10"
+      toPorts:
+        - ports:
+            - port: "21061"
+              protocol: TCP
+  ingressDeny: # only ingress can hit HTTP port
+    - fromEntities: [world]
+      toPorts:
+        - ports:
+            - port: "8123"
+              protocol: ANY
+

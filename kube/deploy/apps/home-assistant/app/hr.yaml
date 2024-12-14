@@ -21,6 +21,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
+          hostname: "home-assistant"
           labels:
             ingress.home.arpa/nginx-internal: "allow"
             ingress.home.arpa/world: "allow"
@@ -111,6 +112,8 @@ spec:
         ports:
           http:
             port: 8123
+            protocol: TCP
+            appProtocol: http
       vscode:
         primary: false
         controller: "vscode"
@@ -157,7 +160,7 @@ spec:
         enabled: true
         existingClaim: "home-assistant-data"
         advancedMounts:
-          main:
+          home-assistant:
             main:
               - subPath: "config"
                 path: "/config"
