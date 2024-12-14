@@ -19,7 +19,8 @@ spec:
           "ipam": {
             "type": "static",
             "routes": [
-              { "dst": "${IP_VLAN_IOT_CIDR}", "gw": "${IP_ROUTER_VLAN_IOT}" }
+              { "dst": "${IP_VLAN_IOT_CIDR}", "gw": "${IP_ROUTER_VLAN_IOT}" },
+              { "dst": "224.0.0.251", "gw": "${IP_ROUTER_VLAN_IOT}" }
             ]
           }
         }
@@ -49,7 +50,8 @@ spec:
           "ipam": {
             "type": "static",
             "routes": [
-              { "dst": "${IP_VLAN_IOT_CIDR}", "gw": "${IP_ROUTER_VLAN_IOT}" }
+              { "dst": "${IP_VLAN_IOT_CIDR}", "gw": "${IP_ROUTER_VLAN_IOT}" },
+              { "dst": "224.0.0.251", "gw": "${IP_ROUTER_VLAN_IOT}" }
             ]
           }
         },
