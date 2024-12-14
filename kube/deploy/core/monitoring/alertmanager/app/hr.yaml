@@ -27,8 +27,7 @@ spec:
           main:
             image:
               repository: "quay.io/prometheus/alertmanager"
-              tag: "main@sha256:8145bf0107b5106fc1c554f2fc0b628e9e1d2c818bfe4e78867d8f75046aa6c7" # TODO: using main because waiting on 0.27.1 for DiscordConfig webhook_url_file fix (https://github.com/prometheus/alertmanager/pull/3728)
-              #tag: "v0.27.0@sha256:e13b6ed5cb929eeaee733479dce55e10eb3bc2e9c4586c705a4e8da41e5eacf5"
+              tag: "v0.28.0-rc.0@sha256:73afcec2b830e615f21d94648901afddd7586ef5abdd5237b4dab8890f9dbc69" # TODO: using main because waiting on 0.27.1 for DiscordConfig webhook_url_file fix (https://github.com/prometheus/alertmanager/pull/3728)
             args:
               - --config.file=/etc/alertmanager/alertmanager.yaml
               - --storage.path=/alertmanager

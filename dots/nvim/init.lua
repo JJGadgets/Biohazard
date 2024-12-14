@@ -56,7 +56,7 @@ require("lazy").setup({
       highlight_overrides = { all = function(colors) return {
         GitSignsAddLnInline = { fg = colors.teal, style = { "underdotted" } },
         GitSignsChangeLnInline = { fg = colors.yellow, style = { "underdotted" } },
-      } end }, -- without this, word_diff inline changes become dark/light text no background
+      } end }, -- without this, word_diff inline changes become dark/light text no background https://github.com/lewis6991/gitsigns.nvim/issues/731
       integrations = {
         navic = { enabled = true },
         mason = true,
@@ -412,6 +412,7 @@ require("lazy").setup({
     -- something
     -- { "SmiteshP/nvim-navic" },
     -- { "utilyre/barbecue.nvim" },
+    { "pimalaya/himalaya-vim", cmd = "Himalaya" },
   },
 })
 
