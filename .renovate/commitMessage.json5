@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchPackagePatterns": ["**"],
+      "matchPackageNames": ["*"],
       "commitMessageTopic": "",
       "semanticCommitScope": "{{datasource}}/{{#if groupName}}{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}",
       "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"

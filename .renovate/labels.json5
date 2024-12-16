@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchPackagePatterns": ["**"],
+      "matchPackageNames": ["*"],
       "labels": ["renovate/type/{{updateType}}"]
     },
     {
@@ -37,7 +37,7 @@
     //  "addLabels": ["oci/registry/{{ lookup (split depName '/') 0 }}", "oci/owner/{{ lookup (split depName '/') 1 }}", "oci/image/{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}"]
     //},
     {
-      "matchPackagePatterns": ["**"],
+      "matchPackageNames": ["*"],
       "addLabels": ["{{#if isVulnerabilityAlert}}security/{{vulnerabilitySeverity}}{{/if}}"]
     }
   ]

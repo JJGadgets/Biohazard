@@ -4,7 +4,7 @@
     // NOTE: Renovate processes rules from top to bottom, so the rules below take precedence over rules above it
     {
       "description": "Default options",
-      "matchPackagePatterns": ["**"],
+      "matchPackageNames": ["*"],
       "rebaseWhen": "conflicted",
       "automerge": false
     },
@@ -19,7 +19,7 @@
     },
     {
       "description": "Auto merge all Renovate versions",
-      "matchPackagePatterns": ["renovate"],
+      "matchPackageNames": ["renovate"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest"],
       "automerge": true,
       "automergeType": "branch",
@@ -38,14 +38,14 @@
     },
     {
       "description": "Don't auto merge specific apps in path ./kube/deploy/apps",
-      "matchPackagePatterns": ["reactive-resume", "home-assistant"],
+      "matchPackageNames": ["reactive-resume", "home-assistant"],
       "automerge": false,
       "matchFileNames": ["kube/deploy/apps/**"]
     },
     {
       "description": "Cilium Group",
       "groupName": "Cilium",
-      "matchPackagePatterns": ["cilium"],
+      "matchPackageNames": ["cilium"],
       "versioning": "semver",
       "sourceUrl": "https://github.com/cilium/cilium",
       "separateMinorPatch": true,
@@ -54,7 +54,7 @@
     {
       "description": "Flux Group",
       "groupName": "Flux",
-      "matchPackagePatterns": ["flux", "!miniflux"],
+      "matchPackageNames": ["flux", "!miniflux"],
       "matchDatasources": ["docker", "github-tags"],
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2"
@@ -62,7 +62,7 @@
     {
       "description": "Flux Group (Automerge Patch)",
       "groupName": "Flux",
-      "matchPackagePatterns": ["flux", "!miniflux"],
+      "matchPackageNames": ["flux", "!miniflux"],
       "matchDatasources": ["docker", "github-tags"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
@@ -72,7 +72,7 @@
     {
       "description": "authentik Group",
       "groupName": "authentik",
-      "matchPackagePatterns": ["authentik"],
+      "matchPackageNames": ["authentik"],
       "sourceUrl": "https://github.com/goauthentik/authentik",
       "automerge": false,
       "separateMultipleMajor": true,
@@ -81,7 +81,7 @@
     {
       "description": "Immich Group",
       "groupName": "Immich",
-      "matchPackagePatterns": ["immich"],
+      "matchPackageNames": ["immich"],
       "versioning": "semver",
       "sourceUrl": "https://github.com/immich-app/immich",
       "separateMinorPatch": true
@@ -89,7 +89,7 @@
     {
       "description": "1Password Group",
       "groupName": "1Password",
-      "matchPackagePatterns": ["1password"],
+      "matchPackageNames": ["1password"],
       "versioning": "semver"
     },
     {
@@ -100,12 +100,12 @@
     {
       "description": "Kubernetes Group",
       "groupName": "Kubernetes",
-      "matchPackagePatterns": ["kubelet", "kubectl", "kube-apiserver"],
+      "matchPackageNames": ["kubelet", "kubectl", "kube-apiserver"],
       "versioning": "semver"
     },
     {
       "description": "Separate all app-template updates",
-      "matchPackagePatterns": ["app-template"],
+      "matchPackageNames": ["app-template"],
       "matchDatasources": ["helm"],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
@@ -113,7 +113,7 @@
     },
     {
       "description": "Manually approve app-template major releases",
-      "matchPackagePatterns": ["app-template"],
+      "matchPackageNames": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true,
@@ -122,7 +122,7 @@
     },
     {
       "description": "Auto merge patch app-template versions",
-      "matchPackagePatterns": ["app-template"],
+      "matchPackageNames": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["patch"],
       "dependencyDashboardApproval": false,
@@ -133,7 +133,7 @@
     },
     {
       "description": "Don't automerge app-template minor releases",
-      "matchPackagePatterns": ["app-template"],
+      "matchPackageNames": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": false,
@@ -142,14 +142,14 @@
     },
     {
       "description": "Miniflux enforce distroless images",
-      "matchPackagePatterns": ["miniflux"],
+      "matchPackageNames": ["miniflux"],
       "matchDatasources": ["docker"],
       "versioning": "semver",
       "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$"
     },
     // {
     //   "description": "SearXNG versioning",
-    //   "matchPackagePatterns": ["searxng"],
+    //   "matchPackageNames": ["searxng"],
     //   "matchDatasources": ["docker"],
     //   "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(:?<hash>.*)$"
     // },
@@ -163,7 +163,7 @@
     },
     {
       "description": "Auto merge my own images with release dates as versions, these are images I couldn't think of a better way to do versioning because of too many moving parts",
-      "matchPackagePatterns": ["jjgadgets/k8s-crd-extractor"],
+      "matchPackageNames": ["jjgadgets/k8s-crd-extractor"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest"],
       "automerge": true,
       "automergeType": "branch"
