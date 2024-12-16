@@ -4,6 +4,7 @@
     // NOTE: Renovate processes rules from top to bottom, so the rules below take precedence over rules above it
     {
       "description": "Default options",
+      "matchPackagePatterns": ["**"],
       "rebaseWhen": "conflicted",
       "automerge": false
     },
@@ -53,19 +54,16 @@
     {
       "description": "Flux Group",
       "groupName": "Flux",
-      "matchPackagePatterns": ["fluxcd"],
+      "matchPackagePatterns": ["flux", "!miniflux"],
       "matchDatasources": ["docker", "github-tags"],
-      "versioning": "semver",
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2"
     },
     {
       "description": "Flux Group (Automerge Patch)",
       "groupName": "Flux",
-      "matchPackagePatterns": ["fluxcd"],
+      "matchPackagePatterns": ["flux", "!miniflux"],
       "matchDatasources": ["docker", "github-tags"],
-      "versioning": "semver",
-      "separateMinorPatch": true,
       "matchUpdateTypes": ["patch"],
       "automerge": true,
       "automergeType": "pr",
@@ -106,15 +104,20 @@
       "versioning": "semver"
     },
     {
+      "description": "Separate all app-template updates",
+      "matchPackagePatterns": ["app-template"],
+      "matchDatasources": ["helm"],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "separateMinorPatch": true
+    },
+    {
       "description": "Manually approve app-template major releases",
       "matchPackagePatterns": ["app-template"],
       "matchDatasources": ["helm"],
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true,
       "automerge": false,
-      "separateMajorMinor": true,
-      "separateMultipleMajor": true,
-      "separateMinorPatch": true,
       "groupName": "app-template-major"
     },
     {
@@ -126,9 +129,6 @@
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch",
-      "separateMajorMinor": true,
-      "separateMultipleMajor": true,
-      "separateMinorPatch": true,
       "groupName": "app-template-patch"
     },
     {
@@ -138,9 +138,6 @@
       "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": false,
       "automerge": false,
-      "separateMajorMinor": true,
-      "separateMultipleMajor": true,
-      "separateMinorPatch": true,
       "groupName": "app-template-minor"
     },
     {
