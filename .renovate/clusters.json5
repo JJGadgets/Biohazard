@@ -3,7 +3,7 @@
   "packageRules": [
     {
       "matchFileNames": ["**/clusters/**"],
-      "additionalBranchPrefix": ["{{ lookup (split (lookup (split packageFileDir 'clusters/') 1) '/') 0 }}/"],
+      "additionalBranchPrefix": "{{ lookup (split (lookup (split packageFileDir 'clusters/') 1) '/') 0 }}/",
       "commitMessageSuffix": " - {{ lookup (split (lookup (split packageFileDir 'clusters/') 1) '/') 0 }}",
       "addLabels": ["kube/clusters/{{ lookup (split (lookup (split packageFileDir 'clusters/') 1) '/') 0 }}"]
     }
