@@ -1,59 +1,70 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended", // config:base predates config:recommended
-    "docker:enableMajor",
-    "docker:pinDigests",
-    "group:kubernetes",
-    "replacements:k8s-registry-move",
-    ":disableRateLimiting",
-    ":dependencyDashboard",
-    ":semanticCommits",
-    ":automergeDigest",
-    ":automergeBranch",
-    ":timezone(Asia/Singapore)",
-    "github>JJGadgets/Biohazard//.renovate/clusters.json5",
-    "github>JJGadgets/Biohazard//.renovate/commitMessage.json5",
-    "github>JJGadgets/Biohazard//.renovate/groups.json5",
-    "github>JJGadgets/Biohazard//.renovate/labels.json5",
-    "github>JJGadgets/Biohazard//.renovate/security.json5",
-    "security:openssf-scorecard",
-    "helpers:pinGitHubActionDigests"
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'docker:enableMajor',
+    'docker:pinDigests',
+    'group:kubernetes',
+    'replacements:k8s-registry-move',
+    ':disableRateLimiting',
+    ':dependencyDashboard',
+    ':semanticCommits',
+    ':automergeDigest',
+    ':automergeBranch',
+    ':timezone(Asia/Singapore)',
+    'github>JJGadgets/Biohazard//.renovate/clusters.json5',
+    'github>JJGadgets/Biohazard//.renovate/commitMessage.json5',
+    'github>JJGadgets/Biohazard//.renovate/groups.json5',
+    'github>JJGadgets/Biohazard//.renovate/labels.json5',
+    'github>JJGadgets/Biohazard//.renovate/security.json5',
+    'security:openssf-scorecard',
+    'helpers:pinGitHubActionDigests',
   ],
-  "dependencyDashboard": true,
-  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
-  "suppressNotifications": ["prIgnoreNotification"],
-  "rebaseWhen": "behind-base-branch", // automerge needs this, and because I keep breaking my shit lol
-  // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
-  // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
-  "ignorePaths": ["**/archive/**", "**/.archive/**", "**/**.sops.**"],
-  "flux": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+  dependencyDashboard: true,
+  dependencyDashboardTitle: 'Renovate Dashboard 🤖',
+  suppressNotifications: [
+    'prIgnoreNotification',
+  ],
+  rebaseWhen: 'behind-base-branch',
+  ignorePaths: [
+    '**/archive/**',
+    '**/.archive/**',
+    '**/**.sops.**',
+  ],
+  flux: {
+    fileMatch: [
+      '^kube/.+\\.ya?ml$',
+    ],
   },
-  "helm-values": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+  'helm-values': {
+    fileMatch: [
+      '^kube/.+\\.ya?ml$',
+    ],
   },
-  "kubernetes": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+  kubernetes: {
+    fileMatch: [
+      '^kube/.+\\.ya?ml$',
+    ],
   },
-  "kustomize": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+  kustomize: {
+    fileMatch: [
+      '^kube/.+\\.ya?ml$',
+    ],
   },
-  "regexManagers": [
+  customManagers: [
     {
-      "description": "Process various other dependencies",
-      // "fileMatch": ["^kube/.+\\.ya?ml$", "vyos/], // process regex from everywhere
-      "fileMatch": [".*"], // process regex from everywhere
-      "matchStrings": [
-        // Example: `k3s_release_version: "v1.27.3+k3s1"` (general regex matcher)
-        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n",
-        // Example: `- https://github.com/rancher/system-upgrade-controller/releases/download/v0.11.0/crd.yaml` (e.g. kustomization.yaml lists)
-        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?-\\s(.*?)\/(?<currentValue>[^/]+)\/[^/]+\n",
-        // for: apiVersion=helm.cattle.io/v1 kind=HelmChart
-        "datasource=(?<datasource>\\S+)\n.*?repo: (?<registryUrl>\\S+)\n.*?chart: (?<depName>\\S+)\n.*?version: (?<currentValue>\\S+)\n"
+      customType: 'regex',
+      description: 'Process various other dependencies',
+      fileMatch: [
+        '.*',
       ],
-      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    }
-  ]
+      matchStrings: [
+        'datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?"(?<currentValue>.*)"\n',
+        'datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?-\\s(.*?)/(?<currentValue>[^/]+)/[^/]+\n',
+        'datasource=(?<datasource>\\S+)\n.*?repo: (?<registryUrl>\\S+)\n.*?chart: (?<depName>\\S+)\n.*?version: (?<currentValue>\\S+)\n',
+      ],
+      datasourceTemplate: '{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}',
+      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}',
+    },
+  ],
 }
