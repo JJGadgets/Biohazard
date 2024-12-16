@@ -39,9 +39,10 @@
   "kustomize": {
     "fileMatch": ["^kube/.+\\.ya?ml$"],
   },
-  "regexManagers": [
+  "customManagers": [
     {
       "description": "Process various other dependencies",
+      "customType": "regex",
       // "fileMatch": ["^kube/.+\\.ya?ml$", "vyos/], // process regex from everywhere
       "fileMatch": [".*"], // process regex from everywhere
       "matchStrings": [
