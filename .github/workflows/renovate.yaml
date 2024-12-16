@@ -48,7 +48,7 @@ env:
   RENOVATE_PLATFORM_COMMIT: "true"
   # for those forking: set your own secrets in your GitHub repo settings before running
   RENOVATE_AUTODISCOVER: true
-  RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository }}" # this is to prevent forks from running Renovate against upstream repo
+  RENOVATE_AUTODISCOVER_FILTER: "${{ github.repository_owner }}" # this is to prevent forks from running Renovate against upstream repo
   RENOVATE_USERNAME: "${{ secrets.BOT_USERNAME }}[bot]"
   RENOVATE_GIT_AUTHOR: "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
   RENOVATE_HOST_RULES: | # private registries/repos
