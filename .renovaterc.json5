@@ -20,6 +20,8 @@
     "security:openssf-scorecard",
     "helpers:pinGitHubActionDigests"
   ],
+  "onboarding": false, // run on all repos without needing config
+  "requireConfig": "optional", // run on all repos without needing config
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "suppressNotifications": ["prIgnoreNotification"],
