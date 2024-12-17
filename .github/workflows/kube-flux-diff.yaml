@@ -4,7 +4,7 @@ name: "Flux Diff"
 on:
   pull_request:
     branches: ["main"]
-    paths: ["kube/**.yaml"]
+    paths: ["kube/**.yaml", ".github/workflows/kube-flux-diff.yaml"]
 
 jobs:
   flux-diff:
