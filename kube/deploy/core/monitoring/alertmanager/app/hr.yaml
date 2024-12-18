@@ -23,6 +23,7 @@ spec:
             ingress.home.arpa/nginx-internal: "allow"
             ingress.home.arpa/nginx-external: "allow"
             egress.home.arpa/discord: "allow"
+            egress.home.arpa/heartbeat: "allow"
         containers: &ct
           main:
             image:
