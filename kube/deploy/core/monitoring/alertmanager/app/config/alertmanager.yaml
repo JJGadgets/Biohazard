@@ -2,19 +2,19 @@
 global:
   resolve_timeout: 5m
 route:
-  group_by: ["alertname", "cluster", "namespace", "job"]
+  group_by: ["alertname", "cluster", "job"]
   group_interval: 10m
   group_wait: 1m
   receiver: discord
   #repeat_interval: 1h # temporarily set 1m because testing notifs
   repeat_interval: 24h
   routes:
-    # - receiver: heartbeat
-    #   group_interval: 5m
-    #   group_wait: 0s
-    #   matchers:
-    #     - alertname =~ "Watchdog"
-    #   repeat_interval: 5m
+    - receiver: heartbeat
+      group_interval: 1m
+      group_wait: 0s
+      repeat_interval: 1m
+      matchers:
+        - alertname =~ "Watchdog"
     - receiver: "null"
       matchers:
         - alertname =~ "InfoInhibitor"
@@ -31,10 +31,10 @@ inhibit_rules:
     target_matchers:
       - severity = "warning"
 receivers:
-  # - name: heartbeat
-  #   webhook_configs:
-  #     - send_resolved: true
-  #       url: ""
+  - name: heartbeat
+    webhook_configs:
+      - send_resolved: true
+        url_file: "/secrets/healthchecks.io"
   - name: "null"
   - name: discord
     discord_configs:
@@ -42,8 +42,10 @@ receivers:
         webhook_url_file: "/secrets/discord"
         # yoinked below from onedr0p, blame him if something doesn't work
         title: >-
-          {{ .GroupLabels.alertname }} - {{ .GroupLabels.namespace }}
-          {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity}}){{- end }}
+          {{ .GroupLabels.alertname }}
+          {{- if ne .GroupLabels.namespace "" }} - {{ .GroupLabels.namespace }}{{- end }}
+          {{- if ne .CommonLabels.namespace "" }} - {{ .CommonLabels.namespace }}{{- end }}
+          {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity }}){{- end }}
           ({{ .GroupLabels.cluster }})
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-

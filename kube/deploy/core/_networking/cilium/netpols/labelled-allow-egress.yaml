@@ -212,6 +212,23 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-mdns
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/mdns: allow
+  egress:
+    - toCIDR:
+        - "224.0.0.251/32"
+      toPorts:
+        - ports:
+            - port: "5353"
+              protocol: "UDP"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-cloudflare-r2
 spec:
   endpointSelector:
@@ -327,6 +344,39 @@ spec:
   egress:
     - toFQDNs: &dns
         - matchPattern: "pypi.org"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: "TCP"
+            - port: "443"
+              protocol: "UDP"
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns: *dns
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-heartbeat
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/heartbeat: allow
+  egress:
+    - toFQDNs: &dns
+        - matchPattern: "hc-ping.com"
+        - matchPattern: "*.hc-ping.com"
       toPorts:
         - ports:
             - port: "443"
