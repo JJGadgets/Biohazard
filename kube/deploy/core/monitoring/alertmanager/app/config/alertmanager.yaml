@@ -41,13 +41,12 @@ receivers:
       - send_resolved: true
         webhook_url_file: "/secrets/discord"
         # yoinked below from onedr0p, blame him if something doesn't work
-        username: >-
-          {{ .GroupLabels.cluster }} Kubernetes
         title: >-
           {{ .GroupLabels.alertname }}
           {{- if ne .GroupLabels.namespace "" }} - {{ .GroupLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.namespace "" }} - {{ .CommonLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity }}){{- end }}
+          ({{ .GroupLabels.cluster }})
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
         message: |-
           {{- $root := . }}
