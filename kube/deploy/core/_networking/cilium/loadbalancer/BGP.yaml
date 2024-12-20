@@ -3,47 +3,6 @@
 # "CiliumBGPPeeringPolicy" Custom Resource will replace the old MetalLB BGP's "bgp-config" ConfigMap
 # "CiliumBGPPeeringPolicy" is used with `bgpControlPlane.enabled: true` which uses GoBGP, NOT the old `bgp.enabled: true` which uses MetalLB
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeeringpolicy_v2alpha1.json
-# apiVersion: cilium.io/v2alpha1
-# kind: CiliumBGPPeeringPolicy
-# metadata:
-#   name: bgp-loadbalancer-ip-main
-# spec:
-#   nodeSelector:
-#     matchLabels:
-#       kubernetes.io/os: "linux" # match all Linux nodes, change this to match more granularly if more than 1 PeeringPolicy is to be used throughout cluster
-#   virtualRouters:
-#     - localASN: &router ${ASN_ROUTER} # ASNs are processed in uint32
-#       exportPodCIDR: false
-#       serviceSelector: &all # this replaces address-pools, instead of defining the range of IPs that can be assigned to LoadBalancer services, now services have to match below selectors for their LB IPs to be announced
-#         matchExpressions:
-#           - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
-#           - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
-#       neighbors:
-#         - peerAddress: "${IP_ROUTER_VLAN_K8S}/32" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
-#           peerASN: *router
-#           # authSecretRef: cilium-bgp-password-router # doesn't work with FortiGate, reason unknown
-#           gracefulRestart:
-#             enabled: true
-#             restartTimeSeconds: 120
-#     - localASN: ${ASN_CLUSTER_NODES}
-#       exportPodCIDR: false
-#       serviceSelector: *all
-#       neighbors:
-#         - &nodes
-#           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1/32"
-#           peerASN: ${ASN_CLUSTER_NODES}
-#           peerPort: 61790
-#         - <<: *nodes
-#           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2/32"
-#         - <<: *nodes
-#           peerAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3/32"
-#         # - <<: *nodes
-#         #   peerAddress: "127.0.0.1/32"
-#         # - <<: *nodes
-#         #   peerAddress: "127.0.0.1/32"
-#         #   peerPort: 61791
----
 # yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpclusterconfig_v2alpha1.json
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPClusterConfig
@@ -94,6 +53,7 @@ metadata:
     bgp.home.arpa/peer: ciel
 spec:
   advertisements:
+    - advertisementType: PodCIDR # no masquerade
     - advertisementType: Service
       service:
         addresses: [LoadBalancerIP]
@@ -101,4 +61,3 @@ spec:
         matchExpressions:
           - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
           - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
-    # - advertisementType: PodCIDR

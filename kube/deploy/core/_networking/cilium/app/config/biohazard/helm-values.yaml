@@ -35,10 +35,10 @@ kubeProxyReplacement: true
 k8sServiceHost: "127.0.0.1"
 k8sServicePort: "7445"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
-enableIPv4Masquerade: true # BGP advertise PodCIDR so only FortiGate does NAT
-# directRoutingSkipUnreachable: false # use local L2 within cluster while outside cluster uses BGP
+enableIPv4Masquerade: false # BGP advertise PodCIDR so only FortiGate does NAT
+directRoutingSkipUnreachable: true # use local L2 within cluster while outside cluster uses BGP
 bpf:
-  masquerade: true
+  # masquerade: true
   # hostLegacyRouting: true # so pods can use the normal Linux routing table from the host
   tproxy: true # L7 netpols stuff
   preallocateMaps: true # reduce latency, increased memory usage
