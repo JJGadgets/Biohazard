@@ -19,7 +19,7 @@ spec:
     customLabels:
       prom.home.arpa/kps: allow
       egress.home.arpa/router: allow
-    extraArgs: ["--config.file=/config/snmp.yml"]
+    extraArgs: ["--config.file=/config/snmp.yml", "--snmp.module-concurrency=4"]
     extraConfigmapMounts:
       - name: config
         configMap: snmp-exporter-config # currently custom generated and private as Fortinet MIBs are not exactly "publicly available" for redistribution (either get from subscriber portal or FortiGate directly)
