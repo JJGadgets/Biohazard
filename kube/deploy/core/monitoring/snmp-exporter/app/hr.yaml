@@ -27,7 +27,7 @@ spec:
         mountPath: /config/snmp.yml
     serviceMonitor:
       enabled: true
-      scrapeInterval: 1m
+      interval: 1m
       scrapeTimeout: 50s
       params:
         - name: fortigate
