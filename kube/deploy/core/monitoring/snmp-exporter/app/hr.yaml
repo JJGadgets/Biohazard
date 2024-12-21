@@ -19,12 +19,20 @@ spec:
     customLabels:
       prom.home.arpa/kps: allow
       egress.home.arpa/router: allow
+    extraArgs: ["--config.file=/config/snmp.yml"]
+    extraConfigmapMounts:
+      - name: config
+        configMap: snmp-exporter-config # currently custom generated and private as Fortinet MIBs are not exactly "publicly available" for redistribution (either get from subscriber portal or FortiGate directly)
+        subPath: snmp.yml
+        mountPath: /config/snmp.yml
     serviceMonitor:
       enabled: true
       params:
         - name: fortigate
-          module: ["if_mib"]
+          module: ["if_mib", "ip_mib", "fortinet", "fnFortiGateMib"]
           target: "${IP_ROUTER_VLAN_K8S}"
           auth: ["public_v2"]
       relabelings:
         - { sourceLabels: ["__param_target"], targetLabel: instance }
+      selfMonitor:
+        enabled: true
