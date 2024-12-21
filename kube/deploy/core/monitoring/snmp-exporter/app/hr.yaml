@@ -28,8 +28,20 @@ spec:
     serviceMonitor:
       enabled: true
       params:
-        - name: fortigate
-          module: ["if_mib", "ip_mib", "fortinet", "fnFortiGateMib"]
+        - name: fortigate-if-mib
+          module: ["if_mib"]
+          target: "${IP_ROUTER_VLAN_K8S}"
+          auth: ["public_v2"]
+        - name: fortigate-ip-mib
+          module: ["ip_mib"]
+          target: "${IP_ROUTER_VLAN_K8S}"
+          auth: ["public_v2"]
+        - name: fortigate-fortinet
+          module: ["fortinet"]
+          target: "${IP_ROUTER_VLAN_K8S}"
+          auth: ["public_v2"]
+        - name: fortigate-fnFortiGateMib
+          module: ["fnFortiGateMib"]
           target: "${IP_ROUTER_VLAN_K8S}"
           auth: ["public_v2"]
       relabelings:
