@@ -76,14 +76,14 @@
       "commitMessagePrefix": "feat(gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     },
     {
-      "matchManagers": ["github-actions", "github-releases", "github-tags"],
-      "matchFileNames": [".github/**"],
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchFileNames": [".github/workflows/**"],
       "semanticCommitScope": "gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
     },
     {
-      "matchManagers": ["github-actions", "github-releases", "github-tags"],
+      "matchDatasources": ["github-releases", "github-tags"],
       "matchUpdateTypes": ["major"],
-      "matchFileNames": [".github/**"],
+      "matchFileNames": [".github/workflows/**"],
       "commitMessagePrefix": "feat(gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     }
   ]
