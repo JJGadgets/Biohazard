@@ -27,6 +27,7 @@ jobs:
       - name: Setup Flux
         uses: fluxcd/flux2/action@534684601ec8888beb0cc4f51117b59e97606c4d # v2.2.3
         with:
+          # renovate: datasource=github-actions depName=fluxcd/flux2
           version: "2.2.3"
 
       - name: Diff Resources
