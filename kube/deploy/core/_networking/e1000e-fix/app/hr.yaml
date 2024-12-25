@@ -40,13 +40,13 @@ spec:
                 ethtool -k % &&
                 echo '=========='" &&
 
-                nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c "
-                echo 'Setting bridge MACs based on bridge master interfaces' &&
-                for br in $(ip -json link show type bridge | jq -r '.[].ifname'); do
+                nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c '
+                echo "Setting bridge MACs based on bridge master interfaces" &&
+                for br in $(ip -json link show type bridge | jq -r ".[].ifname"); do
                   ip link show dev $br
-                  ip -json link show dev $(ip -json link show master $br | jq -r '.[] | select(.flags[] | index("MASTER")) | .ifname') | jq -r '.[0].address' | xargs -I% ip link set dev $br address %
+                  ip -json link show dev $(ip -json link show master $br | jq -r ".[] | select(.flags[] | index(\"MASTER\")) | .ifname") | jq -r ".[0].address" | xargs -I% ip link set dev $br address %
                   ip link show dev $br
-                done"
+                done' && sleep infinity
             securityContext: &sc
               privileged: true
             resources:
