@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.7.6
+talosVersion: v1.9.1
 kubernetesVersion: v1.30.1
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
@@ -62,8 +62,10 @@ nodes:
           deviceSelectors:
             # Onboard Intel 1GbE (eno1)
             - driver: e1000e
+              physical: true
             # Mellanox ConnectX (enp1s0)
             - driver: "mlx4_core"
+              physical: true
     machineSpec:
       secureboot: true
     schematic:
@@ -72,16 +74,17 @@ nodes:
           officialExtensions:
             - siderolabs/gvisor
             - siderolabs/gvisor-debug
-            - siderolabs/i915-ucode
+            - siderolabs/i915
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
             - siderolabs/kata-containers
-    patches:
-      - |
-        machine:
-          sysfs:
-            devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
-            devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+            - siderolabs/lldpd
+    # patches:
+    #   - |
+    #     machine:
+    #       sysfs:
+    #         devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
+    #         devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -136,6 +139,7 @@ nodes:
           deviceSelectors:
             # VirtIO NIC
             - driver: virtio_net
+              physical: true
     machineSpec:
       secureboot: true
     schematic:
@@ -145,14 +149,15 @@ nodes:
             - siderolabs/gvisor
             - siderolabs/intel-ucode
             - siderolabs/iscsi-tools
-            - siderolabs/nvidia-open-gpu-kernel-modules
+            - siderolabs/lldpd
+            # - siderolabs/nvidia-open-gpu-kernel-modules
 
 patches:
-  # Cilium BGP set to active listen
-  - |-
-    machine:
-      nodeAnnotations:
-        cilium.io/bgp-virtual-router.${ASN_ROUTER}="local-port=179"
+  # # Cilium BGP set to active listen
+  # - |-
+  #   machine:
+  #     nodeAnnotations:
+  #       cilium.io/bgp-virtual-router.${ASN_ROUTER}="local-port=179"
   # set all disks to no scheduler
   - |-
     machine:
@@ -280,7 +285,7 @@ patches:
       kubelet:
         extraMounts:
           - type: bind
-            options: [bind, rw, exec, suid, size=2g]
+            options: [bind, rw, exec, suid]
             source: /run/kubelet-logs-pods
             destination: /var/log/pods
 
@@ -294,13 +299,14 @@ controlPlane:
               cpu: 200m
               memory: 4Gi
             limits:
-              memory: 8Gi
+              memory: 4Gi
 
     - &apiServerLogs |
       cluster:
         apiServer:
           extraArgs:
             audit-log-path: "/dev/null"
+            feature-gates: AuthorizeNodeWithSelectors=false
           auditPolicy:
             apiVersion: audit.k8s.io/v1
             kind: Policy
@@ -311,7 +317,7 @@ controlPlane:
       - op: add
         path: /cluster/controllerManager/extraArgs
         value:
-          node-cidr-mask-size: 22
+          node-cidr-mask-size: 23
 
     - &etcdSubnet |-
       cluster:
