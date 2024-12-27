@@ -22,8 +22,8 @@ spec:
               group: admissionregistration.k8s.io
               kind: MutatingWebhookConfiguration
               name: inteldeviceplugins-mutating-webhook-configuration
-            patch: |
-              - op: remove
-                path: /webhooks/7
+            patch: | # remove from last to first so array index doesn't change
               - op: remove
                 path: /webhooks/8
+              - op: remove
+                path: /webhooks/7
