@@ -18,7 +18,19 @@ spec:
       appendMirrors: true
       containerdSock: /run/containerd/containerd.sock
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
-      additionalMirrorRegistries:
+      registries:
+        # defaults as of 0.0.28
+        - https://cgr.dev
+        - https://docker.io
+        - https://ghcr.io
+        - https://quay.io
+        - https://mcr.microsoft.com
+        - https://public.ecr.aws
+        - https://gcr.io
+        - https://registry.k8s.io
+        - https://k8s.gcr.io
+        - https://lscr.io
+        # my own
         - https://registry.developers.crunchydata.com
         - https://jank.ing
         - https://jjgadgets.tech
