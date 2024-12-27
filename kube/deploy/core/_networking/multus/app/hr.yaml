@@ -5,6 +5,7 @@ metadata:
   name: multus
   namespace: kube-system
 spec:
+  interval: 5m
   chart:
     spec:
       chart: multus
@@ -27,8 +28,7 @@ spec:
     resources:
       requests:
         cpu: 5m
-        memory: 70M
       limits:
-        memory: 150M
+        memory: 512Mi
     hostPaths:
       netns: /var/run/netns
