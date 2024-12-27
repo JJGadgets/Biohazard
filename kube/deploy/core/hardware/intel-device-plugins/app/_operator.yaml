@@ -1,10 +1,12 @@
 ---
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease-helm-v2beta2.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: intel-device-plugins-operator
   namespace: kube-system
 spec:
+  interval: 5m
   chart:
     spec:
       chart: intel-device-plugins-operator
@@ -13,3 +15,15 @@ spec:
         kind: HelmRepository
         name: intel
         namespace: flux-system
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: admissionregistration.k8s.io
+              kind: MutatingWebhookConfiguration
+              name: inteldeviceplugins-mutating-webhook-configuration
+            patch: |
+              - op: remove
+                path: /webhooks/7
+              - op: remove
+                path: /webhooks/8
