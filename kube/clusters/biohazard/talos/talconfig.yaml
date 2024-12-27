@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
 talosVersion: v1.9.1
-kubernetesVersion: v1.30.1
+kubernetesVersion: v1.32.0
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -59,6 +59,7 @@ nodes:
           mode: active-backup
           miimon: 100
           primary: eno1
+          primaryReselect: better
           deviceSelectors:
             # Onboard Intel 1GbE (eno1)
             - driver: e1000e
@@ -70,6 +71,11 @@ nodes:
       secureboot: true
     schematic:
       customization:
+        extraKernelArgs:
+          - intel_iommu=on
+          - iommu=pt
+          - apparmor=1
+          - security=apparmor
         systemExtensions:
           officialExtensions:
             - siderolabs/gvisor
@@ -79,6 +85,16 @@ nodes:
             - siderolabs/iscsi-tools
             - siderolabs/kata-containers
             - siderolabs/lldpd
+    extensionServices:
+      - &lldpd
+        name: lldpd
+        configFiles:
+          - mountPath: /usr/local/etc/lldpd/lldpd.conf
+            content: |
+              configure lldpd portidsubtype ifname
+              configure system description "Talos Node"
+    extraManifests:
+      - ./watchdog.yaml
     # patches:
     #   - |
     #     machine:
@@ -144,6 +160,9 @@ nodes:
       secureboot: true
     schematic:
       customization:
+        extraKernelArgs:
+          - apparmor=1
+          - security=apparmor
         systemExtensions:
           officialExtensions:
             - siderolabs/gvisor
@@ -151,6 +170,8 @@ nodes:
             - siderolabs/iscsi-tools
             - siderolabs/lldpd
             # - siderolabs/nvidia-open-gpu-kernel-modules
+    extensionServices:
+      - *lldpd
 
 patches:
   # # Cilium BGP set to active listen
@@ -164,10 +185,16 @@ patches:
       udev:
         rules:
           # set all disks to `none` scheduler (optimal setting for Ceph and ZFS)
-          - SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", ATTR{queue/scheduler}="none"
+          - SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", KERNEL!="rbd*", ATTR{queue/scheduler}="none"
           # allow GID 44 (video) to use Intel GPU
           #- SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
           - SUBSYSTEM=="drm", GROUP="44", MODE="0660"
+
+  - &hugepages |-
+    machine:
+      sysfs:
+        kernel.mm.hugepages.hugepages-1048576kB.nr_hugepages: 4
+        kernel.mm.hugepages.hugepages-2048kB.nr_hugepages: 1024
 
   - &machinePatch |-
     machine:
@@ -191,8 +218,9 @@ patches:
         disabled: false
         servers: ["${IP_ROUTER_VLAN_K8S}"]
         bootTimeout: 2m0s
-#      kernel:
-#        modules:
+      kernel:
+        modules:
+          - name: nbd # Ceph RBD CSI gets noisy without this, probably fine without though?
 #          - name: nct6683
 #            parameters: ["force=on"]
 #          - name: e1000e
@@ -250,6 +278,16 @@ patches:
         extraConfig:
           maxPods: 200
 
+  - &userNamespaces |-
+    machine:
+      sysctls:
+        user.max_user_namespaces: "11255" # also allows gvisor
+      kubelet:
+        extraConfig:
+          featureGates:
+            UserNamespacesSupport: true
+            UserNamespacesPodSecurityStandards: true
+
   # patch containerd for spegel (discard)
   - &spegel |
     machine:
@@ -258,10 +296,7 @@ patches:
           path: /etc/cri/conf.d/20-customization.part
           permissions: 0o644
           content: |
-            [plugins."io.containerd.grpc.v1.cri"]
-              enable_unprivileged_ports = true
-              enable_unprivileged_icmp = true
-            [plugins."io.containerd.grpc.v1.cri".containerd]
+            [plugins."io.containerd.cri.v1.images"]
               discard_unpacked_layers = false
 
   - &nfsMountOptions |
@@ -276,8 +311,6 @@ patches:
             hard=True
             noatime=True
             nodiratime=True
-            rsize=131072
-            wsize=131072
             nconnect=8
 
   - &kubeletLogs |
@@ -305,8 +338,8 @@ controlPlane:
       cluster:
         apiServer:
           extraArgs:
-            audit-log-path: "/dev/null"
-            feature-gates: AuthorizeNodeWithSelectors=false
+            audit-log-path: "/dev/null" # disk health
+            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces
           auditPolicy:
             apiVersion: audit.k8s.io/v1
             kind: Policy
