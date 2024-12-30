@@ -15,15 +15,17 @@ spec:
         kind: HelmRepository
         name: intel
         namespace: flux-system
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              group: admissionregistration.k8s.io
-              kind: MutatingWebhookConfiguration
-              name: inteldeviceplugins-mutating-webhook-configuration
-            patch: | # remove from last to first so array index doesn't change
-              - op: remove
-                path: /webhooks/8
-              - op: remove
-                path: /webhooks/7
+  values:
+    controllerExtraArgs: ["--devices=gpu"]
+  # postRenderers:
+  #   - kustomize:
+  #       patches:
+  #         - target:
+  #             group: admissionregistration.k8s.io
+  #             kind: MutatingWebhookConfiguration
+  #             name: inteldeviceplugins-mutating-webhook-configuration
+  #           patch: | # remove from last to first so array index doesn't change
+  #             - op: remove
+  #               path: /webhooks/8
+  #             - op: remove
+  #               path: /webhooks/7
