@@ -16,7 +16,8 @@ spec:
         name: intel
         namespace: flux-system
   values:
-    controllerExtraArgs: ["--devices=gpu"]
+    controllerExtraArgs: |
+      - --devices=gpu
   # postRenderers:
   #   - kustomize:
   #       patches:
