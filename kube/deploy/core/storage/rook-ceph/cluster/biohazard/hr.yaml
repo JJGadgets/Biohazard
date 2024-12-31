@@ -112,7 +112,7 @@ spec:
       resources: # defaults are very aggressive
         mgr:
           requests:
-            cpu: "150m"
+            cpu: "100m"
             memory: "512Mi"
           limits:
             cpu: "2000m"
@@ -134,7 +134,7 @@ spec:
             memory: "10Gi"
         mgr-sidecar:
           requests:
-            cpu: "100m"
+            cpu: "20m"
             memory: "100Mi"
           limits:
             cpu: "1000m"
@@ -147,9 +147,10 @@ spec:
             memory: "64Mi"
         logcollector:
           requests:
-            cpu: "50m"
+            cpu: "1m"
             memory: "100Mi"
           limits:
+            cpu: "1"
             memory: "1Gi"
         cleanup:
           requests:
@@ -159,11 +160,13 @@ spec:
             memory: "1Gi"
         exporter:
           requests:
-            cpu: "50m"
+            cpu: "10m"
             memory: "50Mi"
           limits:
             cpu: "1" # fucking alerts keep triggering at 250m
             memory: "128Mi"
+      logCollector:
+        enabled: false
     cephBlockPools:
       - name: "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
@@ -293,12 +296,12 @@ spec:
                 compression_mode: "aggressive"
                 compression_algorithm: "lz4"
           metadataServer: &mds
-            activeCount: 3 # 3 active 3 standby
+            activeCount: 2 # 2 active 2 standby
             activeStandby: true
             priorityClassName: system-cluster-critical
             placement:
               topologySpreadConstraints:
-                - maxSkew: 2 # at least 2 distinct nodes should have active MDSes
+                - maxSkew: 1 # at least 2 distinct nodes should have active MDSes
                   topologyKey: "kubernetes.io/hostname"
                   whenUnsatisfiable: "DoNotSchedule"
                   labelSelector:
@@ -382,7 +385,7 @@ spec:
               requests:
                 cpu: 100m
               limits:
-                memory: 2Gi
+                memory: 1Gi
         ingress:
           enabled: true
           ingressClassName: "nginx-internal"

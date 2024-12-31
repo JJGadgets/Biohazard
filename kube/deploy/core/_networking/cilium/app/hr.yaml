@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cilium/cilium/v1.16.5/install/kubernetes/cilium
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -132,7 +133,7 @@ spec:
     resources: # for agent
       requests:
         cpu: "100m"
-        memory: "2Gi"
+        memory: "1Gi"
       limits:
         cpu: "1"
         memory: "6Gi"
