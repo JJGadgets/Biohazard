@@ -215,7 +215,8 @@ spec:
           revision: 1
           datasource: *DSP
         smartctl-thomas:
-          url: https://gist.githubusercontent.com/uhthomas/bd55e991369cf6073294421d4bf88ec6/raw/e78f26846b40b6bfbabc10c4c502397c88375829/smartctl.json
+          gnetId: 22381
+          revision: 1
           datasource: &DSV
             - { name: DS_VICTORIAMETRICS, value: Prometheus }
         etcd-thomas:
