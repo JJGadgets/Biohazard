@@ -40,26 +40,44 @@ spec:
       # Serves a /metrics endpoint on :9153, required for serviceMonitor
       - name: prometheus
         parameters: 0.0.0.0:9153
-      - &forward
+      - &router
         name: forward
-        parameters: "${DNS_SHORT} ${UPSTREAM}"
-        configBlock: "policy sequential"
-      - <<: *forward
-        parameters: "${DNS_MAIN} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_VPN} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_STREAM} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_ME} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_HOME} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_INTERNAL} ${UPSTREAM}"
-      - <<: *forward
-        parameters: "${DNS_FUNNY} ${UPSTREAM}"
+        parameters: "${DNS_SHORT} tls://${IP_ROUTER_VLAN_K8S}"
+        configBlock: "next NXDOMAIN"
+      - &cfdot
+        name: forward
+        parameters: "${DNS_SHORT} tls://1.1.1.1 tls://1.0.0.1"
+        configBlock: "tls_servername one.one.one.one"
+      - <<: *router
+        parameters: "${DNS_MAIN} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_MAIN} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_VPN} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_VPN} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_STREAM} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_STREAM} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_ME} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_ME} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_HOME} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_HOME} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_INTERNAL} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_INTERNAL} tls://1.1.1.1 tls://1.0.0.1"
+      - <<: *router
+        parameters: "${DNS_FUNNY} tls://${IP_ROUTER_VLAN_K8S}"
+      - <<: *cfdot
+        parameters: "${DNS_FUNNY} tls://1.1.1.1 tls://1.0.0.1"
       - name: forward
-        parameters: ". /etc/resolv.conf"
+        parameters: ". tls://${IP_ROUTER_VLAN_K8S}"
       - name: loop
       - name: reload
       - name: loadbalance
