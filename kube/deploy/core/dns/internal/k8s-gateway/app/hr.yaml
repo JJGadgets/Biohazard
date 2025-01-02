@@ -40,26 +40,26 @@ spec:
       # Serves a /metrics endpoint on :9153, required for serviceMonitor
       - name: prometheus
         parameters: 0.0.0.0:9153
-      - &forward
+      - &forward # DNS chain if NXDOMAIN: Blocky (optional) --> FortiGate recursive DNS server --> k8s-gateway --> Cloudflare, DoT used because FortiGate 40F's NPU6XLITE doesn't offload UDP/53 plaintext DNS records
         name: forward
-        parameters: "${DNS_SHORT} ${UPSTREAM}"
-        configBlock: "policy sequential"
+        parameters: "${DNS_SHORT} tls://1.1.1.1 tls://1.0.0.1"
+        configBlock: "tls_servername one.one.one.one"
       - <<: *forward
-        parameters: "${DNS_MAIN} ${UPSTREAM}"
+        parameters: "${DNS_MAIN} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_VPN} ${UPSTREAM}"
+        parameters: "${DNS_VPN} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_STREAM} ${UPSTREAM}"
+        parameters: "${DNS_STREAM} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_ME} ${UPSTREAM}"
+        parameters: "${DNS_ME} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_HOME} ${UPSTREAM}"
+        parameters: "${DNS_HOME} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_INTERNAL} ${UPSTREAM}"
+        parameters: "${DNS_INTERNAL} tls://1.1.1.1 tls://1.0.0.1"
       - <<: *forward
-        parameters: "${DNS_FUNNY} ${UPSTREAM}"
+        parameters: "${DNS_FUNNY} tls://1.1.1.1 tls://1.0.0.1"
       - name: forward
-        parameters: ". /etc/resolv.conf"
+        parameters: ". tls://${IP_ROUTER_VLAN_K8S}"
       - name: loop
       - name: reload
       - name: loadbalance
