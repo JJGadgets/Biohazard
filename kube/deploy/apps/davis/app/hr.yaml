@@ -86,7 +86,7 @@ spec:
         initContainers:
           01-public:
             image: *img
-            command: ["/bin/sh", "-c", "cp -a /var/www/davis/public /web"]
+            command: ["/bin/sh", "-c", "cp -r /var/www/davis/public /web"]
             env: *env
             envFrom: *envFrom
             securityContext: *sc
