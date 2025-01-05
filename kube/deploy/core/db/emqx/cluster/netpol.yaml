@@ -38,7 +38,7 @@ spec:
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
-            - key: apps.emqx.io/instance
+            - key: db.home.arpa/emqx
               operator: In
               values: [emqx]
       toPorts:

@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name zigbee2mqtt-secrets
+  namespace: zigbee2mqtt
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "zigbee2mqtt - ${CLUSTER_NAME}"
+    - extract:
+        key: "EMQX - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        ZIGBEE2MQTT_CONFIG_ADVANCED_CHANNEL: "{{ .ZIGBEE2MQTT_CONFIG_ADVANCED_CHANNEL }}"
+        ZIGBEE2MQTT_CONFIG_ADVANCED_PAN_ID: "{{ .ZIGBEE2MQTT_CONFIG_ADVANCED_PAN_ID }}"
+        ZIGBEE2MQTT_CONFIG_ADVANCED_EXT_PAN_ID: "{{ .ZIGBEE2MQTT_CONFIG_ADVANCED_EXT_PAN_ID }}"
+        ZIGBEE2MQTT_CONFIG_ADVANCED_NETWORK_KEY: "{{ .ZIGBEE2MQTT_CONFIG_ADVANCED_NETWORK_KEY }}"
+        ZIGBEE2MQTT_CONFIG_MQTT_USER: "{{ .X_EMQX_MQTT_HASS_USERNAME }}"
+        ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: "{{ .X_EMQX_MQTT_HASS_PASSWORD }}"
