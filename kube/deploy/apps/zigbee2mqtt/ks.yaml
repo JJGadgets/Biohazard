@@ -35,10 +35,10 @@ spec:
     substitute:
       PVC: "zigbee2mqtt-data"
       SIZE: "1Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
