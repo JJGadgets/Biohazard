@@ -84,7 +84,7 @@ spec:
         controller: zigbee2mqtt
         ports:
           http:
-            port: 8080
+            port: *port
             protocol: HTTP
             appProtocol: http
     ingress:
@@ -108,13 +108,13 @@ spec:
         globalMounts:
           - subPath: data
             path: /config
-      tmp:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 16Mi
-        globalMounts:
-          - subPath: configlog
-            path: /config/log
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: configlog
+      #       path: /config/log
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
