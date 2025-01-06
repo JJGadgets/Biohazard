@@ -47,26 +47,12 @@ spec:
           fail_if_no_peer_cert = false
         }
       }
-  # bootstrapAPIKeys:
-  #   - secretRef:
-  #       key:
-  #         secretName: emqx-secrets
-  #         secretKey: X_EMQX_APIKEY_KEY
-  #       secret:
-  #         secretName: emqx-secrets
-  #         secretKey: X_EMQX_APIKEY_SECRET
   coreTemplate:
     spec:
       replicas: 2
       envFrom: &envFrom
         - secretRef:
             name: emqx-secrets
-      #volumeClaimTemplates:
-      #  storageClassName: local
-      #  accessModes: [ReadWriteOnce]
-      #  resources:
-      #    requests:
-      #      storage: 1Gi
       extraVolumes:
         - name: emqx-secrets
           secret:
@@ -91,18 +77,10 @@ spec:
           subPath: tls.key
           mountPath: /tls/key.pem
           readOnly: true
-  #     topologySpreadConstraints:
-  #       - maxSkew: 1
-  #         topologyKey: kubernetes.io/hostname
-  #         whenUnsatisfiable: DoNotSchedule
-  #         labelSelector:
-  #           matchLabels:
-  #             apps.emqx.io/instance: *app
-  #             apps.emqx.io/db-role: core
-  # listenersServiceTemplate:
-  #   metadata:
-  #     annotations:
-  #       coredns.io/hostname: "${APP_DNS_EMQX}"
-  #       io.cilium/lb-ipam-ips: "${APP_IP_EMQX}"
-  #   spec:
-  #     type: LoadBalancer
+  listenersServiceTemplate:
+    metadata:
+      annotations:
+        coredns.io/hostname: "${APP_DNS_EMQX}" # TLS SNI
+        io.cilium/lb-ipam-ips: "${APP_IP_EMQX}"
+    spec:
+      type: LoadBalancer
