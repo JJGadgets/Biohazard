@@ -24,11 +24,17 @@ spec:
       authorization {
         no_match = "deny"
         deny_action = "ignore"
-        sources = [{
-          enable = true
-          type = file
-          path = "/secrets/acl.conf"
-        }]
+        sources = [
+          {
+            enable = true
+            type = file
+            path = "/secrets/acl.conf"
+          },
+          {
+            enable = true
+            type = built_in_database
+          }
+        ]
       }
       listeners.ssl.default {
         bind = "0.0.0.0:8883"
