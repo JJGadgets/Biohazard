@@ -31,6 +31,10 @@ spec:
     matchLabels:
       apps.emqx.io/instance: emqx
   ingress:
+    # EMQX operator (readiness gate)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: emqx-operator
     # same EMQX cluster
     - fromEndpoints: [*cluster]
     # labelled pods
@@ -43,6 +47,8 @@ spec:
               values: [emqx]
       toPorts:
         - ports:
+            - port: "1883"
+              protocol: TCP
             - port: "8883"
               protocol: TCP
     - fromEndpoints: *labelled
