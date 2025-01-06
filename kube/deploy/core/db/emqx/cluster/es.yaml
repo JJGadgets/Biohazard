@@ -25,9 +25,7 @@ spec:
         X_EMQX_APIKEY_KEY: "{{ .X_EMQX_APIKEY_KEY }}"
         X_EMQX_APIKEY_SECRET: "{{ .X_EMQX_APIKEY_SECRET }}"
         init-user.json: |
-          [
-            {"user_id": "{{ .X_EMQX_MQTT_HASS_USERNAME }}", "password": "{{ .X_EMQX_MQTT_HASS_PASSWORD }}", "is_superuser": false}
-          ]
+          [{"user_id": "{{ .X_EMQX_MQTT_HASS_USERNAME }}", "password": "{{ .X_EMQX_MQTT_HASS_PASSWORD }}", "is_superuser": false}]
         acl.conf: |
           %% Allow MQTT client using username "dashboard"  to subscribe to "$SYS/#" topics
           {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#"]}.
