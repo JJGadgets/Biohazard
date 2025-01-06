@@ -19,6 +19,7 @@ spec:
       namespace: cert-manager
   values:
     fullnameOverride: *app
+    singleNamespace: true
     image:
       repository: ghcr.io/emqx/emqx-operator
   postRenderers:
