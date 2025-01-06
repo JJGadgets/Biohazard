@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.5.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "3.5.1"
+      version: "3.6.0"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -23,10 +23,12 @@ spec:
         pod:
           hostname: "home-assistant"
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            ingress.home.arpa/world: "allow"
-            egress.home.arpa/iot: "allow"
-            egress.home.arpa/appletv: "allow"
+            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/world: allow
+            egress.home.arpa/iot: allow
+            egress.home.arpa/appletv: allow
+            egress.home.arpa/r2: allow
+            db.home.arpa/emqx: emqx
           annotations:
             k8s.v1.cni.cncf.io/networks: |
               [{
@@ -58,68 +60,102 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "3000m"
+                cpu: "1"
                 memory: "1Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-      vscode:
-        type: deployment
-        replicas: 0
-        pod:
-          labels:
-            ingress.home.arpa/nginx-internal: "allow"
-        containers:
-          main:
+          litestream: &ls
             image:
-              repository: "ghcr.io/coder/code-server"
-              tag: "4.95.3@sha256:6d74583d68179cbb6ddadc2518b450d2ac3eaec2d342474fe1941e03371cd2cf"
-            command: ["dumb-init", "/usr/bin/code-server"]
-            args:
-              - "--auth"
-              - "none"
-              - "--disable-telemetry"
-              - "--user-data-dir"
-              - "/home/coder/.vscode"
-              - "--extensions-dir"
-              - "/home/coder/.vscode"
-              - "--bind-addr"
-              - "0.0.0.0:8080"
-              - "--port"
-              - "8080"
-              - "/home/coder"
-            env:
-              TZ: "${CONFIG_TZ}"
-            securityContext:
-              <<: *sc
-              runAsUser: 1000 # coder
+              repository: "docker.io/litestream/litestream"
+              tag: "0.3.13"
+            args: ["replicate"]
+            envFrom:
+              - secretRef:
+                  name: litestream-secrets
+            env: &lsenv
+              AGE_PUBKEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "litestream-agekey"
+                    key: "AGE_PUBKEY"
+            securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
+                memory: 128Mi
               limits:
-                cpu: "500m" # I previously had a code-server that would eat cores
-                memory: "1Gi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+                cpu: "1"
+                memory: 1024Mi
+        initContainers:
+          01-litestream-restore:
+            <<: *ls
+            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/home-assistant_v2.db"]
+            env:
+              AGE_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "litestream-agekey"
+                    key: "AGE_SECRET"
+      # vscode:
+      #   type: deployment
+      #   replicas: 0
+      #   pod:
+      #     labels:
+      #       ingress.home.arpa/nginx-internal: "allow"
+      #   containers:
+      #     main:
+      #       image:
+      #         repository: "ghcr.io/coder/code-server"
+      #         tag: "4.95.3@sha256:6d74583d68179cbb6ddadc2518b450d2ac3eaec2d342474fe1941e03371cd2cf"
+      #       command: ["dumb-init", "/usr/bin/code-server"]
+      #       args:
+      #         - "--auth"
+      #         - "none"
+      #         - "--disable-telemetry"
+      #         - "--user-data-dir"
+      #         - "/home/coder/.vscode"
+      #         - "--extensions-dir"
+      #         - "/home/coder/.vscode"
+      #         - "--bind-addr"
+      #         - "0.0.0.0:8080"
+      #         - "--port"
+      #         - "8080"
+      #         - "/home/coder"
+      #       env:
+      #         TZ: "${CONFIG_TZ}"
+      #       securityContext:
+      #         <<: *sc
+      #         runAsUser: 1000 # coder
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "500m" # I previously had a code-server that would eat cores
+      #           memory: "1Gi"
+      #       probes:
+      #         liveness:
+      #           enabled: true
+      #         readiness:
+      #           enabled: true
     service:
       home-assistant:
+        primary: true
         controller: "home-assistant"
         ports:
           http:
             port: 8123
             protocol: TCP
             appProtocol: http
-      vscode:
-        primary: false
-        controller: "vscode"
-        ports:
-          http:
-            port: 8080
+            primary: true
+      # vscode:
+      #   primary: false
+      #   controller: "vscode"
+      #   ports:
+      #     http:
+      #       port: 8080
       expose:
         primary: false
         controller: "home-assistant"
@@ -130,6 +166,7 @@ spec:
           homekit:
             port: 21061
             protocol: TCP
+            primary: false
     ingress:
       main:
         className: "nginx-internal"
@@ -143,18 +180,18 @@ spec:
                   port: http
         tls: &tls
           - hosts: [*host]
-      vscode:
-        className: "tailscale"
-        hosts:
-          - host: &host "hass-edit.${DNS_TS:=ts.net}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: vscode
-                  port: http
-        tls:
-          - hosts: [*host]
+      # vscode:
+      #   className: "tailscale"
+      #   hosts:
+      #     - host: &host "hass-edit.${DNS_TS:=ts.net}"
+      #       paths: &paths
+      #         - path: /
+      #           pathType: Prefix
+      #           service:
+      #             identifier: vscode
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       config:
         enabled: true
@@ -165,10 +202,10 @@ spec:
               - subPath: "config"
                 path: "/config"
                 readOnly: false
-          vscode:
-            main:
-              - path: "/home/coder"
-                readOnly: false
+          # vscode:
+          #   main:
+          #     - path: "/home/coder"
+          #       readOnly: false
       tmp:
         enabled: true
         type: emptyDir
@@ -177,9 +214,36 @@ spec:
           - subPath: "tmp"
             path: "/tmp"
             readOnly: false
+      litestream:
+        enabled: true
+        type: configMap
+        name: "headscale-litestream"
+        globalMounts:
+          - subPath: "litestream.yml"
+            path: "/etc/litestream.yml"
+            readOnly: true
+    configMaps:
+      litesteeam:
+        data:
+          litestream.yml: |
+            dbs:
+              - path: /config/home-assistant_v2.db
+                replicas:
+                  - name: "r2"
+                    type: "s3"
+                    endpoint: "$${R2_ENDPOINT}"
+                    bucket: "$${R2_BUCKET}"
+                    path: "home-assistant"
+                    force-path-style: true
+                    retention: 168h
+                    # validation-interval: 24h
+                    age:
+                      recipients: ["$${AGE_PUBKEY}"]
+                      identities: ["$${AGE_SECRET}"]
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
