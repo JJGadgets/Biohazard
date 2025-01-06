@@ -243,7 +243,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      hostUsers: false
+      # hostUsers: false # CephFS support needed
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
