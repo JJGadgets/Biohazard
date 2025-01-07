@@ -70,17 +70,25 @@ spec:
           litestream: &ls
             image:
               repository: "docker.io/litestream/litestream"
-              tag: "0.3.13"
+              tag: "0.3.13@sha256:027eda2a89a86015b9797d2129d4dd447e8953097b4190e1d5a30b73e76d8d58"
             args: ["replicate"]
             envFrom:
               - secretRef:
                   name: litestream-secrets
             env: &lsenv
+              DB_PATH: "/config/home-assistant_v2.db"
+              REMOTE_PATH: "home-assistant/home-assistant_v2"
+              VALIDATION_INTERVAL: "24h"
               AGE_PUBKEY:
                 valueFrom:
                   secretKeyRef:
-                    name: "litestream-agekey"
+                    name: "home-assistant-litestream-agekey"
                     key: "AGE_PUBKEY"
+              AGE_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "home-assistant-litestream-agekey"
+                    key: "AGE_SECRET"
             securityContext: *sc
             resources:
               requests:
@@ -93,12 +101,7 @@ spec:
           01-litestream-restore:
             <<: *ls
             args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/home-assistant_v2.db"]
-            env:
-              AGE_SECRET:
-                valueFrom:
-                  secretKeyRef:
-                    name: "litestream-agekey"
-                    key: "AGE_SECRET"
+            env: *lsenv
       # vscode:
       #   type: deployment
       #   replicas: 0
@@ -194,20 +197,19 @@ spec:
       #     - hosts: [*host]
     persistence:
       config:
-        enabled: true
         existingClaim: "home-assistant-data"
         advancedMounts:
           home-assistant:
-            main:
+            main: &pvc
               - subPath: "config"
                 path: "/config"
                 readOnly: false
+            litestream: *pvc
           # vscode:
           #   main:
           #     - path: "/home/coder"
           #       readOnly: false
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
@@ -215,31 +217,14 @@ spec:
             path: "/tmp"
             readOnly: false
       litestream:
-        enabled: true
         type: configMap
-        name: "headscale-litestream"
-        globalMounts:
-          - subPath: "litestream.yml"
-            path: "/etc/litestream.yml"
-            readOnly: true
-    configMaps:
-      litesteeam:
-        data:
-          litestream.yml: |
-            dbs:
-              - path: /config/home-assistant_v2.db
-                replicas:
-                  - name: "r2"
-                    type: "s3"
-                    endpoint: "$${R2_ENDPOINT}"
-                    bucket: "$${R2_BUCKET}"
-                    path: "home-assistant"
-                    force-path-style: true
-                    retention: 168h
-                    # validation-interval: 24h
-                    age:
-                      recipients: ["$${AGE_PUBKEY}"]
-                      identities: ["$${AGE_SECRET}"]
+        name: "litestream-secrets"
+        advancedMounts:
+          home-assistant:
+            litestream:
+              - subPath: "litestream.yml"
+                path: "/etc/litestream.yml"
+                readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -251,13 +236,6 @@ spec:
         fsGroup: *gid
         fsGroupChangePolicy: "Always"
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
