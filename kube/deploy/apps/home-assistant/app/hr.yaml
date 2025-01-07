@@ -217,7 +217,7 @@ spec:
             path: "/tmp"
             readOnly: false
       litestream:
-        type: configMap
+        type: secret
         name: "litestream-secrets"
         advancedMounts:
           home-assistant:
