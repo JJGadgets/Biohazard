@@ -82,12 +82,12 @@ spec:
               AGE_PUBKEY:
                 valueFrom:
                   secretKeyRef:
-                    name: "home-assistant-litestream-agekey"
+                    name: "home-assistant-secrets"
                     key: "AGE_PUBKEY"
               AGE_SECRET:
                 valueFrom:
                   secretKeyRef:
-                    name: "home-assistant-litestream-agekey"
+                    name: "home-assistant-secrets"
                     key: "AGE_SECRET"
             securityContext: *sc
             resources:
