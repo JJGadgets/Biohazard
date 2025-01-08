@@ -100,7 +100,7 @@ spec:
         initContainers:
           01-litestream-restore:
             <<: *ls
-            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "-v", "/config/home-assistant_v2.db"]
+            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "/config/home-assistant_v2.db"]
             env: *lsenv
       # vscode:
       #   type: deployment
@@ -205,6 +205,7 @@ spec:
                 path: "/config"
                 readOnly: false
             litestream: *pvc
+            01-litestream-restore: *pvc
           # vscode:
           #   main:
           #     - path: "/home/coder"
@@ -221,10 +222,11 @@ spec:
         name: "litestream-secrets"
         advancedMounts:
           home-assistant:
-            litestream:
+            litestream: &lsmnt
               - subPath: "litestream.yml"
                 path: "/etc/litestream.yml"
                 readOnly: true
+            01-litestream-restore: *lsmnt
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
