@@ -416,6 +416,12 @@ spec:
         - ports:
             - port: "1080"
               protocol: "TCP"
+    - toCIDRSet:
+        - cidr: "${IP_ROUTER_LAN}/32"
+      toPorts:
+        - ports:
+            - port: "61080"
+              protocol: "TCP"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
