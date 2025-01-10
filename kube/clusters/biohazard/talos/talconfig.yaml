@@ -288,6 +288,13 @@ patches:
             UserNamespacesSupport: true
             UserNamespacesPodSecurityStandards: true
 
+  - &PodLevelResources |-
+    machine:
+      kubelet:
+        extraConfig:
+          featureGates:
+            PodLevelResources: true
+
   # patch containerd for spegel (discard)
   - &spegel |
     machine:
@@ -322,6 +329,74 @@ patches:
             source: /run/kubelet-logs-pods
             destination: /var/log/pods
 
+  - &netjank |
+    machine:
+      pods:
+        - apiVersion: v1
+          kind: Pod
+          metadata:
+            name: &name "net-jank"
+            namespace: "kube-system"
+          spec:
+            hostNetwork: true
+            hostPID: true
+            restartPolicy: OnFailure
+            containers:
+              - &ct
+                name: bridge-mac-set
+                image: "public.ecr.aws/docker/library/alpine:latest"
+                command: ["/bin/sh", "-c"]
+                args:
+                  - |
+                    for br in $(brctl show | awk '!/bridge name/' | awk '/^[[:alnum:]]/{print $$1}'); do
+                      ip link show dev $$br
+                      ip link set $$br address $(brctl showmacs $$br | grep "0.00" | grep "  1" | grep "yes" | head -n 1 | awk '{print $$2}')
+                      ip link show dev $$br
+                    done
+                securityContext:
+                  privileged: true
+                resources:
+                  requests:
+                    cpu: "0m"
+                    memory: "0Mi"
+                  limits:
+                    cpu: "500m"
+                    memory: "128Mi"
+              - <<: *ct
+                name: e1000e-fix
+                args:
+                  - |
+                    find /sys/class/net/*/device/driver/module/drivers -maxdepth 1 -path "*e1000e*" | awk -F'/' '{print $$5}' | xargs -I% nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c "
+                    echo '% - BEFORE' &&
+                    echo '==========' &&
+                    ethtool -k % &&
+                    echo '==========' &&
+                    echo 'Disabling offloads for %...' &&
+                    ethtool -K % tso off gso off gro off &&
+                    echo '==========' &&
+                    echo '% - AFTER' &&
+                    echo '==========' &&
+                    ethtool -k % &&
+                    echo '=========='"
+                volumeMounts:
+                  - name: netfs
+                    mountPath: /host/net
+                    readOnly: true
+                  - name: procfs
+                    mountPath: /host/proc
+                    readOnly: true
+            volumes:
+              - name: netfs
+                hostPath:
+                  type: Directory
+                  path: /sys
+                  readOnly: true
+              - name: procfs
+                hostPath:
+                  type: Directory
+                  path: /proc
+                  readOnly: true
+
 controlPlane:
   patches:
     - &apiServerResources |-
@@ -339,7 +414,6 @@ controlPlane:
         apiServer:
           extraArgs:
             audit-log-path: "/dev/null" # disk health
-            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces
           auditPolicy:
             apiVersion: audit.k8s.io/v1
             kind: Policy
@@ -403,3 +477,15 @@ controlPlane:
               - system-upgrade-controller
               - talos-backup
               - code-server
+
+    - &PodLevelResourcesCluster |
+      cluster:
+        apiServer:
+          extraArgs:
+            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces, K8s 1.32+ pod level resources
+        controllerManager:
+          extraArgs:
+            feature-gates: PodLevelResources=true
+        scheduler:
+          extraArgs:
+            feature-gates: PodLevelResources=true
