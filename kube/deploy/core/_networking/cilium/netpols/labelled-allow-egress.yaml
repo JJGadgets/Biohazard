@@ -343,7 +343,8 @@ spec:
       egress.home.arpa/pypi: allow
   egress:
     - toFQDNs: &dns
-        - matchPattern: "pypi.org"
+        - matchName: "pypi.org"
+        - matchName: "files.pythonhosted.org"
       toPorts:
         - ports:
             - port: "443"
