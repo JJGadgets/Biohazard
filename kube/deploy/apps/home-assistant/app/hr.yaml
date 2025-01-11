@@ -28,6 +28,7 @@ spec:
             egress.home.arpa/iot: allow
             egress.home.arpa/appletv: allow
             egress.home.arpa/r2: allow
+            egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
             db.home.arpa/emqx: emqx
           annotations:
             k8s.v1.cni.cncf.io/networks: |
