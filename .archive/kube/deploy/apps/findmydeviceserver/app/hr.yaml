@@ -52,7 +52,7 @@ spec:
         primary: true
         className: "nginx-external"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_FINDMYDEVICESERVER}"

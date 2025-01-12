@@ -199,7 +199,7 @@ spec:
       #   className: nginx-internal
       #   annotations:
       #     <<: *cors
-      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF}" # cloudflared handles proxying to backend pod directly
+      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}" # cloudflared handles proxying to backend pod directly
       #     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       #     nginx.ingress.kubernetes.io/use-regex: "true"
       #     nginx.ingress.kubernetes.io/rewrite-target: /$2

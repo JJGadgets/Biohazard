@@ -124,7 +124,7 @@ spec:
       main:
         className: nginx-internal # public traffic goes direct via cloudflared
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: *host

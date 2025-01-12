@@ -59,25 +59,16 @@ spec:
         primary: true
         className: "nginx-external"
         annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
-          - host: &host "${APP_DNS_JELLYFIN}"
+          - host: &host "${APP_DNS_JELLYFIN:=jellyfin}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
                   name: main
                   port: http
-        tls:
-          - hosts: [*host]
-      tailscale:
-        enabled: true
-        primary: false
-        className: "tailscale"
-        hosts:
-          - host: &host "${APP_DNS_JELLYFIN_TS}"
-            paths: *paths
         tls:
           - hosts: [*host]
     persistence:
@@ -89,8 +80,8 @@ spec:
       nfs:
         enabled: true
         type: nfs
-        server: "${IP_TRUENAS}"
-        path: "${PATH_NAS_MEDIA}"
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
         globalMounts:
           - path: "/media"
             readOnly: true
