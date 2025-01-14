@@ -200,26 +200,6 @@ spec:
       target:
         kind: Service
         name: webhook-receiver
-    # cgroups
-    - patch: |
-        - op: add
-          path: /spec/template/spec/containers/0/env/-
-          value:
-            name: GOMAXPROCS
-            valueFrom:
-              resourceFieldRef:
-                divisor: "0"
-                resource: limits.cpu
-        - op: add
-          path: /spec/template/spec/containers/0/env/-
-          value:
-            name: GOMEMLIMIT
-            valueFrom:
-              resourceFieldRef:
-                divisor: "0"
-                resource: limits.memory
-      target:
-        kind: Deployment
     # scheduling
     - patch: |
         - op: add
