@@ -40,7 +40,7 @@ spec:
               ACTUAL_ALLOWED_LOGIN_METHODS: openid
               ACTUAL_OPENID_PROVIDER_NAME: "JJGadgets Auth"
               ACTUAL_OPENID_SERVER_HOSTNAME: "https://${APP_DNS_ACTUAL}"
-              # ACTUAL_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              ACTUAL_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
             envFrom: &envFrom
               - secretRef:
                   name: actual-secrets
@@ -60,6 +60,13 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+        initContainers:
+          01-enable-openid:
+            image: *img
+            env: *env
+            envFrom: *envFrom
+            securityContext: *sc
+            command: ["npm", "run", "enable-openid", "--prefix", "/app"]
     service:
       actual:
         controller: actual
