@@ -1,0 +1,118 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app actual
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.6.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      actual:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+            # egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/actualbudget/actual-server
+              tag: 25.1.0
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              ACTUAL_PORT: &http 5006
+              ACTUAL_DATA_DIR: &pvc /data
+              ACTUAL_LOGIN_METHOD: openid
+              ACTUAL_ALLOWED_LOGIN_METHODS: openid
+              ACTUAL_OPENID_SERVER_HOSTNAME: "https://${APP_DNS_ACTUAL}"
+              ACTUAL_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+            envFrom: &envFrom
+              - secretRef:
+                  name: actual-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      actual:
+        controller: actual
+        ports:
+          http:
+            port: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_ACTUAL:=actual}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: actual
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: actual-data
+        globalMounts:
+          - subPath: data
+            path: *pvc
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/actual
+                    operator: DoesNotExist
