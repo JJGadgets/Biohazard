@@ -295,6 +295,26 @@ patches:
           featureGates:
             PodLevelResources: true
 
+  - &kubeletNodePressure |
+    machine:
+      kubelet:
+        extraConfig:
+          imageGCLowThresholdPercent: 70
+          imageGCHighThresholdPercent: 90
+          kubeReserved:
+            cpu: 50m
+            memory: 1Gi
+            ephemeral-storage: 512Mi
+          systemReserved:
+            cpu: 50m
+            memory: 1Gi
+            ephemeral-storage: 512Mi
+          evictionHard:
+            nodefs.available: "5%"
+          evictionMinimumReclaim:
+            memory.available: "1Gi"
+            nodefs.available: "1Gi"
+
   # patch containerd for spegel (discard)
   - &spegel |
     machine:
