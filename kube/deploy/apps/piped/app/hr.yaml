@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/bjw-s-labs/piped-frontend
-              tag: 2025.1.17@sha256:45c32727ecea87896aeba035011c47d375135471d293a7c88eb0313dc0a46768
+              tag: 2025.1.17@sha256:aaa5a2f3528dab25aaa8a692307b697581bb624d0f1ea34d042937746d77500d
             env: &env
               TZ: "${CONFIG_TZ}"
               BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped}"
