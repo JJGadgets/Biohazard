@@ -23,7 +23,7 @@ spec:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas are stuck replaying.
           expr: |
-            (sum by (pg_cluster, role) (ccp_replication_lag_replay_time{role="replica"})) >bool 0
+            (sum by (pg_cluster) (ccp_replication_lag_replay_time{role="replica"})) >bool 0
           for: 1h
           labels:
             severity: critical
@@ -32,7 +32,7 @@ spec:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas are stuck receiving.
           expr: |
-            (sum by(pg_cluster, role) (ccp_replication_lag_received_time{role="replica"})) >bool 99999
+            (sum by (pg_cluster) (ccp_replication_lag_received_time{role="replica"})) >bool 99999
           for: 1h
           labels:
             severity: critical
@@ -41,7 +41,7 @@ spec:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas have archive errors.
           expr: |
-            (sum by (pg_cluster, role) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) >bool 0
+            (sum by (pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) >bool 0
           for: 1h
           labels:
             severity: critical
