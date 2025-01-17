@@ -16,6 +16,7 @@ spec:
       postgresql:
         synchronous_commit: "on"
         use_slots: "true"
+        huge_page_size: 1GB # the hugepages type (2Mi vs 1Gi), not amount allocated
   instances:
     - name: &instance "${PG_APP_NAME}"
       metadata:
@@ -40,6 +41,7 @@ spec:
         limits:
           cpu: "${PG_CPU_LIMIT:=2000m}"
           memory: "${PG_MEM_LIMIT:=2Gi}"
+          "hugepages-${PG_HUGEPAGES_SIZE:=1Gi}": "${PG_HUGEPAGES_REQ:=1Gi}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
