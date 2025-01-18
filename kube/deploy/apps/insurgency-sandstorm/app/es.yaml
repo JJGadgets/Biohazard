@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name insurgency-sandstorm-secrets
+  namespace: insurgency-sandstorm
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Insurgency Sandstorm - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        SECRET_SANDSTORM_PASSWORD: '{{ .SECRET_SANDSTORM_PASSWORD }}'
+        Admins.txt: |
+          {{ .Admins.txt }}
+        GameUserSettings.ini: |
+          [/Script/ModKit.ModIOClient]
+          bHasUserAcceptedTerms=True
+          AccessToken={{ .SECRET_SANDSTORM_MODIO_TOKEN }}
+          AccessExpiryTime=-1
+          bCachedUserDetails=True
+          CachedUser=(Id=,NameId="",Username="",DateOnline=0,Avatar=(Thumb_50x50="",Thumb_100x100="",Filename="",Original=""),Timezone="",Language="",ProfileUrl="")
