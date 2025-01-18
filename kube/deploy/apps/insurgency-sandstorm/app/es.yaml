@@ -22,7 +22,7 @@ spec:
       data:
         SECRET_SANDSTORM_PASSWORD: '{{ .SECRET_SANDSTORM_PASSWORD }}'
         Admins.txt: |
-          {{ .Admins.txt }}
+          {{ .Admins }}
         GameUserSettings.ini: |
           [/Script/ModKit.ModIOClient]
           bHasUserAcceptedTerms=True
