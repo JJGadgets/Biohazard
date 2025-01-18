@@ -27,7 +27,8 @@ spec:
           main:
             image: &img
               repository: docker.io/andrewmhub/insurgency-sandstorm
-              tag: lite@sha256:4f9bcc482e742fb61576fe7c806d3ce65d1baf54bfb1eea898bd6e287675ed27
+              # tag: lite@sha256:4f9bcc482e742fb61576fe7c806d3ce65d1baf54bfb1eea898bd6e287675ed27
+              tag: latest@sha256:46968535611801efcd11ab7f75928b8bb1eea4dfbc7723f4af17c04fabeb6933
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="${CONFIG_SANDSTORM_NAME}"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
             env: &env
@@ -55,27 +56,27 @@ spec:
             #     enabled: true
             #   readiness:
             #     enabled: true
-      download:
-        type: cronjob
-        cronjob:
-          schedule: "@daily"
-          concurrencyPolicy: "Replace"
-        pod:
-          labels:
-            egress.home.arpa/internet: allow
-        containers:
-          main:
-            image: *img
-            # command: ["/home/steam/steamcmd/steamcmd.sh"] # script contains a ulimit command that won't run on Talos 1.9+
-            command: ["/bin/sh", "-c", "LD_LIBRARY_PATH=/home/steam/steamcmd/linux32:$(LD_LIBRARY_PATH) /home/steam/steamcmd/linux32/steamcmd"]
-            args: ["+force_install_dir", "/home/steam/steamcmd/sandstorm/", "+login", "anonymous", "+app_update", "581330", "validate", "+quit"]
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "1Gi"
+      # download:
+      #   type: cronjob
+      #   cronjob:
+      #     schedule: "@daily"
+      #     concurrencyPolicy: "Replace"
+      #   pod:
+      #     labels:
+      #       egress.home.arpa/internet: allow
+      #   containers:
+      #     main:
+      #       image: *img
+      #       # command: ["/home/steam/steamcmd/steamcmd.sh"] # script contains a ulimit command that won't run on Talos 1.9+
+      #       command: ["/bin/sh", "-c", "LD_LIBRARY_PATH=/home/steam/steamcmd/linux32:$(LD_LIBRARY_PATH) /home/steam/steamcmd/linux32/steamcmd"]
+      #       args: ["+force_install_dir", "/home/steam/steamcmd/sandstorm/", "+login", "anonymous", "+app_update", "581330", "validate", "+quit"]
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "1"
+      #           memory: "1Gi"
     service:
       insurgency-sandstorm:
         controller: insurgency-sandstorm
@@ -91,11 +92,11 @@ spec:
             port: *query
             protocol: UDP
     persistence:
-      misc:
-        existingClaim: insurgency-sandstorm-misc
-        globalMounts:
-          - subPath: data
-            path: /home/steam/steamcmd/sandstorm
+      # misc:
+      #   existingClaim: insurgency-sandstorm-misc
+      #   globalMounts:
+      #     - subPath: data
+      #       path: /home/steam/steamcmd/sandstorm
       config:
         type: configMap
         name: insurgency-sandstorm-config
@@ -126,7 +127,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 1001 # `steam` user, 1000 is `ubuntu` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
