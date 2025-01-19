@@ -23,13 +23,11 @@ spec:
         pod:
           labels:
             ingress.home.arpa/world: allow
-            # egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
               repository: docker.io/andrewmhub/insurgency-sandstorm
               tag: lite@sha256:4f9bcc482e742fb61576fe7c806d3ce65d1baf54bfb1eea898bd6e287675ed27
-              # tag: latest@sha256:46968535611801efcd11ab7f75928b8bb1eea4dfbc7723f4af17c04fabeb6933
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
             env: &env
@@ -77,17 +75,17 @@ spec:
               readOnlyRootFilesystem: false
             resources:
               requests:
-                cpu: "10m"
+                cpu: "300m"
               limits:
                 cpu: "1"
-                memory: "1Gi"
+                memory: "128Mi"
     service:
       insurgency-sandstorm:
         controller: insurgency-sandstorm
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_INSURGENCY_SANDSTORM:=insurgency-sandstorm}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_INSURGENCY_SANDSTORM:=127.0.0.1}"
+          coredns.io/hostname: "${APP_DNS_SANDSTORM:=insurgency-sandstorm}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_SANDSTORM:=127.0.0.1}"
         ports:
           game:
             port: *port
