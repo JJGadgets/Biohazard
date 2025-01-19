@@ -23,16 +23,18 @@ spec:
         pod:
           labels:
             ingress.home.arpa/world: allow
+            egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
               repository: docker.io/andrewmhub/insurgency-sandstorm
-              # tag: lite@sha256:4f9bcc482e742fb61576fe7c806d3ce65d1baf54bfb1eea898bd6e287675ed27
-              tag: latest@sha256:46968535611801efcd11ab7f75928b8bb1eea4dfbc7723f4af17c04fabeb6933
-            command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
-            args: ['-hostname="${CONFIG_SANDSTORM_NAME}"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
+              tag: lite@sha256:4f9bcc482e742fb61576fe7c806d3ce65d1baf54bfb1eea898bd6e287675ed27
+              # tag: latest@sha256:46968535611801efcd11ab7f75928b8bb1eea4dfbc7723f4af17c04fabeb6933
+            # command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
+            args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
             env: &env
               TZ: "${CONFIG_TZ}"
+              HOSTNAME: "${CONFIG_SANDSTORM_NAME}"
               PORT: &port 27102
               QUERYPORT: &query 27131
               PASSWORD:
@@ -92,11 +94,11 @@ spec:
             port: *query
             protocol: UDP
     persistence:
-      # misc:
-      #   existingClaim: insurgency-sandstorm-misc
-      #   globalMounts:
-      #     - subPath: data
-      #       path: /home/steam/steamcmd/sandstorm
+      misc:
+        existingClaim: insurgency-sandstorm-misc
+        globalMounts:
+          - subPath: data
+            path: /home/steam/steamcmd/sandstorm
       config:
         type: configMap
         name: insurgency-sandstorm-config
