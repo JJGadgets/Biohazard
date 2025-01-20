@@ -9,21 +9,21 @@ spec:
   groups:
     - name: crunchypgo.rules
       rules:
-        # - alert: PostgresWALsStopped
-        #   annotations:
-        #     summary: >-
-        #       {{ $labels.pg_cluster }}'s master has stopped WALs generation.
-        #   expr: |
-        #     (sum by(pg_cluster, role) (increase(pg_wal_size_bytes{role="master"}[1h]))) <bool 100000000
-        #   for: 1h
-        #   labels:
-        #     severity: critical
+        - alert: PostgresWALsStopped
+          annotations:
+            summary: >-
+              {{ $labels.pg_cluster }}'s master has stopped WALs generation.
+          expr: |
+            (sum by(pg_cluster, role) (increase(pg_wal_size_bytes{role="master"}[1h]))) < 100000000
+          for: 1h
+          labels:
+            severity: critical
         - alert: PostgresReplicasReplayStuck
           annotations:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas are stuck replaying.
           expr: |
-            (sum by (pg_cluster) (ccp_replication_lag_replay_time{role="replica"})) >bool 0
+            (sum by (pg_cluster) (ccp_replication_lag_replay_time{role="replica"})) > 0
           for: 1h
           labels:
             severity: critical
@@ -32,7 +32,7 @@ spec:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas are stuck receiving.
           expr: |
-            (sum by (pg_cluster) (ccp_replication_lag_received_time{role="replica"})) >bool 99999
+            (sum by (pg_cluster) (ccp_replication_lag_received_time{role="replica"})) > 99999
           for: 1h
           labels:
             severity: critical
@@ -41,7 +41,7 @@ spec:
             summary: >-
               {{ $labels.pg_cluster }}'s replicas have archive errors.
           expr: |
-            (sum by (pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) >bool 0
+            (sum by (pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) > 0
           for: 1h
           labels:
             severity: critical
@@ -50,9 +50,9 @@ spec:
         #     summary: >-
         #       {{ $labels.pg_cluster }} is in a bad replication state.
         #   expr: |
-        #     ( (sum by(pg_cluster) (ccp_replication_lag_replay_time{role="replica"})) >bool 0 ) +
+        #     ( (sum by(pg_cluster) (ccp_replication_lag_replay_time{role="replica"})) > 0 ) +
         #     ( (sum by(pg_cluster) (ccp_replication_lag_received_time{role="replica"})) > 99999 ) +
-        #     ( (sum by(pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) >bool 0 )
+        #     ( (sum by(pg_cluster) (ccp_archive_command_status_seconds_since_last_fail{role="replica"})) > 0 )
         #   for: 1h
         #   labels:
         #     severity: critical
