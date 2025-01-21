@@ -18,5 +18,10 @@ spec:
     fullnameOverride: *app
     serviceMonitor:
       enabled: true
+      relabelings:
+        # replaces other node identifiers with hostname
+        - sourceLabels: ["node"]
+          targetLabel: instance
+          action: replace
     prometheusRules:
-      enabled: false
+      enabled: true
