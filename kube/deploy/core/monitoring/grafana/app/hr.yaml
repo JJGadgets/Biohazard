@@ -198,7 +198,7 @@ spec:
           datasource: *DSP
         node-exporter-full:
           gnetId: 1860 # https://grafana.com/grafana/dashboards/1860?tab=revisions
-          revision: 31
+          revision: 37
           datasource: Prometheus
         spegel:
           # renovate: depName="Spegel"
@@ -209,10 +209,9 @@ spec:
           gnetId: 14061
           revision: 1
           datasource: Prometheus
-        smartctl-exporter:
-          # renovate: depName="Dashboard for smartctl_exporter"
-          gnetId: 20204
-          revision: 1
+        smartctl-reefland:
+          gnetId: 22604
+          revision: 2
           datasource: *DSP
         smartctl-thomas:
           gnetId: 22381
@@ -275,6 +274,11 @@ spec:
         kubernetes-pods:
           url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
           datasource: Prometheus
+        smartctl-exporter:
+          # renovate: depName="Dashboard for smartctl_exporter"
+          gnetId: 20204
+          revision: 1
+          datasource: *DSP
       nginx:
         nginx:
           url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
