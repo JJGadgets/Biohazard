@@ -9,3 +9,11 @@ resources:
   - rdst.yaml
   - rsrc-r2.yaml
   # - rsrc-rgw.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - pvc.yaml
+  - externalsecret-r2.yaml
+  - rdst.yaml
+  - rsrc-r2.yaml

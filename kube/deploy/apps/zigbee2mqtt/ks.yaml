@@ -9,24 +9,11 @@ metadata:
 spec:
   commonMetadata:
     labels: *l
+  targetNamespace: "zigbee2mqtt"
   path: ./kube/deploy/apps/zigbee2mqtt/app
-  targetNamespace: "zigbee2mqtt"
-  dependsOn:
-    - name: zigbee2mqtt-pvc
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: zigbee2mqtt-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "zigbee2mqtt"
-    pvc.home.arpa/volsync: "true"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "zigbee2mqtt"
+  components:
+    - ../../../core/db/litestream/template/
+    - ../../../core/storage/volsync/template/
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-snapscheduler-app
@@ -35,10 +22,11 @@ spec:
     substitute:
       PVC: "zigbee2mqtt-data"
       SIZE: "1Gi"
-      SC: &sc "block"
+      SC: &sc "file"
       SNAP: *sc
-      ACCESSMODE: &am "ReadWriteOnce"
-      SNAP_ACCESSMODE: *am
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+      LS_AGE_ES: "zigbee2mqtt"
