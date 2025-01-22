@@ -12,3 +12,5 @@ spec:
   path: ./kube/deploy/apps/collabora/app
   targetNamespace: "collabora"
   dependsOn: []
+  components:
+    - ../../../core/flux-system/alerts/template/
