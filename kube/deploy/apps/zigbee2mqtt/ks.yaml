@@ -13,7 +13,7 @@ spec:
   path: ./kube/deploy/apps/zigbee2mqtt/app
   components:
     - ../../../core/db/litestream/template/
-    - ../../../core/storage/volsync/template/
+    - ../../../core/storage/volsync/template/component/
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-snapscheduler-app
