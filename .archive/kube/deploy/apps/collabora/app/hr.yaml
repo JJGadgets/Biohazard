@@ -44,6 +44,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                add: ["CHOWN", "FOWNER", "SYS_ADMIN", "SYS_CHROOT"] # still not enough
             resources:
               requests:
                 cpu: "10m"
