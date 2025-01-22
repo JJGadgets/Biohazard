@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/notification.toolkit.fluxcd.io/alert_v1beta3.json
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: github
+spec:
+  providerRef:
+    name: github
+  eventMetadata:
+    cluster: "${CLUSTER_NAME}"
+  eventSeverity: error
+  eventSources:
+    - kind: Kustomization
+      name: "*"
+  exclusionList:
+    - "error.*lookup github\\.com"
+    - "error.*lookup raw\\.githubusercontent\\.com"
+    - "dial.*tcp.*timeout"
+    - "waiting.*socket"
+  suspend: false
