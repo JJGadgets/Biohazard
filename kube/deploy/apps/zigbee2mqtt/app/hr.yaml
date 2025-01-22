@@ -149,7 +149,7 @@ spec:
         type: secret
         name: "litestream-secrets"
         advancedMounts:
-          home-assistant:
+          zigbee2mqtt:
             litestream: &lsmnt
               - subPath: "litestream.yml"
                 path: "/etc/litestream.yml"
