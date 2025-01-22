@@ -22,6 +22,7 @@ metadata:
   namespace: flux-system
   labels: &l
     app.kubernetes.io/name: "${APPNAME}"
+    pvc.home.arpa/volsync: "true"
 spec:
   commonMetadata:
     labels: *l
@@ -38,12 +39,16 @@ spec:
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_APPNAME}
-      RGID: !!str |
-        ${APP_UID_APPNAME}
-      RFSG: !!str |
-        ${APP_UID_APPNAME}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+      # RUID: !!str &uid |
+      #   ${APP_UID_APPNAME:=1000}
+      # RGID: !!str |
+      #   ${APP_UID_APPNAME:=1000}
+      # RFSG: !!str |
+      #   ${APP_UID_APPNAME:=1000}
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app ${APPNAME}
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.6.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -62,10 +62,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
@@ -140,6 +139,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
           nginx.ingress.kubernetes.io/backend-protocol: HTTPS
           # https://github.com/kubernetes/ingress-nginx/issues/6728
           nginx.ingress.kubernetes.io/server-snippet: |
@@ -228,9 +228,14 @@ spec:
         options:
           - name: ndots
             value: "1"
+      # hostUsers: true
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: &uid ${APP_UID_APPNAME:=1000}
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_APPNAME:=1000}
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
