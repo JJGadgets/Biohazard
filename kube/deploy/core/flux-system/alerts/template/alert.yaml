@@ -8,6 +8,8 @@ spec:
   providerRef:
     name: alertmanager
   eventSeverity: error
+  eventMetadata:
+    cluster: "${CLUSTER_NAME}"
   eventSources:
     - kind: GitRepository
       name: "*"
@@ -34,7 +36,9 @@ metadata:
 spec:
   providerRef:
     name: discord
-  eventSeverity: info
+  eventMetadata:
+    cluster: "${CLUSTER_NAME}"
+  eventSeverity: error
   eventSources:
     - kind: GitRepository
       name: "*"
