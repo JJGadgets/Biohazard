@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/collabora/code"
-              tag: "24.04.9.2.1@sha256:56fe61f51d7c3031f9727c06484d9e9242241704bf4b9cece89c7281a0e1e048"
+              tag: "24.04.11.3.1@sha256:f6d2da45ef1b8db44b0d6a11fe8c0bb98022c0f2befb859b8565962ec58b2afd"
             command: ["/usr/bin/coolwsd", "--version", "--use-env-vars", "--o:sys_template_path=/opt/cool/systemplate", "--o:child_root_path=/opt/cool/child-roots", "--o:file_server_root_path=/usr/share/coolwsd", "--o:logging.color=false", "--o:stop_on_config_change=true", "--o:ssl.enable=false", "--o:ssl.termination=true", "--o:num_prespawn_children=3"]
             env:
               TZ: "${CONFIG_TZ}"
