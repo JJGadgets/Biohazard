@@ -191,12 +191,11 @@ spec:
               kind: Deployment
               name: zigbee2mqtt
             patch: |
-              spec:
-                template:
-                  spec:
-                    resources:
-                      requests:
-                        cpu: 30m
-                      limits:
-                        cpu: 1
-                        memory: 256Mi
+              - op: add
+                path: "/spec/template/spec/resources"
+                value:
+                  requests:
+                    cpu: 30m
+                  limits:
+                    cpu: 1
+                    memory: 256Mi
