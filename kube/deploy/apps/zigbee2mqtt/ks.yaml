@@ -12,7 +12,6 @@ spec:
   targetNamespace: "zigbee2mqtt"
   path: ./kube/deploy/apps/zigbee2mqtt/app
   components:
-    - ../../../core/db/litestream/template/
     - ../../../core/storage/volsync/component/
   dependsOn:
     - name: 1-core-storage-volsync-app
@@ -29,4 +28,3 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
-      LS_AGE_ES: "zigbee2mqtt"

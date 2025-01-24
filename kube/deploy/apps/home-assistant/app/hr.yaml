@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app home-assistant
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "3.6.0"
+      version: "3.6.1"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -57,12 +57,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
@@ -91,13 +85,6 @@ spec:
                     name: "home-assistant-secrets"
                     key: "AGE_SECRET"
             securityContext: *sc
-            resources:
-              requests:
-                cpu: 10m
-                memory: 128Mi
-              limits:
-                cpu: "1"
-                memory: 1024Mi
         initContainers:
           01-litestream-restore:
             <<: *ls
@@ -235,7 +222,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      # hostUsers: false # CephFS support needed
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -250,3 +237,19 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/home-assistant"
                     operator: "DoesNotExist"
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: home-assistant
+            patch: |
+              spec:
+                template:
+                  spec:
+                    resources:
+                      requests:
+                        cpu: 30m
+                      limits:
+                        cpu: 1
+                        memory: 1Gi

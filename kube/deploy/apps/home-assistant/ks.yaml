@@ -9,25 +9,13 @@ metadata:
 spec:
   commonMetadata:
     labels: *l
+  targetNamespace: "home-assistant"
   path: ./kube/deploy/apps/home-assistant/app
-  targetNamespace: "home-assistant"
+  components:
+    - ../../../core/db/litestream/template/
+    - ../../../core/storage/volsync/component/
   dependsOn:
-    - name: home-assistant-pvc
     - name: 1-core-1-networking-multus-app
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: home-assistant-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "home-assistant"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "home-assistant"
-  dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
@@ -41,3 +29,4 @@ spec:
       RUID: "65534"
       RGID: &gid "65533"
       RFSG: *gid
+      LS_AGE_ES: "Home Assistant"
