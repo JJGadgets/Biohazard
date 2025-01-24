@@ -244,12 +244,11 @@ spec:
               kind: Deployment
               name: home-assistant
             patch: |
-              spec:
-                template:
-                  spec:
-                    resources:
-                      requests:
-                        cpu: 30m
-                      limits:
-                        cpu: 1
-                        memory: 1Gi
+              - op: add
+                path: "/spec/template/spec/resources"
+                value:
+                  requests:
+                    cpu: 30m
+                  limits:
+                    cpu: 1
+                    memory: 1Gi
