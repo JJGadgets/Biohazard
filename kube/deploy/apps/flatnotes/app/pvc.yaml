@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "flatnotes-misc"
+  namespace: &app "flatnotes"
+  annotations:
+    description: "PVC for Flatnotes search index."
+  labels:
+    app.kubernetes.io/name: *app
+spec:
+  storageClassName: "file-ec-2-1"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "10Gi"

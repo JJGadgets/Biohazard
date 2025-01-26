@@ -82,6 +82,11 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
+      index:
+        existingClaim: flatnotes-misc
+        globalMounts:
+          - subPath: index
+            path: /data/.flatnotes
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
