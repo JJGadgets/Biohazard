@@ -38,7 +38,7 @@ spec:
               - secretRef:
                   name: flatnotes-secrets
             securityContext: &sc
-              readOnlyRootFilesystem: true
+              # readOnlyRootFilesystem: true # init changes href in index.html
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
