@@ -12,6 +12,7 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/flatnotes/app
   components:
+    - ../../../core/flux-system/alerts/template/
     - ../../../core/storage/volsync/component/
   dependsOn:
     - name: 1-core-storage-volsync-app
