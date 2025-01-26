@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name flatnotes-secrets
+  namespace: flatnotes
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Flatnotes - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        FLATNOTES_USERNAME: '{{ .username }}'
+        FLATNOTES_PASSWORD: '{{ .password }}'
+        FLATNOTES_TOTP_KEY: '{{ .FLATNOTES_TOTP_KEY }}'
+        FLATNOTES_SECRET_KEY: '{{ .FLATNOTES_SECRET_KEY }}' # JWT
+        # FLATNOTES_PATH_PREFIX: '/{{ .username }}'
+        FLATNOTES_QUICK_ACCESS_TERM: '{{ .FLATNOTES_QUICK_ACCESS_TERM }}'
+        FLATNOTES_QUICK_ACCESS_SORT: '{{ .FLATNOTES_QUICK_ACCESS_SORT }}'
+        FLATNOTES_QUICK_ACCESS_LIMIT: '{{ .FLATNOTES_QUICK_ACCESS_LIMIT }}'

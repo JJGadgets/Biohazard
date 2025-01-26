@@ -1,0 +1,29 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flatnotes-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "flatnotes"
+spec:
+  targetNamespace: "flatnotes"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/flatnotes/app
+  components:
+    - ../../../core/storage/volsync/component/
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "flatnotes-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
