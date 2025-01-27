@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app insurgency-sandstorm
+  namespace: *app
+spec:
+  endpointSelector: {}
+  egress:
+    - toFQDNs:
+        - matchPattern: "*.mod.io"

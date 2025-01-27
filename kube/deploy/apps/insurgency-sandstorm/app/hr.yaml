@@ -23,6 +23,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/world: allow
+            dns.home.arpa/l7: "true"
         containers:
           main:
             image: &img
@@ -47,7 +48,7 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "10m"
+                cpu: "100m"
               limits:
                 cpu: "2"
                 memory: "2Gi"
@@ -78,7 +79,7 @@ spec:
                 cpu: "300m"
               limits:
                 cpu: "1"
-                memory: "128Mi"
+                memory: "256Mi"
     service:
       insurgency-sandstorm:
         controller: insurgency-sandstorm
