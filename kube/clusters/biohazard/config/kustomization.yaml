@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./externalsecret-secrets.yaml
   - ./externalsecret-vars.yaml
+  - ./gvisor.yaml
 #secretGenerator:
 #  - name: biohazard-secrets
 #    namespace: flux-system
