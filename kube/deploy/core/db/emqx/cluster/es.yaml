@@ -25,10 +25,22 @@ spec:
         X_EMQX_APIKEY_KEY: "{{ .X_EMQX_APIKEY_KEY }}"
         X_EMQX_APIKEY_SECRET: "{{ .X_EMQX_APIKEY_SECRET }}"
         init-user.json: |
-          [{"user_id": "{{ .X_EMQX_MQTT_HASS_USERNAME }}", "password": "{{ .X_EMQX_MQTT_HASS_PASSWORD }}", "is_superuser": false}]
+          [
+            {"user_id": "{{ .X_EMQX_MQTT_Z2M_USERNAME }}", "password": "{{ .X_EMQX_MQTT_Z2M_PASSWORD }}", "is_superuser": false},
+            {"user_id": "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}", "password": "{{ .X_EMQX_MQTT_VALETUDO_PASSWORD }}", "is_superuser": false},
+            {"user_id": "{{ .X_EMQX_MQTT_HASS_USERNAME }}", "password": "{{ .X_EMQX_MQTT_HASS_PASSWORD }}", "is_superuser": false}
+          ]
         acl.conf: |
-          %% Allow MQTT client using username "dashboard"  to subscribe to "$SYS/#" topics
-          {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#"]}.
+          %% Home Assistant
+          {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#", "valetudo/#"]}.
+
+          %% Zigbee2MQTT, data and HASS discovery
+          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, publish, ["homeassistant/#"]}.
+          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, all, ["hass/#", "zigbee2mqtt/#"]}.
+
+          %% Valetudo, data and HASS discovery
+          {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, publish, ["homeassistant/#"]}.
+          {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, all, ["valetudo/#"]}.
 
           %% Default Deny All
           {deny, all}.
