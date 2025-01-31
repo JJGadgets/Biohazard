@@ -6,7 +6,6 @@ route:
   group_interval: 10m
   group_wait: 1m
   receiver: discord
-  #repeat_interval: 1h # temporarily set 1m because testing notifs
   repeat_interval: 24h
   routes:
     - receiver: heartbeat
@@ -58,7 +57,13 @@ receivers:
           > {{ .Name }}: `{{ .Value }}`
           {{- end }}
           {{- end }}
+          {{- if ne .CommonAnnotations.summary "" }}
+          ## Summary
+          {{ .CommonAnnotations.summary }}
+          {{- end }}
+          {{- if gt (len .Alerts) 0 }}
           ## Alerts
+          {{- end }}
           {{- range .Alerts }}
             {{- if ne .Annotations.description "" }}
           - **{{ .Annotations.description }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
