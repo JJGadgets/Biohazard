@@ -57,7 +57,7 @@ spec:
             io.kubernetes.pod.namespace: emqx
             app.kubernetes.io/name: emqx-operator
     - fromCIDRSet:
-        - cidr: "${IP_ROBOROCK}"
+        - cidr: "${IP_ROBOROCK}/32"
       toPorts: *ports
   egress:
     # same cluster
