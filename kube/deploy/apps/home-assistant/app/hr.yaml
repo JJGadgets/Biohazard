@@ -162,6 +162,22 @@ spec:
             port: 21062
             protocol: TCP
             primary: false
+          homekit-sensors:
+            port: 21063
+            protocol: TCP
+            primary: false
+          homekit-4:
+            port: 21064
+            protocol: TCP
+            primary: false
+          homekit-5:
+            port: 21065
+            protocol: TCP
+            primary: false
+          homekit-6:
+            port: 21066
+            protocol: TCP
+            primary: false
     ingress:
       main:
         className: "nginx-internal"
@@ -205,9 +221,13 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: "tmp"
             path: "/tmp"
+            readOnly: false
+          - subPath: logs
+            path: /config/logs
             readOnly: false
       litestream:
         type: secret

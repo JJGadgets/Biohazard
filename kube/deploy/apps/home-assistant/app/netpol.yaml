@@ -19,6 +19,14 @@ spec:
               protocol: TCP
             - port: "21062"
               protocol: TCP
+            - port: "21063"
+              protocol: TCP
+            - port: "21064"
+              protocol: TCP
+            - port: "21065"
+              protocol: TCP
+            - port: "21066"
+              protocol: TCP
   ingressDeny: # only ingress can hit HTTP port
     - fromEntities: [world]
       toPorts:
