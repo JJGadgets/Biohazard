@@ -35,9 +35,9 @@ spec:
           {allow, {user, "{{ .X_EMQX_MQTT_HASS_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#", "valetudo/#"]}.
 
           %% Zigbee2MQTT, data and HASS discovery
-          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, publish, ["homeassistant/#"]}.
-          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, subscribe, ["homeassistant/status"]}.
-          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, all, ["hass/#", "zigbee2mqtt/#"]}.
+          %%{allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, publish, ["homeassistant/#"]}.
+          %%{allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, subscribe, ["homeassistant/status"]}.
+          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, all, ["homeassistant/#", "hass/#", "zigbee2mqtt/#"]}.
 
           %% Valetudo, data and HASS discovery
           {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, publish, ["homeassistant/#"]}.
