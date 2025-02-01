@@ -36,11 +36,13 @@ spec:
 
           %% Zigbee2MQTT, data and HASS discovery
           {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, publish, ["homeassistant/#"]}.
+          {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, subscribe, ["homeassistant/status"]}.
           {allow, {user, "{{ .X_EMQX_MQTT_Z2M_USERNAME }}"}, all, ["hass/#", "zigbee2mqtt/#"]}.
 
           %% Valetudo, data and HASS discovery
           {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, publish, ["homeassistant/#"]}.
+          {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, subscribe, ["homeassistant/status"]}.
           {allow, {user, "{{ .X_EMQX_MQTT_VALETUDO_USERNAME }}"}, all, ["valetudo/#"]}.
 
           %% Default Deny All
-          {deny, all}.
+          %%{deny, all}. %% commented out to allow failures to be logged
