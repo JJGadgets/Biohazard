@@ -1,0 +1,60 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: stirling-pdf-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "stirling-pdf"
+spec:
+  targetNamespace: "stirling-pdf"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/stirling-pdf/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  #   - ../../../core/storage/volsync/component/
+  dependsOn: []
+#     - name: stirling-pdf-db
+#     - name: 1-core-storage-volsync-app
+#     - name: 1-core-storage-rook-ceph-cluster
+#   postBuild:
+#     substitute:
+#       PVC: "stirling-pdf-data"
+#       SIZE: "10Gi"
+#       SC: &sc "file"
+#       SNAP: *sc
+#       ACCESSMODE: "ReadWriteMany"
+#       SNAP_ACCESSMODE: "ReadOnlyMany"
+#       RUID: &uid "1000"
+#       RGID: *uid
+#       RFSG: *uid
+#       # RUID: !!str &uid |
+#       #   ${APP_UID_STIRLING-PDF:=1000}
+#       # RGID: !!str |
+#       #   ${APP_UID_STIRLING-PDF:=1000}
+#       # RFSG: !!str |
+#       #   ${APP_UID_STIRLING-PDF:=1000}
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: stirling-pdf-db
+#   namespace: flux-system
+#   labels: &l
+#     prune.flux.home.arpa/enabled: "true"
+#     db.home.arpa/pg: "pg-default"
+#     app.kubernetes.io/name: "stirling-pdf"
+# spec:
+#   commonMetadata:
+#     labels: *l
+#   path: ./kube/deploy/core/db/pg/clusters/template/pguser
+#   targetNamespace: "pg"
+#   dependsOn:
+#     - name: 1-core-db-pg-clusters-default
+#     - name: 1-core-secrets-es-k8s
+#   postBuild:
+#     substitute:
+#       PG_NAME: "default"
+#       PG_DB_USER: &app "stirling-pdf"
+#       PG_APP_NS: *app
