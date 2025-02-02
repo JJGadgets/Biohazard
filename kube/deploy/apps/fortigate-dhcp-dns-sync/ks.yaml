@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: fortigate-dhcp-dns-sync-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "fortigate-dhcp-dns-sync"
+spec:
+  targetNamespace: "fortigate-dhcp-dns-sync"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/fortigate-dhcp-dns-sync/app
+  dependsOn: []
+  components:
+    - ../../../core/flux-system/alerts/template/

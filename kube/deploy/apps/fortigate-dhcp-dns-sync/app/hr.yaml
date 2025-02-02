@@ -1,0 +1,78 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app fortigate-dhcp-dns-sync
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.6.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      fortigate-dhcp-dns-sync:
+        type: cronjob
+        cronjob:
+          schedule: "@hourly"
+        pod:
+          labels:
+            egress.home.arpa/router: "allow"
+        containers:
+          main:
+            image: &img
+              repository: gcr.io/distroless/python3-debian12
+              tag: nonroot@sha256:66f3e24fd4906156a7360d2861731d31d3457a02f34fd3c4491f0b710a259988
+            args:
+              - &script /app/fortigate-dhcp-dns-sync.py
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            envFrom: &envFrom
+              - secretRef:
+                  name: fortigate-dhcp-dns-sync-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "128Mi"
+    persistence:
+      script:
+        type: configMap
+        name: fortigate-dhcp-dns-sync-script
+        globalMounts:
+          - subPath: fortigate-dhcp-dns-sync.py
+            path: *script
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/fortigate-dhcp-dns-sync
+                    operator: DoesNotExist
