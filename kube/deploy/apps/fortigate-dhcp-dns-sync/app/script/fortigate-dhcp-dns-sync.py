@@ -6,11 +6,9 @@
 # You need an API key with Admin Profile allowing R/O on Network/Configuration, and R/W on System/Configuration.
 # If only they had more granular API authz, such as by path and method.
 
-import json
 import os
 import requests
 import typing
-# import ipaddress
 
 # type enforcement functions
 
@@ -25,20 +23,16 @@ def getEnv(env: str) -> str:
 def readFileOrEnv(env: str, defaultPath: bool = True) -> str:
     file: str = f"{env}_FILE"
     defaultFile: str = "/secrets/" + env.lower()
-    try:
-        if os.environ.get(file) is not None:
-            return str(openRO(getEnv(file)).read())
-        elif os.environ.get(env) is not None:
-            return str(getEnv(env))
-        elif defaultPath:
-            try:
-                return str(openRO(defaultFile).read())
-            except Exception:
-                return ""
-        else:
+    if os.environ.get(file) is not None:
+        return str(openRO(getEnv(file)).read())
+    elif os.environ.get(env) is not None:
+        return str(getEnv(env))
+    elif defaultPath:
+        try:
+            return str(openRO(defaultFile).read())
+        except Exception:
             return ""
-            # raise Exception(f"Environment variable '{env}' or secret file '{defaultFile}' not found.")
-    except Exception:
+    else:
         return ""
 
 # variables
@@ -65,17 +59,11 @@ except Exception:
 # Stage 1: get DHCP clients from FortiGate
 
 dhcpKeys = {"ip", "hostname", "interface", "type"}
-dhcpClients = [{k:v for k,v in i.items() if k in dhcpKeys} for i in requests.get(url = f"https://{fgtHost}:{fgtPort}/api/v2/monitor/system/dhcp?ipv6={fgtIPv6Str}&vdom={fgtVdom}", headers = {"Authorization": f"Bearer {fgtApiKey}", "Accept": "application/json"}, verify = fgtVerifyTLS).json()['results'] if "hostname" in i.keys()] # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType, reportAny]
-# print(str(dhcpClients))
+dhcpClients = [{k:v for k,v in i.items() if k in dhcpKeys} for i in requests.get(url = f"https://{fgtHost}:{fgtPort}/api/v2/monitor/system/dhcp?ipv6={fgtIPv6Str}&vdom={fgtVdom}", headers = {"Authorization": f"Bearer {fgtApiKey}", "Accept": "application/json"}, verify = fgtVerifyTLS).json()['results'] if "hostname" in i.keys()] # pyright: ignore[reportAny]
 
 # Stage 2: parse
 
 def checkDNStype(ipType: str) -> str:
-    # ipVer = ipaddress.ip_address(str(ip))
-    # if ipVer == 4:
-    #     return "A"
-    # elif ipVer == 6:
-    #     return "AAAA"
     if ipType == "ipv4":
         return "A"
     elif ipType == "ipv6":
@@ -86,7 +74,6 @@ def checkDNStype(ipType: str) -> str:
 dnsRecords: dict[str, list[dict[str, str | int]]] = {"dns-entry": []}
 for i in range(len(dhcpClients)):
     v: dict[str, str] = dhcpClients[i]
-    # print(v)
     dnsRecords["dns-entry"].insert(i, {
         "id": i + 1,
         "status": "enable",
@@ -98,15 +85,11 @@ for i in range(len(dhcpClients)):
     })
 del dhcpClients
 
-# print(str(dnsRecords))
-
-# {"dns-entry":[
-#   {"id":1,"status":"enable","ttl":0,"preference":10,"hostname":"edns","ip":"10.2.3.4","type":"A"}
-# ]}
-
 # Stage 3: upload
+
 reqUrl = f"https://{fgtHost}:{fgtPort}/api/v2/cmdb/system/dns-database/{fgtZone}"
 reqHeaders = {"Authorization": f"Bearer {fgtApiKey}", "Content-Type": "application/json"}
+
 req1 = requests.put(url = reqUrl, headers = reqHeaders, json = dnsRecords, verify = fgtVerifyTLS)
 if req1.status_code != 200:
     req2 = requests.post(url = reqUrl, headers = reqHeaders, json = dnsRecords, verify = fgtVerifyTLS)

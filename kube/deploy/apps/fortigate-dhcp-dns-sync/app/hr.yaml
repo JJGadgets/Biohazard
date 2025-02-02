@@ -27,10 +27,8 @@ spec:
         containers:
           main:
             image: &img
-              repository: gcr.io/distroless/python3-debian12
-              tag: nonroot@sha256:66f3e24fd4906156a7360d2861731d31d3457a02f34fd3c4491f0b710a259988
-            args:
-              - &script /app/fortigate-dhcp-dns-sync.py
+              repository: ghcr.io/jjgadgets/fortigate-dhcp-dns-sync
+              tag: rolling@sha256:bd4456f336d2553320799cc742abc7dad6030f39943e48c6cf240b3a7b9ad224
             env: &env
               TZ: "${CONFIG_TZ}"
             envFrom: &envFrom
@@ -47,13 +45,6 @@ spec:
               limits:
                 cpu: "1"
                 memory: "128Mi"
-    persistence:
-      script:
-        type: configMap
-        name: fortigate-dhcp-dns-sync-script
-        globalMounts:
-          - subPath: fortigate-dhcp-dns-sync.py
-            path: *script
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
