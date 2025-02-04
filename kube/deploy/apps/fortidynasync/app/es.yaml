@@ -3,8 +3,8 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: &name fortigate-dhcp-dns-sync-secrets
-  namespace: fortigate-dhcp-dns-sync
+  name: &name fortidynasync-secrets
+  namespace: fortidynasync
 spec:
   refreshInterval: 1m
   secretStoreRef:
@@ -12,7 +12,7 @@ spec:
     name: 1p
   dataFrom:
     - extract:
-        key: "FortiGate DHCP DNS Sync - ${CLUSTER_NAME}"
+        key: "FortiDynaSync - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain

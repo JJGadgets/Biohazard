@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app fortigate-dhcp-dns-sync
+  name: &app fortidynasync
   namespace: *app
 spec:
   interval: 5m
@@ -17,7 +17,7 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      fortigate-dhcp-dns-sync:
+      fortidynasync:
         type: cronjob
         cronjob:
           schedule: "@hourly"
@@ -27,13 +27,13 @@ spec:
         containers:
           main:
             image: &img
-              repository: ghcr.io/jjgadgets/fortigate-dhcp-dns-sync
-              tag: rolling@sha256:bd4456f336d2553320799cc742abc7dad6030f39943e48c6cf240b3a7b9ad224
+              repository: ghcr.io/jjgadgets/fortidynasync
+              tag: 0.0.1@sha256:c15ef0a4ce8d59e5a44ce5d34a33b357a180e77942fd43e41b373b9eaa4837e9
             env: &env
               TZ: "${CONFIG_TZ}"
             envFrom: &envFrom
               - secretRef:
-                  name: fortigate-dhcp-dns-sync-secrets
+                  name: fortidynasync-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -65,5 +65,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/fortigate-dhcp-dns-sync
+                  - key: fuckoff.home.arpa/fortidynasync
                     operator: DoesNotExist
