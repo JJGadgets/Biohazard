@@ -110,19 +110,19 @@ nodes:
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}2/28"]
       - *m720q-bond0
 
-  - <<: *m720q # TODO: this is cp2 but bare metal, only apply after PVE converted to Talos
+  - <<: *m720q
     hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - <<: *m720q-net
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}3/28"]
       - *m720q-bond0
-    patches:
-      - |
-        machine:
-          sysfs:
-            devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
-            devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+    # patches:
+    #   - |
+    #     machine:
+    #       sysfs:
+    #         devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
+    #         devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
@@ -130,10 +130,10 @@ nodes:
     installDisk: /dev/vda
     nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
-    nodeLabels:
-      node-role.kubernetes.io/vm: ""
-      node-role.kubernetes.io/pve: ""
-      node-role.kubernetes.io/worker: ""
+    # nodeLabels: # no RBAC lol
+    #   node-role.kubernetes.io/vm: ""
+    #   node-role.kubernetes.io/pve: ""
+    #   node-role.kubernetes.io/worker: ""
     networkInterfaces:
       - interface: br0
         mtu: 1500
@@ -174,11 +174,6 @@ nodes:
       - *lldpd
 
 patches:
-  # # Cilium BGP set to active listen
-  # - |-
-  #   machine:
-  #     nodeAnnotations:
-  #       cilium.io/bgp-virtual-router.${ASN_ROUTER}="local-port=179"
   # set all disks to no scheduler
   - |-
     machine:
@@ -187,7 +182,6 @@ patches:
           # set all disks to `none` scheduler (optimal setting for Ceph and ZFS)
           - SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", KERNEL!="rbd*", ATTR{queue/scheduler}="none"
           # allow GID 44 (video) to use Intel GPU
-          #- SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
           - SUBSYSTEM=="drm", GROUP="44", MODE="0660"
 
   - &hugepages |-
@@ -368,10 +362,15 @@ patches:
                 command: ["/bin/sh", "-c"]
                 args:
                   - |
-                    for br in $(brctl show | awk '!/bridge name/' | awk '/^[[:alnum:]]/{print $$1}'); do
-                      ip link show dev $$br
-                      ip link set $$br address $(brctl showmacs $$br | grep "0.00" | grep "  1" | grep "yes" | head -n 1 | awk '{print $$2}')
-                      ip link show dev $$br
+                    duration=600
+                    endTime=$(( $(date +%s) + duration ))
+                    while [ $(date +%s) -lt $$endTime ]; do
+                      for br in $(brctl show | awk '!/bridge name/' | awk '/^[[:alnum:]]/{print $$1}'); do
+                        ip link show dev $$br
+                        ip link set $$br address $(brctl showmacs $$br | grep "0.00" | grep "  1" | grep "yes" | head -n 1 | awk '{print $$2}')
+                        ip link show dev $$br
+                      done
+                      sleep 5
                     done
                 securityContext:
                   privileged: true
@@ -498,11 +497,17 @@ controlPlane:
               - talos-backup
               - code-server
 
+    - &MutatingAdmissionPolicy |
+      cluster:
+        apiServer:
+          extraArgs:
+            runtime-config: admissionregistration.k8s.io/v1alpha1=true
+
     - &PodLevelResourcesCluster |
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces, K8s 1.32+ pod level resources
+            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
             feature-gates: PodLevelResources=true
