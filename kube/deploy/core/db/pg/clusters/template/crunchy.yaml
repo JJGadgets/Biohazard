@@ -10,9 +10,7 @@ spec:
   patroni: # turn on sync writes to at least 1 other replica
     dynamicConfiguration:
       synchronous_mode: true
-      slots:
-        "${PG_APP_NAME}":
-          type: "physical"
+      member_slots_ttl: "1440min"
       postgresql:
         synchronous_commit: "on"
         use_slots: "true"
