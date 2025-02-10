@@ -94,7 +94,7 @@ spec:
       main:
         className: nginx-internal
         annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4}"
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
         hosts:
           - host: &host "${APP_DNS_ZIGBEE2MQTT:=zigbee2mqtt}"
             paths: &paths
@@ -125,10 +125,11 @@ spec:
         options:
           - name: ndots
             value: "1"
+      runtimeClassName: gvisor
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 10006
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
