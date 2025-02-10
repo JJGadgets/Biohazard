@@ -44,3 +44,10 @@ spec:
                 - feature: kernel.loadedmodule
                   matchExpressions:
                     mlx4_core: {op: Exists}
+            - name: "baremetal"
+              labels:
+                "feature.node.kubernetes.io/baremetal": "true"
+              matchFeatures:
+                - feature: cpu.cpuid
+                  matchExpressions:
+                    HYPERVISOR: {op: DoesNotExist}
