@@ -30,6 +30,7 @@ spec:
             egress.home.arpa/r2: allow
             egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
             db.home.arpa/emqx: emqx
+            dns.home.arpa/l7: "true"
           annotations:
             k8s.v1.cni.cncf.io/networks: |
               [{
@@ -90,47 +91,6 @@ spec:
             <<: *ls
             args: ["restore", "-if-db-not-exists", "-if-replica-exists", "/config/home-assistant_v2.db"]
             env: *lsenv
-      # vscode:
-      #   type: deployment
-      #   replicas: 0
-      #   pod:
-      #     labels:
-      #       ingress.home.arpa/nginx-internal: "allow"
-      #   containers:
-      #     main:
-      #       image:
-      #         repository: "ghcr.io/coder/code-server"
-      #         tag: "4.95.3@sha256:6d74583d68179cbb6ddadc2518b450d2ac3eaec2d342474fe1941e03371cd2cf"
-      #       command: ["dumb-init", "/usr/bin/code-server"]
-      #       args:
-      #         - "--auth"
-      #         - "none"
-      #         - "--disable-telemetry"
-      #         - "--user-data-dir"
-      #         - "/home/coder/.vscode"
-      #         - "--extensions-dir"
-      #         - "/home/coder/.vscode"
-      #         - "--bind-addr"
-      #         - "0.0.0.0:8080"
-      #         - "--port"
-      #         - "8080"
-      #         - "/home/coder"
-      #       env:
-      #         TZ: "${CONFIG_TZ}"
-      #       securityContext:
-      #         <<: *sc
-      #         runAsUser: 1000 # coder
-      #       resources:
-      #         requests:
-      #           cpu: "10m"
-      #         limits:
-      #           cpu: "500m" # I previously had a code-server that would eat cores
-      #           memory: "1Gi"
-      #       probes:
-      #         liveness:
-      #           enabled: true
-      #         readiness:
-      #           enabled: true
     service:
       home-assistant:
         primary: true
@@ -141,18 +101,12 @@ spec:
             protocol: TCP
             appProtocol: http
             primary: true
-      # vscode:
-      #   primary: false
-      #   controller: "vscode"
-      #   ports:
-      #     http:
-      #       port: 8080
       expose:
         primary: false
         controller: "home-assistant"
         type: LoadBalancer
         annotations:
-          "io.cilium/lb-ipam-ips": "${APP_IP_HOME_ASSISTANT}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_HOME_ASSISTANT:=127.0.0.1}"
         ports:
           homekit:
             port: 21061
@@ -191,18 +145,6 @@ spec:
                   port: http
         tls: &tls
           - hosts: [*host]
-      # vscode:
-      #   className: "tailscale"
-      #   hosts:
-      #     - host: &host "hass-edit.${DNS_TS:=ts.net}"
-      #       paths: &paths
-      #         - path: /
-      #           pathType: Prefix
-      #           service:
-      #             identifier: vscode
-      #             port: http
-      #   tls:
-      #     - hosts: [*host]
     persistence:
       config:
         existingClaim: "home-assistant-data"
@@ -214,10 +156,6 @@ spec:
                 readOnly: false
             litestream: *pvc
             01-litestream-restore: *pvc
-          # vscode:
-          #   main:
-          #     - path: "/home/coder"
-          #       readOnly: false
       tmp:
         type: emptyDir
         medium: Memory
@@ -243,6 +181,7 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostUsers: false
+      # runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -257,6 +196,13 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/home-assistant"
                     operator: "DoesNotExist"
+    serviceMonitor:
+      home-assistant:
+        serviceName: *app
+        endpoints:
+          - port: http
+            scheme: http
+            path: /api/prometheus
   postRenderers:
     - kustomize:
         patches:
@@ -264,11 +210,11 @@ spec:
               kind: Deployment
               name: home-assistant
             patch: |
-              - op: add
-                path: "/spec/template/spec/resources"
-                value:
-                  requests:
-                    cpu: 30m
-                  limits:
-                    cpu: 1
-                    memory: 1Gi
+              spec:
+                template:
+                  spec:
+                    requests:
+                      cpu: 30m
+                    limits:
+                      cpu: 1
+                      memory: 1Gi
