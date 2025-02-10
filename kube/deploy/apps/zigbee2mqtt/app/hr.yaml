@@ -125,8 +125,8 @@ spec:
         options:
           - name: ndots
             value: "1"
-      runtimeClassName: gvisor
-      hostUsers: false
+      runtimeClassName: gvisor-non-vm
+      # hostUsers: false # gvisor doesn't support K8s userns, it does its own thing
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 10006
