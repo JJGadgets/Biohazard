@@ -181,7 +181,7 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostUsers: false
-      # runtimeClassName: gvisor
+      # runtimeClassName: gvisor # https://github.com/siderolabs/extensions/issues/417
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -196,6 +196,10 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/home-assistant"
                     operator: "DoesNotExist"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
     serviceMonitor:
       home-assistant:
         serviceName: *app
