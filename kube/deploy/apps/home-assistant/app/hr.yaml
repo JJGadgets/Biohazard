@@ -214,6 +214,10 @@ spec:
               kind: Deployment
               name: home-assistant
             patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: home-assistant
               spec:
                 template:
                   spec:
