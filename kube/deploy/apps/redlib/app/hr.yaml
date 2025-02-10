@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: quay.io/redlib/redlib
-              tag: latest@sha256:bc54ee6433c3fce7542ca9edeff3cc082b8bfe46efe4189eb352a6293e6c7997 # for JSON HTTP2 fix
+              tag: latest@sha256:f0b96e2af116b9804562fe27bf0b8831f9cfa12d5bc19bd8d00bd2447deda54f # for JSON HTTP2 fix
             env: &env
               TZ: "${CONFIG_TZ}"
               REDLIB_SFW_ONLY: "off"
