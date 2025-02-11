@@ -6,6 +6,7 @@ metadata:
   name: default-backend
   namespace: ingress
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
@@ -19,10 +20,11 @@ spec:
       ingress.home.arpa/nginx-internal: "allow"
       ingress.home.arpa/nginx-external: "allow"
       ingress.home.arpa/nginx-public: "allow"
+      ingress.home.arpa/cloudflare: "allow"
     controller:
       type: daemonset
     image:
-      repository: "registry.jjgadgets.tech/jjgadgets/jjgadgets-error-page-ingress-nginx"
+      repository: "jank.ing/jjgadgets/jjgadgets-error-page-ingress-nginx"
       tag: "1.0.0-caddy-2.7.5@sha256:5e0e09a23522dc7af059ad560b047137c37da539dd162fb2b0d602592bf8682e"
     service:
       main:
