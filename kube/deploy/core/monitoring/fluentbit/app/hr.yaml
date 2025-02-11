@@ -22,7 +22,7 @@ spec:
           main:
             image: &img
               repository: cr.fluentbit.io/fluent/fluent-bit
-              tag: 3.2.2@sha256:b7a2b9ee1958607da9a16b0efeb24a70a43c5b7e91dbabca4dc02e916aadb914
+              tag: 3.2.6@sha256:991cb1153088891539769aaa1dc9dc0491e8d70caa916d273853bfce824b3822
             args: ["--config=/config/fluent-bit.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
