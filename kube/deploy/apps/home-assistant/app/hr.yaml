@@ -30,6 +30,7 @@ spec:
             egress.home.arpa/r2: allow
             egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
             db.home.arpa/emqx: emqx
+            prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
           annotations:
             k8s.v1.cni.cncf.io/networks: |

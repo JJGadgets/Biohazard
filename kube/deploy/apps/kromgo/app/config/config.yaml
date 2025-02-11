@@ -118,6 +118,14 @@ metrics:
       - { color: "red", min: 70, max: 99999 }
 
   # Personal devices
+  - name: darkhawk_battery_percent
+    query: round(homeassistant_sensor_battery_percent{entity="*darkhawk*"}, 0.01)
+    suffix: "%"
+    colors:
+      - { color: "red", min: 0, max: 20 }
+      - { color: "orange", min: 20.01, max: 49.99 }
+      - { color: "green", min: 50, max: 99999 }
+
   - name: blackhawk_battery_percent
     query: round(node_power_supply_capacity{instance="blackhawk.*"}, 0.01)
     suffix: "%"

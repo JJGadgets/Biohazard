@@ -1,5 +1,7 @@
 # Biohazard - JJ's Homelab Monorepo
 
+**<ins>Glorifying jank that works.</ins>**
+
 Powered by Flux, Kubernetes, Cilium, Talos, and jank. Amongst others.
 
 <!--![Biohazard - CPU](https://img.shields.io/endpoint?url=https%3A%2F%2Fbiohazard-metrics.jjgadgets.tech%2Fquery%3Fformat%3Dendpoint%26metric%3Dcluster_cpu_usage&style=flat&label=Biohazard%20-%20CPU)
@@ -25,7 +27,8 @@ Powered by Flux, Kubernetes, Cilium, Talos, and jank. Amongst others.
 ![Biohazard - Pods Unhealthy](https://biohazard-metrics.jjgadgets.tech/cluster_pods_unhealthy?format=badge)
 ![Biohazard - Active Alerts](https://biohazard-metrics.jjgadgets.tech/prometheus_active_alerts?format=badge)
 ![Biohazard - Cilium Endpoints Unhealthy](https://biohazard-metrics.jjgadgets.tech/cilium_endpoints_unhealthy?format=badge)
-![Biohazard - Cilium BPF Map Pressure](https://biohazard-metrics.jjgadgets.tech/cilium_bpf_map_pressure?format=badge)
+![Biohazard - Cilium BPF Map Pressure](https://biohazard-metrics.jjgadgets.tech/cilium_bpf_map_pressure?format=badge)<br><br>
+![Darkhawk - Battery](https://biohazard-metrics.jjgadgets.tech/darkhawk_battery_percent?format=badge)
 
 </div>
 
