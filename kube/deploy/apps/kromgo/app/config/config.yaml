@@ -119,6 +119,7 @@ metrics:
 
   # Personal devices
   - name: darkhawk_battery_percent
+    title: Darkhawk - Battery
     query: round(homeassistant_sensor_battery_percent{entity="sensor.darkhawk_battery_level"}, 1)
     suffix: "%"
     colors:
