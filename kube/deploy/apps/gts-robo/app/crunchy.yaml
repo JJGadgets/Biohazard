@@ -64,7 +64,6 @@ spec:
         repo3-retention-full-type: "time"
         repo3-retention-full: "5"
         repo3-retention-diff: "30"
-        repo3-cipher-type: "aes-256-cbc"
         log-level-stderr: "debug"
         log-level-console: "debug"
       repos:
@@ -94,14 +93,14 @@ spec:
           limits:
             cpu: 1000m
             memory: 100Mi
-  dataSource:
-    pgbackrest:
-      stanza: "db"
-      configuration: *brcfg
-      global: *brflag
-      repo:
-        name: "repo3"
-        s3: *rgw
+  # dataSource:
+  #   pgbackrest:
+  #     stanza: "db"
+  #     configuration: *brcfg
+  #     global: *brflag
+  #     repo:
+  #       name: "repo3"
+  #       s3: *rgw
   monitoring:
     pgmonitor:
       exporter:
