@@ -41,7 +41,7 @@ spec:
     metadata:
       annotations:
         # coredns.io/hostname: "${APP_DNS_GOTOSOCIAL_VALETUDO}" # TLS SNI
-        io.cilium/lb-ipam-ips: "${APP_IP_GOTOSOCIAL_VALETUDO}"
+        io.cilium/lb-ipam-ips: "${APP_IP_GOTOSOCIAL_VALETUDO_PG}"
   users:
     - name: "gotosocial"
       databases: ["gotosocial"]
