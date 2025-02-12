@@ -27,7 +27,7 @@ spec:
       toPorts:
         - ports:
             - port: "5432"
-    - fromEndpoints: *pg
+    - fromCIDRSet: *pg
       icmps: [{}]
   egress:
     # allow Postgres pods to talk to each other
