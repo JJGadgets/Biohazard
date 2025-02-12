@@ -36,6 +36,12 @@ spec:
         limits:
           cpu: "2000m"
           memory: "2Gi"
+  service:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        # coredns.io/hostname: "${APP_DNS_GOTOSOCIAL_VALETUDO}" # TLS SNI
+        io.cilium/lb-ipam-ips: "${APP_IP_GOTOSOCIAL_VALETUDO}"
   users:
     - name: "gotosocial"
       databases: ["gotosocial"]
