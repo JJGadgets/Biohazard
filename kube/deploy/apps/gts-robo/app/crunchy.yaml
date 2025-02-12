@@ -3,8 +3,8 @@
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: &name "pg-gotosocial-valetudo"
-  namespace: "gotosocial-valetudo"
+  name: &name "pg-gts-robo"
+  namespace: "gts-robo"
 spec:
   postgresVersion: 16
   # patroni: # turn on sync writes to at least 1 other replica
@@ -53,9 +53,9 @@ spec:
           s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
       configuration: &brcfg
         - secret:
-            name: "pg-gotosocial-valetudo-secrets"
+            name: "pg-gts-robo-secrets"
         - secret:
-            name: "pg-gotosocial-valetudo-s3-crunchy"
+            name: "pg-gts-robo-s3-crunchy"
       global: &brflag
         archive-timeout: "60"
         compress-type: "bz2"
@@ -73,7 +73,7 @@ spec:
         - name: "repo3" # Ceph RGW in-cluster
           s3: &rgw
             endpoint: "${APP_DNS_RGW_HTTPS}" # trailing dot to prevent ndots
-            bucket: "pg-gotosocial-valetudo"
+            bucket: "pg-gts-robo"
             region: "us-east-1"
           schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
             full: "15 6 * * 1" # every Monday at 06:15

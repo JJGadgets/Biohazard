@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gts-robo-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "gts-robo"
+spec:
+  targetNamespace: "gts-robo"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/gts-robo/app
+  dependsOn: []

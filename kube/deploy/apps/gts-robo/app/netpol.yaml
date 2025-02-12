@@ -3,12 +3,12 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: "pg-gotosocial-valetudo"
-  namespace: &app "gotosocial-valetudo"
+  name: "pg-gts-robo"
+  namespace: &app "gts-robo"
 spec:
   endpointSelector: &crunchy
     matchLabels:
-      postgres-operator.crunchydata.com/cluster: "pg-gotosocial-valetudo"
+      postgres-operator.crunchydata.com/cluster: "pg-gts-robo"
   ingress:
     # allow Postgres pods to talk to each other
     - fromEndpoints: [*crunchy]

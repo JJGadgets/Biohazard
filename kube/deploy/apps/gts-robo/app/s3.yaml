@@ -2,28 +2,28 @@
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: gotosocial-valetudo-media-s3
-  namespace: gotosocial-valetudo
+  name: gts-robo-media-s3
+  namespace: gts-robo
 spec:
-  bucketName: "gotosocial-valetudo-media"
+  bucketName: "gts-robo-media"
   storageClassName: "rgw-${CLUSTER_NAME}"
 ---
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  name: "pg-gotosocial-valetudo-s3"
-  namespace: "gotosocial-valetudo"
+  name: "pg-gts-robo-s3"
+  namespace: "gts-robo"
   labels:
     kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
-  bucketName: "pg-gotosocial-valetudo"
+  bucketName: "pg-gts-robo"
   storageClassName: "rgw-${CLUSTER_NAME}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: "external-secrets-kubernetes-provider"
-  namespace: "gotosocial-valetudo"
+  namespace: "gts-robo"
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
@@ -36,7 +36,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: &name "external-secrets-kubernetes-provider"
-  namespace: "gotosocial-valetudo"
+  namespace: "gts-robo"
 roleRef:
   apiGroup: "rbac.authorization.k8s.io"
   kind: "Role"
@@ -49,13 +49,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: "external-secrets-kubernetes-provider"
-  namespace: "gotosocial-valetudo"
+  namespace: "gts-robo"
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
-  name: "kubernetes-gotosocial-valetudo"
-  namespace: &ns "gotosocial-valetudo"
+  name: "kubernetes-gts-robo"
+  namespace: &ns "gts-robo"
 spec:
   provider:
     kubernetes:
@@ -74,15 +74,15 @@ spec:
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: &name "pg-gotosocial-valetudo-s3"
-  namespace: "gotosocial-valetudo"
+  name: &name "pg-gts-robo-s3"
+  namespace: "gts-robo"
 spec:
   refreshInterval: "1m"
   secretStoreRef:
     kind: "SecretStore"
-    name: "kubernetes-gotosocial-valetudo"
+    name: "kubernetes-gts-robo"
   target:
-    name: "pg-gotosocial-valetudo-s3-crunchy"
+    name: "pg-gts-robo-s3-crunchy"
     creationPolicy: "Owner"
     deletionPolicy: "Retain"
     template:
