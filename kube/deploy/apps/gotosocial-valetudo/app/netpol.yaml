@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: "pg-gotosocial-valetudo"
+  namespace: &app "gotosocial-valetudo"
+spec:
+  endpointSelector: &crunchy
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: "pg-gotosocial-valetudo"
+  ingress:
+    # allow Postgres pods to talk to each other
+    - fromEndpoints: [*crunchy]
+    # same namespace
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: *app
+    # allow operator to connect
+    - fromEndpoints:
+        - matchLabels: &operator
+            io.kubernetes.pod.namespace: crunchy-pgo
+            # postgres-operator.crunchydata.com/control-plane: pgo
+    # allow labelled pods to connect to Postgres only and ping with pg_health
+    - fromCIDRSet: &pg
+        - cidr: "${IP_ROBOROCK}/32"
+      toPorts:
+        - ports:
+            - port: "5432"
+    - fromEndpoints: *pg
+      icmps: [{}]
+  egress:
+    # allow Postgres pods to talk to each other
+    - toEndpoints: [*crunchy]
+    # allow access to apiserver
+    # this is needed for initdb and calling back to operator
+    - toEntities:
+        - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+    # connect to operator
+    - toEndpoints:
+        - matchLabels: *operator
+    # connect to Rook-Ceph RGW/S3 object store in-cluster
+    - toServices:
+        - k8sServiceSelector:
+            namespace: rook-ceph
+            selector:
+              matchLabels:
+                rgw: "${CLUSTER_NAME}"
+    - toEndpoints:
+        - matchLabels:
+            rgw: "${CLUSTER_NAME}"
+            io.kubernetes.pod.namespace: rook-ceph
+

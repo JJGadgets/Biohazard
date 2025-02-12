@@ -1,0 +1,110 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/postgres-operator.crunchydata.com/postgrescluster_v1beta1.json
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: &name "pg-gotosocial-valetudo"
+  namespace: "gotosocial-valetudo"
+spec:
+  postgresVersion: 16
+  # patroni: # turn on sync writes to at least 1 other replica
+  #   dynamicConfiguration:
+  #     synchronous_mode: true
+  #     member_slots_ttl: "1440min"
+  #     postgresql:
+  #       synchronous_commit: "on"
+  #       use_slots: "true"
+  #       huge_page_size: 1GB # the hugepages type (2Mi vs 1Gi), not amount allocated
+  instances:
+    - name: &instance "pg"
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+          prom.home.arpa/kps: "allow"
+      replicas: 1
+      dataVolumeClaimSpec:
+        storageClassName: "block"
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: "20Gi"
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "512M"
+        limits:
+          cpu: "2000m"
+          memory: "2Gi"
+  users:
+    - name: "gotosocial"
+      databases: ["gotosocial"]
+  backups:
+    pgbackrest:
+      metadata:
+        labels:
+          egress.home.arpa/apiserver: "allow"
+          s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+      configuration: &brcfg
+        - secret:
+            name: "pg-gotosocial-valetudo-secrets"
+        - secret:
+            name: "pg-gotosocial-valetudo-s3-crunchy"
+      global: &brflag
+        archive-timeout: "60"
+        compress-type: "bz2"
+        compress-level: "9"
+        repo3-bundle: "y"
+        repo3-block: "y"
+        repo3-s3-uri-style: "path"
+        repo3-retention-full-type: "time"
+        repo3-retention-full: "5"
+        repo3-retention-diff: "30"
+        repo3-cipher-type: "aes-256-cbc"
+        log-level-stderr: "debug"
+        log-level-console: "debug"
+      repos:
+        - name: "repo3" # Ceph RGW in-cluster
+          s3: &rgw
+            endpoint: "${APP_DNS_RGW_HTTPS}" # trailing dot to prevent ndots
+            bucket: "pg-gotosocial-valetudo"
+            region: "us-east-1"
+          schedules: # times staggered to avoid NFS schedule causing failed jobs due to locks
+            full: "15 6 * * 1" # every Monday at 06:15
+            differential: "15 6 * * 0,2-6" # every day at 06:15 except Monday
+            incremental: "15 1-5,7-23 * * *" # every hour except 06:15
+      jobs:
+        ttlSecondsAfterFinished: 60
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - topologyKey: kubernetes.io/hostname
+                namespaceSelector: {}
+                labelSelector:
+                  matchExpressions:
+                    - key: postgres-operator.crunchydata.com/pgbackrest-cronjob
+                      operator: Exists
+        resources:
+          requests:
+            cpu: 10m
+          limits:
+            cpu: 1000m
+            memory: 100Mi
+  dataSource:
+    pgbackrest:
+      stanza: "db"
+      configuration: *brcfg
+      global: *brflag
+      repo:
+        name: "repo3"
+        s3: *rgw
+  monitoring:
+    pgmonitor:
+      exporter:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64M
+          limits:
+            cpu: 1000m
+            memory: 512M
