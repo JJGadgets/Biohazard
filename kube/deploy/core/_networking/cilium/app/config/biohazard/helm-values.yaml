@@ -6,14 +6,6 @@ securityContext:
   capabilities:
     ciliumAgent: [CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,NET_BIND_SERVICE,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID]
     cleanCiliumState: [NET_ADMIN,SYS_ADMIN,SYS_RESOURCE]
-# podSecurityContext:
-#   appArmorProfile:
-#     type: "Unconfined"
-# # podAnnotations:
-# #   "container.apparmor.security.beta.kubernetes.io/apply-sysctl-overwrites": "runtime/default"
-# #   "container.apparmor.security.beta.kubernetes.io/cilium-agent": "runtime/default"
-# #   "container.apparmor.security.beta.kubernetes.io/clean-cilium-state": "runtime/default"
-# #   "container.apparmor.security.beta.kubernetes.io/mount-cgroup": "runtime/default"
 cgroup:
   autoMount:
     enabled: false

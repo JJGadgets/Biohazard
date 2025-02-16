@@ -27,13 +27,6 @@ spec:
       valuesKey: "${CLUSTER_NAME:=biohazard}.yaml"
       optional: false
   values:
-    # image: # for Renovate changelog
-    #   repository: "quay.io/cilium/cilium"
-    #   tag: "v1.15.1"
-    ## NOTE: Cilium Agent API rate limit configuration
-    ### upon reboot/untaint/uncordon, burst(s) of pod creations causes Cilium to 429 rate limit pods from getting their network configuration
-    ### current config stolen from https://github.com/cilium/cilium/issues/24361#issuecomment-1564825275
-    #apiRateLimit: "endpoint-create=auto-adjust:true,estimated-processing-duration:1s,mean-over:15"
     ## NOTE: BGP for LoadBalancer services
     ### `bgpControlPlane.enabled: true` is newer GoBGP implementation, while `bgp.enabled: true` and `bgp.announce` uses older MetalLB BGP implementation that is planned to be deprecated in Cilium v1.15.
     ### `bgp.announce` block is replaced by CiliumBGPPeeringPolicy CRD used by bgpControlPlane, for more fine grained control over announced addresses
@@ -133,7 +126,7 @@ spec:
     resources: # for agent
       requests:
         cpu: "100m"
-        memory: "1Gi"
+        memory: "512Mi"
       limits:
-        cpu: "1"
+        cpu: "2"
         memory: "6Gi"
