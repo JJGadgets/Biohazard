@@ -66,8 +66,8 @@ spec:
         controller: satisfactory
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_SATISFACTORY}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_SATISFACTORY}"
+          coredns.io/hostname: "${APP_DNS_SATISFACTORY:=satisfactory}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_SATISFACTORY:=127.0.0.1}"
         ports:
           game:
             port: 7777

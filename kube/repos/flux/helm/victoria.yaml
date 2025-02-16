@@ -1,0 +1,11 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: victoria
+  namespace: flux-system
+spec:
+  interval: 1h0s
+  timeout: 3m0s
+  type: oci
+  url: oci://ghcr.io/victoriametrics/helm-charts
