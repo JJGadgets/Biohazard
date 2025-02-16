@@ -1,6 +1,7 @@
 -- Vim setup here
 --- Basic highly and backwards compatible plugin-less vimrc, including leader mappings for Lazy
-vim.cmd("source ~/.vimrc")
+if vim.fn.has('win32') then vim.cmd("source " .. vim.env.LOCALAPPDATA .. "/.vimrc") else vim.cmd("source ~/.vimrc")
+
 
 --- Clipboard via OSC 52
 local function normalPaste() -- restore non-OSC 52 paste
@@ -65,6 +66,10 @@ require("lazy").setup({
     -- { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" }, },
     --- on-screen key prompts
     { "folke/which-key.nvim", event = "VeryLazy", opts = {} },
+    --- visually view Vim marks
+    { "chentoast/marks.nvim", event = "VeryLazy", opts = {} },
+    -- --- visually view Vim motion destinations
+    -- { "tris203/precognition.nvim", event = "VeryLazy", opts = {} },
     -- fancy
     -- { 'rasulomaroff/reactive.nvim' },
     --- rainbow indents
@@ -243,9 +248,9 @@ require("lazy").setup({
     --},
     { "neovim/nvim-lspconfig",
       event = { "FileType" },
-      -- run lspconfig setup outside lazy stuff
+      --- run lspconfig setup outside lazy stuff
       config = function(_, opts)
-        -- Mason must load first? I know it's not the best way, but it's the simplest config lol
+        --- Mason must load first? I know it's not the best way, but it's the simplest config lol
         require('mason').setup()
         if vim.fn.isdirectory(vim.fs.normalize('~/.local/share/nvim/mason/registries')) == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this, only run on first init
         require('mason-lspconfig').setup{ automatic_installation = true }
@@ -257,21 +262,24 @@ require("lazy").setup({
           default_caps.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } --- nvim-ufo folding
           return default_caps
         end
-        -- lazy load Kubernetes.nvim
+        --- lazy load Kubernetes.nvim
         local kubernetes_nvim_load = function()
           if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
         end
         local yaml_schemas = {
           {
             name = 'Kubernetes.nvim',
-            --description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
-            --fileMatch = 'kube*/*.yaml',
-            --url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1/all.json",
-            --fileMatch = { 'kube/clusters/*/flux/*.yaml', 'kube/clusters/*/config/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit*.yaml', },
+            description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
             --url = vim.fn.stdpath("data") .. "/kubernetes.nvim/schema.json",
-            fileMatch = '*.yaml',
+            -- fileMatch = '**.yaml',
+            fileMatch = { '**{kube,k8s,kubernetes}/**/*.yaml', '/tmp/kubectl-edit**.yaml' },
             url = kubernetes_nvim_load(),
           },
+          -- {
+          --   name = 'Kubernetes',
+          --   fileMatch = { 'kube/deploy/**/*.yaml', 'kube/clusters/*/flux/*.yaml', 'kube/clusters/*/config/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit**.yaml', },
+          --   url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1/all.json",
+          -- },
           {
             name = 'Flux Kustomization',
             --description = 'Kubernetes CRD - Flux Kustomization v1',
@@ -284,15 +292,14 @@ require("lazy").setup({
             fileMatch = 'hr.yaml',
             url = "https://flux.jank.ing/helmrelease-helm-v2beta2.json",
           },
-          --{ -- TODO: this seems to do nothing...? not sure how the MachineConfig schema is supposed to look like, but it doesn't look right?
-          --  name = 'Talos Linux MachineConfig',
-          --  fileMatch = '{*/clusterconfig/,/tmp/MachineConfigs.config.talos.dev-v1alpha1}*.yaml',
-          --  url = "https://www.talos.dev/v1.7/schemas/v1alpha1_config.schema.json",
-          --  --url = "https://raw.githubusercontent.com/siderolabs/talos/main/website/content/v1.7/schemas/config.schema.json",
-          --},
+          {
+            name = 'Talos Linux MachineConfig',
+            fileMatch = '{**/clusterconfig/,/tmp/MachineConfigs.config.talos.dev-v1alpha1}*.yaml',
+            url = "https://www.talos.dev/v1.9/schemas/v1alpha1_config.schema.json",
+          },
         }
         local schemaStoreCatalog = {
-          -- select subset from the JSON schema catalog
+          --- select subset from the JSON schema catalog
           'Talhelper',
           'kustomization.yaml',
           'Taskfile config',
@@ -349,8 +356,8 @@ require("lazy").setup({
             },
           },
         }
-        -- Run LSP server setup
-        -- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
+        --- Run LSP server setup
+        --- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
         if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } ); end
         --if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("schema-companion").setup_client(yamlls_config) ); end
         lsp.taplo.setup { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
@@ -378,14 +385,32 @@ require("lazy").setup({
         lsp.helm_ls.setup{capabilities = caps(),}
         lsp.lua_ls.setup{capabilities = caps(),}
         lsp.dockerls.setup{capabilities = caps(),}
-        if vim.fn.executable('go') == 1 then lsp.gopls.setup{capabilities = caps(),} end
         lsp.vtsls.setup{capabilities = caps(),}
         lsp.ruff.setup{capabilities = caps(),}
         lsp.basedpyright.setup{capabilities = caps(),}
         if vim.fn.executable('cargo') then lsp.nil_ls.setup{capabilities = caps(),} end
         if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then lsp.nixd.setup{capabilities = caps(),} end
-        -- show filetype on buffer switch
+        --- show filetype on buffer switch
         vim.api.nvim_create_autocmd('BufEnter', { pattern = '*', callback = function() vim.notify(vim.bo.filetype); end } )
+        --- golang
+        if vim.fn.executable('go') == 1 then lsp.gopls.setup({capabilities = caps(), settings = { gopls = {
+          staticcheck = true,
+          gofumpt = true,
+          analyses = { unusedparams = true }
+        }}}) end
+        --- golang formatting on save
+        vim.api.nvim_create_autocmd("LspAttach", {
+          pattern = '*.go',
+          group = vim.api.nvim_create_augroup("lsp_format", { clear = true }),
+          callback = function(args)
+            vim.api.nvim_create_autocmd("BufWritePre", {
+              buffer = args.buf,
+              callback = function()
+                vim.lsp.buf.format {async = false, id = args.data.client_id }
+              end,
+            })
+          end
+        })
         -- keymap to show LSP info
         --:lua vim.notify(vim.inspect(require('lspconfig').util.get_config_by_ft(vim.bo.filetype)))
       end
@@ -394,7 +419,9 @@ require("lazy").setup({
     { "SmiteshP/nvim-navic", lazy = true, opts = { highlight = true, click = true, lsp = { auto_attach = true } } },
     { "utilyre/barbecue.nvim", name = "barbecue", version = "*", event = { "LspAttach" }, dependencies = { "SmiteshP/nvim-navic", }, opts = { theme = "catppuccin", } },
     { "SmiteshP/nvim-navbuddy", dependencies = { "MunifTanjim/nui.nvim", "SmiteshP/nvim-navic" }, event = { "LspAttach" }, opts = { lsp = { auto_attach = true } } },
-    -- Org
+    --- Golang
+    { "ray-x/go.nvim", ft = {"go", 'gomod'}, build = ':lua require("go.install").update_all_sync()', opts = {} },
+    --- Org
     { 'nvim-orgmode/orgmode', ft = { 'org' }, opts = {
       org_agenda_files = '~/notes/**/*',
       org_default_notes_file = '~/notes/_inbox.org',
@@ -406,10 +433,10 @@ require("lazy").setup({
     --}},
     { "akinsho/org-bullets.nvim", ft = { "org" }, opts = {} },
     { "lukas-reineke/headlines.nvim", ft = { "org" }, opts = {} }, -- uses treesitter
-    -- Caddyfile
+    --- Caddyfile
     { 'isobit/vim-caddyfile', config = function()
     end },
-    -- something
+    --- something
     -- { "SmiteshP/nvim-navic" },
     -- { "utilyre/barbecue.nvim" },
     { "pimalaya/himalaya-vim", cmd = "Himalaya" },
