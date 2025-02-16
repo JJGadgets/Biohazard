@@ -1,0 +1,215 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: &n short-domain-tls
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: 1p
+  selector:
+    secret:
+      name: *n
+  template:
+    engineVersion: v2
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+      tls-combined.pem: '{{ index . "tls-combined.pem" | b64enc }}'
+      key.der: '{{ index . "key.der" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: &1p "TLS - short-domain-tls - ${CLUSTER_NAME}"
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key tls-combined.pem
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key key.der
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: &n long-domain-tls
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: 1p
+  selector:
+    secret:
+      name: *n
+  template:
+    engineVersion: v2
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+      tls-combined.pem: '{{ index . "tls-combined.pem" | b64enc }}'
+      key.der: '{{ index . "key.der" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: &1p "TLS - long-domain-tls - ${CLUSTER_NAME}"
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key tls-combined.pem
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key key.der
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: &n jjgadgets-tech-tls
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: 1p
+  selector:
+    secret:
+      name: *n
+  template:
+    engineVersion: v2
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+      tls-combined.pem: '{{ index . "tls-combined.pem" | b64enc }}'
+      key.der: '{{ index . "key.der" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: &1p "TLS - jjgadgets-tech-tls - ${CLUSTER_NAME}"
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key tls-combined.pem
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key key.der
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: &n me-tls
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: 1p
+  selector:
+    secret:
+      name: *n
+  template:
+    engineVersion: v2
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+      tls-combined.pem: '{{ index . "tls-combined.pem" | b64enc }}'
+      key.der: '{{ index . "key.der" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: &1p "TLS - me-tls - ${CLUSTER_NAME}"
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key tls-combined.pem
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key key.der
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: &n jank-ing-tls
+  namespace: cert-manager
+spec:
+  refreshInterval: 1h
+  secretStoreRefs:
+    - kind: ClusterSecretStore
+      name: 1p
+  selector:
+    secret:
+      name: *n
+  template:
+    engineVersion: v2
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+      tls-combined.pem: '{{ index . "tls-combined.pem" | b64enc }}'
+      key.der: '{{ index . "key.der" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: &1p "TLS - jank-ing-tls - ${CLUSTER_NAME}"
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key tls-combined.pem
+        remoteRef:
+          remoteKey: *1p
+          property: *key
+    - match:
+        secretKey: &key key.der
+        remoteRef:
+          remoteKey: *1p
+          property: *key

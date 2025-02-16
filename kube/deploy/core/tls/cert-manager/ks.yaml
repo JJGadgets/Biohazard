@@ -4,18 +4,58 @@ kind: Kustomization
 metadata:
   name: 1-core-tls-cert-manager-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
 spec:
+  targetNamespace: cert-manager
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/tls/cert-manager/app
-  dependsOn:
-    - name: 1-core-tls-cert-manager-crds
+  dependsOn: []
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: 1-core-tls-cert-manager-config
+  name: 1-core-tls-cert-manager-issuer
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
 spec:
-  path: ./kube/deploy/core/tls/cert-manager/config
+  targetNamespace: cert-manager
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/tls/cert-manager/issuer
   dependsOn:
-    - name: 1-core-tls-cert-manager-crds
     - name: 1-core-tls-cert-manager-app
+    - name: 1-core-secrets-es-1p
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-tls-cert-manager-sync
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
+spec:
+  targetNamespace: cert-manager
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/tls/cert-manager/sync
+  dependsOn:
+    - name: 1-core-tls-cert-manager-issuer
+    - name: 1-core-secrets-es-1p
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-tls-cert-manager-certs
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "${APPNAME}"
+spec:
+  targetNamespace: cert-manager
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/tls/cert-manager/certs
+  dependsOn:
+    - name: 1-core-tls-cert-manager-sync

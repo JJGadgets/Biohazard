@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name cert-manager-issuer-secrets
+  namespace: cert-manager
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  data:
+    - secretKey: "SECRET_CLOUDFLARE_DNS01_API_TOKEN"
+      remoteRef:
+        key: "Cloudflare - ${CLUSTER_NAME}"
+        property: "SECRET_CLOUDFLARE_DNS01_API_TOKEN"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        SECRET_CLOUDFLARE_DNS01_API_TOKEN: '{{ .SECRET_CLOUDFLARE_DNS01_API_TOKEN }}'

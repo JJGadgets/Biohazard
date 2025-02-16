@@ -5,23 +5,25 @@ metadata:
   name: cert-manager
   namespace: cert-manager
 spec:
+  interval: 5m
   chart:
     spec:
       chart: cert-manager
-      version: v1.14.4
+      version: v1.17.1
       sourceRef:
         name: jetstack
         kind: HelmRepository
         namespace: flux-system
   values:
-    installCRDs: false
+    installCRDs: true
+    crds:
+      enabled: true
     extraArgs:
       - --dns01-recursive-nameservers="https://cloudflare-dns.com/dns-query","https://one.one.one.one/dns-query","https://1.1.1.1:443/dns-query","https://1.0.0.1:443/dns-query","https://security.cloudflare-dns.com/dns-query","https://1.1.1.2:443/dns-query","https://1.0.0.2:443/dns-query","https://family.cloudflare-dns.com/dns-query","https://1.1.1.3:443/dns-query","https://1.0.0.3:443/dns-query"
       - --dns01-recursive-nameservers-only
     featureGates: "AdditionalCertificateOutputFormats=true"
     webhook:
-      extraArgs:
-        - --feature-gates=AdditionalCertificateOutputFormats=true
+      extraArgs: ["--feature-gates=AdditionalCertificateOutputFormats=true"]
     prometheus:
       enabled: true
       servicemonitor:
