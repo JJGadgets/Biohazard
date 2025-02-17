@@ -487,14 +487,6 @@ spec:
         - op: add
           path: /spec/dependsOn/-
           value:
-            name: 0-biohazard-config
-        - op: add
-          path: /spec/dependsOn/-
-          value:
-            name: 1-core-kyverno-crds
-        - op: add
-          path: /spec/dependsOn/-
-          value:
             name: zzz-flux-repos-helm
       target:
         group: kustomize.toolkit.fluxcd.io
