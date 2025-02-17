@@ -1,6 +1,6 @@
 -- Vim setup here
 --- Basic highly and backwards compatible plugin-less vimrc, including leader mappings for Lazy
-if vim.fn.has('win32') then vim.cmd("source " .. vim.env.LOCALAPPDATA .. "/.vimrc") else vim.cmd("source ~/.vimrc")
+if vim.fn.has('win32') and os.getenv("LOCALAPPDATA") then vim.cmd("source " .. os.getenv("LOCALAPPDATA") .. "/.vimrc") else vim.cmd("source ~/.vimrc") end
 
 
 --- Clipboard via OSC 52
