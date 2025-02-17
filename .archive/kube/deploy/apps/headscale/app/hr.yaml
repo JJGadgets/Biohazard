@@ -248,14 +248,6 @@ spec:
             dbs:
               - path: /var/run/headscale/headscale.db
                 replicas:
-                  - name: "nas"
-                    type: "file"
-                    path: "/nfs"
-                    retention: 168h
-                    validation-interval: 1h
-                    age:
-                      recipients:
-                        - $${AGE_PUBKEY}
                   - name: "r2"
                     type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
@@ -267,6 +259,8 @@ spec:
                     age:
                       recipients:
                         - $${AGE_PUBKEY}
+                      identities:
+                        - $${AGE_SECRET}
           litestream-restore: |
             dbs:
               - path: /var/run/headscale/headscale.db
@@ -277,8 +271,6 @@ spec:
                     retention: 168h
                     validation-interval: 1h
                     age:
-                      identities:
-                        - $${AGE_SECRET}
                   - name: "r2"
                     type: "s3"
                     endpoint: "$${R2_ENDPOINT}"
