@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: fava-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "fava"
+spec:
+  targetNamespace: "fava"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/fava/app
+  components:
+    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "fava-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
