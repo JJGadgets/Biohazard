@@ -10,3 +10,4 @@ spec:
   postBuild:
     substitute:
       UPSTREAM: "${IP_ROUTER_VLAN_K8S} 1.0.0.1 1.0.0.2 1.0.0.3 1.1.1.1 1.1.1.2 1.1.1.3"
+      CFDOT: "tls://1.0.0.1 tls://1.0.0.2 tls://1.0.0.3 tls://1.1.1.1 tls://1.1.1.2 tls://1.1.1.3"

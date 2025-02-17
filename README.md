@@ -1,6 +1,6 @@
 # Biohazard - JJ's Homelab Monorepo
 
-**<ins>Glorifying jank that works.</ins>**
+**<ins>Glorifying jank that *works*.</ins>**
 
 Powered by Flux, Kubernetes, Cilium, Talos, and jank. Amongst others.
 

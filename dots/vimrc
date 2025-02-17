@@ -63,6 +63,15 @@ set history=500
 filetype plugin on
 filetype indent on
 autocmd BufNewFile,BufRead *.json5 set filetype=jsonc
+function DetectGoHtmlTmpl()
+    if expand('%:e') == "html" && search("{{") != 0
+        setfiletype gohtmltmpl
+    endif
+endfunction
+augroup filetypedetect
+    " gohtmltmpl
+    au BufRead,BufNewFile *.html call DetectGoHtmlTmpl()
+augroup END
 
 " Set to auto read when a file is changed from the outside
 set autoread
@@ -195,16 +204,20 @@ endif
 
 " Set colorscheme based on availability, from Neovim-only, to Vim custom/plugin, to Vim preinstalled
 try
+  colorscheme catppuccin
+  catch
+  try
     colorscheme tokyonight
     catch
     try
-        colorscheme dracula
+      colorscheme dracula
+      catch
+      try
+        colorscheme slate
         catch
-        try
-            colorscheme slate
-            catch
-        endtry
+      endtry
     endtry
+  endtry
 endtry
 
 set background=dark

@@ -34,7 +34,7 @@ spec:
               ALERTMANAGER_URI: "http://alertmanager-local.monitoring.svc:9093"
               ALERTMANAGER_EXTERNAL_URI: "https://${APP_DNS_ALERTMANAGER}"
               ALERTMANAGER_PROXY: "true"
-              FILTERS_DEFAULT: "@state!=suppressed"
+              FILTERS_DEFAULT: "@state!=suppressed,alertname!=Watchdog"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -43,10 +43,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "500Mi"
+                cpu: "1"
+                memory: "128Mi"
     service:
       main:
         ports:

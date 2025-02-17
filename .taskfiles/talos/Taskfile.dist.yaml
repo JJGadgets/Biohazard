@@ -16,7 +16,7 @@ vars:
   C: '{{.C | default "biohazard"}}'
 
 tasks:
-  genconfig:
+  run:
     desc: Decrypt cluster vars from .env to .yaml for talhelper to consume.
     dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
     vars:
@@ -39,9 +39,9 @@ tasks:
       certs_os_crt: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_os_crt"
       certs_os_key: "op://{{.C}}/.{{.C}}-talos/Secrets/certs_os_key"
     cmds:
-      - pwd
-      - op user get --me # check signin status, fail if not signed in
-      - op --cache=false run -- task --taskfile /{{.ROOT_DIR}}/.taskfiles/bootstrap/Taskfile.dist.yaml 1p-vars-env-run C={{.C}} -- talhelper genconfig
+      - pwd 1>&2
+      - op user get --me 1>&2 # check signin status, fail if not signed in
+      - op --cache=false run -- task --taskfile /{{.ROOT_DIR}}/.taskfiles/bootstrap/Taskfile.dist.yaml 1p-vars-env-run C={{.C}} -- talhelper {{.CLI_ARGS}}
 
   bootstrap:
     aliases: [bs]

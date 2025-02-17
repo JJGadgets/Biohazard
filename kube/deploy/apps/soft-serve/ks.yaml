@@ -12,7 +12,7 @@ spec:
   path: ./kube/deploy/apps/soft-serve/app
   targetNamespace: "soft-serve"
   dependsOn:
-    - name: soft-serve-db
+    #- name: soft-serve-db
     - name: soft-serve-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -22,6 +22,7 @@ metadata:
   namespace: flux-system
   labels: &l
     app.kubernetes.io/name: "soft-serve"
+    pvc.home.arpa/volsync: "true"
 spec:
   commonMetadata:
     labels: *l

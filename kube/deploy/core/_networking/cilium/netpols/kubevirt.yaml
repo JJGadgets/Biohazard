@@ -10,6 +10,28 @@ spec:
       - key: app.kubernetes.io/managed-by
         operator: In
         values: [virt-operator]
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+  egress:
+    # kube-apiserver
+    - toEntities:
+        - kube-apiserver
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterWideNetworkPolicy
+metadata:
+  name: &app kubevirt-operator
+spec:
+  endpointSelector:
+    matchExpressions:
       - key: kubevirt.io
         operator: In
         values: [virt-operator]

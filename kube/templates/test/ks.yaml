@@ -7,30 +7,16 @@ metadata:
   labels: &l
     app.kubernetes.io/name: "${APPNAME}"
 spec:
+  targetNamespace: "${APPNAME}"
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/${APPNAME}/app
-  targetNamespace: "${APPNAME}"
+  components:
+    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
     - name: ${APPNAME}-db
-    - name: ${APPNAME}-pvc
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: ${APPNAME}-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "${APPNAME}"
-    pvc.home.arpa/volsync: "true"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "${APPNAME}"
-  dependsOn:
     - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:

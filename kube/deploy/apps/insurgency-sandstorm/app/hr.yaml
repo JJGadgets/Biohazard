@@ -79,7 +79,7 @@ spec:
                 cpu: "300m"
               limits:
                 cpu: "1"
-                memory: "256Mi"
+                memory: "512Mi"
     service:
       insurgency-sandstorm:
         controller: insurgency-sandstorm
@@ -127,6 +127,7 @@ spec:
         options:
           - name: ndots
             value: "1"
+      # runtimeClassName: gvisor
       hostUsers: false
       securityContext:
         runAsNonRoot: true

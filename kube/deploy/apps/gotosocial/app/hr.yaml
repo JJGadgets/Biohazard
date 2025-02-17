@@ -122,7 +122,7 @@ spec:
             appProtocol: http
     ingress:
       main:
-        className: nginx-internal # public traffic goes direct via cloudflared
+        className: nginx-public
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -141,6 +141,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 128Mi
         globalMounts:
           - subPath: tmp
             path: /tmp # ffmpeg WASM stuff

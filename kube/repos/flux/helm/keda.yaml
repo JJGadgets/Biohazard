@@ -2,10 +2,9 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: spegel
+  name: keda
   namespace: flux-system
 spec:
   interval: 10m0s
   timeout: 3m0s
-  type: oci
-  url: oci://ghcr.io/spegel-org/helm-charts
+  url: https://kedacore.github.io/charts

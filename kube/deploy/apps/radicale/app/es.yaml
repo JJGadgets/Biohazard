@@ -29,15 +29,7 @@ spec:
           stock = utf-8
           [auth]
           type = http_x_remote_user
-          #type = radicale_auth_ldap
-          #realm = Radicale - Password Required
-          #ldap_url = ldaps://{{ .LDAP_SERVER }}:636
-          #ldap_base = {{ .LDAP_BASE }}
-          #ldap_attribute = cn
-          #ldap_filter = {{ .LDAP_FILTER }}
-          #ldap_binddn = {{ .LDAP_BINDDN }}
-          #ldap_password = {{ .LDAP_PASSWORD }}
-          #ldap_scope = SUBTREE
+          realm = Radicale - Password Required
           [rights]
           type = owner_only
           [storage]

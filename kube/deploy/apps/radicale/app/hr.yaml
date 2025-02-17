@@ -22,7 +22,6 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            authentik.home.arpa/ldap: allow
         containers:
           main:
             image: &img
