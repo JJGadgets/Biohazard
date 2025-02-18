@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/kubernetes-sigs/external-dns/external-dns-helm-chart-1.15.2/charts/external-dns
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/kubernetes-sigs/external-dns/master/charts/external-dns
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -16,20 +16,19 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
+    podLabels:
+      egress.home.arpa/internet: allow
+      egress.home.arpa/apiserver: allow
     interval: 2m
     # logLevel: debug
-    provider: cloudflare
+    provider:
+      name: cloudflare
     env:
-      - name: CF_API_EMAIL
-        valueFrom:
-          secretKeyRef:
-            name: cloudflare-secret
-            key: email
       - name: CF_API_TOKEN
         valueFrom:
           secretKeyRef:
-            name: cloudflare-secret
-            key: api-key
+            name: external-dns-secrets
+            key: cloudflare-token
     extraArgs:
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
       - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
@@ -49,13 +48,13 @@ spec:
       - service
     txtPrefix: "k8s-${CLUSTER_NAME}."
     txtOwnerId: default
-    domainFilters:
-      - "${DNS_SHORT}"
-      - "${DNS_MAIN}"
-      - "${DNS_VPN}"
+    # domainFilters:
+    #   - "${DNS_SHORT}"
+    #   - "${DNS_MAIN}"
+    #   - "${DNS_VPN}"
     resources:
       requests:
-        memory: 100Mi
         cpu: 25m
       limits:
+        cpu: "1"
         memory: 250Mi
