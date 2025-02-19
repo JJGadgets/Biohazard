@@ -4,41 +4,27 @@ kind: Kustomization
 metadata:
   name: firefly-app
   namespace: flux-system
-  labels:
-    wait.flux.home.arpa/disabled: "true"
+  labels: &l
+    app.kubernetes.io/name: "firefly"
 spec:
+  targetNamespace: "firefly"
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/firefly/app
+  components:
+    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: 1-core-ingress-nginx-app
-    - name: firefly-db
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: firefly-db
-  namespace: flux-system
-spec:
-  path: ./kube/deploy/core/db/pg/clusters/template
-  dependsOn:
-    - name: 1-core-db-pg-app
-    - name: 1-core-storage-democratic-csi-local-hostpath
-    - name: 1-core-secrets-es-k8s
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
-      PG_APP_NAME: &app "firefly"
-      PG_APP_NS: *app
-      PG_DB_NAME: *app
-      PG_DB_USER: *app
-      PG_REPLICAS: "3"
-      PG_SC: "local"
-      PG_CONFIG_VERSION: "15.2-11"
-      PG_CONFIG_SIZE: "20Gi"
-  # healthChecks:
-  #   - name: pg-firefly-s3
-  #     namespace: firefly
-  #     kind: ObjectBucketClaim
-  #     apiVersion: objectbucket.io/v1alpha1
-  #   - name: pg-firefly
-  #     namespace: firefly
-  #     kind: Cluster
-  #     apiVersion: postgresql.cnpg.io/v1
+      PVC: "firefly-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "33"
+      RGID: *uid
+      RFSG: *uid

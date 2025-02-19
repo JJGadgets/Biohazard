@@ -1,5 +1,6 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app firefly
@@ -7,126 +8,137 @@ metadata:
   labels:
     nginx.ingress.home.arpa/type: auth
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 3.7.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: docker.io/fireflyiii/core
-      tag: version-6.0.17
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-    env:
-      TZ: "${CONFIG_TZ}"
-      APP_ENV: "production"
-      APP_DEBUG: "false"
-      LOG_CHANNEL: "stdout"
-      APP_LOG_LEVEL: "notice"
-      AUDIT_LOG_LEVEL: "info"
-      DEFAULT_LANGUAGE: "en_US"
-      DEFAULT_LOCALE: "equal"
-      SITE_OWNER: "${ADMIN_EMAIL}"
-      APP_KEY_FILE: &file-app-key "/secretkey"
-      APP_URL: "https://${APP_DNS_FIREFLY}"
-      TRUSTED_PROXIES: "*"
-      COOKIE_PATH: "/"
-      COOKIE_DOMAIN: "${APP_DNS_FIREFLY}"
-      COOKIE_SECURE: "true"
-      COOKIE_SAMESITE: "lax"
-      DISABLE_FRAME_HEADER: "false" # just to be sure
-      DISABLE_CSP_HEADER: "false" # just to be sure
-      TRACKER_SITE_ID: "" # just to be sure
-      TRACKER_URL: "" # just to be sure
-      AUTHENTICATION_GUARD: "remote_user_guard"
-      AUTHENTICATION_GUARD_HEADER: "X-authentik-uid"
-      AUTHENTICATION_GUARD_EMAIL: "X-authentik-email"
-      DB_CONNECTION: "pgsql"
-      DB_HOST: "pg-firefly-primary.firefly.svc.cluster.local"
-      DB_PORT: "5432"
-      DB_DATABASE_FILE: &file-db-name "/db/database"
-      DB_USERNAME_FILE: &file-db-user "/db/username"
-      DB_PASSWORD_FILE: &file-db-pass "/db/password"
-      PGSQL_SSL_MODE: "prefer"
-      PGSQL_SCHEMA: "public"
-      CACHE_DRIVER: "file"
-      SESSION_DRIVER: "file"
-      SEND_ERROR_MESSAGE: "true"
-      SEND_REPORT_JOURNALS: "false"
-      ENABLE_EXTERNAL_RATES: "true"
-      ALLOW_WEBHOOKS: "false"
+    controllers:
+      firefly:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/fireflyiii/core
+              tag: version-6.2.7@sha256:dc78dac2d3db78665e17c89f5075602ec8f7c84d10610a7888e633b83334a340
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              APP_ENV: "production"
+              APP_DEBUG: "false"
+              LOG_CHANNEL: "stdout"
+              APP_LOG_LEVEL: "notice"
+              AUDIT_LOG_LEVEL: "info"
+              DEFAULT_LANGUAGE: "en_US"
+              DEFAULT_LOCALE: "equal"
+              SITE_OWNER: "JJGadgets"
+              APP_URL: "https://${APP_DNS_FIREFLY}"
+              TRUSTED_PROXIES: "*"
+              COOKIE_PATH: "/"
+              COOKIE_DOMAIN: "${APP_DNS_FIREFLY}"
+              COOKIE_SECURE: "true"
+              COOKIE_SAMESITE: "lax"
+              DISABLE_FRAME_HEADER: "false" # just to be sure
+              DISABLE_CSP_HEADER: "false" # just to be sure
+              TRACKER_SITE_ID: "" # just to be sure
+              TRACKER_URL: "" # just to be sure
+              AUTHENTICATION_GUARD: "remote_user_guard"
+              AUTHENTICATION_GUARD_HEADER: "X-authentik-uid"
+              AUTHENTICATION_GUARD_EMAIL: "X-authentik-email"
+              DB_CONNECTION: "sqlite"
+              DKR_CHECK_SQLITE: "false" # auto create?
+              CACHE_DRIVER: "file"
+              SESSION_DRIVER: "file"
+              SEND_ERROR_MESSAGE: "true"
+              SEND_REPORT_JOURNALS: "false"
+              ENABLE_EXCHANGE_RATES: "false"
+              # ENABLE_EXTERNAL_RATES: "true"
+              ALLOW_WEBHOOKS: "false"
+            envFrom: &envFrom
+              - secretRef:
+                  name: firefly-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      firefly:
+        controller: firefly
         ports:
           http:
             port: 8080
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
+        className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_FIREFLY}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
-          - host: &host "${APP_DNS_FIREFLY}"
+          - host: &host "${APP_DNS_FIREFLY:=firefly}"
             paths:
               - path: /
                 pathType: Prefix
+                service:
+                  identifier: firefly
+                  port: http
         tls:
-          - hosts:
-              - *host
-    #podSecurityContext:
-    #  runAsUser: &uid 33 # image chowns to www-data which is 33
-    #  runAsGroup: *uid
-    #  fsGroup: *uid
-    #  fsGroupChangePolicy: Always
+          - hosts: [*host]
     persistence:
       data:
-        enabled: true
-        existingClaim: firefly-uploads
-        mountPath: "/var/www/html/storage/upload"
-      app-key:
-        enabled: true
-        type: secret
-        name: firefly-secrets
-        subPath: app-key
-        mountPath: *file-app-key
-        readOnly: true
-      db-database:
-        enabled: true
-        type: secret
-        name: &pgsec pg-firefly-pguser-firefly
-        subPath: dbname
-        mountPath: *file-db-name
-        readOnly: true
-      db-username:
-        enabled: true
-        type: secret
-        name: *pgsec
-        subPath: user
-        mountPath: *file-db-user
-        readOnly: true
-      db-password:
-        enabled: true
-        type: secret
-        name: *pgsec
-        subPath: password
-        mountPath: *file-db-pass
-        readOnly: true
-    resources:
-      requests:
-        cpu: 10m
-        memory: 200Mi
-      limits:
-        memory: 500Mi
+        existingClaim: firefly-data
+        globalMounts:
+          - subPath: data
+            path: /var/www/html/storage
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 33
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/firefly
+                    operator: DoesNotExist
