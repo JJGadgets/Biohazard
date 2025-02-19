@@ -98,13 +98,22 @@ spec:
         hosts:
           - host: &host "${APP_DNS_FIREFLY:=firefly}"
             paths:
-              - path: /
+              - &path
+                path: /
                 pathType: Prefix
                 service:
                   identifier: firefly
                   port: http
-        tls:
+        tls: &tls
           - hosts: [*host]
+      api:
+        className: nginx-internal
+        hosts:
+          - host: "${APP_DNS_FIREFLY:=firefly}"
+            paths:
+              - <<: *path
+                path: /api
+        tls: *tls
     persistence:
       data:
         existingClaim: firefly-data
