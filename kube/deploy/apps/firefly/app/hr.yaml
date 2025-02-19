@@ -66,7 +66,7 @@ spec:
               - secretRef:
                   name: firefly-secrets
             securityContext: &sc
-              readOnlyRootFilesystem: true
+              # readOnlyRootFilesystem: true # nginx init stuff
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
