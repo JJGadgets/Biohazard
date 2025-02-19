@@ -8,6 +8,16 @@ metadata:
 spec:
   endpointSelector: {}
   ingress:
+    # allow HTTP traffic in-cluster
+    - fromEndpoints:
+        - matchLabels:
+            authentik.home.arpa/http: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9000"
     # allow HTTPS traffic in-cluster
     - fromEndpoints:
         - matchLabels:
@@ -51,6 +61,25 @@ spec:
             dns:
               - *duo
               - *smtp
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &app authentik-http-in-cluster
+spec:
+  endpointSelector:
+    matchLabels:
+      authentik.home.arpa/http: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: authentik
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/component: authentik
+      toPorts:
+        - ports:
+            - port: "9000"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
