@@ -51,8 +51,8 @@ spec:
               TRACKER_SITE_ID: "" # just to be sure
               TRACKER_URL: "" # just to be sure
               AUTHENTICATION_GUARD: "remote_user_guard"
-              AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTHENTIK_UID"
-              AUTHENTICATION_GUARD_EMAIL: "HTTP_X_AUTHENTIK_EMAIL"
+              AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTHENTIK_USERNAME" # disabled username change ability for users
+              AUTHENTICATION_GUARD_EMAIL: "HTTP_X_AUTHENTIK_EMAIL" # somehow doesn't work?
               DB_CONNECTION: "sqlite"
               DKR_CHECK_SQLITE: "false" # auto create?
               CACHE_DRIVER: "file"
@@ -111,6 +111,8 @@ spec:
         globalMounts:
           - subPath: data
             path: /var/www/html/storage
+          - subPath: upload
+            path: /var/www/html/storage/upload
       # tmp:
       #   type: emptyDir
       #   medium: Memory
