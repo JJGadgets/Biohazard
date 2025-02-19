@@ -174,17 +174,17 @@ spec:
     persistence:
       data:
         existingClaim: firefly-data
-        globalMounts:
-          - subPath: data
-            path: /var/www/html/storage
-          - subPath: upload
-            path: /var/www/html/storage/upload
-      # tmp:
-      #   type: emptyDir
-      #   medium: Memory
-      #   globalMounts:
-      #     - subPath: tmp
-      #       path: /tmp
+        advancedMounts:
+          firefly:
+            main:
+              - subPath: data
+                path: /var/www/html/storage
+              - subPath: upload
+                path: /var/www/html/storage/upload
+          data-importer:
+            main:
+              - subPath: importer
+                path: /var/www/html/storage/uploads
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
