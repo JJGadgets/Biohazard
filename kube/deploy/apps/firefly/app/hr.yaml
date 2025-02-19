@@ -62,9 +62,11 @@ spec:
               ENABLE_EXCHANGE_RATES: "false"
               # ENABLE_EXTERNAL_RATES: "true"
               ALLOW_WEBHOOKS: "false"
-            envFrom: &envFrom
-              - secretRef:
-                  name: firefly-secrets
+              APP_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-secrets
+                    key: APP_KEY
             securityContext: &sc
               # readOnlyRootFilesystem: true # nginx init stuff
               allowPrivilegeEscalation: false
@@ -73,6 +75,7 @@ spec:
             resources:
               requests:
                 cpu: "10m"
+                memory: "100Mi"
               limits:
                 cpu: "1"
                 memory: "512Mi"
@@ -81,9 +84,52 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+      data-importer:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image:
+              repository: docker.io/fireflyiii/data-importer
+              tag: version-1.6.1@sha256:40e10f996a7bf72285dd6475c49424a02255fb02437904fe2ee6c44bc07e1bfc
+            env:
+              TZ: "${CONFIG_TZ}"
+              APP_ENV: "production"
+              APP_DEBUG: "false"
+              LOG_CHANNEL: "stdout"
+              FIREFLY_III_URL: http://firefly.firefly.svc.cluster.local:8080
+              VANITY_URL: "https://${APP_DNS_FIREFLY}"
+              FIREFLY_III_CLIENT_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: firefly-secrets
+                    key: FIREFLY_III_CLIENT_ID
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "100Mi"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
       firefly:
         controller: firefly
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+      data-importer:
+        controller: data-importer
         ports:
           http:
             port: 8080
@@ -113,6 +159,17 @@ spec:
             paths:
               - <<: *path
                 path: /api
+        tls: *tls
+      data-importer:
+        className: nginx-internal
+        hosts:
+          - host: "${APP_DNS_FIREFLY_DATA_IMPORTER:=firefly-data-importer}"
+            paths:
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: data-importer
+                  port: http
         tls: *tls
     persistence:
       data:
@@ -153,3 +210,10 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/firefly
                     operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
