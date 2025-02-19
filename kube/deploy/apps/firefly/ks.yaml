@@ -28,4 +28,20 @@ spec:
       RUID: &uid "33"
       RGID: *uid
       RFSG: *uid
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authentik-firefly
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "firefly"
+spec:
+  targetNamespace: "authentik"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/authentik/forward-auth
+  dependsOn: []
+  postBuild:
+    substitute:
       AUTHENTIK_PROXY_HOST: "${APP_DNS_FIREFLY}"
