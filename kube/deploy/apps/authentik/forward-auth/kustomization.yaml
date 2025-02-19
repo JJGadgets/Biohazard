@@ -12,3 +12,10 @@ transformers:
     metadata:
       name: not-used
       namespace: authentik
+patches:
+  - patch: |
+      - op: replace
+        path: /metadata/namespace
+        value: authentik
+    target:
+      kind: Ingress
