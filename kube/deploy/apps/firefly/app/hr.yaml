@@ -51,8 +51,8 @@ spec:
               TRACKER_SITE_ID: "" # just to be sure
               TRACKER_URL: "" # just to be sure
               AUTHENTICATION_GUARD: "remote_user_guard"
-              AUTHENTICATION_GUARD_HEADER: "X-authentik-uid"
-              AUTHENTICATION_GUARD_EMAIL: "X-authentik-email"
+              AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTHENTIK_UID"
+              AUTHENTICATION_GUARD_EMAIL: "HTTP_X_AUTHENTIK_EMAIL"
               DB_CONNECTION: "sqlite"
               DKR_CHECK_SQLITE: "false" # auto create?
               CACHE_DRIVER: "file"
