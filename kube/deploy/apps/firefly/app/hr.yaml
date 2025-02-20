@@ -102,11 +102,11 @@ spec:
               LOG_CHANNEL: "stdout"
               FIREFLY_III_URL: http://firefly.firefly.svc.cluster.local:8080
               VANITY_URL: "https://${APP_DNS_FIREFLY}"
-              FIREFLY_III_CLIENT_ID:
-                valueFrom:
-                  secretKeyRef:
-                    name: firefly-secrets
-                    key: FIREFLY_III_CLIENT_ID
+              # FIREFLY_III_CLIENT_ID:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: firefly-secrets
+              #       key: FIREFLY_III_CLIENT_ID
             securityContext: *sc
             resources:
               requests:
