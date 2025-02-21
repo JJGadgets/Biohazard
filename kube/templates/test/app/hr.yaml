@@ -101,7 +101,7 @@ spec:
           01-init-db:
             image:
               repository: "ghcr.io/onedr0p/postgres-init"
-              tag: "16.6@sha256:35353a77777ee8f634d0f3945f495b4a40065134b8619e0d18bd49b0ee9c855b"
+              tag: "16.8@sha256:31864a9350264f10f25dae1e90db3c6705a9bbb90644a28600afe197b3bf917f"
             envFrom: [secretRef: { name: "${APPNAME}-pg-superuser" }]
             securityContext: *sc
             #resources:
