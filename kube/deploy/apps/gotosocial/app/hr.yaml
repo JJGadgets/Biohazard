@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.1.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app gotosocial
@@ -103,15 +103,18 @@ spec:
                 cpu: 10m
                 memory: 512Mi
               limits:
-                cpu: 3000m
+                cpu: "1"
                 memory: 1536Mi
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
+              startup: # in case of large DB migrations
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 3600
     service:
       gotosocial:
         controller: gotosocial
@@ -142,9 +145,6 @@ spec:
         type: emptyDir
         medium: Memory
         sizeLimit: 128Mi
-        globalMounts:
-          - subPath: tmp
-            path: /tmp # ffmpeg WASM stuff
       pg-ca:
         type: secret
         #name: pg-authentik-pgbouncer
@@ -159,8 +159,9 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      hostUsers: false
       securityContext:
-        runAsNonRoot: false # TODO: tmp migrate
+        runAsNonRoot: true # TODO: tmp migrate
         runAsUser: &uid 568
         runAsGroup: *uid
         fsGroup: *uid
@@ -191,3 +192,6 @@ spec:
         rules:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
+    serviceMonitor:
+      main:
+        serviceName: gotosocial
