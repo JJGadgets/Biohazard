@@ -12,7 +12,7 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/media/jellyfin/app
   components:
-    - ../../../core/storage/volsync/component/
+    - ../../../../core/storage/volsync/component/
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
