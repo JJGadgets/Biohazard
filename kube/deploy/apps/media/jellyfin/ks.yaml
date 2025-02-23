@@ -7,25 +7,12 @@ metadata:
   labels: &l
     app.kubernetes.io/name: "jellyfin"
 spec:
+  targetNamespace: "media"
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/jellyfin/app
-  targetNamespace: "jellyfin"
-  dependsOn:
-    - name: jellyfin-pvc
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: jellyfin-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "jellyfin"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "jellyfin"
+  path: ./kube/deploy/apps/media/jellyfin/app
+  components:
+    - ../../../core/storage/volsync/component/
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
@@ -36,6 +23,7 @@ spec:
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: &uid "568"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid

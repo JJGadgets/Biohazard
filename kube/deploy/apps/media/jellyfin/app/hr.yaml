@@ -1,22 +1,23 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app jellyfin
-  namespace: *app
+  namespace: media
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: 3.7.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      jellyfin:
         type: deployment
         replicas: 1
         pod:
@@ -48,16 +49,22 @@ spec:
                 cpu: "3000m"
                 memory: "6Gi"
                 gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      jellyfin:
+        controller: jellyfin
         ports:
           http:
             port: 8096
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        className: "nginx-external"
+        className: nginx-external
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -67,51 +74,51 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: jellyfin
                   port: http
         tls:
           - hosts: [*host]
     persistence:
       config:
-        enabled: true
-        existingClaim: "jellyfin-data"
-        globalMounts:
-          - path: "/config"
+        existingClaim: jellyfin-data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 128Mi
+      transcode:
+        type: emptyDir
       nfs:
-        enabled: true
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
         globalMounts:
-          - path: "/media"
-            readOnly: true
-      tmp:
-        enabled: true
-        type: emptyDir
-        medium: Memory
-        globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-          - subPath: "transcode"
-            path: "/transcode"
+          - subPath: jellyfin
+            path: /nfs
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 568
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
-        supplementalGroups: [
-          44, 104, 109, 128, 226, # GPU
-          6969 # NAS
-        ]
+        fsGroupChangePolicy: Always
+        supplementalGroups:
+          - 44 # iGPU
+          - 6969 # NAS NFS media share user
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: *app
@@ -120,5 +127,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/jellyfin"
-                    operator: "DoesNotExist"
+                  - key: fuckoff.home.arpa/jellyfin
+                    operator: DoesNotExist
