@@ -81,19 +81,24 @@ spec:
     persistence:
       config:
         existingClaim: jellyfin-data
+      transcode:
+        type: emptyDir
       tmp:
         type: emptyDir
         medium: Memory
         sizeLimit: 128Mi
-      transcode:
-        type: emptyDir
+      media:
+        existingClaim: "media-data" # VolSync
+        globalMounts:
+          - path: "/ceph"
+            readOnly: true
       nfs:
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
         globalMounts:
-          - subPath: jellyfin
-            path: /nfs
+          - path: /media
+            readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -104,10 +109,10 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      hostUsers: true # NFS doesn't support idmap?
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 568
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
