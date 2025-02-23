@@ -32,8 +32,8 @@ spec:
         containers:
           main:
             image: &img
-              repository: "docker.io/jellyfin/jellyfin"
-              tag: "10.8.13-1@sha256:41fc4f9a51f638930bf16eace81acacbafaf26436d0efc0b0edd9447cb134a2c"
+              repository: ghcr.io/jellyfin/jellyfin
+              tag: 10.10.6@sha256:2aa67ae3eff5384ade5a5675a61ca487e9e1a510312289ac80076837ebeda8c8
             env:
               TZ: "${CONFIG_TZ}"
             securityContext:
@@ -46,7 +46,7 @@ spec:
                 cpu: "10m"
                 memory: "2Gi"
               limits:
-                cpu: "3000m"
+                cpu: "1"
                 memory: "6Gi"
                 gpu.intel.com/i915: "1"
             probes:
