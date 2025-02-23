@@ -112,13 +112,11 @@ spec:
       hostUsers: true # NFS doesn't support idmap?
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 568
+        runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups:
-          - 44 # iGPU
-          - 6969 # NAS NFS media share user
+        supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
