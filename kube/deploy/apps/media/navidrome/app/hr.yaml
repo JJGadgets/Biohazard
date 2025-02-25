@@ -1,9 +1,10 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app navidrome
-  namespace: *app
+  namespace: media
   labels:
     nginx.ingress.home.arpa/type: auth
 spec:
@@ -11,21 +12,21 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: 3.7.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      navidrome:
         type: deployment
         replicas: 1
         pod:
           labels:
-            prom.home.arpa/kps: allow
             ingress.home.arpa/nginx-internal: allow
-            # egress.home.arpa/internet: "allow"
+            prom.home.arpa/kps: allow
+            # egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
@@ -35,9 +36,9 @@ spec:
               TZ: "${CONFIG_TZ}"
               ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
               ND_MUSICFOLDER: /media
-              ND_DATAFOLDER: /config
-              ND_CACHEFOLDER: /config/cache
-              ND_PORT: &http "8080"
+              ND_DATAFOLDER: /data
+              ND_CACHEFOLDER: /data/cache
+              ND_PORT: &http 8080
               ND_COVERJPEGQUALITY: "100"
               ND_DEFAULTTHEME: Dark
               ND_ENABLEGRAVATAR: "false"
@@ -65,17 +66,23 @@ spec:
                 cpu: "10m"
                 memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "1Gi"
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      navidrome:
+        controller: navidrome
         ports:
           http:
             port: *http
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
         className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
@@ -86,13 +93,11 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: navidrome
                   port: http
         tls:
           - hosts: [*host]
       subsonic: # bypass forward auth
-        enabled: true
-        primary: false
         className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
@@ -100,51 +105,52 @@ spec:
               - path: /rest
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: navidrome
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      config:
-        enabled: true
+      data:
         existingClaim: navidrome-data
         globalMounts:
           - subPath: data
-            path: /config
+            path: /data
+      media:
+        existingClaim: media-data
+        globalMounts:
+          - subPath: Music
+            path: /media/ceph
+            readOnly: true
       nfs:
-        enabled: true
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
         globalMounts:
           - subPath: Music
-            path: /media
+            path: /media/nfs
             readOnly: true
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
+        sizeLimit: 128Mi
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: true
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_NAVIDROME:=1000}
+        runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
-        supplementalGroups: [6969] # NAS
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -154,10 +160,8 @@ spec:
                     operator: DoesNotExist
     serviceMonitor:
       main:
-        enabled: true
+        serviceName: *app
         endpoints:
           - port: http
             scheme: http
             path: /metrics
-            interval: 1m
-            scrapeTimeout: 30s

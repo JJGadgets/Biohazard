@@ -1,0 +1,48 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: navidrome-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "navidrome"
+spec:
+  targetNamespace: "media"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/media/navidrome/app
+  components:
+    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: 1-core-storage-volsync-app
+    - name: 1-core-storage-rook-ceph-cluster
+  postBuild:
+    substitute:
+      PVC: "navidrome-data"
+      SIZE: "20Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "6969"
+      RGID: *uid
+      RFSG: *uid
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authentik-navidrome
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "navidrome"
+spec:
+  targetNamespace: "authentik"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/authentik/forward-auth
+  dependsOn:
+    - name: authentik-app
+  postBuild:
+    substitute:
+      AUTHENTIK_PROXY_HOST: "${APP_DNS_NAVIDROME}"

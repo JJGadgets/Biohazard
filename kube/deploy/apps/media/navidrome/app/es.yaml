@@ -4,7 +4,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: &name navidrome-secrets
-  namespace: navidrome
+  namespace: media
 spec:
   refreshInterval: 1m
   secretStoreRef:
@@ -17,3 +17,7 @@ spec:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
+    template:
+      type: Opaque
+      data:
+        ND_PASSWORDENCRYPTIONKEY: '{{ .ND_PASSWORDENCRYPTIONKEY }}'
