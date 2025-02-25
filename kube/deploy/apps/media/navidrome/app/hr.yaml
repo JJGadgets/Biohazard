@@ -52,8 +52,9 @@ spec:
               ND_PROMETHEUS_ENABLED: "true"
               ND_PROMETHEUS_METRICSPATH: /metrics
               ND_REVERSEPROXYUSERHEADER: X-authentik-username
-              ND_REVERSEPROXYWHITELIST: "${IP_POD_CIDR_V4}"
-            envFrom:
+              ND_REVERSEPROXYWHITELIST: "${IP_POD_CIDR_V4},127.0.0.1/32,::1/128"
+              ND_ENABLEINSIGHTSCOLLECTOR: "false"
+            envFrom: &envFrom
               - secretRef:
                   name: navidrome-secrets
             securityContext: &sc
@@ -73,6 +74,29 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+          admin-password:
+            image: *img
+            command: ["/bin/busybox", "ash", "-c"]
+            args:
+              - |
+                while true; do
+                  wget -qO- http://127.0.0.1:8080/rest
+                done
+                export ADMINCREATE=$(wget --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://127.0.0.1:8080/auth/createAdmin' 2>&1 || true)
+                case "$ADMINCREATE" in
+                  *isAdmin*) echo "Created admin!" ;;
+                  *403*) echo "Admin already created!" ;;
+                  *) false ;;
+                esac
+            envFrom: *envFrom
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "0"
+                memory: "0Mi"
+              limits:
+                cpu: "1"
+                memory: "200Mi"
     service:
       navidrome:
         controller: navidrome
