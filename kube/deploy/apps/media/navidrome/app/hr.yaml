@@ -133,23 +133,23 @@ spec:
           nginx.ingress.kubernetes.io/auth-url: |-
               http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
           nginx.ingress.kubernetes.io/auth-response-headers: |-
-              Set-Cookie,X-Remote-User,WWW-Authenticate
+              Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-Remote-User,WWW-Authenticate
           nginx.ingress.kubernetes.io/auth-snippet: |
               proxy_set_header X-Forwarded-Host $http_host;
-          # nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-          #   if ($http_authorization = "") {
-          #       return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
-          #       add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
-          #   }
           nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-            error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 500 501 502 503 504 505 506 507 508 509 510 511 512 =200 @navidrome_subsonic_auth
             if ($http_authorization = "") {
+                return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
                 add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
             }
-          nginx.ingress.kubernetes.io/server-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-            location @navidrome_subsonic_auth {
-                return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
-            }
+          # nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+          #   error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 500 501 502 503 504 505 506 507 508 509 510 511 512 =200 @navidrome_subsonic_auth
+          #   if ($http_authorization = "") {
+          #       add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
+          #   }
+          # nginx.ingress.kubernetes.io/server-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+          #   location @navidrome_subsonic_auth {
+          #       return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
+          #   }
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
             paths:
