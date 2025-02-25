@@ -80,7 +80,7 @@ spec:
             args:
               - |
                 while true; do
-                  wget -qO- http://127.0.0.1:8080/ && break
+                  wget -qO /dev/null http://127.0.0.1:8080/ && break
                 done
                 sleep 10
                 export ADMINCREATE=$(wget -O- --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://127.0.0.1:8080/auth/createAdmin' 2>&1 || true)
@@ -89,6 +89,7 @@ spec:
                   *403*) echo "Admin already created!" ;;
                   *) false ;;
                 esac
+            restartPolicy: Never
             envFrom: *envFrom
             securityContext: *sc
             resources:
