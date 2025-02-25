@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: &name miniflux-secrets
+  namespace: miniflux
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "miniflux - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        ADMIN_USERNAME: "{{ .SECRET_MINIFLUX_ADMIN_USERNAME }}"
+        ADMIN_PASSWORD: "{{ .SECRET_MINIFLUX_ADMIN_PASSWORD }}"
+        OAUTH2_CLIENT_ID: "{{ .SECRET_MINIFLUX_OIDC_ID }}"
+        OAUTH2_CLIENT_SECRET: "{{ .SECRET_MINIFLUX_OIDC_SECRET }}"

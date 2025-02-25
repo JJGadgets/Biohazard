@@ -4,12 +4,16 @@ kind: Kustomization
 metadata:
   name: miniflux-app
   namespace: flux-system
-  labels:
-    wait.flux.home.arpa/disabled: "true"
+  labels: &l
+    app.kubernetes.io/name: "miniflux"
 spec:
+  targetNamespace: "miniflux"
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/miniflux/app
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: 1-core-ingress-nginx-app
     - name: miniflux-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -17,10 +21,13 @@ kind: Kustomization
 metadata:
   name: miniflux-db
   namespace: flux-system
-  labels:
+  labels: &l
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"
+    app.kubernetes.io/name: "miniflux"
 spec:
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:

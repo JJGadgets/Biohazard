@@ -1,77 +1,110 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app miniflux
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 3.7.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: "ghcr.io/miniflux/miniflux"
-      tag: "2.2.6-distroless@sha256:c6b0af85d44d5e133d4d9844768dfe491aa0282bb9adac1dbfe7871f0947431c"
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      db.home.arpa/pg: "pg-default"
-      egress.home.arpa/internet: "allow"
-      egress.home.arpa/nginx-external: "allow" # authentik
-    env:
-      TZ: "${CONFIG_TZ}"
-      BASE_URL: "https://${APP_DNS_MINIFLUX}"
-      RUN_MIGRATIONS: "1"
-      CREATE_ADMIN: "1"
-      OAUTH2_PROVIDER: oidc
-      OAUTH2_REDIRECT_URL: https://${APP_DNS_MINIFLUX}/oauth2/oidc/callback
-      OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://${APP_DNS_AUTH}/application/o/miniflux/
-      OAUTH2_USER_CREATION: "1"
-      DATABASE_URL:
-        valueFrom:
-          secretKeyRef:
-            name: &pgsec "pg-default-pguser-miniflux"
-            key: "pgbouncer-uri"
-    envFrom:
-      - secretRef:
-          name: miniflux-secrets
+    controllers:
+      miniflux:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            db.home.arpa/pg: pg-default
+            authentik.home.arpa/https: allow
+            egress.home.arpa/internet: allow
+            egress.home.arpa/discord: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/miniflux/miniflux
+              tag: "2.2.6-distroless@sha256:c6b0af85d44d5e133d4d9844768dfe491aa0282bb9adac1dbfe7871f0947431c"
+            env:
+              TZ: "${CONFIG_TZ}"
+              BASE_URL: "https://${APP_DNS_MINIFLUX}"
+              RUN_MIGRATIONS: "1"
+              CREATE_ADMIN: "1"
+              OAUTH2_PROVIDER: oidc
+              OAUTH2_REDIRECT_URL: https://${APP_DNS_MINIFLUX}/oauth2/oidc/callback
+              OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://${APP_DNS_AUTH}/application/o/miniflux/
+              OAUTH2_USER_CREATION: "1"
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: &pgsec "pg-default-pguser-miniflux"
+                    key: "pgbouncer-uri"
+            envFrom: &envFrom
+              - secretRef:
+                  name: miniflux-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      miniflux:
+        controller: miniflux
         ports:
           http:
             port: 8080
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
+        className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_MINIFLUX:=miniflux}"
-            paths:
+            paths: &paths
               - path: /
                 pathType: Prefix
+                service:
+                  identifier: miniflux
+                  port: http
         tls:
-          - hosts:
-              - *host
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_MINIFLUX:=1000}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        cpu: 3000m
-        memory: 512Mi
+          - hosts: [*host]
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/miniflux
+                    operator: DoesNotExist
