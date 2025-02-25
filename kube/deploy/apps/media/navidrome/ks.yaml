@@ -12,8 +12,8 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/media/navidrome/app
   components:
-    - ../../../core/storage/volsync/component/
-    - ../../../core/flux-system/alerts/template/
+    - ../../../../core/storage/volsync/component/
+    - ../../../../core/flux-system/alerts/template/
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
