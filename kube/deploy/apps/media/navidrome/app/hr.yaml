@@ -128,14 +128,30 @@ spec:
           - hosts: [*host]
       subsonic: # bypass forward auth
         className: nginx-internal
+        annotations:
+          # nginx.ingress.kubernetes.io/auth-signin annotation not needed since we're only using the "Receiving HTTP basic auth" part of the authentik Proxy Provider which handles forward auth
+          nginx.ingress.kubernetes.io/auth-url: |-
+              http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+          nginx.ingress.kubernetes.io/auth-response-headers: |-
+              Set-Cookie,X-Remote-User,WWW-Authenticate
+          nginx.ingress.kubernetes.io/auth-snippet: |
+              proxy_set_header X-Forwarded-Host $http_host;
+          nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+            if ($http_authorization = "") {
+                add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
+                return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
+            }
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths: &paths
-              - path: /rest
+            paths:
+              - &path
+                path: /rest
                 pathType: Prefix
                 service:
                   identifier: navidrome
                   port: http
+              - <<: *path
+                path: /auth
         tls:
           - hosts: [*host]
     persistence:
