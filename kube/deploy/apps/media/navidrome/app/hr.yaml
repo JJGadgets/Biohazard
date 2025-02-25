@@ -83,11 +83,11 @@ spec:
             args:
               - |
                 while true; do
-                  wget -qO /dev/null http://127.0.0.1:8080/ && break
+                  wget -qO /dev/null http://navidrome.media.svc.cluster.local:8080/ && break
                   sleep 1
                 done
                 sleep 10
-                export ADMINCREATE=$(wget -O- --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://127.0.0.1:8080/auth/createAdmin' 2>&1 || true)
+                export ADMINCREATE=$(wget -O- --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://navidrome.media.svc.cluster.local:8080/auth/createAdmin' 2>&1 || true)
                 case "$ADMINCREATE" in
                   *isAdmin*) echo "Created admin!" ;;
                   *403*) echo "Admin already created!" ;;
