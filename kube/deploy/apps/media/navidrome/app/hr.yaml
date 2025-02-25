@@ -138,7 +138,11 @@ spec:
               proxy_set_header X-Forwarded-Host $http_host;
           nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
             if ($http_authorization = "") {
-                return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
+                return 200 '
+                  <subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">
+                    <error code="40" message="Invalid credentials or unsupported client"></error>
+                  </subsonic-response>
+                '
                 add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
             }
           # nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
