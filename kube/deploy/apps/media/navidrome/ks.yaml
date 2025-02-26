@@ -45,4 +45,4 @@ spec:
     - name: authentik-app
   postBuild:
     substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_NAVIDROME}"
+      AUTHENTIK_PROXY_HOST: "${APP_DNS_NAVIDROME:=navidrome}"

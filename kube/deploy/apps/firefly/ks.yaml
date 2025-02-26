@@ -44,4 +44,4 @@ spec:
   dependsOn: []
   postBuild:
     substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_FIREFLY}"
+      AUTHENTIK_PROXY_HOST: "${APP_DNS_FIREFLY:=firefly}"
