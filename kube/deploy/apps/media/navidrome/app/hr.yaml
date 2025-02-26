@@ -74,34 +74,34 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-      admin-password:
-        type: job
-        containers:
-          main:
-            image: *img
-            command: ["/bin/busybox", "ash", "-c"]
-            args:
-              - |
-                while true; do
-                  wget -qO /dev/null http://navidrome.media.svc.cluster.local:8080/ && break
-                  sleep 1
-                done
-                sleep 10
-                export ADMINCREATE=$(wget -O- --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://navidrome.media.svc.cluster.local:8080/auth/createAdmin' 2>&1 || true)
-                case "$ADMINCREATE" in
-                  *isAdmin*) echo "Created admin!" ;;
-                  *403*) echo "Admin already created!" ;;
-                  *) false ;;
-                esac
-            envFrom: *envFrom
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "0m"
-                memory: "0Mi"
-              limits:
-                cpu: "1"
-                memory: "200Mi"
+      # admin-password:
+      #   type: job
+      #   containers:
+      #     main:
+      #       image: *img
+      #       command: ["/bin/busybox", "ash", "-c"]
+      #       args:
+      #         - |
+      #           while true; do
+      #             wget -qO /dev/null http://navidrome.media.svc.cluster.local:8080/ && break
+      #             sleep 1
+      #           done
+      #           sleep 10
+      #           export ADMINCREATE=$(wget -O- --header 'Content-Type: application/json' --post-data '{"username":"JJGadgets", "password":"$(ADMIN_PASSWORD)"}' 'http://navidrome.media.svc.cluster.local:8080/auth/createAdmin' 2>&1 || true)
+      #           case "$ADMINCREATE" in
+      #             *isAdmin*) echo "Created admin!" ;;
+      #             *403*) echo "Admin already created!" ;;
+      #             *) false ;;
+      #           esac
+      #       envFrom: *envFrom
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "0m"
+      #           memory: "0Mi"
+      #         limits:
+      #           cpu: "1"
+      #           memory: "200Mi"
     service:
       navidrome:
         controller: navidrome
@@ -128,33 +128,33 @@ spec:
           - hosts: [*host]
       subsonic: # bypass forward auth
         className: nginx-internal
-        annotations:
-          # nginx.ingress.kubernetes.io/auth-signin annotation not needed since we're only using the "Receiving HTTP basic auth" part of the authentik Proxy Provider which handles forward auth
-          nginx.ingress.kubernetes.io/auth-url: |-
-              http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
-          nginx.ingress.kubernetes.io/auth-response-headers: |-
-              Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-Remote-User,WWW-Authenticate
-          nginx.ingress.kubernetes.io/auth-snippet: |
-              proxy_set_header X-Forwarded-Host $http_host;
-          nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-            if ($http_authorization = "") {
-                return 200 '
-                    <subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">
-                        <error code="40" message="Invalid credentials or unsupported client"></error>
-                    </subsonic-response>
-                ';
-                add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
-                add_header Content-Type text/plain;
-            }
-          # nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-          #   error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 500 501 502 503 504 505 506 507 508 509 510 511 512 =200 @navidrome_subsonic_auth
-          #   if ($http_authorization = "") {
-          #       add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
-          #   }
-          # nginx.ingress.kubernetes.io/server-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-          #   location @navidrome_subsonic_auth {
-          #       return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
-          #   }
+        # annotations:
+        #   # nginx.ingress.kubernetes.io/auth-signin annotation not needed since we're only using the "Receiving HTTP basic auth" part of the authentik Proxy Provider which handles forward auth
+        #   nginx.ingress.kubernetes.io/auth-url: |-
+        #       http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+        #   nginx.ingress.kubernetes.io/auth-response-headers: |-
+        #       Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-Remote-User,WWW-Authenticate
+        #   nginx.ingress.kubernetes.io/auth-snippet: |
+        #       proxy_set_header X-Forwarded-Host $http_host;
+        #   nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+        #     if ($http_authorization = "") {
+        #         return 200 '
+        #             <subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">
+        #                 <error code="40" message="Invalid credentials or unsupported client"></error>
+        #             </subsonic-response>
+        #         ';
+        #         add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
+        #         add_header Content-Type text/plain;
+        #     }
+        #   # nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+        #   #   error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 500 501 502 503 504 505 506 507 508 509 510 511 512 =200 @navidrome_subsonic_auth
+        #   #   if ($http_authorization = "") {
+        #   #       add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
+        #   #   }
+        #   # nginx.ingress.kubernetes.io/server-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
+        #   #   location @navidrome_subsonic_auth {
+        #   #       return 200 '<subsonic-response xmlns="http://subsonic.org/restapi" status="failed" version="1.16.1" type="proxy-auth" serverVersion="n/a" openSubsonic="true">\n<error code="40" message="Invalid credentials or unsupported client"></error>\n</subsonic-response>'
+        #   #   }
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
             paths:
@@ -224,24 +224,24 @@ spec:
           - port: http
             scheme: http
             path: /metrics
-    networkpolicies:
-      main:
-        controller: navidrome
-        policyTypes: [Ingress]
-        rules:
-          ingress:
-            - from:
-                - podSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: *app
-                      app.kubernetes.io/component: admin-password
-      admin-password:
-        controller: admin-password
-        policyTypes: [Egress]
-        rules:
-          egress:
-            - to:
-                - podSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: *app
-                      app.kubernetes.io/component: *app
+    # networkpolicies:
+    #   main:
+    #     controller: navidrome
+    #     policyTypes: [Ingress]
+    #     rules:
+    #       ingress:
+    #         - from:
+    #             - podSelector:
+    #                 matchLabels:
+    #                   app.kubernetes.io/name: *app
+    #                   app.kubernetes.io/component: admin-password
+    #   admin-password:
+    #     controller: admin-password
+    #     policyTypes: [Egress]
+    #     rules:
+    #       egress:
+    #         - to:
+    #             - podSelector:
+    #                 matchLabels:
+    #                   app.kubernetes.io/name: *app
+    #                   app.kubernetes.io/component: *app
