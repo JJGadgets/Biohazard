@@ -15,9 +15,8 @@ spec:
     - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: ${APPNAME}-db
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
       PVC: "${APPNAME}-data"

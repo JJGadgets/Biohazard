@@ -6,10 +6,8 @@ metadata:
   name: &app kubevirt
 spec:
   endpointSelector:
-    matchExpressions:
-      - key: app.kubernetes.io/managed-by
-        operator: In
-        values: [virt-operator]
+    matchLabels:
+      app.kubernetes.io/managed-by: virt-operator
   ingress:
     - fromEntities:
         - kube-apiserver
@@ -31,10 +29,8 @@ metadata:
   name: &app kubevirt-operator
 spec:
   endpointSelector:
-    matchExpressions:
-      - key: kubevirt.io
-        operator: In
-        values: [virt-operator]
+    matchLabels:
+      kubevirt.io: virt-operator
   ingress:
     - fromEntities:
         - kube-apiserver
