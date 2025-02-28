@@ -15,8 +15,6 @@ spec:
     - &crds
       apiVersion: apiextensions.k8s.io/v1
       kind: CustomResourceDefinition
-      name: random.fake.ass.shit
-    - <<: *crds
       name: replicationsources.volsync.backube
     - <<: *crds
       name: replicationdestinations.volsync.backube
@@ -32,11 +30,6 @@ spec:
       name: ciliumclusterwidenetworkpolicies.cilium.io
     - <<: *crds
       name: certificates.cert-manager.io
-  # healthCheckExprs:
-  #   - apiVersion: apiextensions.k8s.io/v1
-  #     kind: CustomResourceDefinition
-  #     failed: "!(has(status.storedVersions))"
-  #     current: "has(status.storedVersions)"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
