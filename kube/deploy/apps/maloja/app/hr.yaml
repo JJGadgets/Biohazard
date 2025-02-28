@@ -36,8 +36,9 @@ spec:
               MALOJA_PORT: &http 8080
               # MALOJA_DATA_DIRECTORY: &pvc /data
               MALOJA_DIRECTORY_CONFIG: &config /data/config
-              MALOJA_DIRECTORY_STATE: &state /data/config
+              MALOJA_DIRECTORY_STATE: &state /data/state
               MALOJA_DIRECTORY_CACHE: &cache /misc/cache
+              MALOJA_DIRECTORY_LOGS: &logs /misc/logs # why do you need this when logs is disabled lol
               MALOJA_LOGGING: "false" # only for file logging
             envFrom: &envFrom
               - secretRef:
