@@ -86,7 +86,7 @@ spec:
         existingClaim: maloja-data
         globalMounts:
           - subPath: data
-            path: *pvc
+            path: /data
       misc:
         existingClaim: maloja-data
     defaultPodOptions:
