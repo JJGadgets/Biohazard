@@ -29,6 +29,7 @@ spec:
             image: &img
               repository: docker.io/krateng/maloja
               tag: 3.2.4@sha256:4ecea26058d2ca5168a8d53820279942d28f0606664cea6425f42371d5d88f95
+            command: ["/venv/bin/python", "-m", "maloja", "run"]
             env: &env
               TZ: &tz "${CONFIG_TZ}"
               MALOJA_LOCATION_TIMEZONE: *tz
