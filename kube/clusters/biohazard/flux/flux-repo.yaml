@@ -97,16 +97,16 @@ spec:
         version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/default notin (false)
-    - patch: |
-        - op: add
-          path: /spec/dependsOn/-
-          value:
-            name: 1-core-1-networking-cilium-app
-      target:
-        group: kustomize.toolkit.fluxcd.io
-        version: v1
-        kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
+    # - patch: |
+    #     - op: add
+    #       path: /spec/dependsOn/-
+    #       value:
+    #         name: 1-core-1-networking-cilium-app
+    #   target:
+    #     group: kustomize.toolkit.fluxcd.io
+    #     version: v1
+    #     kind: Kustomization
+    #     labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
     - patch: |
         - op: add
           path: /spec/dependsOn/-
