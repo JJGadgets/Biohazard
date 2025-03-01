@@ -195,3 +195,7 @@ spec:
     serviceMonitor:
       main:
         serviceName: gotosocial
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
