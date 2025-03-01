@@ -65,7 +65,8 @@ spec:
         controller: maloja
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
@@ -116,3 +117,16 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/maloja
                     operator: DoesNotExist
+    networkpolicies:
+      navidrome:
+        controller: maloja
+        policyTypes: [Ingress]
+        rules:
+          ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: navidrome
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: media

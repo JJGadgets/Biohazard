@@ -50,10 +50,12 @@ spec:
               ND_UILOGINBACKGROUNDURL: https://raw.githubusercontent.com/JJGadgets/images/main/cover.png
               ND_UIWELCOMEMESSAGE: "Welcome to JJGadgets Music."
               ND_PROMETHEUS_ENABLED: "true"
-              ND_PROMETHEUS_METRICSPATH: /metrics
+              ND_PROMETHEUS_METRICSPATH: &metrics /metrics
               ND_REVERSEPROXYUSERHEADER: X-authentik-username
               ND_REVERSEPROXYWHITELIST: "${IP_POD_CIDR_V4:=127.0.0.1/32},127.0.0.1/32,::1/128"
               ND_ENABLEINSIGHTSCOLLECTOR: "false"
+              ND_LISTENBRAINZ_ENABLED: "true"
+              ND_LISTENBRAINZ_BASEURL: "http://maloja.maloja.svc.cluster.local/apis/listenbrainz/1/"
             envFrom: &envFrom
               - secretRef:
                   name: navidrome-secrets
@@ -168,4 +170,17 @@ spec:
         endpoints:
           - port: http
             scheme: http
-            path: /metrics
+            path: *metrics
+    networkpolicies:
+      maloja:
+        controller: navidrome
+        policyTypes: [Egress]
+        rules:
+          egress:
+            - to:
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: maloja
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: maloja
