@@ -17,7 +17,8 @@ spec:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
-    # template:
-    #   type: Opaque
-    #   data:
-    #     age.agekey: '{{ .agekey }}'
+    template:
+      mergePolicy: Merge
+      type: Opaque
+      data:
+        MALOJA_FORCE_PASSWORD: '{{ .password }}'
