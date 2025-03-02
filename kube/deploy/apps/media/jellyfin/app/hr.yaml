@@ -92,6 +92,11 @@ spec:
         globalMounts:
           - path: "/ceph"
             readOnly: true
+      bulk:
+        existingClaim: "media-bulk"
+        globalMounts:
+          - path: "/ceph-bulk"
+            readOnly: true
       nfs:
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
