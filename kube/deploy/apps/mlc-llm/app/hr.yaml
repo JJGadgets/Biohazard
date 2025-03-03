@@ -237,10 +237,10 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      hostUsers: false
+      hostUsers: true
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 65534
+        runAsUser: &uid ${APP_UID_MLC_LLM:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
