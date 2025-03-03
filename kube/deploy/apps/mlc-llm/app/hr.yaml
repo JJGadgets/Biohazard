@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.7.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -27,14 +27,14 @@ spec:
         containers:
           main: &mlc
             image: &img
-              repository: jank.ing/jjgadgets/mlc-llm-nightly
-              tag: 2024.12.03@sha256:f790f03077a4a6fa6484fc2b451eece1e85f83fd60c20e364a31f9f3903e3b71
+              repository: jank.ing/jjgadgets/mlc-llm
+              tag: 0.19.0@sha256:acbe4da65245cdc424eb16de4dd09b6c77fc1dc48f871f04faca4c0365341420
             args: ["HF://mlc-ai/$(MODEL)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "ON"
               MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
-              MODEL: &llama3-model "Llama-3.2-3B-Instruct-q4f16_1-MLC"
+              MODEL: &llama3-model "Llama-3.1-8B-Instruct-q4f16_1-MLC"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -45,7 +45,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "6Gi"
+                memory: "11Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -131,6 +131,29 @@ spec:
             env:
               <<: *envPull
               MODEL: *phi3-model
+      r1-qwen-32b:
+        <<: *deploy
+        containers:
+          main:
+            <<: *mlc
+            env:
+              <<: *envMain
+              MODEL: &r1-qwen-32b-model "DeepSeek-R1-Distill-Qwen-32B-q4f16_1-MLC"
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "40Gi"
+                gpu.intel.com/i915: "1"
+      phi3-pull:
+        <<: *job
+        containers:
+          main:
+            <<: *pull
+            env:
+              <<: *envPull
+              MODEL: *phi3-model
     service:
       llama3: &svc
         controller: llama3
@@ -145,6 +168,9 @@ spec:
       phi3:
         <<: *svc
         controller: phi3
+      r1-qwen-32b:
+        <<: *svc
+        controller: r1-qwen-32b
     ingress:
       llama3:
         className: nginx-internal
@@ -182,6 +208,18 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+      r1-qwen-32b:
+        className: nginx-internal
+        hosts:
+          - host: &host "deepseek.${DNS_SHORT}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: r1-qwen-32b
+                  port: http
+        tls:
+          - hosts: [*host]
     persistence:
       misc:
         existingClaim: mlc-llm-misc
@@ -199,9 +237,10 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_MLC_LLM:=1000}
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
