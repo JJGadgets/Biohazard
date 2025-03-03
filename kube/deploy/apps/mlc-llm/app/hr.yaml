@@ -146,14 +146,14 @@ spec:
                 cpu: "1000m"
                 memory: "40Gi"
                 gpu.intel.com/i915: "1"
-      phi3-pull:
+      r1-qwen-32b-pull:
         <<: *job
         containers:
           main:
             <<: *pull
             env:
               <<: *envPull
-              MODEL: *phi3-model
+              MODEL: *r1-qwen-32b-model
     service:
       llama3: &svc
         controller: llama3
