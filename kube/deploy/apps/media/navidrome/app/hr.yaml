@@ -87,6 +87,19 @@ spec:
     ingress:
       main:
         className: nginx-internal
+        annotations: {}
+        hosts:
+          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: navidrome
+                  port: http
+        tls:
+          - hosts: [*host]
+      auth-signin:
+        className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
@@ -94,7 +107,7 @@ spec:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
             paths: &paths
               - path: /
-                pathType: Prefix
+                pathType: Exact
                 service:
                   identifier: navidrome
                   port: http
