@@ -131,10 +131,10 @@ spec:
                   failureThreshold: 300
                   initialDelaySeconds: 15
           anubis:
-            image: &img
+            image:
               repository: ghcr.io/xe/x/anubis
               tag: latest@sha256:f54385a986e2032b238c626e9cec989acc4e36160ab87b88722171929cb5880b
-            env: &env
+            env:
               TZ: "${CONFIG_TZ}"
               DIFFICULTY: "5"
               SERVE_ROBOTS_TXT: "true"
