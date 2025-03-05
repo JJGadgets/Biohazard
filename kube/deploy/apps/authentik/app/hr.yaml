@@ -136,6 +136,7 @@ spec:
               tag: latest@sha256:f54385a986e2032b238c626e9cec989acc4e36160ab87b88722171929cb5880b
             env:
               TZ: "${CONFIG_TZ}"
+              BIND: ":8923"
               DIFFICULTY: "5"
               SERVE_ROBOTS_TXT: "true"
               TARGET: "http://127.0.0.1:9000"
