@@ -78,7 +78,11 @@ spec:
               limits:
                 cpu: "1"
                 memory: "2Gi"
-                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       microservices:
         type: deployment
         replicas: 3
@@ -117,6 +121,12 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       ml:
         type: deployment
         replicas: 3
@@ -149,6 +159,11 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "6Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       ml-model-pull-clip: &ml-model-pull
         type: cronjob
         cronjob:
@@ -201,12 +216,18 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
       immich:
         controller: immich
         ports:
           http:
             port: 2283
+            primary: true
           metrics:
             port: 8081
       microservices:
