@@ -142,6 +142,9 @@ spec:
         pod:
           labels:
             db.home.arpa/pg: pg-home
+          securityContext:
+            <<: *podsc
+            supplementalGroups: [44, 104, 109, 128, 226] # GPU
           topologySpreadConstraints:
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
