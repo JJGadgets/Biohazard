@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -45,9 +45,12 @@ spec:
               LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libmimalloc.so.2
               NODE_ENV: production
               LOG_LEVEL: verbose
+              IMMICH_TRUSTED_PROXIES: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               IMMICH_WORKERS_INCLUDE: "api"
               IMMICH_MEDIA_LOCATION: &pvc /data
-              IMMICH_METRICS: "true"
+              IMMICH_TELEMETRY_INCLUDE: "all"
+              IMMICH_API_METRICS_PORT: &metrics-api 8081
+              IMMICH_MICROSERVICES_METRICS_PORT: &metrics-ms 8081
               IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local:3001
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
@@ -63,6 +66,9 @@ spec:
                   secretKeyRef:
                     name: pg-home-pguser-immich-fixed
                     key: pgbouncer-uri-sslmode
+              CPU_CORES:
+                resourceFieldRef:
+                  resource: limits.cpu
             envFrom: &ef
               - secretRef:
                   name: immich-secrets
@@ -150,15 +156,20 @@ spec:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
               tag: v1.129.0@sha256:072b5eec074476726c38994ca80edc8d19e14859d49b0f1b6aaa04b0ce415f0c
-            env: *env
+            env:
+              <<: *env
+              MACHINE_LEARNING_REQUEST_THREADS:
+                resourceFieldRef:
+                  resource: limits.cpu
             securityContext: *sc
             resources:
               requests:
                 cpu: "10m"
                 memory: "1Gi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "6Gi"
+                gpu.intel.com/i915: "1"
             probes:
               liveness:
                 enabled: true
@@ -224,17 +235,18 @@ spec:
     service:
       immich:
         controller: immich
+        primary: true
         ports:
           http:
             port: 2283
             primary: true
           metrics:
-            port: 8081
+            port: *metrics-api
       microservices:
         controller: microservices
         ports:
           metrics:
-            port: 8081
+            port: *metrics-ms
       ml:
         controller: ml
         ports:
