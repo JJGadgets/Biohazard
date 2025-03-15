@@ -20,12 +20,15 @@ on:
         type: choice
         default: "enabled"
         options: ["enabled", "disabled", "reset"]
-      paths:
-        description: Paths to run Renovate on. Comma separated without spaces for multiple.
+      repo:
+        description: Run Renovate on only these repos
         required: false
-      managers:
-        description: Managers that Renovate should use. Comma separated without spaces for multiple.
-        required: false
+      # paths:
+      #   description: Paths to run Renovate on. Comma separated without spaces for multiple.
+      #   required: false
+      # managers:
+      #   description: Managers that Renovate should use. Comma separated without spaces for multiple.
+      #   required: false
   schedule:
     - cron: "0 * * * *" # every hour
   push:
@@ -86,7 +89,7 @@ jobs:
 
       - name: Renovate Cache
         id: renovate-cache
-        uses: actions/cache@v4
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         if: github.event.inputs.cache != 'disabled'
         continue-on-error: true
         with:
@@ -102,6 +105,7 @@ jobs:
           echo "RENOVATE_DRY_RUN=${{ github.event.inputs.dryRun || env.RENOVATE_DRY_RUN }}" >> "${GITHUB_ENV}"
           echo "LOG_LEVEL=${{ github.event.inputs.logLevel || env.LOG_LEVEL }}" >> "${GITHUB_ENV}"
           echo "RENOVATE_REPOSITORY_CACHE=${{ github.event.inputs.cache || env.RENOVATE_REPOSITORY_CACHE }}" >> "${GITHUB_ENV}"
+          if [[ ! -z "${{ github.event.inputs.repos }}" ]]; then echo "RENOVATE_AUTODISCOVER_FILTER=${{ github.event.inputs.repos }}" >> "${GITHUB_ENV}"; fi
           if [[ ! -z "${{ github.event.inputs.paths }}" ]]; then echo "RENOVATE_INCLUDE_PATHS=${{ github.event.inputs.paths }}" >> "${GITHUB_ENV}"; fi
           if [[ ! -z "${{ github.event.inputs.managers }}" ]]; then echo "RENOVATE_ENABLED_MANAGERS=${{ github.event.inputs.managers }}" >> "${GITHUB_ENV}"; fi
           # chown /tmp/renovate due to cache screwing permissions
