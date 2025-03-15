@@ -9,8 +9,15 @@
       "automerge": false
     },
     {
+      "description": "Only create GHA PRs after a week",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["!actions/**", "!**renovate**"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "description": "Auto merge Github Actions",
       "matchManagers": ["github-actions"],
+      "matchPackageNames": ["actions/**"],
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch",
@@ -34,11 +41,11 @@
       "rebaseWhen": "behind-base-branch",
       "matchFileNames": ["kube/deploy/apps/**"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchCurrentVersion": "!/^0\\./", // avoid breaking changes in 0.x SemVer releases
+      "matchCurrentVersion": "!/^0\\./" // avoid breaking changes in 0.x SemVer releases
     },
     {
       "description": "Don't auto merge specific apps in path ./kube/deploy/apps",
-      "matchPackageNames": ["**/reactive-resume", "**/home-assistant"],
+      "matchPackageNames": ["**/reactive-resume", "**/home-assistant", "**/zigbee2mqtt"],
       "automerge": false,
       "matchFileNames": ["kube/deploy/apps/**"]
     },
@@ -73,6 +80,7 @@
       "description": "authentik Group",
       "groupName": "authentik",
       "matchPackageNames": ["**authentik**", "ghcr.io/goauthentik/**"],
+      "versioning": "semver-coerced",
       "sourceUrl": "https://github.com/goauthentik/authentik",
       "automerge": false,
       "separateMultipleMajor": true,

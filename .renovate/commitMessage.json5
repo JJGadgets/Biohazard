@@ -32,7 +32,7 @@
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}}"
+      "semanticCommitScope": "oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{/if}}"
     },
     {
       "matchDatasources": ["docker"],
@@ -49,7 +49,7 @@
       "matchDatasources": ["docker"],
       "matchDepNames": ["*/*/**"],
       "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{ lookup (split depName '/') 3 }}{{ lookup (split depName '/') 4 }}{{ lookup (split depName '/') 5 }}{{/if}})!: "
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}{{groupName}}{{else}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{/if}}!: "
     },
     {
       "matchDatasources": ["docker"],
