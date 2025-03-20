@@ -1,0 +1,160 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app plex
+  namespace: media
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      plex:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/home-operations/plex
+              tag: 1.41.5.9522@sha256:1c35e44828531320f4fccd980da5a3d0da08a438f1c89841d8be97cfefe66e63
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443"
+              PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "2Gi"
+              limits:
+                cpu: "1"
+                memory: "10Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /identity
+                    port: &port 32400
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+    service:
+      plex:
+        controller: plex
+        ports:
+          http:
+            port: *port
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          # external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          # external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        hosts:
+          - host: &host "${APP_DNS_PLEX:=plex}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: plex
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: plex-data
+        globalMounts:
+          - subPath: data
+            path: /config
+      misc:
+        existingClaim: plex-misc
+        globalMounts:
+          - subPath: cache
+            path: /config/Library/Application Support/Plex Media Server/Cache
+          - subPath: transcode
+            path: transcode
+      nfs:
+        type: nfs
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
+        globalMounts:
+          - path: /nfs
+            readOnly: true
+      media:
+        existingClaim: "media-data" # VolSync
+        globalMounts:
+          - path: "/ceph"
+            readOnly: true
+      bulk:
+        existingClaim: "media-bulk"
+        globalMounts:
+          - path: "/ceph-bulk"
+            readOnly: true
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: logs
+            path: /config/Library/Application Support/Plex Media Server/Logs
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 6969
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/plex
+                    operator: DoesNotExist
