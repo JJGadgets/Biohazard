@@ -142,7 +142,7 @@ spec:
         runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: OnRootMismatch
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
