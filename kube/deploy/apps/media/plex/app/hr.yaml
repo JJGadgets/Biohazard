@@ -21,8 +21,10 @@ spec:
         type: deployment
         replicas: 1
         pod:
+          hostname: "${CLUSTER_NAME:=biohazard}-plex-server"
           labels:
             ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
@@ -32,6 +34,7 @@ spec:
               TZ: "${CONFIG_TZ}"
               PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443"
               PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
+              # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -122,6 +125,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 64Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
@@ -143,14 +147,8 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
+        supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
