@@ -13,7 +13,7 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/media/plex/app
   components:
-    - ../../../core/storage/volsync/component/
+    - ../../../../core/storage/volsync/component/
   dependsOn:
     - name: crds
       namespace: flux-system
