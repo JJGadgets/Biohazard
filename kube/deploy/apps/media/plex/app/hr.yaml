@@ -23,6 +23,8 @@ spec:
         pod:
           hostname: "${CLUSTER_NAME:=biohazard}-plex-server"
           labels:
+            ingress.home.arpa/jjgadgets: allow
+            ingress.home.arpa/appletv: allow
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/internet: allow
         containers:
@@ -32,8 +34,8 @@ spec:
               tag: 1.41.5.9522@sha256:9d612368ec271266f4be4c0aa0daf54dc85ae94959351f020dd3345ca220a303
             env: &env
               TZ: "${CONFIG_TZ}"
-              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443"
-              PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443,http://${APP_IP_PLEX}:32400"
+              # PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
               # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
             securityContext: &sc
               readOnlyRootFilesystem: true
@@ -69,6 +71,9 @@ spec:
     service:
       plex:
         controller: plex
+        type: LoadBalancer
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_PLEX:=127.0.0.1}"
         ports:
           http:
             port: *port
@@ -76,11 +81,10 @@ spec:
             appProtocol: http
     ingress:
       main:
-        className: nginx-internal
+        className: nginx-external
         annotations:
-          # external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          # external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
           nginx.ingress.kubernetes.io/backend-protocol: HTTPS
         hosts:
           - host: &host "${APP_DNS_PLEX:=plex}"
