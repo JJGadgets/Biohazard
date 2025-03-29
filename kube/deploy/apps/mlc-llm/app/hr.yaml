@@ -34,7 +34,7 @@ spec:
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "ON"
               MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
-              MODEL: &llama3-model "Llama-3.1-8B-Instruct-q4f16_1-MLC"
+              MODEL: &llama3-model "Llama-3.2-3B-Instruct-q4f16_1-MLC"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -45,7 +45,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "11Gi"
+                memory: "6Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -61,10 +61,7 @@ spec:
                   tcpSocket:
                     port: 8080
       llama3-pull: &job
-        type: cronjob
-        cronjob:
-          schedule: "@weekly"
-          concurrencyPolicy: "Replace"
+        type: job
         pod:
           labels:
             egress.home.arpa/internet: allow
@@ -84,7 +81,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "3Gi"
+                memory: "10Gi"
       # codellama:
       #   <<: *deploy
       #   containers:
@@ -131,29 +128,29 @@ spec:
             env:
               <<: *envPull
               MODEL: *phi3-model
-      r1-qwen-32b:
-        <<: *deploy
-        containers:
-          main:
-            <<: *mlc
-            env:
-              <<: *envMain
-              MODEL: &r1-qwen-32b-model "DeepSeek-R1-Distill-Qwen-32B-q4f16_1-MLC"
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1000m"
-                memory: "40Gi"
-                gpu.intel.com/i915: "1"
-      r1-qwen-32b-pull:
-        <<: *job
-        containers:
-          main:
-            <<: *pull
-            env:
-              <<: *envPull
-              MODEL: *r1-qwen-32b-model
+      # r1-qwen-32b:
+      #   <<: *deploy
+      #   containers:
+      #     main:
+      #       <<: *mlc
+      #       env:
+      #         <<: *envMain
+      #         MODEL: &r1-qwen-32b-model "DeepSeek-R1-Distill-Qwen-32B-q4f16_1-MLC"
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "1000m"
+      #           memory: "40Gi"
+      #           gpu.intel.com/i915: "1"
+      # r1-qwen-32b-pull:
+      #   <<: *job
+      #   containers:
+      #     main:
+      #       <<: *pull
+      #       env:
+      #         <<: *envPull
+      #         MODEL: *r1-qwen-32b-model
     service:
       llama3: &svc
         controller: llama3
@@ -168,9 +165,9 @@ spec:
       phi3:
         <<: *svc
         controller: phi3
-      r1-qwen-32b:
-        <<: *svc
-        controller: r1-qwen-32b
+      # r1-qwen-32b:
+      #   <<: *svc
+      #   controller: r1-qwen-32b
     ingress:
       llama3:
         className: nginx-internal
@@ -208,27 +205,24 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
-      r1-qwen-32b:
-        className: nginx-internal
-        hosts:
-          - host: &host "deepseek.${DNS_SHORT}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: r1-qwen-32b
-                  port: http
-        tls:
-          - hosts: [*host]
+      # r1-qwen-32b:
+      #   className: nginx-internal
+      #   hosts:
+      #     - host: &host "deepseek.${DNS_SHORT}"
+      #       paths: &paths
+      #         - path: /
+      #           pathType: Prefix
+      #           service:
+      #             identifier: r1-qwen-32b
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       misc:
         existingClaim: mlc-llm-misc
         globalMounts:
           - subPath: data
             path: /data
-      tmp:
-        type: emptyDir
-        globalMounts:
           - subPath: tmp
             path: /tmp # TODO: check why /tmp on CephFS breaks Git clone
     defaultPodOptions:
@@ -244,7 +238,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: [44, 226] # iGPU
+        supplementalGroups: [44] # iGPU
         seccompProfile: { type: "Unconfined" } # GPU hangs with RuntimeDefault
       topologySpreadConstraints:
         - maxSkew: 1
@@ -258,7 +252,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/mlc-llm
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
     networkpolicies:
       from-frontends:
