@@ -56,6 +56,7 @@ env:
   RENOVATE_INHERIT_CONFIG: true
   RENOVATE_INHERIT_CONFIG_REPO_NAME: "${{ github.repository }}"
   RENOVATE_INHERIT_CONFIG_FILE_NAME: ".renovaterc.json5"
+  RENOVATE_FORK_PROCESSING: "enabled"
   # run on all repos without needing config
   RENOVATE_ONBOARDING: false
   RENOVATE_REQUIRE_CONFIG: "optional"
