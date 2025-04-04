@@ -28,7 +28,7 @@ spec:
           main: &ct
             image: &img
               repository: "docker.io/owncloud/ocis"
-              tag: "5.0.9@sha256:96671605863b38b0b8021400fdb2d843586dfa31451a8c7766f15eabe85d8267"
+              tag: "7.1.2@sha256:b73fad9ce672ea676b944cc26977ba886ea96fc1260d5c3314e33773a3116eb4"
             command: ["ocis", "server"]
             env:
               TZ: "${CONFIG_TZ}"
