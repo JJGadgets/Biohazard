@@ -17,7 +17,7 @@ spec:
         namespace: flux-system
   values:
     controllerExtraArgs: |
-      - --devices=gpu,sgx
+      - --devices=gpu,fpga
   # postRenderers:
   #   - kustomize:
   #       patches:
