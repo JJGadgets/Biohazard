@@ -15,9 +15,9 @@ spec:
         kind: HelmRepository
         name: intel
         namespace: flux-system
-  # values:
-  #   controllerExtraArgs: |
-  #     - --devices=gpu,fpga
+  values:
+    controllerExtraArgs: |
+      - --devices=gpu,sgx,fpga
   # postRenderers:
   #   - kustomize:
   #       patches:
