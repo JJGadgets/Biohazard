@@ -136,12 +136,12 @@ spec:
         containers:
           main:
             <<: *mlc
-            args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=$(CONTEXT_SIZE)", "--speculative-mode", "$(SPECULATIVE_DECODING)", "--additional-models", "$(SPECULATIVE_DECODING_MODEL)"]
+            args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=$(CONTEXT_SIZE)", "--speculative-mode", "$(SPECULATIVE_DECODING)", "--additional-models", "HF://mlc-ai/$(SPECULATIVE_DECODING_MODEL)"]
             env:
               <<: *envMain
               MODEL: &qwq-model "QwQ-32B-q4f16_1-MLC"
               SPECULATIVE_DECODING: "eagle"
-              SPECULATIVE_DECODING_MODEL: "Qwen2.5-1.5B-Instruct-q0f16-MLC"
+              SPECULATIVE_DECODING_MODEL: "Qwen2.5-0.5B-Instruct-q0f16-MLC"
             resources:
               requests:
                 cpu: "10m"
