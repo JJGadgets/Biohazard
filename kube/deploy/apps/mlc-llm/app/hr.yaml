@@ -140,14 +140,14 @@ spec:
             env:
               <<: *envMain
               MODEL: &qwq-model "QwQ-32B-q4f16_1-MLC"
-              SPECULATIVE_DECODING: "eagle"
+              SPECULATIVE_DECODING: "small_draft"
               SPECULATIVE_DECODING_MODEL: "Qwen2.5-0.5B-Instruct-q0f16-MLC"
             resources:
               requests:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "40Gi"
+                memory: "30Gi"
                 gpu.intel.com/i915: "1"
       qwq-pull:
         <<: *job
