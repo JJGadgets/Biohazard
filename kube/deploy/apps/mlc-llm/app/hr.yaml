@@ -29,7 +29,7 @@ spec:
             image: &img
               repository: jank.ing/jjgadgets/mlc-llm
               tag: 0.19.0@sha256:acbe4da65245cdc424eb16de4dd09b6c77fc1dc48f871f04faca4c0365341420
-            args: ["HF://mlc-ai/$(MODEL)"]
+            args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=16384"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "ON"
@@ -116,9 +116,10 @@ spec:
             resources:
               requests:
                 cpu: "10m"
+                memory: "3Gi"
               limits:
                 cpu: "1000m"
-                memory: "6Gi"
+                memory: "16Gi"
                 gpu.intel.com/i915: "1"
       phi3-pull:
         <<: *job
@@ -128,6 +129,29 @@ spec:
             env:
               <<: *envPull
               MODEL: *phi3-model
+      qwq:
+        <<: *deploy
+        containers:
+          main:
+            <<: *mlc
+            env:
+              <<: *envMain
+              MODEL: &qwq-model "mlc-ai/QwQ-32B-q4f16_1-MLC"
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1000m"
+                memory: "40Gi"
+                gpu.intel.com/i915: "1"
+      qwq-pull:
+        <<: *job
+        containers:
+          main:
+            <<: *pull
+            env:
+              <<: *envPull
+              MODEL: *qwq-model
       # r1-qwen-32b:
       #   <<: *deploy
       #   containers:
@@ -165,6 +189,9 @@ spec:
       phi3:
         <<: *svc
         controller: phi3
+      qwq:
+        <<: *svc
+        controller: qwq
       # r1-qwen-32b:
       #   <<: *svc
       #   controller: r1-qwen-32b
@@ -202,6 +229,18 @@ spec:
                 pathType: Prefix
                 service:
                   identifier: phi3
+                  port: http
+        tls:
+          - hosts: [*host]
+      qwq:
+        className: nginx-internal
+        hosts:
+          - host: &host "qwq.${DNS_SHORT}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: qwq
                   port: http
         tls:
           - hosts: [*host]
@@ -267,3 +306,6 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: sillytavern
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: code-server
