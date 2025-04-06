@@ -22,7 +22,7 @@ pipeline:
       owner_references: "on"
       use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
       kubelet_host: "$${KUBE_NODE_IP}"
-      kube_ca_path: "/var/run/secrets/kubernetes.io/serviceaccount" # both apiserver SA CA and localhost kubelet CA are mounted here
+      kube_ca_path: "/run/secrets/kubernetes.io/serviceaccount" # both apiserver SA CA and localhost kubelet CA are mounted here
     #   tls.verify: "off"
     # - name: stdout
     #   match: kubernetes.*

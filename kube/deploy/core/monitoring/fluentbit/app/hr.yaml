@@ -78,7 +78,7 @@ spec:
         hostPath: /var/lib/kubelet/pki
         globalMounts:
           - subPath: kubelet.crt
-            path: /var/run/secrets/kubernetes.io/serviceaccount/kubelet.crt
+            path: /run/secrets/kubernetes.io/serviceaccount/kubelet.crt
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
