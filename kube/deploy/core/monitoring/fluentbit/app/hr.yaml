@@ -1,5 +1,6 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app fluentbit
@@ -9,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -38,10 +39,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "128Mi"
             #probes: # TODO: HTTP healthchecks via health API
             #  liveness:
             #    enabled: true
@@ -61,8 +61,6 @@ spec:
       config:
         type: configMap
         name: fluentbit-config
-        globalMounts:
-          - path: /config
       logs-containers: # normal Talos disk mount
         type: hostPath
         hostPath: &path "/var/log/containers"
@@ -96,16 +94,3 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/fluentbit
                     operator: DoesNotExist
-    networkpolicies:
-      same-ns:
-        controller: fluentbit
-        policyTypes: [Ingress, Egress]
-        rules:
-          egress:
-            - to:
-                - podSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: victoria-logs
-                  namespaceSelector:
-                    matchLabels:
-                      kubernetes.io/metadata.name: monitoring

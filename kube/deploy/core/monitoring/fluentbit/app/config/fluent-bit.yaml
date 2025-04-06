@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://github.com/JustinGrote/FluentBitJsonSchema/releases/latest/download/fluentbit.schema.json
 pipeline:
   inputs:
     - name: tail # https://docs.fluentbit.io/manual/pipeline/inputs/tail
@@ -33,7 +34,7 @@ pipeline:
     # Victoria Logs
     - name: http
       match: '*'
-      host: victoria-logs.monitoring.svc
+      host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
       uri: '/insert/jsonline?_stream_fields=stream,kube_namespace_name,kube_pod_name,kube_container_name&_msg_field=log&_time_field=date'
       compress: gzip
