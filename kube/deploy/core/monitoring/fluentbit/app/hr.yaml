@@ -72,8 +72,8 @@ spec:
         globalMounts:
           - path: *path
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
+      automountServiceAccountToken: true
+      enableServiceLinks: true
       securityContext:
         runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
