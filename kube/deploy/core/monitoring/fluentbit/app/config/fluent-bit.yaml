@@ -13,21 +13,26 @@ pipeline:
     - name: kubernetes # https://docs.fluentbit.io/manual/pipeline/filters/kubernetes
       alias: kubernetes
       match: kubernetes.*
-      buffer_size: 100MB
+      kube_tag_prefix: kubernetes.var.log.containers.
+      buffer_size: "0"
       merge_log: "on"
       "k8s-logging.parser": "on"
       "k8s-logging.exclude": "on"
+      namespace_labels: "on"
     #   use_kubelet: "on"
     #   kubelet_host: "$${KUBE_NODE_IP}"
-    # # Lift out the kubernetes labels so we can rename them
+    #   tls.verify: "off"
+    # - name: stdout
+    #   match: kubernetes.*
+    # Lift out the kubernetes labels so we can rename them
     - name: nest
-      match: kubernetes.*
+      match: "*"
+      wildcard: "pod_name"
       operation: lift
       nested_under: kubernetes
       add_prefix: kubernetes_
     - name: nest
-      match: "*"
-      wildcard: "pod_name"
+      match: kubernetes.*
       operation: lift
       nested_under: kubernetes
       add_prefix: kubernetes_
@@ -42,15 +47,15 @@ pipeline:
       match: '*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
-      uri: '/insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date&debug=1'
+      uri: '/insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date'
       compress: gzip
       format: json_lines
       json_date_format: iso8601
       header:
         - 'AccountID 0'
         - 'ProjectID 0'
-    # stdout
-    - name: stdout
-      match: '*'
-      format: json_lines
-      json_date_format: iso8601
+    # # stdout
+    # - name: stdout
+    #   match: '*'
+    #   format: json_lines
+    #   json_date_format: iso8601
