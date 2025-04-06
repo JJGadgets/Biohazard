@@ -19,6 +19,8 @@ spec:
     controllers:
       fluentbit:
         type: daemonset
+        serviceAccount:
+          name: fluentbit
         containers:
           main:
             image: &img

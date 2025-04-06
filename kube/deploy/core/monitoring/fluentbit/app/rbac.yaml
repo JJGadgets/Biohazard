@@ -18,5 +18,11 @@ roleRef:
   name: *app
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: *app
     namespace: *app
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: &app "fluentbit"
+  namespace: *app
