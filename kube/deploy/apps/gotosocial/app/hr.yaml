@@ -30,6 +30,7 @@ spec:
             authentik.home.arpa/https: "allow"
             egress.home.arpa/internet: "allow"
             prom.home.arpa/kps: "allow"
+            fluentbit.io/parser: "logfmt"
         containers:
           main:
             image: &img
