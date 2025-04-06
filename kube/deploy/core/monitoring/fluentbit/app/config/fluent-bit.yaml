@@ -21,28 +21,28 @@ pipeline:
     #   kubelet_host: "$${KUBE_NODE_IP}"
     # # Lift out the kubernetes labels so we can rename them
     - name: nest
+      match: kubernetes.*
+      operation: lift
+      nested_under: kubernetes
+      add_prefix: kubernetes_
+    - name: nest
       match: "*"
       wildcard: "pod_name"
       operation: lift
       nested_under: kubernetes
       add_prefix: kubernetes_
-    # - name: nest
-    #   match: kubernetes.*
-    #   operation: lift
-    #   nested_under: kubernetes
-    #   add_prefix: kubernetes_
-    # - name: nest
-    #   match: kubernetes.*
-    #   operation: lift
-    #   nested_under: k_labels
-    #   add_prefix: k_labels_
+    - name: nest
+      match: kubernetes.*
+      operation: lift
+      nested_under: k_labels
+      add_prefix: k_labels_
   outputs:
     # Victoria Logs
     - name: http
       match: '*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
-      uri: '/insert/jsonline?_stream_fields=stream,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date'
+      uri: '/insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date&debug=1'
       compress: gzip
       format: json_lines
       json_date_format: iso8601
