@@ -73,12 +73,6 @@ spec:
         hostPath: &path "/var/log/pods"
         globalMounts:
           - path: *path
-      kubelet-ca:
-        type: hostPath
-        hostPath: /var/lib/kubelet/pki
-        globalMounts:
-          - subPath: kubelet.crt
-            path: /run/secrets/kubernetes.io/serviceaccount/kubelet.crt
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
