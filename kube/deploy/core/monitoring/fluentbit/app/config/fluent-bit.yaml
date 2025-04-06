@@ -49,3 +49,8 @@ pipeline:
       header:
         - 'AccountID 0'
         - 'ProjectID 0'
+    # stdout
+    - name: stdout
+      match: '*'
+      format: json_lines
+      json_date_format: iso8601
