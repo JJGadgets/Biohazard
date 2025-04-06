@@ -19,7 +19,7 @@ pipeline:
       "k8s-logging.parser": "on"
       "k8s-logging.exclude": "on"
       namespace_labels: "on"
-    #   use_kubelet: "on"
+    #   use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
     #   kubelet_host: "$${KUBE_NODE_IP}"
     #   tls.verify: "off"
     # - name: stdout
