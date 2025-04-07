@@ -47,8 +47,11 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
     service:
       sillytavern:
         controller: sillytavern
