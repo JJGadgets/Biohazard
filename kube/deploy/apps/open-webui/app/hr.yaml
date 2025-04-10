@@ -40,7 +40,7 @@ spec:
               GLOBAL_LOG_LEVEL: "DEBUG"
               ENABLE_PERSISTENT_CONFIG: "False" # follow env vars for config without storing and reading from DB
               # Backends
-              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1;https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1"
+              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1"
               ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
               # Airgap
               RAG_EMBEDDING_ENGINE: "openai"
