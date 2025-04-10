@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.9.4
+talosVersion: v1.9.5
 kubernetesVersion: v1.32.0
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
@@ -42,14 +42,15 @@ nodes:
       - &m720q-net
         interface: br0
         mtu: 1500
-        dhcp: false
+        dhcp: true # for other IPs, IPv6 and dynamic DHCP DNS
         bridge:
           interfaces: [bond0]
           stp: {enabled: true}
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
-        routes:
+        routes: &routes
           - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
             metric: 1
+          - network: "${IP_ROUTER_VLAN_K8S_LEGACY_PVE_CIDR}"
           - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
         vip:
@@ -97,12 +98,17 @@ nodes:
               configure system description "Talos Node"
     extraManifests:
       - ./watchdog.yaml
-    # patches:
-    #   - |
-    #     machine:
-    #       sysfs:
-    #         devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
-    #         devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+    patches:
+      - |
+        machine:
+          sysfs:
+            module.i915.parameters.enable_hangcheck: "N"
+            module.i915.parameters.request_timeout_ms: "600000"
+      # - |
+      #   machine:
+      #     sysfs:
+      #       devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
+      #       devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -141,16 +147,12 @@ nodes:
       - &ms01-net
         interface: br0
         mtu: 1500
-        dhcp: false
+        dhcp: true # for other IPs, IPv6 and dynamic DHCP DNS
         bridge:
           interfaces: [bond0]
           stp: {enabled: true}
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}5/28"]
-        routes:
-          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
-            metric: 1
-          - network: "0.0.0.0/0"
-            gateway: "${IP_ROUTER_VLAN_K8S}"
+        routes: *routes
         # vip:
         #   ip: "${IP_CLUSTER_VIP}"
       - &ms01-bond0
@@ -162,10 +164,10 @@ nodes:
           # primary: eno1
           primaryReselect: better
           deviceSelectors:
-            # Onboard Intel 1GbE (eno1)
-            - driver: ige
+            # Onboard Intel i226-{LM|V} 2.5GbE
+            - driver: igc
               physical: true
-            # Mellanox ConnectX (enp1s0)
+            # Intel X710 10Gbe
             - driver: i40e
               physical: true
     machineSpec:
@@ -175,10 +177,10 @@ nodes:
         extraKernelArgs:
           - intel_iommu=on
           - iommu=pt
-          - i915.enable_guc=3 # Intel 12 gen & newer
-          # - i915.max_vfs=7 # Intel 12 gen & newer - SR-IOV for iGPU - not currently in use
           - apparmor=1
           - security=apparmor
+          - i915.enable_hangcheck=0
+          - i915.request_timeout_ms=600000
         systemExtensions:
           officialExtensions:
             - siderolabs/iscsi-tools
@@ -191,7 +193,6 @@ nodes:
             - siderolabs/intel-ice-firmware
             - siderolabs/mei # Intel 12 gen & newer
             - siderolabs/thunderbolt
-            - siderolabs/zfs # fucking around
     extensionServices:
       - &lldpd
         name: lldpd
@@ -221,11 +222,7 @@ nodes:
           interfaces: [bond0]
           stp: {enabled: true}
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}4/28"]
-        routes:
-          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
-            metric: 1
-          - network: "0.0.0.0/0"
-            gateway: "${IP_ROUTER_VLAN_K8S}"
+        routes: *routes
       - interface: bond0
         mtu: 1500
         bond:
