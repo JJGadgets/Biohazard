@@ -94,13 +94,6 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
