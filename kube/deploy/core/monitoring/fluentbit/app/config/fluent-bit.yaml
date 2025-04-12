@@ -1,31 +1,45 @@
 ---
+# yaml-language-server: $schema=https://github.com/JustinGrote/FluentBitJsonSchema/releases/latest/download/fluentbit.schema.json
 pipeline:
   inputs:
     - name: tail # https://docs.fluentbit.io/manual/pipeline/inputs/tail
-      alias: kube
+      alias: kubernetes
       path: /var/log/containers/*.log
       exclude_path: /var/log/*fluent*
       multiline.parser: cri
-      tag: kube.*
+      tag: kubernetes.*
   filters:
     # enrich and process logs with k8s metadata
     - name: kubernetes # https://docs.fluentbit.io/manual/pipeline/filters/kubernetes
-      alias: kube
-      match: kube.*
-      buffer_size: 100MB
-      merge_log: on
-      "k8s-logging.parser": on
-      "k8s-logging.exclude": on
-      use_kubelet: on
-      kubelet_host: "${KUBE_NODE_IP}"
+      alias: kubernetes
+      match: kubernetes.*
+      kube_tag_prefix: kubernetes.var.log.containers.
+      buffer_size: "0"
+      merge_log: "on"
+      "k8s-logging.parser": "on"
+      "k8s-logging.exclude": "on"
+      namespace_labels: "on"
+      # owner_references: "on"
+      # use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
+      # kubelet_host: "$${KUBE_NODE_IP}"
+      # kube_ca_path: "/run/secrets/kubernetes.io/serviceaccount" # both apiserver SA CA and localhost kubelet CA are mounted here
+    #   tls.verify: "off"
+    # - name: stdout
+    #   match: kubernetes.*
     # Lift out the kubernetes labels so we can rename them
     - name: nest
-      match: kube.*
+      match: "*"
+      wildcard: "pod_name"
       operation: lift
       nested_under: kubernetes
-      add_prefix: kube_
+      add_prefix: kubernetes_
     - name: nest
-      match: kube.*
+      match: kubernetes.*
+      operation: lift
+      nested_under: kubernetes
+      add_prefix: kubernetes_
+    - name: nest
+      match: kubernetes.*
       operation: lift
       nested_under: k_labels
       add_prefix: k_labels_
@@ -33,12 +47,17 @@ pipeline:
     # Victoria Logs
     - name: http
       match: '*'
-      host: victoria-logs.monitoring.svc
+      host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
-      uri: '/insert/jsonline?_stream_fields=stream,kube_namespace_name,kube_pod_name,kube_container_name&_msg_field=log&_time_field=date'
+      uri: '/insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date'
       compress: gzip
       format: json_lines
       json_date_format: iso8601
       header:
         - 'AccountID 0'
         - 'ProjectID 0'
+    # # stdout
+    # - name: stdout
+    #   match: '*'
+    #   format: json_lines
+    #   json_date_format: iso8601
