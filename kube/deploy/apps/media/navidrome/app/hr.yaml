@@ -106,9 +106,14 @@ spec:
     service:
       navidrome:
         controller: navidrome
+        type: LoadBalancer # TODO: tmp to test Amperfy song restart bug https://github.com/BLeeEZ/amperfy/issues/305
+        annotations:
+          coredns.io/hostname: "svc-${APP_DNS_NAVIDROME:=${APPNAME}}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_NAVIDROME:=127.0.0.1}"
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
