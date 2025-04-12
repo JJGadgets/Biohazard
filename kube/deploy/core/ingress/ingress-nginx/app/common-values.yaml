@@ -11,6 +11,7 @@ controller:
   extraArgs:
     default-backend-service: "ingress/default-backend"
   config:
+    annotations-risk-level: "Critical"
     enable-brotli: "true"
     enable-real-ip: "true"
     use-forwarded-headers: "true"
