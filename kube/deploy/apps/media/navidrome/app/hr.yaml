@@ -67,10 +67,39 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "1"
-                memory: "512Mi"
+                memory: "150Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+          edit:
+            image: &img
+              repository: ghcr.io/home-operations/beets
+              tag: 2.2.0@sha256:3e7deec6333a51975458966bd70ecedc1156edfda30faaf2a346f3b79fda82fe
+            command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "bash", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
+            env:
+              TZ: "${CONFIG_TZ}"
+              VIRTUAL_ENV: /.venv
+              PATH: "/.venv/bin:$(PATH)"
+            envFrom: &envFrom
+              - secretRef:
+                  name: navidrome-secrets
+            securityContext: &sc
+              runAsUser: 65534
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "0m"
+                memory: "0Mi"
+              limits:
+                cpu: "2"
+                memory: "2Gi"
             probes:
               liveness:
                 enabled: true
@@ -87,27 +116,14 @@ spec:
     ingress:
       main:
         className: nginx-internal
-        annotations: {}
-        hosts:
-          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: navidrome
-                  port: http
-        tls:
-          - hosts: [*host]
-      auth-signin:
-        className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
             https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths: &paths
+            paths:
               - path: /
-                pathType: Exact
+                pathType: Prefix
                 service:
                   identifier: navidrome
                   port: http
@@ -136,22 +152,35 @@ spec:
             path: /data
       media:
         existingClaim: media-data
-        globalMounts:
-          - subPath: Music
-            path: /media/ceph
-            readOnly: true
+        advancedMounts:
+          navidrome:
+            edit:
+              - &mount
+                subPath: Music
+                path: /media/ceph
+            main:
+              - <<: *mount
+                readOnly: true
+      bulk:
+        existingClaim: media-bulk
+        advancedMounts:
+          navidrome:
+            edit:
+              - subPath: music-edit-venv
+                path: /.venv
       nfs:
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
-        globalMounts:
-          - subPath: Music
-            path: /media/nfs
-            readOnly: true
-      tmp:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 128Mi
+        advancedMounts:
+          navidrome:
+            edit:
+              - &mount
+                subPath: Music
+                path: /media/nfs
+            main:
+              - <<: *mount
+                readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
