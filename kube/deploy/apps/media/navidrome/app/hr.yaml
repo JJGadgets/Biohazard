@@ -79,11 +79,9 @@ spec:
             image: &img
               repository: ghcr.io/home-operations/beets
               tag: 2.2.0@sha256:3e7deec6333a51975458966bd70ecedc1156edfda30faaf2a346f3b79fda82fe
-            command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "bash", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
+            command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "sh", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
             env:
               TZ: "${CONFIG_TZ}"
-              VIRTUAL_ENV: /.venv
-              PATH: "/.venv/bin:$(PATH)"
             envFrom: &envFrom
               - secretRef:
                   name: navidrome-secrets
@@ -167,7 +165,7 @@ spec:
           navidrome:
             edit:
               - subPath: music-edit-venv
-                path: /.venv
+                path: /config/.venv
       nfs:
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
