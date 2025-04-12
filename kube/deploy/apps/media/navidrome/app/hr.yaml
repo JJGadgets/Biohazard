@@ -27,6 +27,8 @@ spec:
             ingress.home.arpa/nginx-internal: allow
             prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
+          annotations:
+            fluentbit.io/parser: "logfmt"
         containers:
           main:
             image: &img
