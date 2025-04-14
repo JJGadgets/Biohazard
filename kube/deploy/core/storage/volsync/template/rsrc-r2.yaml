@@ -57,7 +57,7 @@ metadata:
 spec:
   sourcePVC: "${PVC}"
   trigger:
-    manual: "${repository:=manual}:${tag:=1}"
+    manual: "${image:=manual}"
   restic:
     copyMethod: "Snapshot"
     repository: "vs-${PVC}-r2-restic"
