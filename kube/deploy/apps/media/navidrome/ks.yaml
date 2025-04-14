@@ -28,7 +28,9 @@ spec:
       RUID: &uid "6969"
       RGID: *uid
       RFSG: *uid
-      image: ghcr.io/navidrome/navidrome:0.54.5@sha256:2a4deb64be3d42f245947b4330988bb8b48b99271f6afdaf68384ed3c3de9d51
+  images:
+    - name: ghcr.io/navidrome/navidrome
+      newTag: 0.54.5@sha256:2a4deb64be3d42f245947b4330988bb8b48b99271f6afdaf68384ed3c3de9d51
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
