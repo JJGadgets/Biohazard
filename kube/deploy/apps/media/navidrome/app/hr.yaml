@@ -186,6 +186,8 @@ spec:
             main:
               - <<: *mount
                 readOnly: true
+      tmp:
+        type: emptyDir
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
