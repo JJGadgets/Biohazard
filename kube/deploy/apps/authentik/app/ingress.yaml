@@ -1,0 +1,55 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik-proxy-outpost-internal
+  namespace: authentik
+spec:
+  ingressClassName: nginx-internal
+  rules:
+    - http: &paths
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik
+                port:
+                  number: 9000
+      host: "${APP_DNS_NAVIDROME}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik-proxy-outpost-external
+  namespace: authentik
+spec:
+  ingressClassName: nginx-external
+  rules:
+    - http:
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik
+                port:
+                  number: 9000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik-proxy-outpost-public
+  namespace: authentik
+spec:
+  ingressClassName: nginx-public
+  rules:
+    - http:
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik
+                port:
+                  number: 9000
