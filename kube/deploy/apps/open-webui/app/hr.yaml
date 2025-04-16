@@ -1,0 +1,153 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app open-webui
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      open-webui:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+            egress.home.arpa/cloudflare: allow
+            #egress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/open-webui/open-webui
+              # tag: 0.3.30@sha256:15eade1ea1ed2ccef43bb8a6f65b9cbe38db498e6e066272907f6356fa966823
+              tag: git-a27dcc8@sha256:4f3280487e01f14ff0de417bafbb2abe5657d90794c96f456edbc11e5102dd4e # TODO: for persistent config toggle env var
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              # General
+              WEBUI_NAME: "${CLUSTER_NAME}"
+              WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
+              GLOBAL_LOG_LEVEL: "DEBUG"
+              ENABLE_PERSISTENT_CONFIG: "False" # follow env vars for config without storing and reading from DB
+              # Backends
+              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1"
+              ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
+              # Airgap
+              RAG_EMBEDDING_ENGINE: "openai"
+              LITELLM_LOCAL_MODEL_COST_MAP: "True"
+              # Security
+              WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
+              WEBUI_SESSION_COOKIE_SECURE: "True"
+              # Auth
+              ENABLE_LOGIN_FORM: "False"
+              ENABLE_OAUTH_SIGNUP: "True"
+              OAUTH_PROVIDER_NAME: "JJGadgets Auth"
+              OAUTH_USERNAME_CLAIM: "preferred_username"
+              OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
+              ENABLE_OAUTH_ROLE_MANAGEMENT: "True"
+              OAUTH_ROLES_CLAIM: "profile.groups"
+              OAUTH_ADMIN_ROLES: "Role-OpenWebUI-Admin"
+              OAUTH_ALLOWED_ROLES: "Role-OpenWebUI-User"
+            envFrom: &envFrom
+              - secretRef:
+                  name: open-webui-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              #startup:
+              #  enabled: true
+    service:
+      open-webui:
+        controller: open-webui
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_OPEN_WEBUI:=open-webui}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: open-webui
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: open-webui-data
+        globalMounts:
+          - subPath: data
+            path: /app/backend/data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "0.0.0.0"
+          hostnames: ["api.github.com"] # disable version checks
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_OPEN_WEBUI:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/open-webui
+                    operator: DoesNotExist
+    networkpolicies:
+      to-llm:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: mlc-llm

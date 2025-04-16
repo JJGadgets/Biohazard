@@ -45,7 +45,7 @@ spec:
     substitute:
       CLUSTER_NAME: "biohazard"
       # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-manifests
-      FLUXCD_VERSION: "v2.5.0"
+      FLUXCD_VERSION: "v2.5.1"
     substituteFrom:
       - kind: Secret
         name: biohazard-vars
@@ -96,17 +96,17 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
-    - patch: |
-        - op: add
-          path: /spec/dependsOn/-
-          value:
-            name: 1-core-1-networking-cilium-app
-      target:
-        group: kustomize.toolkit.fluxcd.io
-        version: v1
-        kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
+    # - patch: |
+    #     - op: add
+    #       path: /spec/dependsOn/-
+    #       value:
+    #         name: 1-core-1-networking-cilium-app
+    #   target:
+    #     group: kustomize.toolkit.fluxcd.io
+    #     version: v1
+    #     kind: Kustomization
+    #     labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
     - patch: |
         - op: add
           path: /spec/dependsOn/-
@@ -116,7 +116,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -555,7 +555,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     - patch: *dependsOn
       target:
         group: kustomize.toolkit.fluxcd.io

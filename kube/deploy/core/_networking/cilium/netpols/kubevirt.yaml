@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
-kind: CiliumClusterWideNetworkPolicy
+kind: CiliumClusterwideNetworkPolicy
 metadata:
   name: &app kubevirt
 spec:
@@ -19,6 +19,7 @@ spec:
     # kube-apiserver
     - toEntities:
         - kube-apiserver
+    - toEntities:
         - host
       toPorts:
         - ports:
@@ -26,7 +27,7 @@ spec:
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
-kind: CiliumClusterWideNetworkPolicy
+kind: CiliumClusterwideNetworkPolicy
 metadata:
   name: &app kubevirt-operator
 spec:
@@ -44,6 +45,7 @@ spec:
     # kube-apiserver
     - toEntities:
         - kube-apiserver
+    - toEntities:
         - host
       toPorts:
         - ports:

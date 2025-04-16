@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app code-server
@@ -34,7 +34,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/coder/code-server"
-              tag: "4.97.2@sha256:6ff0e9cf5a553b3961ece200be75e21e8c887ed0ae28a7c28213722dccf74b0c"
+              tag: "4.99.2@sha256:6b5fcf74bb19579ca1666c8f96ac406ca5146a5c8756963a10991c4e520fa085"
             command: ["dumb-init", "/bin/bash", "-c"]
             args: ["/home/linuxbrew/.linuxbrew/sbin/sshd -p 2222 || true; /usr/bin/code-server --auth none --disable-telemetry --user-data-dir /home/coder/.vscode --extensions-dir /home/coder/.vscode --bind-addr 0.0.0.0:8080 --port 8080 /home/coder"]
             env:

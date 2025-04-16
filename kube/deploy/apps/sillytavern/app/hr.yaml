@@ -1,60 +1,35 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app open-webui
+  name: &app sillytavern
   namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      open-webui:
+      sillytavern:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            authentik.home.arpa/https: allow
-            #egress.home.arpa/nginx-internal: allow
         containers:
           main:
             image: &img
-              repository: ghcr.io/open-webui/open-webui
-              tag: 0.3.30@sha256:15eade1ea1ed2ccef43bb8a6f65b9cbe38db498e6e066272907f6356fa966823
+              repository: ghcr.io/sillytavern/sillytavern
+              tag: 1.12.13@sha256:eb637c799053574c8053e97bc1ba3596597d8e1c994e9df8a0d85dbb5ed7b7ed
             env: &env
               TZ: "${CONFIG_TZ}"
-              # General
-              WEBUI_NAME: "${CLUSTER_NAME}"
-              WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
-              GLOBAL_LOG_LEVEL: "DEBUG"
-              # Backends
-              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1"
-              OPENAI_API_KEY: "fuck" # key required even if bogus and/or server doesn't give a fuck
-              ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
-              # Airgap
-              RAG_EMBEDDING_ENGINE: "openai"
-              LITELLM_LOCAL_MODEL_COST_MAP: "True"
-              # Security
-              WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
-              WEBUI_SESSION_COOKIE_SECURE: "True"
-              # Auth
-              ENABLE_LOGIN_FORM: "False"
-              ENABLE_OAUTH_SIGNUP: "True"
-              OAUTH_PROVIDER_NAME: "JJGadgets Auth"
-              OAUTH_USERNAME_CLAIM: "preferred_username"
-              OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
-            envFrom: &envFrom
-              - secretRef:
-                  name: open-webui-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -63,60 +38,76 @@ spec:
             resources:
               requests:
                 cpu: "10m"
+                memory: "128Mi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "1Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
     service:
-      open-webui:
-        controller: open-webui
+      sillytavern:
+        controller: sillytavern
         ports:
           http:
-            port: 8080
+            port: 8000
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_OPEN_WEBUI:=open-webui}"
+          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: open-webui
+                  identifier: sillytavern
                   port: http
         tls:
           - hosts: [*host]
     persistence:
       data:
-        existingClaim: open-webui-data
+        existingClaim: sillytavern-data
         globalMounts:
+          - subPath: config
+            path: /home/node/app/config
           - subPath: data
-            path: /app/backend/data
+            path: /home/node/app/data
+          - subPath: plugins
+            path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 64Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
+          - subPath: backups # temporarily not using due to VolSync
+            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-        - ip: "0.0.0.0"
-          hostnames: ["api.github.com"] # disable version checks
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_OPEN_WEBUI:=1000}
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -133,7 +124,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/open-webui
+                  - key: fuckoff.home.arpa/sillytavern
                     operator: DoesNotExist
     networkpolicies:
       to-llm:

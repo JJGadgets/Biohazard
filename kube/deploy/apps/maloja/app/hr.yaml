@@ -1,0 +1,132 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app maloja
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      maloja:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            # egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: docker.io/krateng/maloja
+              tag: 3.2.4@sha256:4ecea26058d2ca5168a8d53820279942d28f0606664cea6425f42371d5d88f95
+            command: ["/venv/bin/python", "-m", "maloja", "run"]
+            env: &env
+              TZ: &tz "${CONFIG_TZ}"
+              MALOJA_LOCATION_TIMEZONE: *tz
+              MALOJA_PORT: &http 8080
+              # MALOJA_DATA_DIRECTORY: &pvc /data
+              MALOJA_DIRECTORY_CONFIG: &config /data/config
+              MALOJA_DIRECTORY_STATE: &state /data/state
+              MALOJA_DIRECTORY_CACHE: &cache /misc/cache
+              MALOJA_DIRECTORY_LOGS: &logs /misc/logs # why do you need this when logs is disabled lol
+              MALOJA_LOGGING: "false" # only for file logging
+            envFrom: &envFrom
+              - secretRef:
+                  name: maloja-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                cpu: "1"
+                memory: 512Mi
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      maloja:
+        controller: maloja
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_MALOJA:=maloja}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: maloja
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: maloja-data
+        globalMounts:
+          - subPath: data
+            path: /data
+      misc:
+        existingClaim: maloja-misc
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/maloja
+                    operator: DoesNotExist
+    networkpolicies:
+      navidrome:
+        controller: maloja
+        policyTypes: [Ingress]
+        rules:
+          ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: navidrome
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: media

@@ -3,8 +3,8 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: &name open-webui-secrets
-  namespace: open-webui
+  name: &name rimgo-secrets
+  namespace: rimgo
 spec:
   refreshInterval: 1m
   secretStoreRef:
@@ -12,7 +12,7 @@ spec:
     name: 1p
   dataFrom:
     - extract:
-        key: "Open WebUI - ${CLUSTER_NAME}"
+        key: "Rimgo - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain

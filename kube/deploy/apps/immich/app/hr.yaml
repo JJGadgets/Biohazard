@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app immich
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -38,16 +38,19 @@ spec:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v1.126.1@sha256:f8a3c78ec0a0ace20517acedaab9c2f3edcfc9b96e03080ba401acf55792470e
+              tag: v1.131.3@sha256:7e5b6729b12b5e5cc5d98bcc6f7c27f723fabae4ee77696855808ebd5200bbf8
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
             env: &env
               TZ: "${CONFIG_TZ}"
               LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libmimalloc.so.2
               NODE_ENV: production
               LOG_LEVEL: verbose
+              IMMICH_TRUSTED_PROXIES: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               IMMICH_WORKERS_INCLUDE: "api"
               IMMICH_MEDIA_LOCATION: &pvc /data
-              IMMICH_METRICS: "true"
+              IMMICH_TELEMETRY_INCLUDE: "all"
+              IMMICH_API_METRICS_PORT: &metrics-api 8081
+              IMMICH_MICROSERVICES_METRICS_PORT: &metrics-ms 8081
               IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local:3001
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
@@ -63,6 +66,9 @@ spec:
                   secretKeyRef:
                     name: pg-home-pguser-immich-fixed
                     key: pgbouncer-uri-sslmode
+              CPU_CORES:
+                resourceFieldRef:
+                  resource: limits.cpu
             envFrom: &ef
               - secretRef:
                   name: immich-secrets
@@ -78,7 +84,11 @@ spec:
               limits:
                 cpu: "1"
                 memory: "2Gi"
-                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       microservices:
         type: deployment
         replicas: 3
@@ -117,6 +127,12 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "2Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       ml:
         type: deployment
         replicas: 3
@@ -126,6 +142,9 @@ spec:
         pod:
           labels:
             db.home.arpa/pg: pg-home
+          securityContext:
+            <<: *podsc
+            supplementalGroups: [44, 104, 109, 128, 226] # GPU
           topologySpreadConstraints:
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
@@ -139,16 +158,26 @@ spec:
           main:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.126.1@sha256:0989db1266d91e553375289571b989d49e10690d466802fcf23326f16b747d4c
-            env: *env
+              tag: v1.131.2-openvino@sha256:d27938d3eeab1a17cb99a17e2b0e8e23f52d9f244e35eea84a81760813bbf05b
+            env:
+              <<: *env
+              MACHINE_LEARNING_REQUEST_THREADS:
+                resourceFieldRef:
+                  resource: limits.cpu
             securityContext: *sc
             resources:
               requests:
                 cpu: "10m"
                 memory: "1Gi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "6Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       ml-model-pull-clip: &ml-model-pull
         type: cronjob
         cronjob:
@@ -161,7 +190,7 @@ spec:
           main: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.126.1@sha256:0989db1266d91e553375289571b989d49e10690d466802fcf23326f16b747d4c
+              tag: v1.131.2@sha256:29836cf73146057ac388546021fff3e00c923e22a28587cceb5108a5e537987d
             command: ["huggingface-cli", "download", "--exclude", ".git", "--local-dir"] # Immich ML image installs huggingface-cli
             args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
@@ -191,7 +220,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.2@sha256:93a8d83b707d0d6a1b9186edecca2e37f83722ae0e398aee4eea0ff17c2fad0e"
+              tag: "7.4.2@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9"
             command: ["redis-server", "--save", "300 1", "--appendonly", "yes"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
@@ -201,19 +230,26 @@ spec:
               limits:
                 cpu: "1000m"
                 memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
       immich:
         controller: immich
+        primary: true
         ports:
           http:
             port: 2283
+            primary: true
           metrics:
-            port: 8081
+            port: *metrics-api
       microservices:
         controller: microservices
         ports:
           metrics:
-            port: 8081
+            port: *metrics-ms
       ml:
         controller: ml
         ports:

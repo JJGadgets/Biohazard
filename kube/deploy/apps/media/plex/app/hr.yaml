@@ -1,0 +1,162 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app plex
+  namespace: media
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      plex:
+        type: deployment
+        replicas: 1
+        pod:
+          hostname: "${CLUSTER_NAME:=biohazard}-plex-server"
+          labels:
+            ingress.home.arpa/jjgadgets: allow
+            ingress.home.arpa/appletv: allow
+            ingress.home.arpa/nginx-external: allow
+            egress.home.arpa/internet: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/home-operations/plex
+              tag: 1.41.6.9685@sha256:37d36646471fb905a0080daaaa1f09ad3370b06149ed5f94dad73ead591cad0e
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443,http://${APP_IP_PLEX}:32400"
+              # PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
+              # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "2Gi"
+              limits:
+                cpu: "1"
+                memory: "10Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /identity
+                    port: &port 32400
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+    service:
+      plex:
+        controller: plex
+        type: LoadBalancer
+        annotations:
+          "io.cilium/lb-ipam-ips": "${APP_IP_PLEX:=127.0.0.1}"
+        ports:
+          http:
+            port: *port
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        hosts:
+          - host: &host "${APP_DNS_PLEX:=plex}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: plex
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: plex-data
+        globalMounts:
+          - subPath: data
+            path: /config
+      misc:
+        existingClaim: plex-misc
+        globalMounts:
+          - subPath: cache
+            path: /config/Library/Application Support/Plex Media Server/Cache
+          - subPath: transcode
+            path: transcode
+      nfs:
+        type: nfs
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
+        globalMounts:
+          - path: /nfs
+            readOnly: true
+      media:
+        existingClaim: "media-data" # VolSync
+        globalMounts:
+          - path: "/ceph"
+            readOnly: true
+      bulk:
+        existingClaim: "media-bulk"
+        globalMounts:
+          - path: "/ceph-bulk"
+            readOnly: true
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: logs
+            path: /config/Library/Application Support/Plex Media Server/Logs
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 6969
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        supplementalGroups: [44] # iGPU
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/plex
+                    operator: DoesNotExist
