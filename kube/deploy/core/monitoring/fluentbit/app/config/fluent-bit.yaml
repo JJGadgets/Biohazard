@@ -19,6 +19,8 @@ pipeline:
       "k8s-logging.parser": "on"
       "k8s-logging.exclude": "on"
       namespace_labels: "on"
+      annotations: "off" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
+      namespace_annotations: "off"
       # owner_references: "on"
       # use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
       # kubelet_host: "$${KUBE_NODE_IP}"
