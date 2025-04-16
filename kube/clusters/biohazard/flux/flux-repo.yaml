@@ -96,7 +96,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     # - patch: |
     #     - op: add
     #       path: /spec/dependsOn/-
@@ -116,7 +116,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -555,7 +555,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false)
+        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     - patch: *dependsOn
       target:
         group: kustomize.toolkit.fluxcd.io

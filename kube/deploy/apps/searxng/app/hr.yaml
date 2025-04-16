@@ -28,16 +28,17 @@ spec:
           main:
             image: &img
               repository: "docker.io/searxng/searxng"
-              tag: "latest@sha256:719399985d63294b08980ec23eb8bc2ab8d9ade3d101456abf18420fdd765f7d"
-            command: ["uwsgi", "--master", "--http-socket", "0.0.0.0:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
+              tag: "latest@sha256:325a5d1ba89548846e93f6d2b4378c1d30ed15e1ba19d7d3515f90a49156b968"
+            command: ["uwsgi", "--master", "--http-socket", "[::]:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
-              UWSGI_WORKERS: &cpu
+              UWSGI_THREADS: &cpu
                 valueFrom:
                   resourceFieldRef:
                     containerName: main
                     resource: limits.cpu # not defined, so will use node allocatable
-              UWSGI_THREADS: *cpu
+              # UWSGI_WORKERS: *cpu
+              UWSGI_WORKERS: "1"
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -55,7 +56,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.2-bookworm@sha256:6aafb7f25fc93c4ff74e99cff8e85899f03901bc96e61ba12cd3c39e95503c73"
+              tag: "7.4.2-bookworm@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:

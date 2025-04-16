@@ -1,35 +1,43 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app sillytavern
+  name: &app rimgo
   namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      sillytavern:
+      rimgo:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/mullvad: allow
         containers:
           main:
             image: &img
-              repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.12.8@sha256:2842e8317fe0d4cb6cd4034d52110904c2a30d88840c3879e8576e059a56e942
+              repository: codeberg.org/rimgo/rimgo
+              tag: 1.3.0@sha256:1b279dafa95fd22c908f187049f97391787f67366ee5c47a0e9ce38fdfe97356
             env: &env
               TZ: "${CONFIG_TZ}"
+              PORT: &http 3000
+              SECURE: true
+              HTTP_PROXY: socks5://10.64.0.1:1080
+              HTTPS_PROXY: socks5://10.64.0.1:1080
+            envFrom: &envFrom
+              - secretRef:
+                  name: rimgo-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -38,56 +46,36 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
     service:
-      sillytavern:
-        controller: sillytavern
+      rimgo:
+        controller: rimgo
         ports:
           http:
-            port: 8000
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
+          - host: &host "${APP_DNS_RIMGO:=rimgo}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: sillytavern
+                  identifier: rimgo
                   port: http
         tls:
           - hosts: [*host]
-    persistence:
-      data:
-        existingClaim: sillytavern-data
-        globalMounts:
-          - subPath: config
-            path: /home/node/app/config
-          - subPath: data
-            path: /home/node/app/data
-          - subPath: plugins
-            path: /home/node/app/plugins
-      tmp:
-        type: emptyDir
-        medium: Memory
-        globalMounts:
-          - subPath: tmp
-            path: /tmp
-          - subPath: backups # temporarily not using due to VolSync
-            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -98,34 +86,18 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_SILLYTAVERN:=1000}
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/sillytavern
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
-    networkpolicies:
-      to-llm:
-        podSelector: {}
-        policyTypes: [Ingress, Egress]
-        rules:
-          egress:
-            - to:
-                - namespaceSelector:
-                    matchLabels:
-                      kubernetes.io/metadata.name: mlc-llm
