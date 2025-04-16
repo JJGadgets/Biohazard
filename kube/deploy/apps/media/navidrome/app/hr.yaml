@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -33,7 +33,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/navidrome/navidrome
-              tag: 0.54.5@sha256:2a4deb64be3d42f245947b4330988bb8b48b99271f6afdaf68384ed3c3de9d51
+              tag: 0.55.2@sha256:3a66e262b7ea836faa06c08ad5b32076c49e9e63e2fa4de10080c8e9be9f0846
             env:
               TZ: "${CONFIG_TZ}"
               ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
@@ -71,7 +71,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "150Mi"
+                memory: "200Mi"
             probes:
               liveness:
                 enabled: true
@@ -186,6 +186,8 @@ spec:
             main:
               - <<: *mount
                 readOnly: true
+      tmp:
+        type: emptyDir
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
