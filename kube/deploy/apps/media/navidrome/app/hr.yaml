@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -186,6 +186,8 @@ spec:
             main:
               - <<: *mount
                 readOnly: true
+      tmp:
+        type: emptyDir
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
