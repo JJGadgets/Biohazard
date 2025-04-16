@@ -36,18 +36,17 @@ spec:
         ingressClassName: nginx-internal
         pathType: Prefix
         hosts:
-          - name: &host "${APP_DNS_VICTORIA_LOGS}"
+          - name: &host "${APP_DNS_VICTORIA_LOGS:=127.0.0.1}"
             path: /
             port: http
         tls:
           - hosts: [*host]
       resources: # TODO: tune
         requests:
-          cpu: 10m
-          memory: 512Mi
+          cpu: 50m
         limits:
-          cpu: 3000m
-          memory: 4Gi
+          cpu: "1"
+          memory: 2560Mi
       securityContext:
         enabled: true
         allowPrivilegeEscalation: false
@@ -69,8 +68,8 @@ spec:
     fluent-bit:
       enabled: false # TODO: explore this
     extraObjects: []
-    global:
-      nameOverride: *app
-      victoriaLogs:
-        server:
-          fullnameOverride: *app
+    # global:
+    #   nameOverride: *app
+    #   victoriaLogs:
+    #     server:
+    #       fullnameOverride: *app

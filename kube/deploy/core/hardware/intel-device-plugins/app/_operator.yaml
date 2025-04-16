@@ -10,14 +10,14 @@ spec:
   chart:
     spec:
       chart: intel-device-plugins-operator
-      version: 0.29.0
+      version: 0.32.0
       sourceRef:
         kind: HelmRepository
         name: intel
         namespace: flux-system
   values:
-    controllerExtraArgs: |
-      - --devices=gpu
+    # controllerExtraArgs: |
+    #   - --devices=gpu,sgx,fpga
   # postRenderers:
   #   - kustomize:
   #       patches:

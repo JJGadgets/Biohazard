@@ -56,6 +56,7 @@ env:
   RENOVATE_INHERIT_CONFIG: true
   RENOVATE_INHERIT_CONFIG_REPO_NAME: "${{ github.repository }}"
   RENOVATE_INHERIT_CONFIG_FILE_NAME: ".renovaterc.json5"
+  RENOVATE_FORK_PROCESSING: "enabled"
   # run on all repos without needing config
   RENOVATE_ONBOARDING: false
   RENOVATE_REQUIRE_CONFIG: "optional"
@@ -75,7 +76,7 @@ jobs:
       packages: read # for private GHCR packages
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
@@ -89,7 +90,7 @@ jobs:
 
       - name: Renovate Cache
         id: renovate-cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         if: github.event.inputs.cache != 'disabled'
         continue-on-error: true
         with:

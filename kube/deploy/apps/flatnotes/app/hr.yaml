@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: docker.io/dullage/flatnotes
-              tag: v5.4.1@sha256:cc0f97f2f643ef8d52c1bf0dc684559b325e667bae42c54b3fd4cb65b12bea13
+              tag: v5.5.1@sha256:ddc3aeac47869002b546a500fab2f9e1f43720eb011392b65cf03277f764a661
             env: &env
               TZ: "${CONFIG_TZ}"
               FLATNOTES_PORT: &http 8080
