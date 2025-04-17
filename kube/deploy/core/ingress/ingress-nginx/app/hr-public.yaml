@@ -7,10 +7,11 @@ metadata:
   name: &zone nginx-public
   namespace: ingress
 spec:
+  interval: 5m
   chart:
     spec:
       chart: ingress-nginx
-      version: 4.11.5
+      version: 4.12.1
       sourceRef:
         name: ingress-nginx
         kind: HelmRepository
@@ -25,9 +26,9 @@ spec:
       service:
         enabled: true
         type: "LoadBalancer"
-        externalTrafficPolicy: "Cluster"
+        externalTrafficPolicy: "Local" # Cilium BGP >=1.16 supports un-advertising nodes when nginx not scheduled on it
         annotations:
-          "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_PUBLIC}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_PUBLIC:=127.0.0.1}"
           tailscale.com/expose: "true"
       extraArgs:
         default-ssl-certificate: "ingress/long-domain-tls"
