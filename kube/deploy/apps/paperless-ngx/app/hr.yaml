@@ -29,7 +29,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/paperless-ngx/paperless-ngx"
-              tag: "2.15.1@sha256:a06d051e0c422e83498a36676d504d94de262686f167cccc826a71170ddef00a"
+              tag: "2.15.2@sha256:80d1a7fe4f638cb00c1dcf5ff4ce2c15d92f13a6287db1e1b94f58c35a689e47"
             args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
@@ -133,7 +133,7 @@ spec:
           main:
             image:
               repository: "docker.io/gotenberg/gotenberg"
-              tag: "8.19.1@sha256:a55777dad95294ba2c1bfd1760c9eea4e573755589cf192d0ec6107ae08fc7e3"
+              tag: "8.20.1@sha256:cda4386c7ed38f18bc6897828be01ba7361c99929a5c84ec5e293d7916e29bac"
             command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
             securityContext: *sc
             resources: # TODO: adjust (Go app)

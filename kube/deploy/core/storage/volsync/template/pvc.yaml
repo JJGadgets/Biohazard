@@ -6,10 +6,9 @@ metadata:
   labels:
     snapshot.home.arpa/enabled: "true"
     kustomize.toolkit.fluxcd.io/prune: "Disabled"
-    kustomize.toolkit.fluxcd.io/ssa: "Merge" # in case manual migrations with dataSourceRef was done or other immutable fields involved
 spec:
-  storageClassName: "${SC:=block}"
-  accessModes: ["${ACCESSMODE:=ReadWriteOnce}"]
+  storageClassName: "${SC:=file}"
+  accessModes: ["${ACCESSMODE:=ReadWriteMany}"]
   volumeMode: "${VOLUMEMODE:=Filesystem}"
   resources:
     requests:
