@@ -32,5 +32,6 @@ jobs:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
+          sleep 30
           gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
              --field expected_head_sha=${{ github.event.pull_request.head.sha }}
