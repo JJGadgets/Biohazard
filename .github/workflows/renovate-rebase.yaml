@@ -63,7 +63,7 @@ jobs:
           export TODAY=$( date -u '+%Y-%m-%d_%H-%M-%S' )
           export MESSAGE="chore: update ${{ github.event.pull_request.head.ref }} $TODAY"
           echo "Branch to update: $DESTINATION_BRANCH"
-          for FILE_TO_COMMIT in $(git diff ${{ github.event.pull_request.head.sha }} HEAD --name-only);
+          for FILE_TO_COMMIT in $(git diff ${{ github.event.pull_request.head.sha }} HEAD --name-only || git diff --name-only);
           do
             export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
             export CONTENT=$( base64 -i $FILE_TO_COMMIT )
