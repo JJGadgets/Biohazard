@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: quay.io/redlib/redlib
-              tag: latest@sha256:9e69039ca432ce500688f031957ab37acea0a55127a7d7aff16193b18e7944a7 # for JSON HTTP2 fix
+              tag: latest@sha256:8c6c56472380188edc8dcd15b1a8e6741281635446b95c6ef1222f9940a96d93 # for JSON HTTP2 fix
             env: &env
               TZ: "${CONFIG_TZ}"
               REDLIB_SFW_ONLY: "off"
