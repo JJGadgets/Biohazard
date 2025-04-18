@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -24,21 +24,23 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             authentik.home.arpa/https: allow
+            egress.home.arpa/cloudflare: allow
             #egress.home.arpa/nginx-internal: allow
         containers:
           main:
             image: &img
               repository: ghcr.io/open-webui/open-webui
-              tag: 0.3.30@sha256:15eade1ea1ed2ccef43bb8a6f65b9cbe38db498e6e066272907f6356fa966823
+              # tag: 0.3.30@sha256:15eade1ea1ed2ccef43bb8a6f65b9cbe38db498e6e066272907f6356fa966823
+              tag: git-a27dcc8@sha256:4f3280487e01f14ff0de417bafbb2abe5657d90794c96f456edbc11e5102dd4e # TODO: for persistent config toggle env var
             env: &env
               TZ: "${CONFIG_TZ}"
               # General
               WEBUI_NAME: "${CLUSTER_NAME}"
               WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
               GLOBAL_LOG_LEVEL: "DEBUG"
+              ENABLE_PERSISTENT_CONFIG: "False" # follow env vars for config without storing and reading from DB
               # Backends
-              OPENAI_API_BASE_URLS: "http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1,http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1"
-              OPENAI_API_KEY: "fuck" # key required even if bogus and/or server doesn't give a fuck
+              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1"
               ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
               # Airgap
               RAG_EMBEDDING_ENGINE: "openai"
@@ -52,6 +54,10 @@ spec:
               OAUTH_PROVIDER_NAME: "JJGadgets Auth"
               OAUTH_USERNAME_CLAIM: "preferred_username"
               OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
+              ENABLE_OAUTH_ROLE_MANAGEMENT: "True"
+              OAUTH_ROLES_CLAIM: "profile.groups"
+              OAUTH_ADMIN_ROLES: "Role-OpenWebUI-Admin"
+              OAUTH_ALLOWED_ROLES: "Role-OpenWebUI-User"
             envFrom: &envFrom
               - secretRef:
                   name: open-webui-secrets
@@ -64,7 +70,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "1Gi"
             probes:
               liveness:

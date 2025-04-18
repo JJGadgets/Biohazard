@@ -1,9 +1,9 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app flatnotes
+  name: &app sillytavern
   namespace: *app
 spec:
   interval: 5m
@@ -17,79 +17,89 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      flatnotes:
+      sillytavern:
         type: deployment
         replicas: 1
-        strategy: RollingUpdate
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
           main:
             image: &img
-              repository: docker.io/dullage/flatnotes
-              tag: v5.5.1@sha256:ddc3aeac47869002b546a500fab2f9e1f43720eb011392b65cf03277f764a661
+              repository: ghcr.io/sillytavern/sillytavern
+              tag: 1.12.13@sha256:eb637c799053574c8053e97bc1ba3596597d8e1c994e9df8a0d85dbb5ed7b7ed
             env: &env
               TZ: "${CONFIG_TZ}"
-              FLATNOTES_PORT: &http 8080
-              FLATNOTES_PATH: &pvc /data
-              FLATNOTES_AUTH_TYPE: totp
-            envFrom: &envFrom
-              - secretRef:
-                  name: flatnotes-secrets
             securityContext: &sc
-              # readOnlyRootFilesystem: true # init changes href in index.html
+              readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
             resources:
               requests:
                 cpu: "10m"
+                memory: "128Mi"
               limits:
                 cpu: "1"
-                memory: "512Mi"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
     service:
-      flatnotes:
-        controller: flatnotes
+      sillytavern:
+        controller: sillytavern
         ports:
           http:
-            port: *http
+            port: 8000
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
         hosts:
-          - host: &host "${APP_DNS_FLATNOTES:=flatnotes}"
+          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: flatnotes
+                  identifier: sillytavern
                   port: http
         tls:
           - hosts: [*host]
     persistence:
       data:
-        existingClaim: flatnotes-data
+        existingClaim: sillytavern-data
         globalMounts:
+          - subPath: config
+            path: /home/node/app/config
           - subPath: data
-            path: *pvc
-      index:
-        existingClaim: flatnotes-misc
+            path: /home/node/app/data
+          - subPath: plugins
+            path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
         globalMounts:
-          - subPath: index
-            path: /data/.flatnotes
+          - subPath: tmp
+            path: /tmp
+          - subPath: backups # temporarily not using due to VolSync
+            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
@@ -114,5 +124,15 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/flatnotes
+                  - key: fuckoff.home.arpa/sillytavern
                     operator: DoesNotExist
+    networkpolicies:
+      to-llm:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: mlc-llm
