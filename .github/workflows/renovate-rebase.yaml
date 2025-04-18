@@ -50,7 +50,7 @@ jobs:
           git config user.email "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
           # echo "CURRENT_PR_SHA=$(git rev-parse --verify HEAD)" >> "${GITHUB_ENV}"
           git remote add upstream ${{ github.event.pull_request.base.repo.url }}
-          git pull --no-edit ${{ github.event.pull_request.head.ref }} upstream/${{ github.event.pull_request.base.ref }}
+          git pull --no-edit upstream ${{ github.event.pull_request.base.ref }}
 
       - name: Commit Changes
         env:
