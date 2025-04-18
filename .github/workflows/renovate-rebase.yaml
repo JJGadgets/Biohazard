@@ -60,7 +60,7 @@ jobs:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
           DESTINATION_BRANCH: "${{ github.event.pull_request.head.ref }}"
         run: |
-          shopt -s nullglob
+          # shopt -s nullglob
           export TODAY=$( date -u '+%Y-%m-%d_%H-%M-%S' )
           export MESSAGE="chore: update ${{ github.event.pull_request.head.ref }} $TODAY"
           echo "Branch to update: $DESTINATION_BRANCH"
