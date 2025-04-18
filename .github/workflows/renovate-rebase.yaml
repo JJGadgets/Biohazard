@@ -4,11 +4,64 @@
 name: "Renovate (Manual Rebase Re-run)"
 
 on:
+  pull_request:
+    types: [auto_merge_enabled]
+    branches: ["renovate/**"]
 #  push:
 #    branches: ["renovate/**"]
 
 jobs:
   renovate:
     name: Renovate
-    uses: ./.github/workflows/renovate.yaml
+    uses: JJGadgets/Biohazard/.github/workflows/renovate.yaml@main
     secrets: inherit
+  rebase:
+    name: Rebase
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+          owner: "${{ github.repository_owner }}"
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+          repository: "${{ github.event.pull_request.head.repo.full_name }}"
+          ref: "${{ github.event.pull_request.head.ref }}"
+          fetch-depth: 0
+
+      - run: |
+          git
+      - name: Git setup
+        shell: bash
+        run: |
+          git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
+          git config user.email "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
+          # echo "CURRENT_PR_SHA=$(git rev-parse --verify HEAD)" >> "${GITHUB_ENV}"
+          git remote add upstream ${{ github.event.pull_request.base.repo.url }}
+          git pull --no-edit ${{ github.event.pull_request.head.ref }} upstream/${{ github.event.pull_request.base.ref }}
+
+      - name: Commit Changes
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+          DESTINATION_BRANCH: "${{ github.event.pull_request.head.ref }}"
+        run: |
+          export TODAY=$( date -u '+%Y-%m-%d_%H-%M-%S' )
+          export MESSAGE="chore: update ${{ github.event.pull_request.head.ref }} $TODAY"
+          for FILE_TO_COMMIT in $(git diff ${{ github.event.pull_request.head.sha }} HEAD --name-only);
+          do
+            export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
+            export CONTENT=$( base64 -i $FILE_TO_COMMIT )
+            gh api --method PUT /repos/${{ github.event.pull_request.head.repo.full_name }}/contents/$FILE_TO_COMMIT \
+              --field message="$MESSAGE" \
+              --field content="$CONTENT" \
+              --field encoding="base64" \
+              --field branch="$DESTINATION_BRANCH" \
+              --field sha="$SHA" \
+              || echo "No changes to push"
+          done
