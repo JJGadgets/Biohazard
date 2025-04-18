@@ -33,14 +33,42 @@ jobs:
         shell: bash
         run: |
           getOtherRuns () {
-            return $(( $(gh run list --workflow=renovate-rebase.yaml --status in_progress --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status queued --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status waiting --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status requested --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status pending --json name | jq length) ))
+            echo "\
+              $(gh run list --workflow=renovate-rebase.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=renovate-rebase.yaml --status queued --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=renovate-rebase.yaml --status waiting --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=renovate-rebase.yaml --status requested --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=renovate-rebase.yaml --status pending --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=kube-flux-diff.yaml --status queued --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=kube-flux-diff.yaml --status requested --json headBranch --jq '.[].headBranch')\
+              $(gh run list --workflow=kube-flux-diff.yaml --status pending --json headBranch --jq '.[].headBranch')\
+              " | grep "\S"
           }
-          for getOtherRuns in 1; do
-            sleep 2
-            if [[ ( getOtherRuns == 1 ) ]]; then
-              gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
-                 --field expected_head_sha=${{ github.event.pull_request.head.sha }}
-              break
+          getOtherRunsCount () {
+            echo -n "$(getOtherRuns | wc -l)"
+          }
+          getOtherRuns
+          getOtherRunsCount
+          while true; do
+            runsCount="$(getOtherRunsCount)"
+            getOtherRuns
+            echo "run 1 $runsCount"
+            if [[ "${runsCount}" == "1" ]]; then # 1 run because current
+              sleep 2
+              runsCount2="$(getOtherRunsCount)"
+              getOtherRuns
+              echo "run 2 $runsCount2"
+              if [[ "${runsCount2}" == "1" ]]; then
+                echo "run"
+                gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
+                break
+              else
+                echo "not yet at $(date -I), pass 1"
+              fi
+            else
+              echo "not yet at $(date -I), all fail"
             fi
             sleep 1
           done
