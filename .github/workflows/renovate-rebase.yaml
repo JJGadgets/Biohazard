@@ -34,16 +34,16 @@ jobs:
         run: |
           getOtherRuns () {
             echo "\
-              $(gh run list --workflow=renovate-rebase.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=renovate-rebase.yaml --status queued --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=renovate-rebase.yaml --status waiting --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=renovate-rebase.yaml --status requested --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=renovate-rebase.yaml --status pending --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=kube-flux-diff.yaml --status queued --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=kube-flux-diff.yaml --status requested --json headBranch --jq '.[].headBranch')\
-              $(gh run list --workflow=kube-flux-diff.yaml --status pending --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status queued --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status waiting --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status requested --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status pending --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status queued --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status requested --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status pending --json headBranch --jq '.[].headBranch')\
               " | grep "\S"
           }
           getOtherRunsCount () {
