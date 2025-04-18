@@ -4,6 +4,7 @@
 name: "Renovate Rebase For Automerge"
 
 on:
+  workflow_dispatch:
   pull_request:
     types: ["auto_merge_enabled"]
     branches: ["renovate/**"]
