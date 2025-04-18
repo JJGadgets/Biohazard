@@ -36,6 +36,8 @@ jobs:
           owner: "${{ github.repository_owner }}"
 
       - name: Update branch
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
           gh api --method PUT /repos/OWNER/REPO/pulls/PULL_NUMBER/update-branch \
