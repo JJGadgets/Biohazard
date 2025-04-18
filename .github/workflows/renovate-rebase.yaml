@@ -16,15 +16,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  renovate-rebase:
-    name: Renovate
-    if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
-    uses: JJGadgets/Biohazard/.github/workflows/renovate.yaml@main
-    secrets: inherit
+  # renovate-rebase:
+  #   name: Renovate
+  #   if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
+  #   uses: JJGadgets/Biohazard/.github/workflows/renovate.yaml@main
+  #   secrets: inherit
   rebase-after:
     name: Rebase
     runs-on: ubuntu-latest
-    needs: renovate-rebase
+    # needs: renovate-rebase
     if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
