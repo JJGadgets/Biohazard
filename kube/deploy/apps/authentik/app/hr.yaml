@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -320,59 +320,59 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-      renovate-test:
-        enabled: false
-        type: deployment
-        replicas: 0
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "90%"
-        containers:
-          main:
-            image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2024.12.5@sha256:717323d68507fb76dd79f8958f42ce57f8ae0c10a55a7807efa1cfec5752b77c
-            args: [server]
-            env: &env
-              TZ: "${CONFIG_TZ}"
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "0"
-                memory: "0"
-              limits:
-                cpu: "1000m"
-                memory: "2Gi"
-          anubis:
-            image:
-              repository: ghcr.io/xe/x/anubis
-              tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
-            env:
-              TZ: "${CONFIG_TZ}"
-              BIND: ":8923"
-              DIFFICULTY: "5"
-              SERVE_ROBOTS_TXT: "true"
-              TARGET: "http://127.0.0.1:9000"
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "5m"
-                memory: "32Mi"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
-            ports:
-              - name: anubis
-                containerPort: &anubis 8923
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+      # renovate-test:
+      #   enabled: false
+      #   type: deployment
+      #   replicas: 0
+      #   strategy: RollingUpdate
+      #   rollingUpdate:
+      #     unavailable: "90%"
+      #   containers:
+      #     main:
+      #       image: &img
+      #         repository: ghcr.io/goauthentik/server
+      #         tag: 2024.12.5@sha256:717323d68507fb76dd79f8958f42ce57f8ae0c10a55a7807efa1cfec5752b77c
+      #       args: [server]
+      #       env: &env
+      #         TZ: "${CONFIG_TZ}"
+      #       securityContext: &sc
+      #         readOnlyRootFilesystem: true
+      #         allowPrivilegeEscalation: false
+      #         capabilities:
+      #           drop: ["ALL"]
+      #       resources:
+      #         requests:
+      #           cpu: "0"
+      #           memory: "0"
+      #         limits:
+      #           cpu: "1000m"
+      #           memory: "2Gi"
+      #     anubis:
+      #       image:
+      #         repository: ghcr.io/xe/x/anubis
+      #         tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
+      #       env:
+      #         TZ: "${CONFIG_TZ}"
+      #         BIND: ":8923"
+      #         DIFFICULTY: "5"
+      #         SERVE_ROBOTS_TXT: "true"
+      #         TARGET: "http://127.0.0.1:9000"
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "5m"
+      #           memory: "32Mi"
+      #         limits:
+      #           cpu: "1"
+      #           memory: "128Mi"
+      #       ports:
+      #         - name: anubis
+      #           containerPort: &anubis 8923
+      #       probes:
+      #         liveness:
+      #           enabled: true
+      #         readiness:
+      #           enabled: true
     service:
       authentik:
         controller: authentik
