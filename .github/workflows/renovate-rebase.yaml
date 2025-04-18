@@ -9,9 +9,9 @@ on:
     types: ["auto_merge_enabled"]
     branches: ["main"]
 
-concurrency:
-  group: "renovate-rebase-automerge"
-  cancel-in-progress: false
+# concurrency:
+#   group: "renovate-rebase-automerge"
+#   cancel-in-progress: false
 
 jobs:
   rebase-after:
@@ -32,6 +32,14 @@ jobs:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
-          sleep 30
-          gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
-             --field expected_head_sha=${{ github.event.pull_request.head.sha }}
+          getOtherRuns () {
+            return $(( $(gh run list --workflow=renovate-rebase.yaml --status in_progress --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status queued --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status waiting --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status requested --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status pending --json name | jq length) ))
+          }
+          for getOtherRuns in 0; do
+            sleep 2
+            if [[ ( getOtherRuns == 0 ) ]]; then
+              gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
+                 --field expected_head_sha=${{ github.event.pull_request.head.sha }}
+              break
+            fi
+          done
