@@ -1,0 +1,138 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app sillytavern
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      sillytavern:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/sillytavern/sillytavern
+              tag: 1.12.13@sha256:eb637c799053574c8053e97bc1ba3596597d8e1c994e9df8a0d85dbb5ed7b7ed
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
+    service:
+      sillytavern:
+        controller: sillytavern
+        ports:
+          http:
+            port: 8000
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: sillytavern
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: sillytavern-data
+        globalMounts:
+          - subPath: config
+            path: /home/node/app/config
+          - subPath: data
+            path: /home/node/app/data
+          - subPath: plugins
+            path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: backups # temporarily not using due to VolSync
+            path: /home/node/app/backups
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/sillytavern
+                    operator: DoesNotExist
+    networkpolicies:
+      to-llm:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: mlc-llm

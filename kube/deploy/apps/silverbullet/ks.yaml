@@ -1,0 +1,31 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: silverbullet-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "silverbullet"
+    kustomization.flux.home.arpa/default: no-deps
+spec:
+  targetNamespace: "silverbullet"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/silverbullet/app
+  components:
+    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: "silverbullet-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid

@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -29,12 +29,13 @@ spec:
             image: &img
               repository: jank.ing/jjgadgets/mlc-llm
               tag: 0.19.0@sha256:acbe4da65245cdc424eb16de4dd09b6c77fc1dc48f871f04faca4c0365341420
-            args: ["HF://mlc-ai/$(MODEL)"]
+            args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=$(CONTEXT_SIZE)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
               MLC_JIT_POLICY: "ON"
               MLC_DOWNLOAD_CACHE_POLICY: "READONLY"
-              MODEL: &llama3-model "Llama-3.1-8B-Instruct-q4f16_1-MLC"
+              MODEL: &llama3-model "Llama-3.2-3B-Instruct-q4f16_1-MLC"
+              CONTEXT_SIZE: "32768" # smaller KV cache needed thus larger size
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -45,7 +46,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "11Gi"
+                memory: "7.5Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -61,10 +62,7 @@ spec:
                   tcpSocket:
                     port: 8080
       llama3-pull: &job
-        type: cronjob
-        cronjob:
-          schedule: "@weekly"
-          concurrencyPolicy: "Replace"
+        type: job
         pod:
           labels:
             egress.home.arpa/internet: allow
@@ -84,7 +82,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "3Gi"
+                memory: "10Gi"
       # codellama:
       #   <<: *deploy
       #   containers:
@@ -116,12 +114,14 @@ spec:
             env:
               <<: *envMain
               MODEL: &phi3-model "Phi-3.5-mini-instruct-q4f16_1-MLC"
+              CONTEXT_SIZE: "16384"
             resources:
               requests:
                 cpu: "10m"
+                memory: "3Gi"
               limits:
                 cpu: "1000m"
-                memory: "6Gi"
+                memory: "9Gi" # 2GB params, 0.4GB tmp, rest KV cache
                 gpu.intel.com/i915: "1"
       phi3-pull:
         <<: *job
@@ -131,29 +131,55 @@ spec:
             env:
               <<: *envPull
               MODEL: *phi3-model
-      r1-qwen-32b:
+      qwq:
         <<: *deploy
         containers:
           main:
             <<: *mlc
+            args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=$(CONTEXT_SIZE)", "--speculative-mode", "$(SPECULATIVE_DECODING)", "--additional-models", "HF://mlc-ai/$(SPECULATIVE_DECODING_MODEL)"]
             env:
               <<: *envMain
-              MODEL: &r1-qwen-32b-model "DeepSeek-R1-Distill-Qwen-32B-q4f16_1-MLC"
+              MODEL: &qwq-model "QwQ-32B-q4f16_1-MLC"
+              SPECULATIVE_DECODING: "small_draft"
+              SPECULATIVE_DECODING_MODEL: "Qwen2.5-0.5B-Instruct-q0f16-MLC"
             resources:
               requests:
                 cpu: "10m"
               limits:
                 cpu: "1000m"
-                memory: "40Gi"
+                memory: "30Gi"
                 gpu.intel.com/i915: "1"
-      r1-qwen-32b-pull:
+      qwq-pull:
         <<: *job
         containers:
           main:
             <<: *pull
             env:
               <<: *envPull
-              MODEL: *r1-qwen-32b-model
+              MODEL: *qwq-model
+      # r1-qwen-32b:
+      #   <<: *deploy
+      #   containers:
+      #     main:
+      #       <<: *mlc
+      #       env:
+      #         <<: *envMain
+      #         MODEL: &r1-qwen-32b-model "DeepSeek-R1-Distill-Qwen-32B-q4f16_1-MLC"
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           cpu: "1000m"
+      #           memory: "40Gi"
+      #           gpu.intel.com/i915: "1"
+      # r1-qwen-32b-pull:
+      #   <<: *job
+      #   containers:
+      #     main:
+      #       <<: *pull
+      #       env:
+      #         <<: *envPull
+      #         MODEL: *r1-qwen-32b-model
     service:
       llama3: &svc
         controller: llama3
@@ -168,9 +194,12 @@ spec:
       phi3:
         <<: *svc
         controller: phi3
-      r1-qwen-32b:
+      qwq:
         <<: *svc
-        controller: r1-qwen-32b
+        controller: qwq
+      # r1-qwen-32b:
+      #   <<: *svc
+      #   controller: r1-qwen-32b
     ingress:
       llama3:
         className: nginx-internal
@@ -208,27 +237,36 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
-      r1-qwen-32b:
+      qwq:
         className: nginx-internal
         hosts:
-          - host: &host "deepseek.${DNS_SHORT}"
+          - host: &host "qwq.${DNS_SHORT}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: r1-qwen-32b
+                  identifier: qwq
                   port: http
         tls:
           - hosts: [*host]
+      # r1-qwen-32b:
+      #   className: nginx-internal
+      #   hosts:
+      #     - host: &host "deepseek.${DNS_SHORT}"
+      #       paths: &paths
+      #         - path: /
+      #           pathType: Prefix
+      #           service:
+      #             identifier: r1-qwen-32b
+      #             port: http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       misc:
         existingClaim: mlc-llm-misc
         globalMounts:
           - subPath: data
             path: /data
-      tmp:
-        type: emptyDir
-        globalMounts:
           - subPath: tmp
             path: /tmp # TODO: check why /tmp on CephFS breaks Git clone
     defaultPodOptions:
@@ -244,7 +282,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: [44, 226] # iGPU
+        supplementalGroups: [44] # iGPU
         seccompProfile: { type: "Unconfined" } # GPU hangs with RuntimeDefault
       topologySpreadConstraints:
         - maxSkew: 1
@@ -258,7 +296,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/mlc-llm
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
     networkpolicies:
       from-frontends:
@@ -273,3 +311,6 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: sillytavern
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: code-server

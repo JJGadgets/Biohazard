@@ -1,14 +1,37 @@
 ---
 # yoinked from onedr0p and modified
 # info in comments is accurate as of 2023-11-25
-name: "Renovate (Manual Rebase Re-run)"
+name: "Renovate Rebase For Automerge"
 
 on:
-#  push:
-#    branches: ["renovate/**"]
+  workflow_dispatch:
+  pull_request:
+    types: ["auto_merge_enabled"]
+    branches: ["main"]
+
+concurrency:
+  group: "renovate-rebase-automerge"
+  cancel-in-progress: false
 
 jobs:
-  renovate:
-    name: Renovate
-    uses: ./.github/workflows/renovate.yaml
-    secrets: inherit
+  rebase-after:
+    name: Rebase
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
+    steps:
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+          owner: "${{ github.repository_owner }}"
+
+      - name: Update branch
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        shell: bash
+        run: |
+          sleep 30
+          gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
+             --field expected_head_sha=${{ github.event.pull_request.head.sha }}

@@ -55,12 +55,12 @@ spec:
         role_attribute_path: |
           contains(groups[*], 'Role-Grafana-Admin') && 'GrafanaAdmin' || contains(groups[*], 'Role-Grafana-Viewer') && 'Viewer'
       auth.proxy: # if Tailscale headers exist, it'll be used first, else use OIDC
-        enabled: true
-        auto_sign_up: true
-        whitelist: "${IP_POD_CIDR_V4}"
-        header_name: Tailscale-User-Login # email is immutable to account for Tailscale, used for person identity
-        header_property: username
-        headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login"
+        enabled: false
+        # auto_sign_up: true
+        # whitelist: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+        # header_name: Tailscale-User-Login # email is immutable to account for Tailscale, used for person identity
+        # header_property: username
+        # headers: "Name:Tailscale-User-Name Email:Tailscale-User-Login"
         # defaults to viewer role, privileged access needs OIDC
       auth.basic:
         enabled: false
@@ -222,7 +222,18 @@ spec:
           gnetId: 22236
           revision: 1
           datasource: *DSV
+        volsync:
+          # renovate: depName="VolSync Dashboard"
+          gnetId: 21356
+          revision: 3
+          datasource:
+            - { name: DS_PROMETHEUS, value: Prometheus }
+            - { name: VAR_REPLICATIONDESTNAME, value: ".*" }
       ceph:
+        ceph-thomas:
+          gnetId: 23246
+          revision: 1
+          datasource: *DSV
         ceph-cluster-galexrt:
           gnetId: 2842
           revision: 17
@@ -369,7 +380,7 @@ spec:
     ingress:
       enabled: true
       ingressClassName: "nginx-internal"
-      hosts: &host ["${APP_DNS_GRAFANA}"]
+      hosts: &host ["${APP_DNS_GRAFANA:=grafana}"]
       tls: [hosts: *host]
     persistence:
       enabled: false
