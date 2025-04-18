@@ -41,9 +41,7 @@ jobs:
           ref: "${{ github.event.pull_request.head.ref }}"
           fetch-depth: 0
 
-      - run: |
-          git
-      - name: Git setup
+      - name: Git
         shell: bash
         run: |
           git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
