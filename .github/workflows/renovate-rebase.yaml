@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           gh api --method PUT /repos/OWNER/REPO/pulls/PULL_NUMBER/update-branch \
-             --field expected_head_sha=${{ github.event.pull_request.base.sha }}"
+             --field expected_head_sha=${{ github.event.pull_request.base.sha }}
 
       # - name: Checkout
       #   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
