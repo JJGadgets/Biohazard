@@ -8,23 +8,15 @@ on:
   pull_request:
     types: ["auto_merge_enabled"]
     branches: ["main"]
-#  push:
-#    branches: ["renovate/**"]
 
 concurrency:
-  group: "renovate-rebase"
+  group: "renovate-rebase-automerge"
   cancel-in-progress: false
 
 jobs:
-  # renovate-rebase:
-  #   name: Renovate
-  #   if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
-  #   uses: JJGadgets/Biohazard/.github/workflows/renovate.yaml@main
-  #   secrets: inherit
   rebase-after:
     name: Rebase
     runs-on: ubuntu-latest
-    # needs: renovate-rebase
     if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
@@ -35,18 +27,6 @@ jobs:
           private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
           owner: "${{ github.repository_owner }}"
 
-      # - name: Checkout
-      #   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      #   with:
-      #     token: "${{ steps.oauth-token.outputs.token }}"
-      #     repository: "${{ github.event.pull_request.base.repo.full_name }}"
-      #     ref: "main"
-      #     fetch-depth: 1
-      #
-      # - name: Get latest SHA
-      #   run: |
-      #     echo "LATEST_MAIN_SHA=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
-
       - name: Update branch
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
@@ -54,46 +34,3 @@ jobs:
         run: |
           gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
              --field expected_head_sha=${{ github.event.pull_request.head.sha }}
-
-      #
-      # - name: Git
-      #   shell: bash
-      #   run: |
-      #     git config pull.rebase false
-      #     git config user.name "${{ secrets.BOT_USERNAME }}[bot]"
-      #     git config user.email "${{ secrets.BOT_USERNAME }} <${{ secrets.BOT_API_ID }}+${{ secrets.BOT_USERNAME }}[bot]@users.noreply.github.com>" # get $BOT_API_ID from `curl -s 'https://api.github.com/users/$(BOT_USERNAME)%5Bbot%5D' | yq .id`
-      #     # echo "CURRENT_PR_SHA=$(git rev-parse --verify HEAD)" >> "${GITHUB_ENV}"
-      #     git remote add upstream https://github.com/${{ github.event.pull_request.base.repo.full_name }}
-      #     git pull --no-edit upstream ${{ github.event.pull_request.base.ref }}
-      #     git log -n 1
-      #     git status
-      #     git reset --soft ${{ github.event.pull_request.head.sha }} # so the rev-parse in API commit gets the right SHA
-      #     git status
-      #     git restore --staged .
-      #     git status
-      #     git log -n 1
-      #
-      # - name: Commit Changes
-      #   env:
-      #     GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
-      #     DESTINATION_BRANCH: "${{ github.event.pull_request.head.ref }}"
-      #   run: |
-      #     shopt -s nullglob
-      #     git log -n 1
-      #     export TODAY=$( date -u '+%Y-%m-%d_%H-%M-%S' )
-      #     export MESSAGE="chore: update ${{ github.event.pull_request.head.ref }} $TODAY"
-      #     echo "Branch to update: $DESTINATION_BRANCH"
-      #     git diff --name-only
-      #     for FILE_TO_COMMIT in $(git diff --name-only);
-      #     do
-      #       export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
-      #       export CONTENT=$( base64 -i $FILE_TO_COMMIT )
-      #       echo "Currently updating file: $FILE_TO_COMMIT"
-      #       echo "File SHA: $SHA"
-      #       gh api --method PUT /repos/${{ github.event.pull_request.head.repo.full_name }}/contents/$FILE_TO_COMMIT \
-      #         --field message="$MESSAGE" \
-      #         --field content=@<( base64 -i $FILE_TO_COMMIT ) \
-      #         --field encoding="base64" \
-      #         --field branch="$DESTINATION_BRANCH" \
-      #         --field sha="$SHA"
-      #     done
