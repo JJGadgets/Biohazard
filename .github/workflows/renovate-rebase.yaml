@@ -35,21 +35,26 @@ jobs:
           private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
           owner: "${{ github.repository_owner }}"
 
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: "${{ steps.oauth-token.outputs.token }}"
+          repository: "${{ github.event.pull_request.base.repo.full_name }}"
+          ref: "main"
+          fetch-depth: 1
+
+      - name: Get latest SHA
+        run: |
+          echo "LATEST_MAIN_SHA=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
+
       - name: Update branch
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
-          gh api --method PUT /repos/OWNER/REPO/pulls/PULL_NUMBER/update-branch \
-             --field expected_head_sha=${{ github.event.pull_request.base.sha }}
+          gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
+             --field expected_head_sha=${{ env.LATEST_MAIN_SHA }}
 
-      # - name: Checkout
-      #   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      #   with:
-      #     token: "${{ steps.oauth-token.outputs.token }}"
-      #     repository: "${{ github.event.pull_request.head.repo.full_name }}"
-      #     ref: "${{ github.event.pull_request.head.ref }}"
-      #     fetch-depth: 0
       #
       # - name: Git
       #   shell: bash
