@@ -35,11 +35,12 @@ jobs:
           getOtherRuns () {
             return $(( $(gh run list --workflow=renovate-rebase.yaml --status in_progress --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status queued --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status waiting --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status requested --json name | jq length) + $(gh run list --workflow=renovate-rebase.yaml --status pending --json name | jq length) ))
           }
-          for getOtherRuns in 0; do
+          for getOtherRuns in 1; do
             sleep 2
-            if [[ ( getOtherRuns == 0 ) ]]; then
+            if [[ ( getOtherRuns == 1 ) ]]; then
               gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch \
                  --field expected_head_sha=${{ github.event.pull_request.head.sha }}
               break
             fi
+            sleep 1
           done
