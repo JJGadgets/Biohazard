@@ -1,21 +1,25 @@
 ---
 # yoinked from onedr0p and modified
 # info in comments is accurate as of 2023-11-25
-name: "Renovate (Manual Rebase Re-run)"
+name: "Renovate Rebase For Automerge"
 
 on:
   pull_request:
-    types: [auto_merge_enabled]
+    types: ["auto_merge_enabled"]
     branches: ["renovate/**"]
 #  push:
 #    branches: ["renovate/**"]
 
+concurrency:
+  group: "renovate-rebase"
+  cancel-in-progress: false
+
 jobs:
-  renovate:
+  renovate-rebase:
     name: Renovate
     uses: JJGadgets/Biohazard/.github/workflows/renovate.yaml@main
     secrets: inherit
-  rebase:
+  rebase-after:
     name: Rebase
     runs-on: ubuntu-latest
     steps:
