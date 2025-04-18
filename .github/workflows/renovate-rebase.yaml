@@ -52,8 +52,13 @@ jobs:
           # echo "CURRENT_PR_SHA=$(git rev-parse --verify HEAD)" >> "${GITHUB_ENV}"
           git remote add upstream https://github.com/${{ github.event.pull_request.base.repo.full_name }}
           git pull --no-edit upstream ${{ github.event.pull_request.base.ref }}
+          git log -n 1
+          git status
           git reset --soft ${{ github.event.pull_request.head.sha }} # so the rev-parse in API commit gets the right SHA
+          git status
           git restore --staged .
+          git status
+          git log -n 1
 
       - name: Commit Changes
         env:
@@ -61,10 +66,10 @@ jobs:
           DESTINATION_BRANCH: "${{ github.event.pull_request.head.ref }}"
         run: |
           # shopt -s nullglob
+          git log -n 1
           export TODAY=$( date -u '+%Y-%m-%d_%H-%M-%S' )
           export MESSAGE="chore: update ${{ github.event.pull_request.head.ref }} $TODAY"
           echo "Branch to update: $DESTINATION_BRANCH"
-          # for FILE_TO_COMMIT in $(git diff ${{ github.event.pull_request.head.sha }} HEAD --name-only || git diff --name-only --staged || git diff --name-only);
           for FILE_TO_COMMIT in $(git diff --name-only);
           do
             export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
