@@ -24,7 +24,7 @@ spec:
   dnsNames:
     - "${DNS_SHORT}"
     - "*.${DNS_SHORT}"
-    - "*.oopsies.${DNS_SHORT}"
+    - "*.oopsies3.${DNS_SHORT}"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
@@ -50,6 +50,7 @@ spec:
     rotationPolicy: Always
   dnsNames:
     - "*.${DNS_MAIN}"
+    - "*.oopsies3.${DNS_MAIN}"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
@@ -76,6 +77,7 @@ spec:
   dnsNames:
     - "jjgadgets.tech"
     - "*.jjgadgets.tech"
+    - "*.oopsies.jjgadgets.tech"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
