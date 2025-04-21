@@ -65,18 +65,26 @@ jobs:
               rebase;
               break;
             fi
-            runsCount="$(getOtherRunsCount)"
             getOtherRuns
+            runsCount="$(getOtherRunsCount)"
             echo "run 1 $runsCount"
             if [[ "${runsCount}" == "0" ]]; then # 1 run because current
-              sleep 2
-              runsCount2="$(getOtherRunsCount)"
+              sleep 10
               getOtherRuns
+              runsCount2="$(getOtherRunsCount)"
               echo "run 2 $runsCount2"
               if [[ "${runsCount2}" == "0" ]]; then
-                echo "run";
-                rebase;
-                break;
+                sleep 10
+                getOtherRuns
+                runsCount3="$(getOtherRunsCount)"
+                echo "run 3 $runsCount3"
+                if [[ "${runsCount3}" == "0" ]]; then
+                  echo "pass all 3, run";
+                  rebase;
+                  break;
+                else
+                  echo "not yet at $(date -I), pass 2"
+                fi
               else
                 echo "not yet at $(date -I), pass 1"
               fi
