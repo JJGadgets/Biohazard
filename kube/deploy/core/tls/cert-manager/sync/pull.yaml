@@ -1,168 +1,171 @@
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: short-domain-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - short-domain-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: short-domain-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
----
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: long-domain-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - long-domain-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: long-domain-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
----
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: jjgadgets-tech-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - jjgadgets-tech-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: jjgadgets-tech-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
----
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: me-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - me-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: me-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
----
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: jank-ing-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - jank-ing-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: jank-ing-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
----
-# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: vpn-tls-pull
-  namespace: cert-manager
-spec:
-  refreshInterval: "0"
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: 1p
-  dataFrom:
-    - extract:
-        key: "TLS - vpn-tls - ${CLUSTER_NAME}"
-  target:
-    creationPolicy: Orphan
-    deletionPolicy: Retain
-    name: vpn-tls
-    template:
-      engineVersion: v2
-      mergePolicy: Merge
-      type: kubernetes.io/tls
-      data:
-        tls.crt: '{{ index . "tls.crt" | b64dec }}'
-        tls.key: '{{ index . "tls.key" | b64dec }}'
-        tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
-        key.der: '{{ index . "key.der" | b64dec }}'
+# not in use because https://github.com/external-secrets/external-secrets/issues/4099
+#
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: short-domain-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - short-domain-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: short-domain-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: long-domain-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - long-domain-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: long-domain-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: jjgadgets-tech-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - jjgadgets-tech-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: jjgadgets-tech-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: me-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - me-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: me-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: jank-ing-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - jank-ing-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: jank-ing-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: vpn-tls-pull
+#   namespace: cert-manager
+# spec:
+#   refreshInterval: "0"
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name: 1p
+#   dataFrom:
+#     - extract:
+#         key: "TLS - vpn-tls - ${CLUSTER_NAME}"
+#   target:
+#     creationPolicy: Orphan
+#     deletionPolicy: Retain
+#     name: vpn-tls
+#     template:
+#       engineVersion: v2
+#       mergePolicy: Merge
+#       type: kubernetes.io/tls
+#       data:
+#         tls.crt: '{{ index . "tls.crt" | b64dec }}'
+#         tls.key: '{{ index . "tls.key" | b64dec }}'
+#         tls-combined.pem: '{{ index . "tls-combined.pem" | b64dec }}'
+#         key.der: '{{ index . "key.der" | b64dec }}'
