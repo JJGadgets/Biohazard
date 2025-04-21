@@ -34,11 +34,6 @@ jobs:
         run: |
           getOtherRuns () {
             echo "\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status queued --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status waiting --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status requested --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status pending --json headBranch --jq '.[].headBranch')\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status queued --json headBranch --jq '.[].headBranch')\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
@@ -55,12 +50,12 @@ jobs:
             runsCount="$(getOtherRunsCount)"
             getOtherRuns
             echo "run 1 $runsCount"
-            if [[ "${runsCount}" == "1" ]]; then # 1 run because current
+            if [[ "${runsCount}" == "0" ]]; then # 1 run because current
               sleep 2
               runsCount2="$(getOtherRunsCount)"
               getOtherRuns
               echo "run 2 $runsCount2"
-              if [[ "${runsCount2}" == "1" ]]; then
+              if [[ "${runsCount2}" == "0" ]]; then
                 echo "run"
                 gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
                 break
