@@ -32,6 +32,18 @@ jobs:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
+          rebase () {
+            gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
+          }
+          getRebaseRuns () {
+            echo "\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status queued --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status waiting --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status requested --json headBranch --jq '.[].headBranch')\
+              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=renovate-rebase.yaml --status pending --json headBranch --jq '.[].headBranch')\
+              " | grep '\S' || echo -n ''
+          }
           getOtherRuns () {
             echo "\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
@@ -44,9 +56,15 @@ jobs:
           getOtherRunsCount () {
             echo -n "$(getOtherRuns | wc -l)"
           }
+          rebaseRuns="$(getRebaseRuns)"
           getOtherRuns
           getOtherRunsCount
           while true; do
+            if [[ "${rebaseRuns}" == "1" ]]; then
+              echo "only run, rebase early and leave";
+              rebase;
+              break;
+            fi
             runsCount="$(getOtherRunsCount)"
             getOtherRuns
             echo "run 1 $runsCount"
@@ -56,9 +74,9 @@ jobs:
               getOtherRuns
               echo "run 2 $runsCount2"
               if [[ "${runsCount2}" == "0" ]]; then
-                echo "run"
-                # gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
-                break
+                echo "run";
+                rebase;
+                break;
               else
                 echo "not yet at $(date -I), pass 1"
               fi
