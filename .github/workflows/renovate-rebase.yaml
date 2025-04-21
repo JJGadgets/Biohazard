@@ -39,7 +39,7 @@ jobs:
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status requested --json headBranch --jq '.[].headBranch')\
               $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status pending --json headBranch --jq '.[].headBranch')\
-              " | grep "\S"
+              " | grep '\S' || echo -n ''
           }
           getOtherRunsCount () {
             echo -n "$(getOtherRuns | wc -l)"
