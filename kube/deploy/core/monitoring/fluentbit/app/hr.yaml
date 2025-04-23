@@ -1,5 +1,6 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app fluentbit
@@ -9,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -18,11 +19,13 @@ spec:
     controllers:
       fluentbit:
         type: daemonset
+        serviceAccount:
+          name: fluentbit
         containers:
           main:
             image: &img
               repository: cr.fluentbit.io/fluent/fluent-bit
-              tag: 3.2.2@sha256:b7a2b9ee1958607da9a16b0efeb24a70a43c5b7e91dbabca4dc02e916aadb914
+              tag: 4.0.0@sha256:3cabd4bd59596931cd99d812c99200e12fa08758fd08dfb0549c96ae97a70ddd
             args: ["--config=/config/fluent-bit.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -38,10 +41,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "128Mi"
             #probes: # TODO: HTTP healthchecks via health API
             #  liveness:
             #    enabled: true
@@ -61,8 +63,6 @@ spec:
       config:
         type: configMap
         name: fluentbit-config
-        globalMounts:
-          - path: /config
       logs-containers: # normal Talos disk mount
         type: hostPath
         hostPath: &path "/var/log/containers"
@@ -74,8 +74,8 @@ spec:
         globalMounts:
           - path: *path
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
+      automountServiceAccountToken: true
+      enableServiceLinks: true
       securityContext:
         runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
@@ -96,16 +96,3 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/fluentbit
                     operator: DoesNotExist
-    networkpolicies:
-      same-ns:
-        controller: fluentbit
-        policyTypes: [Ingress, Egress]
-        rules:
-          egress:
-            - to:
-                - podSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: victoria-logs
-                  namespaceSelector:
-                    matchLabels:
-                      kubernetes.io/metadata.name: monitoring

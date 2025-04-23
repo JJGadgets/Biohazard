@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app sillytavern
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.12.8@sha256:2842e8317fe0d4cb6cd4034d52110904c2a30d88840c3879e8576e059a56e942
+              tag: 1.12.14@sha256:6e636bd4129569fb263e9b5df23a4e33f8754d0b916565ccced87aab859d2159
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
@@ -40,15 +40,18 @@ spec:
                 cpu: "10m"
                 memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
     service:
       sillytavern:
         controller: sillytavern
@@ -80,9 +83,12 @@ spec:
             path: /home/node/app/data
           - subPath: plugins
             path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 64Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
@@ -98,9 +104,10 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_SILLYTAVERN:=1000}
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always

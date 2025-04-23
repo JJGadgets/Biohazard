@@ -1,0 +1,110 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app silverbullet
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      silverbullet:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/silverbulletmd/silverbullet
+              tag: 0.10.4@sha256:69e37ce27c693fe6640d2c792c5161413d0b715195660df9fea024fd42a7162b
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              SB_PORT: &http 8080
+              SB_NAME: JJGadgets Notes
+              SB_DESCRIPTION: Silverbullet note taking app, hosted by and for JJGadgets.
+            envFrom: &envFrom
+              - secretRef:
+                  name: silverbullet-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              #startup:
+              #  enabled: true
+    service:
+      silverbullet:
+        controller: silverbullet
+        ports:
+          http:
+            port: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_SILVERBULLET:=silverbullet}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: silverbullet
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: silverbullet-data
+        globalMounts:
+          - subPath: data
+            path: /space
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/silverbullet
+                    operator: DoesNotExist

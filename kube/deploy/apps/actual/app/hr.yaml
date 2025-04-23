@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/actualbudget/actual-server
-              tag: 25.3.1@sha256:58fecd9088b73ffe402450f51eff488036cdc8ca570650be38ad2bbabbfe193b
+              tag: 25.4.0@sha256:c1c372993f9b90ec00a8bf3c135002bd47790e42cae5e76a01743b7fc1cf8f6e
               # tag: sha-4bb59fd@sha256:48978b9941b8d51fc09e9211e1e07bb1c253cf9efdb79b2cf43ef66fe362bd7f
             env: &env
               TZ: "${CONFIG_TZ}"
