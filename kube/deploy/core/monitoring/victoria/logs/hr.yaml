@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: victoria-logs-single
-      version: 0.8.16
+      version: 0.9.5
       sourceRef:
         name: victoria
         kind: HelmRepository
@@ -17,11 +17,13 @@ spec:
   values:
     server:
       enabled: true
+      #fullnameOverride: *app
+      mode: deployment
       podLabels:
         ingress.home.arpa/nginx-internal: allow
       image:
         repository: docker.io/victoriametrics/victoria-logs
-        tag: "v1.0.0-victorialogs@sha256:30ae01fbc0ef51e7b929c16f17b85112e763bb8b3427d3b2bc6495df0cbad7ac"
+        tag: "v1.19.0-victorialogs@sha256:f8953691b4607c69fc54a1e3b3da2416fc1abba9b0bd18ac3a08da4d7a908dd4"
         pullPolicy: IfNotPresent
       retentionPeriod: 1 # months
       persistentVolume:
@@ -32,11 +34,11 @@ spec:
         enabled: true
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
-            ${IP_JJ_V4}
+            ${IP_JJ_V4:=127.0.0.1/32}
         ingressClassName: nginx-internal
         pathType: Prefix
         hosts:
-          - name: &host "${APP_DNS_VICTORIA_LOGS:=127.0.0.1}"
+          - name: &host "${APP_DNS_VICTORIA_LOGS:=victoria-logs}"
             path: /
             port: http
         tls:
@@ -60,16 +62,13 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      statefulSet:
-        enabled: false
       serviceMonitor:
         enabled: true
       affinity: {} # TODO: add fuck-off
     fluent-bit:
       enabled: false # TODO: explore this
     extraObjects: []
-    # global:
-    #   nameOverride: *app
-    #   victoriaLogs:
-    #     server:
-    #       fullnameOverride: *app
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
