@@ -35,7 +35,7 @@ jobs:
           done
 
       - name: Update branch if automerge enabled
-        if: github.event.action == "auto_merge_enabled"
+        if: ${{ github.event.action == auto_merge_enabled }}
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
