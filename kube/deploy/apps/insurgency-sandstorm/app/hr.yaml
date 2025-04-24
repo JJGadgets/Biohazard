@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app insurgency-sandstorm
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: docker.io/andrewmhub/insurgency-sandstorm
-              tag: lite@sha256:ca6343576338096693296b835793784f58510a9535aef7b8706758e4441bb51e
+              tag: lite@sha256:d4cf221082770cb9ae4b7d2eb4ed6e829fa4b04df48fbf773ba4b341ffc505f5
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
             env: &env
@@ -144,6 +144,12 @@ spec:
                   - key: fuckoff.home.arpa/insurgency-sandstorm
                     operator: DoesNotExist
           preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 25
+              preference:
+                matchExpressions:
+                  - key: "kubernetes.io/hostname"
+                    operator: In
+                    values: ["dorothy"] # MS01
             - weight: 20
               preference:
                 matchExpressions:

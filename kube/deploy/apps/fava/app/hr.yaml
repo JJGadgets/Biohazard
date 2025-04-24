@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/fava
-              tag: 1.30.1@sha256:1da5e3ff5f62bdfd5cf91730727e650b6bb657fc94cc35d58818a6d35f926446
+              tag: 1.30.2@sha256:fa4a09e99ca0c4cd486e37beac1adf5de8d423d8375b6a93f937a076dac9028b
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app radicale
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -26,7 +26,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/radicale
-              tag: 3.4.1@sha256:c933aa2e57887cfd6c10a141970e894782c606aa17d58a7d090832e04d448fdf
+              tag: 3.5.2@sha256:81dd74b2d54733c3af99991dc379b7351f87433518cab2e733d655e4537d0be5
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

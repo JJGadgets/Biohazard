@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app linkding
@@ -30,7 +30,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/sissbruecker/linkding"
-              tag: "1.38.1-plus-alpine@sha256:14953fff9815a27db38673fdd3299e951d4753910e4d59b8537b519d109e77d3"
+              tag: "1.39.1-plus-alpine@sha256:4a862808488ce96614b9bc2fa9e4d54aaba12de9c026a2d722e16a7ae873991a"
             env:
               TZ: "${CONFIG_TZ}"
               # Security

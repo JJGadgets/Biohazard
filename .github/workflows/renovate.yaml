@@ -20,12 +20,15 @@ on:
         type: choice
         default: "enabled"
         options: ["enabled", "disabled", "reset"]
-      paths:
-        description: Paths to run Renovate on. Comma separated without spaces for multiple.
+      repo:
+        description: Run Renovate on only these repos
         required: false
-      managers:
-        description: Managers that Renovate should use. Comma separated without spaces for multiple.
-        required: false
+      # paths:
+      #   description: Paths to run Renovate on. Comma separated without spaces for multiple.
+      #   required: false
+      # managers:
+      #   description: Managers that Renovate should use. Comma separated without spaces for multiple.
+      #   required: false
   schedule:
     - cron: "0 * * * *" # every hour
   push:
@@ -53,6 +56,7 @@ env:
   RENOVATE_INHERIT_CONFIG: true
   RENOVATE_INHERIT_CONFIG_REPO_NAME: "${{ github.repository }}"
   RENOVATE_INHERIT_CONFIG_FILE_NAME: ".renovaterc.json5"
+  RENOVATE_FORK_PROCESSING: "enabled"
   # run on all repos without needing config
   RENOVATE_ONBOARDING: false
   RENOVATE_REQUIRE_CONFIG: "optional"
@@ -72,7 +76,7 @@ jobs:
       packages: read # for private GHCR packages
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
@@ -86,7 +90,7 @@ jobs:
 
       - name: Renovate Cache
         id: renovate-cache
-        uses: actions/cache@v4
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         if: github.event.inputs.cache != 'disabled'
         continue-on-error: true
         with:
@@ -102,6 +106,7 @@ jobs:
           echo "RENOVATE_DRY_RUN=${{ github.event.inputs.dryRun || env.RENOVATE_DRY_RUN }}" >> "${GITHUB_ENV}"
           echo "LOG_LEVEL=${{ github.event.inputs.logLevel || env.LOG_LEVEL }}" >> "${GITHUB_ENV}"
           echo "RENOVATE_REPOSITORY_CACHE=${{ github.event.inputs.cache || env.RENOVATE_REPOSITORY_CACHE }}" >> "${GITHUB_ENV}"
+          if [[ ! -z "${{ github.event.inputs.repos }}" ]]; then echo "RENOVATE_AUTODISCOVER_FILTER=${{ github.event.inputs.repos }}" >> "${GITHUB_ENV}"; fi
           if [[ ! -z "${{ github.event.inputs.paths }}" ]]; then echo "RENOVATE_INCLUDE_PATHS=${{ github.event.inputs.paths }}" >> "${GITHUB_ENV}"; fi
           if [[ ! -z "${{ github.event.inputs.managers }}" ]]; then echo "RENOVATE_ENABLED_MANAGERS=${{ github.event.inputs.managers }}" >> "${GITHUB_ENV}"; fi
           # chown /tmp/renovate due to cache screwing permissions
@@ -110,6 +115,6 @@ jobs:
           sudo chown -R 12021:$(id -g) /tmp/renovate
 
       - name: Renovate
-        uses: renovatebot/github-action@02f4fdeb479bbb229caa7ad82cb5e691c07e80b3 # v41.0.14
+        uses: renovatebot/github-action@19e3d87179488d6a0cd9da744d37123ea4b338e5 # v41.0.20
         with:
           token: "${{ steps.oauth-token.outputs.token }}"

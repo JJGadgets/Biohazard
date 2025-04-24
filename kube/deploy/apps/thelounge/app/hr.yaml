@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app thelounge
@@ -25,7 +25,7 @@ spec:
       authentik.home.arpa/ldap: "allow"
     image:
       repository: ghcr.io/thelounge/thelounge
-      tag: "4.4.3@sha256:1683c78c07d3bbdd6722d137df49174be13819dd67e297ace3143a3fc3d35e63"
+      tag: "4.4.3@sha256:c2aa0916203b298ffaf3a36c4eb60ef73c1006448d430e218d37840472e84e50"
     command: ["thelounge"]
     args: ["start"]
     env:

@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app atuin
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/atuinsh/atuin
-              tag: 18.4.0@sha256:8c6fa0aea944bf2a39665c9c69df1c2c0f9c05207bda5b942d450142285e3ee1
+              tag: v18.5.0@sha256:80b3aed8b82ba9974c614cf54071f05424e2b9937172c493079d67d7d647e4b1
             command: ["atuin", "server", "start"]
             env: &env
               TZ: "${CONFIG_TZ}"

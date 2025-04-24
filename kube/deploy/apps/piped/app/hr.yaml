@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app piped
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/bjw-s-labs/piped-frontend
-              tag: 2025.2.24@sha256:d9c334d886a4b0d38e4d7bab884d39c1a45c138fbfec5ad99446ee2aa0fac160
+              tag: 2025.3.17@sha256:8ed05c7df0bc8899e54a3952a99b63d55cdc7669d759beeb9370fbb32330468b
             env: &env
               TZ: "${CONFIG_TZ}"
               BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped}"
@@ -65,7 +65,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped
-              tag: latest@sha256:4640c0a7c2ec920a7e1c42db94cab41c1da08ae04e307620c5d9a619b0e3bffc
+              tag: latest@sha256:759979280703ba11e4069405d21c2fed62a902d135fcea25d76fa13a12f278d7
             env: *env
             securityContext: *sc
             probes: *probes
@@ -87,7 +87,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped-proxy
-              tag: latest@sha256:1200cc06211d7a64bfe2ad80c0733b9221f5b156e3738afcdff4ae468eb57757
+              tag: latest@sha256:ae8b6cc213ee00cac6f205e1fe28b5e86e99d5c5ed47c239f773f98202602f6e
             command: ["/app/piped-proxy"]
             env: *env
             securityContext: *sc

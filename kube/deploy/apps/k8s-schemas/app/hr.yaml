@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app k8s-schemas
@@ -32,7 +32,7 @@ spec:
           01-extract:
             image:
               repository: "jank.ing/jjgadgets/k8s-crd-extractor"
-              tag: "20250116@sha256:487fd61094270e1826db3b5937bb362d3ea3bb9fcc6a42c1ef7bb90d46705405"
+              tag: "20250130@sha256:bdc7554fa5941bc901e345511f0165a9838e52e610918a0eb1c2c195b0530ab1"
             env:
               TZ: "${CONFIG_TZ}"
               HOME: ""

@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app redbot
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "jank.ing/jjgadgets/redbot"
-              tag: "3.5.16@sha256:ed4081abe990c53ceba258a8ddb82eb7bf544acda0ada6d0c83666c649a537d8"
+              tag: "3.5.18@sha256:c95cec2c3020f8691629d9f02abd622c04aa0274f094ccdfd4e4bf4ac5cff2a1"
             args: ["--mentionable"]
             env:
               TZ: "${CONFIG_TZ}"

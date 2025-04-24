@@ -119,3 +119,16 @@ spec:
   ingress:
     - fromCIDRSet:
         - cidr: "${IP_WG_GUEST_V4}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-ingress-appletv
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/appletv: "allow"
+  ingress:
+    - fromCIDRSet:
+        - cidr: "${IP_VLAN_APPLETV_CIDR}"

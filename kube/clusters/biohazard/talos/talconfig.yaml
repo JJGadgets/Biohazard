@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.9.1
+talosVersion: v1.9.5
 kubernetesVersion: v1.32.0
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
@@ -34,20 +34,23 @@ nodes:
     installDiskSelector:
       size: "<= 600GB"
       type: "nvme"
+    nodeLabels:
+      cpu-scaler.internal/multiplier: "1"
     nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
     networkInterfaces:
       - &m720q-net
         interface: br0
         mtu: 1500
-        dhcp: false
+        dhcp: true # for other IPs, IPv6 and dynamic DHCP DNS
         bridge:
           interfaces: [bond0]
           stp: {enabled: true}
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}1/28"]
-        routes:
+        routes: &routes
           - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
             metric: 1
+          - network: "${IP_ROUTER_VLAN_K8S_LEGACY_PVE_CIDR}"
           - network: "0.0.0.0/0"
             gateway: "${IP_ROUTER_VLAN_K8S}"
         vip:
@@ -95,12 +98,17 @@ nodes:
               configure system description "Talos Node"
     extraManifests:
       - ./watchdog.yaml
-    # patches:
-    #   - |
-    #     machine:
-    #       sysfs:
-    #         devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
-    #         devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
+    patches:
+      - |
+        machine:
+          sysfs:
+            module.i915.parameters.enable_hangcheck: "N"
+            module.i915.parameters.request_timeout_ms: "600000"
+      # - |
+      #   machine:
+      #     sysfs:
+      #       devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
+      #       devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
     hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
@@ -124,6 +132,78 @@ nodes:
     #         devices.system.cpu.intel_pstate.max_perf_pct: "90" # limit max frequency to 2.8GHz
     #         devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
+  - &ms01
+    hostname: "dorothy.${DNS_CLUSTER}" # ms01, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe
+    ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}5"
+    controlPlane: false
+    installDiskSelector:
+      # size: "<= 600GB"
+      type: "nvme"
+    nodeLabels:
+      cpu-scaler.internal/multiplier: "0.5"
+    nameservers: ["${IP_ROUTER_VLAN_K8S}"]
+    disableSearchDomain: true
+    networkInterfaces:
+      - &ms01-net
+        interface: br0
+        mtu: 1500
+        dhcp: true # for other IPs, IPv6 and dynamic DHCP DNS
+        bridge:
+          interfaces: [bond0]
+          stp: {enabled: true}
+        addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}5/28"]
+        routes: *routes
+        # vip:
+        #   ip: "${IP_CLUSTER_VIP}"
+      - &ms01-bond0
+        interface: bond0
+        mtu: 1500
+        bond: &bond0
+          mode: active-backup
+          miimon: 100
+          # primary: eno1
+          primaryReselect: better
+          deviceSelectors:
+            # Onboard Intel i226-{LM|V} 2.5GbE
+            - driver: igc
+              physical: true
+            # Intel X710 10Gbe
+            - driver: i40e
+              physical: true
+    machineSpec:
+      secureboot: true
+    schematic:
+      customization:
+        extraKernelArgs:
+          - intel_iommu=on
+          - iommu=pt
+          - apparmor=1
+          - security=apparmor
+          - i915.enable_hangcheck=0
+          - i915.request_timeout_ms=600000
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/iscsi-tools
+            - siderolabs/lldpd
+            - siderolabs/kata-containers
+            - siderolabs/gvisor
+            - siderolabs/gvisor-debug
+            - siderolabs/intel-ucode
+            - siderolabs/i915
+            - siderolabs/intel-ice-firmware
+            - siderolabs/mei # Intel 12 gen & newer
+            - siderolabs/thunderbolt
+    extensionServices:
+      - &lldpd
+        name: lldpd
+        configFiles:
+          - mountPath: /usr/local/etc/lldpd/lldpd.conf
+            content: |
+              configure lldpd portidsubtype ifname
+              configure system description "Talos Node"
+    extraManifests:
+      - ./watchdog.yaml
+
   - hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
     controlPlane: false
@@ -142,11 +222,7 @@ nodes:
           interfaces: [bond0]
           stp: {enabled: true}
         addresses: ["${IP_ROUTER_VLAN_K8S_PREFIX}4/28"]
-        routes:
-          - network: "${IP_ROUTER_VLAN_K8S_CIDR}"
-            metric: 1
-          - network: "0.0.0.0/0"
-            gateway: "${IP_ROUTER_VLAN_K8S}"
+        routes: *routes
       - interface: bond0
         mtu: 1500
         bond:

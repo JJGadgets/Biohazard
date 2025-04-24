@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "plex-misc"
+  namespace: "media"
+  annotations:
+    description: "PVC for Plex cache and others"
+  labels:
+    app.kubernetes.io/name: "plex"
+spec:
+  storageClassName: "file-ec-2-1"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "100Gi"

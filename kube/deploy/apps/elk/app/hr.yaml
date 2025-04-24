@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app elk
@@ -20,7 +20,7 @@ spec:
       replicas: 1
     image:
       repository: "jank.ing/jjgadgets/elk"
-      tag: "0.16.0@sha256:f63050e8a475c27174edab09ad99bc8a38b5cf4073f6e25d9f494137c8c65f3b"
+      tag: "0.16.0@sha256:c16ee6249e539bfa4e5a45c27c04b59f9ff46b8d0077f8ce57a7971ad0afe8a6"
     podLabels:
       ingress.home.arpa/nginx-internal: "allow"
       egress.home.arpa/nginx-internal: "allow"

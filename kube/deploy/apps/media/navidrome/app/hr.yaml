@@ -12,7 +12,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -27,11 +27,13 @@ spec:
             ingress.home.arpa/nginx-internal: allow
             prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
+          annotations:
+            fluentbit.io/parser: "logfmt"
         containers:
           main:
             image: &img
               repository: ghcr.io/navidrome/navidrome
-              tag: 0.53.3@sha256:d864c5ddbae508920b157d73b08bd48e93ec8c422003a491edd01a889497582a
+              tag: 0.55.2@sha256:3a66e262b7ea836faa06c08ad5b32076c49e9e63e2fa4de10080c8e9be9f0846
             env:
               TZ: "${CONFIG_TZ}"
               ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
@@ -50,10 +52,12 @@ spec:
               ND_UILOGINBACKGROUNDURL: https://raw.githubusercontent.com/JJGadgets/images/main/cover.png
               ND_UIWELCOMEMESSAGE: "Welcome to JJGadgets Music."
               ND_PROMETHEUS_ENABLED: "true"
-              ND_PROMETHEUS_METRICSPATH: /metrics
+              ND_PROMETHEUS_METRICSPATH: &metrics /metrics
               ND_REVERSEPROXYUSERHEADER: X-authentik-username
               ND_REVERSEPROXYWHITELIST: "${IP_POD_CIDR_V4:=127.0.0.1/32},127.0.0.1/32,::1/128"
               ND_ENABLEINSIGHTSCOLLECTOR: "false"
+              ND_LISTENBRAINZ_ENABLED: "true"
+              ND_LISTENBRAINZ_BASEURL: "http://maloja.maloja.svc.cluster.local/apis/listenbrainz/1/"
             envFrom: &envFrom
               - secretRef:
                   name: navidrome-secrets
@@ -65,10 +69,37 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "1"
-                memory: "512Mi"
+                memory: "200Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+          edit:
+            image: &img
+              repository: ghcr.io/home-operations/beets
+              tag: 2.2.0@sha256:3e7deec6333a51975458966bd70ecedc1156edfda30faaf2a346f3b79fda82fe
+            command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "sh", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
+            env:
+              TZ: "${CONFIG_TZ}"
+            envFrom: &envFrom
+              - secretRef:
+                  name: navidrome-secrets
+            securityContext: &sc
+              runAsUser: 65534
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "0m"
+                memory: "0Mi"
+              limits:
+                cpu: "2"
+                memory: "2Gi"
             probes:
               liveness:
                 enabled: true
@@ -77,9 +108,14 @@ spec:
     service:
       navidrome:
         controller: navidrome
+        type: LoadBalancer # TODO: tmp to test Amperfy song restart bug https://github.com/BLeeEZ/amperfy/issues/305
+        annotations:
+          coredns.io/hostname: "svc-${APP_DNS_NAVIDROME:=${APPNAME}}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_NAVIDROME:=127.0.0.1}"
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
@@ -90,7 +126,7 @@ spec:
             https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
         hosts:
           - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths: &paths
+            paths:
               - path: /
                 pathType: Prefix
                 service:
@@ -121,22 +157,37 @@ spec:
             path: /data
       media:
         existingClaim: media-data
-        globalMounts:
-          - subPath: Music
-            path: /media/ceph
-            readOnly: true
+        advancedMounts:
+          navidrome:
+            edit:
+              - &mount
+                subPath: Music
+                path: /media/ceph
+            main:
+              - <<: *mount
+                readOnly: true
+      bulk:
+        existingClaim: media-bulk
+        advancedMounts:
+          navidrome:
+            edit:
+              - subPath: music-edit-venv
+                path: /config/.venv
       nfs:
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
-        globalMounts:
-          - subPath: Music
-            path: /media/nfs
-            readOnly: true
+        advancedMounts:
+          navidrome:
+            edit:
+              - &mount
+                subPath: Music
+                path: /media/nfs
+            main:
+              - <<: *mount
+                readOnly: true
       tmp:
         type: emptyDir
-        medium: Memory
-        sizeLimit: 128Mi
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -168,4 +219,17 @@ spec:
         endpoints:
           - port: http
             scheme: http
-            path: /metrics
+            path: *metrics
+    networkpolicies:
+      maloja:
+        controller: navidrome
+        policyTypes: [Egress]
+        rules:
+          egress:
+            - to:
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: maloja
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: maloja

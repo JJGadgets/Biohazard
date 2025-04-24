@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "maloja-misc"
+  namespace: &app "maloja"
+  annotations:
+    description: "PVC for Maloja cache and others"
+  labels:
+    app.kubernetes.io/name: *app
+spec:
+  storageClassName: "file-ec-2-1"
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: "10Gi"

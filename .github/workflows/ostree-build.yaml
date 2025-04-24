@@ -17,7 +17,7 @@ jobs:
       packages: write
     timeout-minutes: 40
     container:
-      image: public.ecr.aws/docker/library/fedora:40
+      image: public.ecr.aws/docker/library/fedora:43@sha256:b00fc3cf4a22cd2d4b3bd645aa68097c3fc958b0f723fd7fe4fef26ee2dea3eb
       # Fix SELinux for the built OSTree: https://github.com/coreos/rpm-ostree/issues/1943
       options: --privileged --security-opt label:disable
     strategy:
@@ -33,7 +33,7 @@ jobs:
         run: dnf install -y rpm-ostree selinux-policy selinux-policy-targeted policycoreutils podman
 
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page

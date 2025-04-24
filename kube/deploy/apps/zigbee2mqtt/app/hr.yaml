@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app zigbee2mqtt
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/koenkk/zigbee2mqtt
-              tag: 2.1.1@sha256:c7b111384716247f057b449ebb242bf05f3fafb98dd6d5688c1ac1fc730d5e95
+              tag: 2.2.1@sha256:5c1f0ca9669292b1bdabc7b6d9927642049bc2c1ee53f42b7299181e93dd7d8f
             env: &env
               TZ: "${CONFIG_TZ}"
               ZIGBEE2MQTT_DATA: /config

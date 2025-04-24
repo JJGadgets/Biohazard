@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app redlib
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -29,7 +29,7 @@ spec:
           main:
             image: &img
               repository: quay.io/redlib/redlib
-              tag: latest@sha256:4047fb6cd9525294d2b2a57721ea27c5d33cb67c54b48d3390a9ae4e7c021ca0 # for JSON HTTP2 fix
+              tag: latest@sha256:8c6c56472380188edc8dcd15b1a8e6741281635446b95c6ef1222f9940a96d93 # for JSON HTTP2 fix
             env: &env
               TZ: "${CONFIG_TZ}"
               REDLIB_SFW_ONLY: "off"

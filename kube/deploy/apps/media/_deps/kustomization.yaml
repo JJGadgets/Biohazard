@@ -1,8 +1,17 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: media
 resources:
   - ns.yaml
   - ks.yaml
 components:
   - ../../../core/flux-system/alerts/template/
+transformers:
+  - |-
+    apiVersion: builtin
+    kind: NamespaceTransformer
+    unsetOnly: true
+    metadata:
+      name: not-used
+      namespace: authentik

@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app komga
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/gotson/komga
-              tag: 1.20.0@sha256:90511b6c191d306ada2f75f5cfff2271979fadfc4c2feab9e0ce72cf8b46831a
+              tag: 1.21.2@sha256:ba587695d786f0e8f4de8598b8aa2785cc8c671098ef1cb624819c2bb812789c
             env: &env
               TZ: "${CONFIG_TZ}"
               KOMGA_CONFIGDIR: &pvc /config

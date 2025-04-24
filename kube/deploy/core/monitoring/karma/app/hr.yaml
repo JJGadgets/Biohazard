@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: "ghcr.io/prymitive/karma"
-              tag: "v0.120@sha256:733bff15f2529065f1c1b50b13e4a56a541d3c0615dbc6b4b6a07befbfcc27ff"
+              tag: "v0.121@sha256:9f0ad820df1b1d0af562de3b3c545a52ddfce8d7492f434a2276e45f3a1f7e28"
             env:
               TZ: "${CONFIG_TZ}"
               # TODO: use full config mapping to all AM instances and 1 cluster, including different deployments for authentik, cloudflared and Tailscale's forward auth headers
