@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -31,7 +31,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/miniflux/miniflux
-              tag: "2.2.6-distroless@sha256:c6b0af85d44d5e133d4d9844768dfe491aa0282bb9adac1dbfe7871f0947431c"
+              tag: "2.2.8-distroless@sha256:d98377d6a865395953a987fffdc9d068344768eda8604aea71e670c570bae98b"
             env:
               TZ: "${CONFIG_TZ}"
               BASE_URL: "https://${APP_DNS_MINIFLUX}"
