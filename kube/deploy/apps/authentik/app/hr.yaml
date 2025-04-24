@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -34,6 +34,9 @@ spec:
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
+            # for OIDC sources
+            egress.home.arpa/discord: allow
+            egress.home.arpa/github: allow
           topologySpreadConstraints:
             - &tsc
               maxSkew: 1
@@ -47,7 +50,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2025.2.3@sha256:845a54b86313cfec16c081dce345a154c771621a330de1d4635a53c24f7295a4
+              tag: 2025.2.4@sha256:36233579415aa2e2e52a6b0c45736cb871fe71460bfe0cf95d83f67528fb1182
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -221,7 +224,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.2.3@sha256:61ac8b87bd11746dca6f0d93f33568f42aae0a64c9fe408ef0ef75fb797bd698
+              tag: 2025.2.4@sha256:cc98bc43e3713095097ae322df1ebd3b0ae76ecd0bd67ae7cd1e0375cce51b1b
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -269,7 +272,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.2.3@sha256:7af720396a11115a189bd393f420578cb7c7cd47c406c7d3f97c10852b435347
+              tag: 2025.2.4@sha256:a730e2912dfced9dce4f76fab9543857ce2d3b572c966738a4529530ce86e855
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -304,7 +307,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.2@sha256:bd41d55aae1ecff61b2fafd0d66761223fe94a60373eb6bb781cfbb570a84079"
+              tag: "7.4.2@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc
@@ -320,59 +323,59 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-      renovate-test:
-        enabled: false
-        type: deployment
-        replicas: 0
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "90%"
-        containers:
-          main:
-            image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2024.12.4@sha256:d13670ae83166ba3f5c97a08c811b71512b85314aed3de97d7cea8f4737e7f2d
-            args: [server]
-            env: &env
-              TZ: "${CONFIG_TZ}"
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "0"
-                memory: "0"
-              limits:
-                cpu: "1000m"
-                memory: "2Gi"
-          anubis:
-            image:
-              repository: ghcr.io/xe/x/anubis
-              tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
-            env:
-              TZ: "${CONFIG_TZ}"
-              BIND: ":8923"
-              DIFFICULTY: "5"
-              SERVE_ROBOTS_TXT: "true"
-              TARGET: "http://127.0.0.1:9000"
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "5m"
-                memory: "32Mi"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
-            ports:
-              - name: anubis
-                containerPort: &anubis 8923
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+      # renovate-test:
+      #   enabled: false
+      #   type: deployment
+      #   replicas: 0
+      #   strategy: RollingUpdate
+      #   rollingUpdate:
+      #     unavailable: "90%"
+      #   containers:
+      #     main:
+      #       image: &img
+      #         repository: ghcr.io/goauthentik/server
+      #         tag: 2024.12.5@sha256:717323d68507fb76dd79f8958f42ce57f8ae0c10a55a7807efa1cfec5752b77c
+      #       args: [server]
+      #       env: &env
+      #         TZ: "${CONFIG_TZ}"
+      #       securityContext: &sc
+      #         readOnlyRootFilesystem: true
+      #         allowPrivilegeEscalation: false
+      #         capabilities:
+      #           drop: ["ALL"]
+      #       resources:
+      #         requests:
+      #           cpu: "0"
+      #           memory: "0"
+      #         limits:
+      #           cpu: "1000m"
+      #           memory: "2Gi"
+      #     anubis:
+      #       image:
+      #         repository: ghcr.io/xe/x/anubis
+      #         tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
+      #       env:
+      #         TZ: "${CONFIG_TZ}"
+      #         BIND: ":8923"
+      #         DIFFICULTY: "5"
+      #         SERVE_ROBOTS_TXT: "true"
+      #         TARGET: "http://127.0.0.1:9000"
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "5m"
+      #           memory: "32Mi"
+      #         limits:
+      #           cpu: "1"
+      #           memory: "128Mi"
+      #       ports:
+      #         - name: anubis
+      #           containerPort: &anubis 8923
+      #       probes:
+      #         liveness:
+      #           enabled: true
+      #         readiness:
+      #           enabled: true
     service:
       authentik:
         controller: authentik
