@@ -20,5 +20,8 @@ spec:
             io.kubernetes.pod.namespace: monitoring
             app.kubernetes.io/name: victoria-logs
         - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: victoria-logs-single
+        - matchLabels:
             io.kubernetes.pod.namespace: kube-system
             k8s-app: kube-dns
