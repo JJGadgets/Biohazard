@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "ghcr.io/tyzbit/go-discord-modtools"
-              tag: "0.2.9@sha256:51e3c9b90d51e6f02859d4f4889f64cf0d3ca906bfca6c132439f6a4ee612f1d"
+              tag: "v0.3.0@sha256:cff0e5d3b835f0701557ca239df642fa44a1ac207dc27c6d25b0dac689591f39"
             env: &env
               TZ: "${CONFIG_TZ}"
             envFrom: &envFrom

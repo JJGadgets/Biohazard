@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: victoria-logs-single
-      version: 0.8.16
+      version: 0.9.7
       sourceRef:
         name: victoria
         kind: HelmRepository
@@ -17,11 +17,13 @@ spec:
   values:
     server:
       enabled: true
+      #fullnameOverride: *app
+      mode: deployment
       podLabels:
         ingress.home.arpa/nginx-internal: allow
       image:
         repository: docker.io/victoriametrics/victoria-logs
-        tag: "v1.0.0-victorialogs@sha256:30ae01fbc0ef51e7b929c16f17b85112e763bb8b3427d3b2bc6495df0cbad7ac"
+        tag: "v1.20.0-victorialogs@sha256:8a9f085d46951dbfcc14739c38e262c51a9f18bf0836f5c508c1c18cd8f8f49d"
         pullPolicy: IfNotPresent
       retentionPeriod: 1 # months
       persistentVolume:
@@ -32,22 +34,21 @@ spec:
         enabled: true
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
-            ${IP_JJ_V4}
+            ${IP_JJ_V4:=127.0.0.1/32}
         ingressClassName: nginx-internal
         pathType: Prefix
         hosts:
-          - name: &host "${APP_DNS_VICTORIA_LOGS}"
+          - name: &host "${APP_DNS_VICTORIA_LOGS:=victoria-logs}"
             path: /
             port: http
         tls:
           - hosts: [*host]
       resources: # TODO: tune
         requests:
-          cpu: 10m
-          memory: 512Mi
+          cpu: 50m
         limits:
-          cpu: 3000m
-          memory: 4Gi
+          cpu: "1"
+          memory: 2560Mi
       securityContext:
         enabled: true
         allowPrivilegeEscalation: false
@@ -61,16 +62,13 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      statefulSet:
-        enabled: false
       serviceMonitor:
         enabled: true
       affinity: {} # TODO: add fuck-off
     fluent-bit:
       enabled: false # TODO: explore this
     extraObjects: []
-    global:
-      nameOverride: *app
-      victoriaLogs:
-        server:
-          fullnameOverride: *app
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
