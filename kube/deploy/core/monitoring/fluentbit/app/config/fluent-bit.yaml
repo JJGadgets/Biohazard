@@ -52,11 +52,7 @@ pipeline:
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
       uri: >-
-        /insert/jsonline?
-        _stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&
-        ignore_fields=kubernetes_annotations*&
-        _msg_field=log&
-        _time_field=date
+        /insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&ignore_fields=kubernetes_annotations*&_msg_field=log&_time_field=date
       compress: gzip
       format: json_lines
       json_date_format: iso8601
