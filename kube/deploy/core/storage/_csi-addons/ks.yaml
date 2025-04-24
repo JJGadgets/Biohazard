@@ -9,10 +9,10 @@ metadata:
     kustomization.flux.home.arpa/default: "false"
     kustomization.flux.home.arpa/helmpatches: "false"
     substitution.flux.home.arpa/disabled: "true"
-    prune.flux.home.arpa/disabled: "false"
+    prune.flux.home.arpa/disabled: "true"
 spec:
   interval: 5m
-  prune: true
+  prune: false
   wait: true
   sourceRef:
     kind: GitRepository
