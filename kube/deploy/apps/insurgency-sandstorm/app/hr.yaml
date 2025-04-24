@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: docker.io/andrewmhub/insurgency-sandstorm
-              tag: lite@sha256:1feaf25c1006c14537f4e4816d11ef93640a08adc5c87c5bda42f9d5d5aa879e
+              tag: lite@sha256:d4cf221082770cb9ae4b7d2eb4ed6e829fa4b04df48fbf773ba4b341ffc505f5
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
             env: &env

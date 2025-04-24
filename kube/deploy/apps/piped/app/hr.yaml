@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -87,7 +87,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped-proxy
-              tag: latest@sha256:0bd6fc1c8dec4518e4ea75f20e4190e77f21bcee1a7139ed89c0a582273a9978
+              tag: latest@sha256:ae8b6cc213ee00cac6f205e1fe28b5e86e99d5c5ed47c239f773f98202602f6e
             command: ["/app/piped-proxy"]
             env: *env
             securityContext: *sc

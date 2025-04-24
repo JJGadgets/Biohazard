@@ -1,14 +1,43 @@
 ---
 # yoinked from onedr0p and modified
 # info in comments is accurate as of 2023-11-25
-name: "Renovate (Manual Rebase Re-run)"
+name: "Renovate Rebase For Automerge"
 
 on:
-#  push:
-#    branches: ["renovate/**"]
+  workflow_dispatch:
+  pull_request:
+    types: ["auto_merge_enabled", "closed"]
+    branches: ["main"]
 
 jobs:
-  renovate:
-    name: Renovate
-    uses: ./.github/workflows/renovate.yaml
-    secrets: inherit
+  rebase-after:
+    name: Rebase
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.pull_request.head.ref,'renovate/') == true
+    steps:
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+          owner: "${{ github.repository_owner }}"
+
+      - name: Update branch if merged
+        if: github.event.pull_request.merged == true
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        shell: bash
+        run: |
+          for i in $(gh pr list --repo ${{ github.event.pull_request.base.repo.full_name }} --author "tinfoild[bot]" --json title,number,autoMergeRequest,headRefName | jq '.[] | select((.autoMergeRequest != null) and (.headRefName | startswith("renovate/"))) | .number'); do
+            sha=$(gh pr view ${i} --json headRefOid --jq '.headRefOid' --repo ${{ github.event.pull_request.base.repo.full_name }})
+            gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${i}/update-branch --field expected_head_sha=${sha}
+          done
+
+      - name: Update branch if automerge enabled
+        if: github.event.action == 'auto_merge_enabled'
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        shell: bash
+        run: |
+          gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}

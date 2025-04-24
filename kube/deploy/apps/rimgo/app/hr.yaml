@@ -1,9 +1,9 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app redlib
+  name: &app rimgo
   namespace: *app
 spec:
   interval: 5m
@@ -17,41 +17,27 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      redlib:
+      rimgo:
         type: deployment
         replicas: 1
-        strategy: RollingUpdate
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            egress.home.arpa/internet: allow
+            egress.home.arpa/mullvad: allow
         containers:
           main:
             image: &img
-              repository: quay.io/redlib/redlib
-              tag: latest@sha256:8c6c56472380188edc8dcd15b1a8e6741281635446b95c6ef1222f9940a96d93 # for JSON HTTP2 fix
+              repository: codeberg.org/rimgo/rimgo
+              tag: 1.3.0@sha256:1b279dafa95fd22c908f187049f97391787f67366ee5c47a0e9ce38fdfe97356
             env: &env
               TZ: "${CONFIG_TZ}"
-              REDLIB_SFW_ONLY: "off"
-              REDLIB_BANNER: "JJGadgets"
-              REDLIB_ROBOTS_DISABLE_INDEXING: "on"
-              REDLIB_DEFAULT_THEME: "dracula"
-              REDLIB_DEFAULT_FRONT_PAGE: "default"
-              REDLIB_DEFAULT_LAYOUT: "card"
-              REDLIB_DEFAULT_WIDE: "on"
-              REDLIB_DEFAULT_POST_SORT: "hot"
-              REDLIB_DEFAULT_COMMENT_SORT: "confidence"
-              REDLIB_DEFAULT_SHOW_NSFW: "on"
-              REDLIB_DEFAULT_BLUR_NSFW: "on"
-              REDLIB_DEFAULT_AUTOPLAY_VIDEOS: "off"
-              REDLIB_DEFAULT_DISABLE_VISIT_REDDIT_CONFIRMATION: "false"
-              REDLIB_ENABLE_RSS: "on"
-              REDLIB_FULL_URL: "https://${APP_DNS_REDLIB}"
-              REDLIB_SUBSCRIPTIONS:
-                valueFrom:
-                  secretKeyRef:
-                    name: redlib-secrets
-                    key: subscriptions
+              PORT: &http 3000
+              SECURE: true
+              HTTP_PROXY: socks5://10.64.0.1:1080
+              HTTPS_PROXY: socks5://10.64.0.1:1080
+            envFrom: &envFrom
+              - secretRef:
+                  name: rimgo-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -62,43 +48,48 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "256Mi"
+                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
     service:
-      redlib:
-        controller: redlib
+      rimgo:
+        controller: rimgo
         ports:
           http:
-            port: 8080
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_REDLIB:=redlib}"
+          - host: &host "${APP_DNS_RIMGO:=rimgo}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: redlib
+                  identifier: rimgo
                   port: http
         tls:
           - hosts: [*host]
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
             value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_REDLIB:=1000}
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -108,5 +99,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/redlib
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist

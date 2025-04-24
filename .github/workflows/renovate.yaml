@@ -76,7 +76,7 @@ jobs:
       packages: read # for private GHCR packages
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
@@ -115,6 +115,6 @@ jobs:
           sudo chown -R 12021:$(id -g) /tmp/renovate
 
       - name: Renovate
-        uses: renovatebot/github-action@02f4fdeb479bbb229caa7ad82cb5e691c07e80b3 # v41.0.14
+        uses: renovatebot/github-action@19e3d87179488d6a0cd9da744d37123ea4b338e5 # v41.0.20
         with:
           token: "${{ steps.oauth-token.outputs.token }}"
