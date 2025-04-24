@@ -34,6 +34,9 @@ spec:
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
+            # for OIDC sources
+            egress.home.arpa/discord: allow
+            egress.home.arpa/github: allow
           topologySpreadConstraints:
             - &tsc
               maxSkew: 1
