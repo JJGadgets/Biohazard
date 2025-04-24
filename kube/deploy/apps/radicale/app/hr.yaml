@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.1
+      version: 3.7.3
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -26,7 +26,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/radicale
-              tag: 3.5.0@sha256:8e8b4bf567e90965cfaee66d0fe775f762d8dd2eae34c9df0457508bc7666975
+              tag: 3.5.2@sha256:81dd74b2d54733c3af99991dc379b7351f87433518cab2e733d655e4537d0be5
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

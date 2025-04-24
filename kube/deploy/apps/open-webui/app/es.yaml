@@ -13,11 +13,19 @@ spec:
   dataFrom:
     - extract:
         key: "Open WebUI - ${CLUSTER_NAME}"
+    - extract:
+        key: "Cloudflare - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
-    # template:
-    #   type: Opaque
-    #   data:
-    #     age.agekey: '{{ .agekey }}'
+    template:
+      type: Opaque
+      data:
+        # auth
+        OAUTH_CLIENT_ID: "{{ .OAUTH_CLIENT_ID }}"
+        OAUTH_CLIENT_SECRET: "{{ .OAUTH_CLIENT_SECRET }}"
+        WEBUI_SECRET_KEY: "{{ .WEBUI_SECRET_KEY }}"
+        # Cloudflare
+        CLOUDFLARE_ACCOUNT_ID: "{{ .CLOUDFLARE_ACCOUNT_ID }}"
+        OPENAI_API_KEY: "{{ .CLOUDFLARE_API_KEY_WORKERS_AI }}"
