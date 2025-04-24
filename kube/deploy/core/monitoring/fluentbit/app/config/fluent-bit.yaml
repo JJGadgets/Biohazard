@@ -19,7 +19,7 @@ pipeline:
       "k8s-logging.parser": "on"
       "k8s-logging.exclude": "on"
       namespace_labels: "on"
-      annotations: "off" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
+      annotations: "on" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
       namespace_annotations: "off"
       # owner_references: "on"
       # use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
@@ -51,7 +51,8 @@ pipeline:
       match: '*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
-      uri: '/insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&_msg_field=log&_time_field=date'
+      uri: >-
+        /insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&ignore_fields=kubernetes_annotations*&_msg_field=log&_time_field=date
       compress: gzip
       format: json_lines
       json_date_format: iso8601
