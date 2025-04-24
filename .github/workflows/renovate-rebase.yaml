@@ -6,12 +6,8 @@ name: "Renovate Rebase For Automerge"
 on:
   workflow_dispatch:
   pull_request:
-    types: ["auto_merge_enabled"]
+    types: ["auto_merge_enabled", "closed"]
     branches: ["main"]
-
-# concurrency:
-#   group: "renovate-rebase-automerge"
-#   cancel-in-progress: false
 
 jobs:
   rebase-after:
@@ -27,43 +23,21 @@ jobs:
           private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
           owner: "${{ github.repository_owner }}"
 
-      - name: Update branch
+      - name: Update branch if merged
+        if: github.event.pull_request.merged == true
         env:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
-          getOtherRuns () {
-            echo "\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status in_progress --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status queued --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status waiting --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status requested --json headBranch --jq '.[].headBranch')\
-              $(gh run list --repo ${{ github.event.pull_request.base.repo.full_name }} --workflow=kube-flux-diff.yaml --status pending --json headBranch --jq '.[].headBranch')\
-              " | grep "\S"
-          }
-          getOtherRunsCount () {
-            echo -n "$(getOtherRuns | wc -l)"
-          }
-          getOtherRuns
-          getOtherRunsCount
-          while true; do
-            runsCount="$(getOtherRunsCount)"
-            getOtherRuns
-            echo "run 1 $runsCount"
-            if [[ "${runsCount}" == "0" ]]; then # 1 run because current
-              sleep 2
-              runsCount2="$(getOtherRunsCount)"
-              getOtherRuns
-              echo "run 2 $runsCount2"
-              if [[ "${runsCount2}" == "0" ]]; then
-                echo "run"
-                # gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
-                break
-              else
-                echo "not yet at $(date -I), pass 1"
-              fi
-            else
-              echo "not yet at $(date -I), all fail"
-            fi
-            sleep 1
+          for i in $(gh pr list --repo ${{ github.event.pull_request.base.repo.full_name }} --author "tinfoild[bot]" --json title,number,autoMergeRequest,headRefName | jq '.[] | select((.autoMergeRequest != null) and (.headRefName | startswith("renovate/"))) | .number'); do
+            sha=$(gh pr view ${i} --json headRefOid --jq '.headRefOid' --repo ${{ github.event.pull_request.base.repo.full_name }})
+            gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${i}/update-branch --field expected_head_sha=${sha}
           done
+
+      - name: Update branch if automerge enabled
+        if: github.event.action == 'auto_merge_enabled'
+        env:
+          GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
+        shell: bash
+        run: |
+          gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
