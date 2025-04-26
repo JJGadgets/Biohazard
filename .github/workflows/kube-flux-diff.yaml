@@ -4,7 +4,7 @@ name: "Flux Diff"
 on:
   pull_request:
     branches: ["main"]
-    paths: ["kube/**.yaml", ".github/workflows/kube-flux-diff.yaml"]
+    # paths: ["kube/**.yaml", ".github/workflows/kube-flux-diff.yaml"] # can't have this since ks diff is a required check now
 
 jobs:
   flux-diff:
@@ -18,7 +18,7 @@ jobs:
         resource: ["helmrelease", "kustomization"]
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
@@ -31,7 +31,7 @@ jobs:
           version: "2.5.1"
 
       - name: Diff Resources
-        uses: allenporter/flux-local/action/diff@1c5568b09bdd941ec029312fd44aeffb194ef766 # 5.5.1
+        uses: allenporter/flux-local/action/diff@23b8f4e593254e34b2913728007c419b52789382 # 7.3.0
         #uses: allenporter/flux-local/action/diff@flux-build
         id: diff
         with:

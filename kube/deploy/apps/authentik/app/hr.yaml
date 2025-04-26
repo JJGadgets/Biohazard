@@ -34,6 +34,9 @@ spec:
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
+            # for OIDC sources
+            egress.home.arpa/discord: allow
+            egress.home.arpa/github: allow
           topologySpreadConstraints:
             - &tsc
               maxSkew: 1
@@ -304,7 +307,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.2@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9"
+              tag: "7.4.3@sha256:8bc666424ef252009ed34b0432564cabbd4094cd2ce7829306cb1f5ee69170be"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc
