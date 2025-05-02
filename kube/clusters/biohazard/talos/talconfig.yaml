@@ -568,10 +568,12 @@ controlPlane:
             enabled: true
             allowedRoles:
               - os:admin
+              - os:operator
             allowedKubernetesNamespaces:
               - system-upgrade-controller
               - talos-backup
               - code-server
+              - talosctl-image-pull-agent
 
     - &MutatingAdmissionPolicy |
       cluster:

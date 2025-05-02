@@ -1,0 +1,115 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app talosctl-image-pull-agent
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      talosctl-image-pull-agent:
+        type: daemonset
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/talos: allow
+        containers:
+          main:
+            image: &img
+              repository: jank.ing/jjgadgets/talosctl-image-pull-agent
+              tag: 1.9.5@sha256:9a20301eea99be43777105fbc4094ce4a9a6b357a5bbc6e548efc13c55a54c3f
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              NODE:
+                fieldRef:
+                  fieldPath: status.hostIP
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      talosctl-image-pull-agent:
+        controller: talosctl-image-pull-agent
+        ports:
+          http:
+            port: 80
+            targetPort: 9000
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_TALOSCTL_IMAGE_PULL_AGENT:=talosctl-image-pull-agent}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: talosctl-image-pull-agent
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      talos-admin:
+        type: secret
+        name: "talos"
+        defaultMode: 0400
+        advancedMounts:
+          talosctl-image-pull-agent:
+            main:
+              - path: "/var/run/secrets/talos.dev"
+                readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
+                    operator: DoesNotExist

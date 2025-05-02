@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app minio-nas
@@ -35,7 +35,7 @@ spec:
             env:
               TZ: "${CONFIG_TZ}"
               MINIO_VOLUMES: "/data"
-              MINIO_DOMAIN: &s3 "${APP_DNS_MINIO_NAS_S3}"
+              MINIO_DOMAIN: &s3 "${APP_DNS_MINIO_NAS_S3:=minio-nas}"
               MINIO_COMPRESSION_ENABLE: "on"
               MINIO_BROWSER_LOGIN_ANIMATION: "off"
               MINIO_BROWSER_REDIRECT: "false"
@@ -52,7 +52,7 @@ spec:
               requests:
                 cpu: "100m"
               limits:
-                cpu: "3000m"
+                cpu: "1"
                 memory: "2Gi"
             ports:
               - name: s3
@@ -107,8 +107,8 @@ spec:
         controller: main
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_MINIO_NAS_S3}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_MINIO_NAS_S3}"
+          coredns.io/hostname: "${APP_DNS_MINIO_NAS_S3:=minio-nas}"
+          "io.cilium/lb-ipam-ips": "${APP_IP_MINIO_NAS_S3:=127.0.0.1}"
         ports:
           http:
             port: 443
@@ -126,7 +126,7 @@ spec:
             proxy_ssl_name ${APP_DNS_MINIO_NAS_S3};
             proxy_ssl_server_name on;
         hosts:
-          - host: &host "${APP_DNS_MINIO_NAS}"
+          - host: &host "${APP_DNS_MINIO_NAS:=minio-nas}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -144,8 +144,8 @@ spec:
         type: "custom"
         volumeSpec:
           iscsi:
-            targetPortal: "${IP_TRUENAS}:3260"
-            iqn: "${CONFIG_TRUENAS_IQN}:minio"
+            targetPortal: "${IP_TRUENAS:=127.0.0.1}:3260"
+            iqn: "${CONFIG_TRUENAS_IQN:=truenas}:minio"
             lun: 0
             fsType: "xfs" # MinIO recommendation
         globalMounts:
@@ -170,7 +170,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_MINIO_NAS}
+        runAsUser: &uid ${APP_UID_MINIO_NAS:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: "Always"
