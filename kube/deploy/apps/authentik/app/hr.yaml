@@ -54,12 +54,13 @@ spec:
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
+              # PostgreSQL
               AUTHENTIK_POSTGRESQL__HOST:
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
-                    #key: pgbouncer-host
-                    key: host
+                    key: pgbouncer-host
+                    # key: host
               AUTHENTIK_POSTGRESQL__PORT:
                 valueFrom:
                   secretKeyRef:
@@ -81,16 +82,23 @@ spec:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: password
-              #AUTHENTIK_POSTGRESQL__USE_PGBOUNCER: "true"
               AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
+              AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG than Redis
+              # pgBouncer
+              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: "0" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: "true"
+              AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
+              # KV cache
               AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
-              AUTHENTIK_SESSION_STORAGE: "db"
+              # media storage
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
               AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
+              # misc
               AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               AUTHENTIK_OUTPOSTS__DISCOVER: "false"
+              # error reporting
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
             envFrom: &envFrom
@@ -106,7 +114,7 @@ spec:
                 cpu: "30m"
                 memory: "600Mi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "2Gi"
             ports:
               - name: http
