@@ -132,15 +132,26 @@ spec:
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: *host
-            paths: &paths
-              - path: /
+            paths:
+              - &path
+                path: /
                 pathType: Prefix
                 service:
                   identifier: gotosocial
                   port: http
-        tls:
+        tls: &tls
           - hosts: [*host]
             secretName: gotosocial-tls
+      media:
+        className: nginx-public
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: "10M"
+        hosts:
+          - host: *host
+            paths:
+              - <<: *path
+                path: /api/v1/media
+        tls: *tls
     persistence:
       tmp:
         type: emptyDir
