@@ -55,7 +55,8 @@
         "description": "Process aqua and ubi packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "^(?:\"aqua:|\"ubi:|[^[:punct:]])+(?<depName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
+          "^\"(?:aqua|ubi):+(?<depName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\"",
+          "^(?<depName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
         ],
         "datasourceTemplate": "github-releases",
         "versioningTemplate": "semver",
