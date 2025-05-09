@@ -88,6 +88,7 @@
     },
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
+      "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback", "bump"],
       "semanticCommitType": "chore",
       "semanticCommitScope": "mise/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
     }
