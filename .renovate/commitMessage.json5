@@ -88,12 +88,8 @@
     },
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
+      "semanticCommitType": "chore",
       "semanticCommitScope": "mise/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
-    },
-    {
-      "matchFileNames": [".mise.toml", "mise.toml"],
-      "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(mise/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     }
   ]
 }
