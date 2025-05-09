@@ -60,7 +60,7 @@
         ],
         "datasourceTemplate": "github-releases",
         "versioningTemplate": "semver",
-        "packageNameTemplate": "{{#if (lookup (split depName '/') 1)}}{{depName}}/{{/if}}{{depName}}",
+        "packageNameTemplate": "{{#if (lookup (split depName '/') 1)}}{{depName}}{{else}}{{depName}}/{{depName}}{{/if}}",
         "extractVersionTemplate": "^v?(?<version>.*)$"
       }
     ]
