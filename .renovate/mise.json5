@@ -15,7 +15,7 @@
         "description": "Process aqua and ubi packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "\"?(?:aqua:|ubi:)?(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
+          "\"?(?:aqua:|ubi:)?(?<packageName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
         ],
         "datasourceTemplate": "github-releases",
         "versioningTemplate": "semver",
@@ -26,7 +26,7 @@
         "description": "Process Go packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "\"go:(?<packageName>[\\w\\-\\/\\.]*)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+          "\"go:(?<packageName>[\\w\\-\\/\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
         ],
         "datasourceTemplate": "go",
         "versioningTemplate": "semver"
@@ -36,7 +36,7 @@
         "description": "Process cargo packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "\"cargo:(?<packageName>[\\w\\-\\/]*)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+          "\"cargo:(?<packageName>[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
         ],
         "datasourceTemplate": "crate",
         "versioningTemplate": "cargo"
@@ -46,7 +46,7 @@
         "description": "Process npm packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "\"npm:(?<packageName>@?[\\w\\-\\/]*)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+          "\"npm:(?<packageName>@?[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
         ],
         "datasourceTemplate": "npm",
         "versioningTemplate": "semver"
@@ -56,7 +56,7 @@
         "description": "Process pipx packages in mise.toml",
         "fileMatch": [".mise.toml", "mise.toml"],
         "matchStrings": [
-          "\"pipx:(?<packageName>[\\w\\-\\.]*)\" = \\[?\"(?<currentValue>[\\d\\.]+|latest)\""
+          "\"pipx:(?<packageName>[\\w\\-\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+|latest)\""
         ],
         "datasourceTemplate": "pypi",
         "versioningTemplate": "pep440"
