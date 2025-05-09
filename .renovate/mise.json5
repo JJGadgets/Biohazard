@@ -1,73 +1,78 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    //"mise": { "enabled": false },
-    "packageRules": [
-      {
-        "matchFileNames": [".mise.toml", "mise.toml"],
-        "semanticCommitType": "chore",
-        "semanticCommitScope": "mise"
-      },
-      {
-        "matchFileNames": [".mise.toml", "mise.toml"],
-        "addLabels": ["renovate/mise"]
-      },
-      {
-        "matchFileNames": [".mise.toml", "mise.toml"],
-        "additionalBranchPrefix": "mise/"
-      }
-    ],
-    "customManagers": [
-      {
-        "customType": "regex",
-        "description": "Process Go packages in mise.toml",
-        "fileMatch": [".mise.toml", "mise.toml"],
-        "matchStrings": [
-          "\"go:(?<depName>[\\w\\-\\/\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
-        ],
-        "datasourceTemplate": "go",
-        "versioningTemplate": "semver"
-      },
-      {
-        "customType": "regex",
-        "description": "Process cargo packages in mise.toml",
-        "fileMatch": [".mise.toml", "mise.toml"],
-        "matchStrings": [
-          "\"cargo:(?<depName>[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
-        ],
-        "datasourceTemplate": "crate",
-        "versioningTemplate": "cargo"
-      },
-      {
-        "customType": "regex",
-        "description": "Process npm packages in mise.toml",
-        "fileMatch": [".mise.toml", "mise.toml"],
-        "matchStrings": [
-          "\"npm:(?<packageName>@?[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
-        ],
-        "datasourceTemplate": "npm",
-        "versioningTemplate": "semver"
-      },
-      {
-        "customType": "regex",
-        "description": "Process pipx packages in mise.toml",
-        "fileMatch": [".mise.toml", "mise.toml"],
-        "matchStrings": [
-          "\"pipx:(?<depName>[\\w\\-\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+|latest)\""
-        ],
-        "datasourceTemplate": "pypi",
-        "versioningTemplate": "pep440"
-      },
-      {
-        "customType": "regex",
-        "description": "Process aqua and ubi packages in mise.toml",
-        "fileMatch": [".mise.toml", "mise.toml"],
-        "matchStrings": [
-          "^(?:\"aqua:|\"ubi:)?(?<depName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
-        ],
-        "datasourceTemplate": "github-releases",
-        "versioningTemplate": "semver",
-        "packageNameTemplate": "{{#if (lookup (split depName '/') 1)}}{{depName}}{{else}}{{depName}}/{{depName}}{{/if}}",
-        "extractVersionTemplate": "^v?(?<version>.*)$"
-      }
-    ]
-  }
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  //"mise": { "enabled": false },
+  "packageRules": [
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "mise"
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "addLabels": ["renovate/mise"]
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "additionalBranchPrefix": "mise/"
+    },
+    {
+      "description": "Mise GitHub: Use package name as user/org if no user/org",
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "matchDatasources": ["github-releases"],
+      "overridePackageName": "{{#if (lookup (split packageName '/') 1)}}{{packageName}}{{else}}{{depName}}/{{depName}}{{/if}}"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Process Go packages in mise.toml",
+      "fileMatch": [".mise.toml", "mise.toml"],
+      "matchStrings": [
+        "\"go:(?<packageName>[\\w\\-\\/\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+      ],
+      "datasourceTemplate": "go",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Process cargo packages in mise.toml",
+      "fileMatch": [".mise.toml", "mise.toml"],
+      "matchStrings": [
+        "\"cargo:(?<packageName>[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+      ],
+      "datasourceTemplate": "crate",
+      "versioningTemplate": "cargo"
+    },
+    {
+      "customType": "regex",
+      "description": "Process npm packages in mise.toml",
+      "fileMatch": [".mise.toml", "mise.toml"],
+      "matchStrings": [
+        "\"npm:(?<packageName>@?[\\w\\-\\/]+)\" = \\[?\"(?<currentValue>[\\d\\.]+)\""
+      ],
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Process pipx packages in mise.toml",
+      "fileMatch": [".mise.toml", "mise.toml"],
+      "matchStrings": [
+        "\"pipx:(?<packageName>[\\w\\-\\.]+)\" = \\[?\"(?<currentValue>[\\d\\.]+|latest)\""
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
+    },
+    {
+      "customType": "regex",
+      "description": "Process aqua and ubi packages in mise.toml",
+      "fileMatch": [".mise.toml", "mise.toml"],
+      "matchStrings": [
+        "^(?:\"aqua:|\"ubi:)?(?<packageName>[\\w\\-\\/]+)\"? = \\[?\"(?<currentValue>[\\d\\.]+|latest|v[\\d\\.]+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    }
+  ]
+}
