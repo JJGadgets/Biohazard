@@ -85,6 +85,15 @@
       "matchUpdateTypes": ["major"],
       "matchFileNames": [".github/workflows/**"],
       "commitMessagePrefix": "feat(gha/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "semanticCommitScope": "mise/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(mise/{{#if groupName}}{{groupName}}{{else}}{{depName}}{{/if}})!: "
     }
   ]
 }
