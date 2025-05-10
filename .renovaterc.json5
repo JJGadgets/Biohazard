@@ -12,17 +12,17 @@
     ":automergeDigest",
     ":automergeBranch",
     ":timezone(Asia/Singapore)",
+    "security:openssf-scorecard",
+    "helpers:pinGitHubActionDigests",
     //"github>JJGadgets/Biohazard//.renovate/grafanaDashboards.json5",
     "github>buroa/k8s-gitops//.renovate/grafanaDashboards.json5#1b97193da1d11d80918f02de13840aa9f28ef06f",
+    "github>JJGadgets/Biohazard//.renovate/mise.json5",
     "github>JJGadgets/Biohazard//.renovate/groups.json5",
     "github>JJGadgets/Biohazard//.renovate/clusters.json5",
-    "github>JJGadgets/Biohazard//.renovate/mise.json5",
     "github>JJGadgets/Biohazard//.renovate/commitMessage.json5",
     "github>JJGadgets/Biohazard//.renovate/labels.json5",
-    "github>JJGadgets/Biohazard//.renovate/security.json5",
-    //"github>mirceanton/renovate-config//custom-manager-mise.json5#563f485db859084f436e7ce9ff30587263fdec12",
-    "security:openssf-scorecard",
-    "helpers:pinGitHubActionDigests"
+    "github>JJGadgets/Biohazard//.renovate/security.json5"
+    //"github>mirceanton/renovate-config//custom-manager-mise.json5#563f485db859084f436e7ce9ff30587263fdec12"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
@@ -30,18 +30,18 @@
   "rebaseWhen": "behind-base-branch", // automerge needs this, and because I keep breaking my shit lol
   // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
   // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
-  "ignorePaths": ["**/archive/**", "**/.archive/**", "**/**.sops.**"],
+  "ignorePaths": ["**/archive/**", "**/.archive/**", "**/**.sops.**", "./.git", "**/ignore/**"],
   "flux": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "fileMatch": ["^kube/.+\\.ya?ml$"]
   },
   "helm-values": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "fileMatch": ["^kube/.+\\.ya?ml$"]
   },
   "kubernetes": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "fileMatch": ["^kube/.+\\.ya?ml$"]
   },
   "kustomize": {
-    "fileMatch": ["^kube/.+\\.ya?ml$"],
+    "fileMatch": ["^kube/.+\\.ya?ml$"]
   },
   "customManagers": [
     {
@@ -59,6 +59,42 @@
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    },
+    {
+      "description": ["app-template schemas"],
+      "customType": "regex",
+      "fileMatch": ["^kube/.+\\.ya?ml$"],
+      "matchStrings": [
+        "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\/(?<currentValue>app\\-template\\-[\\d\\.]+)"
+      ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^app-template-(?<version>.*)$"
     }
+    //{
+    //  "description": "app-template schemas Flux API",
+    //  "customType": "regex",
+    //  "fileMatch": ["^kube/.+\\.ya?ml$"],
+    //  "matchStrings": [
+    //    "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/bjw-s\\/helm-charts\\/app-template-[\\S](?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\-(?<currentValue>v[\\w\\d]+).yaml$" // incomplete
+    //  ],
+    //  "datasourceTemplate": "kubernetes-api",
+    //  "versioningTemplate": "kubernetes-api",
+    //  "extractVersionTemplate": "^app-template-(?<version>.*)$"
+    //}
+//# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+//Renovate	Renovate	2025-05-09T23:08:51.9345050Z              {
+//Renovate	Renovate	2025-05-09T23:08:51.9345185Z                "datasource": "kubernetes-api",
+//Renovate	Renovate	2025-05-09T23:08:51.9345318Z                "depName": "HelmRelease",
+//Renovate	Renovate	2025-05-09T23:08:51.9345442Z                "displayPending": "",
+//Renovate	Renovate	2025-05-09T23:08:51.9345610Z                "fixedVersion": "helm.toolkit.fluxcd.io/v2beta2",
+//Renovate	Renovate	2025-05-09T23:08:51.9345785Z                "currentVersion": "helm.toolkit.fluxcd.io/v2beta2",
+//Renovate	Renovate	2025-05-09T23:08:51.9345946Z                "currentValue": "helm.toolkit.fluxcd.io/v2beta2",
+//Renovate	Renovate	2025-05-09T23:08:51.9346173Z                "newValue": "helm.toolkit.fluxcd.io/v2",
+//Renovate	Renovate	2025-05-09T23:08:51.9346324Z                "newVersion": "helm.toolkit.fluxcd.io/v2",
+//Renovate	Renovate	2025-05-09T23:08:51.9346537Z                "packageFile": "kube/deploy/core/_networking/bird/app/hr.yaml",
+//Renovate	Renovate	2025-05-09T23:08:51.9346672Z                "updateType": "patch",
+//Renovate	Renovate	2025-05-09T23:08:51.9346804Z                "packageName": "HelmRelease"
+//Renovate	Renovate	2025-05-09T23:08:51.9346919Z              }
   ]
 }
