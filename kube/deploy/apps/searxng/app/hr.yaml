@@ -29,9 +29,10 @@ spec:
             image: &img
               repository: "docker.io/searxng/searxng"
               tag: "latest@sha256:264eec112d0345325c8a63b9c3d20ccf86970bee1e6dfdaa795f5b3467e7519d"
-            command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "--http-socket", "[::]:8080", "/usr/local/searxng/dockerfiles/uwsgi.ini"]
+            command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "/usr/local/searxng/container/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
+              BIND_ADDRESS: "[::]:8080"
               UWSGI_THREADS: &cpu
                 valueFrom:
                   resourceFieldRef:
@@ -62,10 +63,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "32Mi"
               limits:
                 cpu: "1000m"
-                memory: "512Mi"
+                memory: "32Mi"
     service:
       main:
         ports:
