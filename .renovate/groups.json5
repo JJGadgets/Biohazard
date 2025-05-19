@@ -61,8 +61,7 @@
     {
       "description": "Flux Group",
       "groupName": "Flux",
-      "matchPackageNames": ["**flux**", "!**miniflux**"],
-      "matchDatasources": ["docker", "github-tags"],
+      "matchPackageNames": ["**fluxcd**", "**flux2**", "!**miniflux**"],
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2"
     },
@@ -103,8 +102,10 @@
     },
     {
       "description": "Talos",
-      "matchPackageNames": ["**siderolabs/installer"],
-      "overrideDepName": "{{{ replace 'installer' 'talos' depName }}}"
+      "groupName": "Talos",
+      "matchPackageNames": ["**siderolabs/installer", "**siderolabs/talos"],
+      "overrideDepName": "{{{ replace 'installer' 'talos' depName }}}",
+      "versioning": "semver"
     },
     {
       "description": "Kubernetes Group",
