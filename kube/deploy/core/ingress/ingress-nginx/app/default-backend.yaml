@@ -26,7 +26,7 @@ spec:
       type: daemonset
     image:
       repository: "jank.ing/jjgadgets/jjgadgets-error-page-ingress-nginx"
-      tag: "1.0.0-caddy-2.7.5@sha256:3e585370405b58b5ee620b8ed767b950c20676b3535bcb7e86dafc0150f44574"
+      tag: "1.0.0-caddy-2.7.5@sha256:3a9f8db93633f0b7130100825806189c4d5b048c04df4037b9b4092490de9948"
     env:
       AUTHENTIK_BACKEND: http://authentik.authentik.svc.cluster.local:9000
     service:
