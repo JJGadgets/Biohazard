@@ -28,7 +28,7 @@ spec:
           main: &mlc
             image: &img
               repository: jank.ing/jjgadgets/mlc-llm
-              tag: 0.19.0@sha256:0c7428cdbf8435ca10e52b4ca564278e48c24ec639c017260cdd39baa3a95384
+              tag: 0.19.0@sha256:97b03226ba40237c7e235644f14d2729a41477cca342d86f0661a77220fe0ad1
             args: ["HF://mlc-ai/$(MODEL)", "--enable-debug", "--overrides", "max_num_sequence=1;max_total_seq_length=$(CONTEXT_SIZE)"]
             env: &envMain
               TZ: "${CONFIG_TZ}"
