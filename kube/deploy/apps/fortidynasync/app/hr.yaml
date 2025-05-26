@@ -28,9 +28,10 @@ spec:
           main:
             image: &img
               repository: ghcr.io/jjgadgets/fortidynasync
-              tag: 0.0.2@sha256:daed7f47d95212fd9a9c1af9124d536bd534575610386bc75c847b56352d23d4
+              tag: 0.0.3@sha256:f23521c8e80393f73d160cd7764e3d8e798880479c580c10a29c474de77af89a
             env: &env
               TZ: "${CONFIG_TZ}"
+              FGT_VCI: "true"
             envFrom: &envFrom
               - secretRef:
                   name: fortidynasync-secrets
