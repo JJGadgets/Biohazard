@@ -5,16 +5,18 @@ metadata:
   name: node-exporter
   namespace: monitoring
 spec:
+  scrapeInterval: 1m
+  scrapeTimeout: 5s
   staticConfigs:
     - targets:
-        - &router "${IP_ROUTER_VLAN_K8S}:9100"
+        # - &router "${IP_ROUTER_VLAN_K8S}:9100"
         - &blackhawk "${IP_BLACKHAWK}:9100" # My laptop
   metricsPath: "/metrics"
   relabelings:
-    - sourceLabels: ["__address__"]
-      targetLabel: "instance"
-      regex: *router
-      replacement: "opnsense:9100"
+    # - sourceLabels: ["__address__"]
+    #   targetLabel: "instance"
+    #   regex: *router
+    #   replacement: "opnsense:9100"
     - sourceLabels: ["__address__"]
       targetLabel: "instance"
       regex: *blackhawk
