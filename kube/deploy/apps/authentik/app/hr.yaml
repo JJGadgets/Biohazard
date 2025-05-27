@@ -551,7 +551,6 @@ spec:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
       vm-ad:
-        nameOverride: vm-ad
         controller: worker
         policyTypes: [Egress]
         rules:
