@@ -40,16 +40,17 @@ jobs:
         run: |
           mkdir split && cd split
           mkdir -p ${{ matrix.path }}/${{ matrix.resource }}
+          mkdir -p final/${{ matrix.path }}/${{ matrix.resource }}
           # echo 'CURRENTPATH=${{ matrix.path }}' | sed -e 's/\//-/g' >> "${GITHUB_ENV}"
-          cat <<EOF | split -C 65520 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}/
+          cat <<EOF | split -C 65520 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}/out
           ${{ steps.diff.outputs.diff }}
           EOF
           readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
           IFS=$'%' echo "${splitfiles[*]}"
           for i in "${splitfiles[@]}"; do
-            echo '```diff' > "final-${i}"
-            cat "${i}" >> "final-${i}"
-            echo '```' >> "final-${i}"
+            echo '```diff' > "final/${i}"
+            cat "${i}" >> "final/${i}"
+            echo '```' >> "final/${i}"
           done
           jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
 
