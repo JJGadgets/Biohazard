@@ -6,7 +6,8 @@ metadata:
   name: nighthawk-windows-exporter
   namespace: monitoring
 spec:
-  # TODO: set default intervals to debug memory spikes
+  scrapeInterval: 1m
+  scrapeTimeout: 5s
   staticConfigs:
     - targets:
         - &ip "${IP_NIGHTHAWK}:9182"
@@ -23,8 +24,8 @@ metadata:
   name: nighthawk-nvidia
   namespace: monitoring
 spec:
-  # scrapeInterval: "2s"
-  # scrapeTimeout: "1s"
+  scrapeInterval: 1m
+  scrapeTimeout: 5s
   staticConfigs:
     - targets:
         - &ip "${IP_NIGHTHAWK}:9835"

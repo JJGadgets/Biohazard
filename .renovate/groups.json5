@@ -119,7 +119,8 @@
       "matchDatasources": ["helm"],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
-      "separateMinorPatch": true
+      "separateMinorPatch": true,
+      "additionalBranchPrefix": "{{ currentVersion }}-to-"
     },
     {
       "description": "Manually approve app-template major releases",

@@ -15,14 +15,14 @@ prometheus:
     scrapeInterval: "60s"
     #scrapeInterval: "30s"
     #scrapeTimeout: "15s"
-    replicas: 3
+    replicas: 1
     retention: 14d
     retentionSize: 30GB
     walCompression: true
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: local
+          storageClassName: block
           resources:
             requests:
               storage: 35Gi
