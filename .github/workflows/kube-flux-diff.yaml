@@ -37,8 +37,8 @@ jobs:
       - name: Split diff output # to fit Linux argument list & GitHub API limitations
         id: split
         shell: bash
-        working-directory: split
         run: |
+          mkdir split && cd split
           mkdir ${{ matrix.path }}/${{ matrix.resource }}
           # echo 'CURRENTPATH=${{ matrix.path }}' | sed -e 's/\//-/g' >> "${GITHUB_ENV}"
           cat <<EOF | split -C 65536 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}
