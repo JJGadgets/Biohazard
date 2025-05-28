@@ -47,9 +47,9 @@ jobs:
           readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
           IFS=$'%' echo "${splitfiles[*]}"
           for i in "${splitfiles[@]}"; do
-            cat <<\EOF > "${i}"
+            cat <<EOF > "${i}"
             ```diff
-            $(cat "${i}" | printf %s)
+            "$(cat "${i}")"
             ```
             EOF
           done
