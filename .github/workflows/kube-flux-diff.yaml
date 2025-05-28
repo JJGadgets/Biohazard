@@ -8,7 +8,7 @@ on:
 
 jobs:
   flux-diff:
-    name: Flux Diff - Run
+    name: Flux Diff
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -52,16 +52,18 @@ jobs:
             cat "${i}" >> "final/${i}"
             echo '```' >> "final/${i}"
           done
+          echo 'artifact=${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}' | sed -e 's/\//_/g' >> "$GITHUB_OUTPUT"
           echo -n "files=" >> "$GITHUB_OUTPUT"
           jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
 
       - name: Upload Splits
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}"
+          name: "${{ steps.split.outputs.artifact }}"
           path: split
     outputs:
-      files: ${{ steps.split.outputs.files }}
+      files: "${{ steps.split.outputs.files }}"
+      artifact: "${{ steps.split.outputs.artifact }}"
 
   add-comments:
     name: Flux Diff - Add Comments
@@ -84,7 +86,7 @@ jobs:
       - name: Download Splits
         uses: actions/download-artifact@v4
         with:
-          name: "${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}"
+          name: "${{ needs.flux-diff.outputs.artifact }}"
       - name: Add comment
         uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         with:
