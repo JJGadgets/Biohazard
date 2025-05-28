@@ -47,11 +47,9 @@ jobs:
           readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
           IFS=$'%' echo "${splitfiles[*]}"
           for i in "${splitfiles[@]}"; do
-            cat <<EOF > "${i}"
-            ```diff
-            $(printf %s "$(< "${i}")")
-            ```
-            EOF
+            echo '```diff' > "final-${i}"
+            cat "${i}" >> "final-${i}"
+            echo '```' >> "final-${i}"
           done
           jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
       - name: Upload Splits
