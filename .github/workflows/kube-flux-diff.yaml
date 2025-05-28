@@ -49,7 +49,7 @@ jobs:
           for i in "${splitfiles[@]}"; do
             cat <<\EOF > "${i}"
             ```diff
-            $(cat "${i}")
+            $(cat "${i}" | printf %s)
             ```
             EOF
           done
