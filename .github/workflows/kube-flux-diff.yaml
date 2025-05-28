@@ -87,6 +87,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: "${{ needs.flux-diff.outputs.artifact }}"
+      - run: |
+          cat ${{ matrix.files }}
       - name: Add comment
         uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         with:
