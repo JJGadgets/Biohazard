@@ -8,7 +8,7 @@ on:
 
 jobs:
   flux-diff:
-    name: Flux Diff
+    name: Flux Diff - Run
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -41,7 +41,7 @@ jobs:
           mkdir split && cd split
           mkdir -p ${{ matrix.path }}/${{ matrix.resource }}
           # echo 'CURRENTPATH=${{ matrix.path }}' | sed -e 's/\//-/g' >> "${GITHUB_ENV}"
-          cat <<EOF | split -C 65520 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}
+          cat <<EOF | split -C 65520 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}/
           ${{ steps.diff.outputs.diff }}
           EOF
           readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
@@ -52,6 +52,7 @@ jobs:
             echo '```' >> "final-${i}"
           done
           jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
+
       - name: Upload Splits
         uses: actions/upload-artifact@v4
         with:
@@ -61,7 +62,7 @@ jobs:
       files: ${{ steps.split.outputs.files }}
 
   add-comments:
-    name: Add Comments
+    name: Flux Diff - Add Comments
     needs: [flux-diff]
     runs-on: ubuntu-latest
     permissions:
