@@ -52,6 +52,7 @@ jobs:
             cat "${i}" >> "final/${i}"
             echo '```' >> "final/${i}"
           done
+          echo -n "files=" >> "$GITHUB_OUTPUT"
           jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
 
       - name: Upload Splits
