@@ -17,13 +17,6 @@ jobs:
         path: ["kube"]
         resource: ["helmrelease", "kustomization"]
     steps:
-      - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
-        id: oauth-token
-        with:
-          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
-          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
-
       - name: Setup Flux
         uses: fluxcd/flux2/action@8d5f40dca5aa5d3c0fc3414457dda15a0ac92fa4 # v2.5.1
         with:
@@ -39,15 +32,58 @@ jobs:
           path: "${{ matrix.path }}"
           resource: "${{ matrix.resource }}"
           debug: true
+          limit-bytes: 0
 
-      - if: ${{ steps.diff.outputs.diff != '' }}
-        name: Add comment
+      - name: Split diff output # to fit Linux argument list & GitHub API limitations
+        id: split
+        shell: bash
+        working-directory: split
+        run: |
+          mkdir ${{ matrix.path }}/${{ matrix.resource }}
+          # echo 'CURRENTPATH=${{ matrix.path }}' | sed -e 's/\//-/g' >> "${GITHUB_ENV}"
+          cat <<EOF | split -C 65536 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}
+          ${{ steps.diff.outputs.diff }}
+          EOF
+          readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
+          IFS=$'%' echo "${splitfiles[*]}"
+          for i in "${splitfiles[@]}"; do
+            { echo '```diff'; cat "${i}"; echo '```' } > "${i}"
+          done
+          jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
+      - name: Upload Splits
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}"
+          path: split
+    outputs:
+      files: ${{ steps.split.outputs.files }}
+
+  add-comments:
+    name: Add Comments
+    needs: [flux-diff]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    strategy:
+      matrix:
+        path: ["kube"]
+        resource: ["helmrelease", "kustomization"]
+        files: ${{ fromJson(needs.flux-diff.outputs.files) }}
+    steps:
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+      - name: Download Splits
+        uses: actions/download-artifact@v4
+        with:
+          name: "${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}"
+      - name: Add comment
         uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         with:
           repo-token: "${{ steps.oauth-token.outputs.token }}"
-          message-id: "${{ github.event.pull_request.number }}/${{ matrix.path }}/${{ matrix.resource }}"
+          message-id: "${{ github.event.pull_request.number }}/${{ matrix.files }}"
           message-failure: Diff was not successful
-          message: |
-            ```diff
-            ${{ steps.diff.outputs.diff }}
-            ```
+          message-path: "${{ matrix.files }}"
