@@ -72,6 +72,8 @@ require("lazy").setup({
     -- { "tris203/precognition.nvim", event = "VeryLazy", opts = {} },
     -- fancy
     -- { 'rasulomaroff/reactive.nvim' },
+    --- todo list
+    { "folke/todo-comments.nvim", dependencies = { "nvim-lua/plenary.nvim" }, opts = {} },
     --- rainbow indents
     { "HiPhish/rainbow-delimiters.nvim", event = { "BufReadPre", "BufNewFile" }, },
     { "lukas-reineke/indent-blankline.nvim",
@@ -94,6 +96,8 @@ require("lazy").setup({
       current_line_blame = true,
       watch_gitdir = { follow_files = true },
     }},
+    --- tiling window management
+    { "nvim-focus/focus.nvim", event = { "VeryLazy" }, },
     --- notifications
     { "rcarriga/nvim-notify", event = "VeryLazy", opts = { stages = "static", render = "compact" } }, -- any animations will cause lag over remote connections, especially SSH via iSH on iOS
     --- UI stuff
@@ -117,7 +121,7 @@ require("lazy").setup({
       build = ":TSUpdate",
       config = function()
         require("nvim-treesitter.configs").setup({
-          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "json", "json5", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix" },
+          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "json", "json5", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix", "elixir" },
           --ensure_installed = 'all',
           ignore_install = { 'org' }, -- nvim-orgmode compatibility
           sync_install = false,
@@ -134,7 +138,7 @@ require("lazy").setup({
     --- auto brackets
     { 'windwp/nvim-autopairs', event = "InsertEnter", opts = {}, },
     --- folding
-    { "kevinhwang91/nvim-ufo", dependencies = { "kevinhwang91/promise-async" }, event = { "BufReadPre", "BufNewFile" }, opts = {
+    { "kevinhwang91/nvim-ufo", dependencies = { "kevinhwang91/promise-async" }, event = { "BufReadPre", "BufNewFile", "FileType" }, opts = {
       provider_selector = function(bufnr, filetype, buftype)
         return { "treesitter", "indent" } -- LSP takes too long to init
       end
@@ -374,6 +378,14 @@ require("lazy").setup({
                 select = {
                   'Renovate',
                   'GitHub Workflow Template Properties'
+                },
+                extra = {
+                  {
+                    name = 'QMK keyboard.json',
+                    description = 'QMK Keyboard Data Driven Configuration',
+                    fileMatch = 'keyboard.json',
+                    url = 'https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/master/data/schemas/keyboard.jsonschema',
+                  }
                 }
               }),
             }
@@ -388,6 +400,15 @@ require("lazy").setup({
         lsp.vtsls.setup{capabilities = caps(),}
         lsp.ruff.setup{capabilities = caps(),}
         lsp.basedpyright.setup{capabilities = caps(),}
+        if vim.fn.executable('elixir') then lsp.elixirls.setup{capabilities = caps(),} end
+        lsp.clangd.setup({
+          capabilities = caps(),
+          on_attach = function(client, _) client.server_capabilities.semanticTokensProvider = nil; end -- disable syntax highlighting
+          -- init_options = {
+          --   fallbackFlags = { '-I ' .. os.getenv("CLANGD_FALLBACK_INCLUDES") },
+          -- },
+        })
+        -- if vim.fn.executable('ccls') then lsp.ccls.setup{capabilities = caps(),} end
         if vim.fn.executable('cargo') then lsp.nil_ls.setup{capabilities = caps(),} end
         if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then lsp.nixd.setup{capabilities = caps(),} end
         --- show filetype on buffer switch
