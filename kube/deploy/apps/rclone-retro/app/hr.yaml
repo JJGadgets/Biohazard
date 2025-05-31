@@ -152,7 +152,7 @@ spec:
           whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: "{{ .Release.Name }}"
+              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
