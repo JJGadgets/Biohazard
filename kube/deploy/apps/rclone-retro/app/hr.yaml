@@ -1,0 +1,162 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app rclone-retro
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.0.1
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      # TODO: add sync from Vita and serve FTP for Apollo save tool
+      3ds: &rclone
+        type: cronjob
+        cronjob:
+          schedule: "@hourly"
+        pod:
+          labels:
+            egress.home.arpa/retro-consoles: allow
+        containers:
+          main: &rclct
+            image: &img
+              repository: "jank.ing/jjgadgets/rclone"
+              tag: "1.69.3@sha256:ac121f241d12f1ac236492df141b88ae104eaf01f77375a58cee74a2e8084893"
+            args: ["sync", "3ds:/", "/data/", "--progress", "--exclude", "/Nintendo 3DS/title/**/**/content/*.app", "--exclude", "/GBA"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: rclone-retro-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "128Mi"
+      3ds-gba:
+        <<: *rclone
+        containers:
+          main:
+            <<: *rclct
+            args: ["bisync", "3ds:GBA/", "/data/", "--progress"]
+    # service:
+    #   rclone-retro:
+    #     controller: rclone-retro
+    #     ports:
+    #       http:
+    #         port: 80
+    #         targetPort: 8080
+    #         protocol: HTTP
+    #         appProtocol: http
+    #   expose:
+    #     primary: false
+    #     controller: rclone-retro
+    #     type: LoadBalancer
+    #     annotations:
+    #       coredns.io/hostname: "${APP_DNS_RCLONE-RETRO:=rclone-retro}"
+    #       "io.cilium/lb-ipam-ips": "${APP_IP_RCLONE-RETRO:=127.0.0.1}"
+    #     ports:
+    #       http:
+    #         port: 443
+    #         targetPort: 8443
+    #         protocol: HTTPS
+    #       ldap-tcp:
+    #         port: 636
+    #         targetPort: 3636
+    #         protocol: TCP
+    #       ldap-udp:
+    #         port: 636
+    #         targetPort: 3636
+    #         protocol: UDP
+    persistence:
+      config:
+        type: configMap
+        name: rclone-retro-config
+        globalMounts:
+          - subPath: "rclone.conf"
+            path: "/.rclone.conf"
+            readOnly: true
+      data:
+        existingClaim: rclone-retro-data
+        advancedMounts:
+          3ds:
+            main:
+              - subPath: 3ds
+                path: /data
+          3ds-gba:
+            main:
+              - subPath: 3ds-gba
+                path: /data
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_PERSIST_K8S:=/home}"
+      #   globalMounts:
+      #     - subPath: rclone-retro
+      #       path: /nfs
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    configMaps:
+      config:
+        enabled: true
+        data:
+          rclone.conf: |
+            [3ds]
+            type = ftp
+            host = 3ds.internal
+            port = 5000
+            user = anonymous
+            pass = PyY5-F-6MhsVR9BYdBGEQy0
+            concurrency = 1
+            force_list_hidden = true
+            idle_timeout = 0s
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
+                    operator: DoesNotExist
