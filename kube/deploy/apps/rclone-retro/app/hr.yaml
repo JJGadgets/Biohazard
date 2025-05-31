@@ -97,10 +97,14 @@ spec:
             main:
               - subPath: 3ds
                 path: /data
+              - subPath: cache-3ds
+                path: /.cache
           3ds-gba:
             main:
               - subPath: 3ds-gba
                 path: /data
+              - subPath: cache-3ds-gba
+                path: /.cache
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
