@@ -1,9 +1,9 @@
 ---
 prometheus:
-  enabled: true # testing out prompp
+  enabled: true # prompp still froze nodes :(
   externalUrl: "https://${APP_DNS_PROMETHEUS:=prom}/"
   ingress:
-    enabled: true # testing out prompp
+    enabled: true # prompp still froze nodes :(
     ingressClassName: "nginx-internal"
     hosts: &hostprom ["${APP_DNS_PROMETHEUS:=prom}"]
     tls: [hosts: *hostprom]
@@ -15,7 +15,7 @@ prometheus:
     scrapeInterval: "60s"
     #scrapeInterval: "30s"
     #scrapeTimeout: "15s"
-    replicas: 1
+    replicas: 0
     retention: 14d
     retentionSize: 30GB
     walCompression: true
@@ -55,12 +55,12 @@ prometheus:
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
     scrapeConfigSelectorNilUsesHelmValues: false
-    # enable features
-    enableAdminAPI: true
-    enableFeatures:
-      - auto-gomaxprocs
-      - memory-snapshot-on-shutdown
-      - new-service-discovery-manager
+    # # enable features
+    # enableAdminAPI: true
+    # enableFeatures:
+    #   - auto-gomaxprocs
+    #   - memory-snapshot-on-shutdown
+    #   - new-service-discovery-manager
     # multi clusters
     externalLabels:
       cluster: "${CLUSTER_NAME}"
