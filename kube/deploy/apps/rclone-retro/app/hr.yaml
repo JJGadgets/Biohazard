@@ -131,8 +131,8 @@ spec:
             user = anonymous
             pass = PyY5-F-6MhsVR9BYdBGEQy0
             concurrency = 1
-            force_list_hidden = true
             idle_timeout = 0s
+            writing_mdtm = true # needed for modtime support, use `rclone backend features 3ds:` to verify
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
