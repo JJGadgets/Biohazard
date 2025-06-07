@@ -23,6 +23,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/cloudflare: allow
         containers:
           main:
             image: &img
