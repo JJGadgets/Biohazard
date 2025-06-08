@@ -7,7 +7,7 @@
       "managerFilePatterns": ["/^kube/.+/ks\\.ya?ml$/"],
       "matchStrings": [
         //       VS_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"
-        " *(?VS|PG)_APP_CURRENT_VERSION: \"?(?<packageName>[\\w\\d\\-\\_\\/\\.]+):(?<currentValue>[\\w\\d\\.\\-\\_]+)\"?"
+        " *(VS|PG)_APP_CURRENT_VERSION: \"?(?<packageName>[\\w\\d\\-\\_\\/\\.]+):(?<currentValue>[\\w\\d\\.\\-\\_]+)\"?"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
