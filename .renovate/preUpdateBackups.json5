@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Process Docker packages for pre-update VolSync/PG backups in ks.yaml",
+      "managerFilePatterns": ["/^kube/.+/ks\\.ya?ml$/"],
+      "matchStrings": [
+        //       VS_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"
+        " *(?VS|PG)_APP_CURRENT_VERSION: \"?(?<packageName>[\\w\\d\\-\\_\\/\\.]+):(?<currentValue>[\\w\\d\\.\\-\\_]+)\"?"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ]
+}

@@ -72,9 +72,9 @@ spec:
             name: "pg-${PG_APP_NAME}-secrets"
         - secret:
             name: "pg-${PG_APP_NAME}-s3-crunchy"
-      #manual:
-      #  repoName: "repo2"
-      #  options: ["--type=full", "--annotation=reason=change-R2-buckets", "--archive-copy", "--checksum-page"]
+      manual:
+        repoName: "repo2"
+        options: ["--type=full", "--annotation=reason=${PG_APP_CURRENT_VERSION:=manual}", "--archive-copy", "--checksum-page"]
       global: &brflag
         archive-timeout: "60"
         compress-type: "bz2"
