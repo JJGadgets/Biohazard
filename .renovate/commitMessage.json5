@@ -46,6 +46,11 @@
       "matchDatasources": ["github-releases", "github-tags"],
       "matchFileNames": [".github/workflows/**"],
       "semanticCommitScope": "gha/{{#if groupName}}group/{{groupName}}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "semanticCommitType": "{{#unless groupName}}chore{{/unless}}",
+      "semanticCommitScope": "{{#unless groupName}}mise/{{depName}}{{/unless}}"
     }
   ]
 }
