@@ -23,12 +23,6 @@
       "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"
     },
     {
-      "matchFileNames": [".mise.toml", "mise.toml"],
-      "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback", "bump"],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "mise/{{#if groupName}}group/{{groupName}}{{else}}{{depName}}{{/if}}"
-    },
-    {
       "matchPackageNames": ["*"],
       "matchUpdateTypes": ["!major"],
       "semanticCommitScope": "{{#if datasource}}{{#if (equals datasource 'docker')}}oci{{else if (equals datasource 'github-actions')}}gha{{else if (containsString datasource 'github')}}github{{else}}{{datasource}}{{/if}}/{{/if}}{{#if groupName}}group/{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}"
