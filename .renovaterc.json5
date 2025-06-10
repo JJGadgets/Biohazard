@@ -66,11 +66,11 @@
       "customType": "regex",
       "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"],
       "matchStrings": [
-        "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\/(?<currentValue>app\\-template\\-[\\d\\.]+)/charts.+"
+        "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\/app-template-(?<currentValue>[\\d\\.]+)/charts.+"
       ],
-      "datasourceTemplate": "github-tags",
-      "versioningTemplate": "semver",
-      "extractVersionTemplate": "^app-template-(?<version>\\d\\.)$"
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ghcr.io/bjw-s-labs/helm/app-template",
+      "versioningTemplate": "semver"
     }
     //{
     //  "description": "app-template schemas Flux API",
