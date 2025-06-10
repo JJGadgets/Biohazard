@@ -20,29 +20,38 @@
     {
       "matchPackageNames": ["*"],
       "commitMessageTopic": "",
-      "semanticCommitScope": "{{#if datasource}}{{#if (equals datasource docker)}}oci{{else if (equals datasource github-actions)}}gha{{else if (containsString datasource github)}}github{{else}}{{datasource}}{{/if}}/{{/if}}{{#if groupName}}/group/{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}",
       "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"
-    },
-    {
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["!major"],
-      "semanticCommitScope": "oci/{{#if groupName}}/group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}}"
-    },
-    {
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "feat(oci/{{#if groupName}}/group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}})!:"
-    },
-    {
-      "matchDatasources": ["github-releases", "github-tags"],
-      "matchFileNames": [".github/workflows/**"],
-      "semanticCommitScope": "gha/{{#if groupName}}/group/{{groupName}}{{else}}{{depName}}{{/if}}"
     },
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback", "bump"],
       "semanticCommitType": "chore",
-      "semanticCommitScope": "mise/{{#if groupName}}/group/{{groupName}}{{else}}{{depName}}{{/if}}"
+      "semanticCommitScope": "mise/{{#if groupName}}group/{{groupName}}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["!major"],
+      "semanticCommitScope": "{{#if datasource}}{{#if (equals datasource 'docker')}}oci{{else if (equals datasource 'github-actions')}}gha{{else if (containsString datasource 'github')}}github{{else}}{{datasource}}{{/if}}/{{/if}}{{#if groupName}}group/{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}"
+    },
+    {
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat({{#if datasource}}{{#if (equals datasource 'docker')}}oci{{else if (equals datasource 'github-actions')}}gha{{else if (containsString datasource 'github')}}github{{else}}{{datasource}}{{/if}}/{{/if}}{{#if groupName}}group/{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}})!:"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["!major"],
+      "semanticCommitScope": "oci/{{#if groupName}}group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}})!:"
+    },
+    {
+      "matchDatasources": ["github-releases", "github-tags"],
+      "matchFileNames": [".github/workflows/**"],
+      "semanticCommitScope": "gha/{{#if groupName}}group/{{groupName}}{{else}}{{depName}}{{/if}}"
     }
   ]
 }
