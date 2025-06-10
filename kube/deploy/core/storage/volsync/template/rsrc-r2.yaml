@@ -46,51 +46,51 @@ spec:
               matchExpressions:
                 - key: kubernetes.io/metadata.name
                   operator: Exists
-# ---
-# # yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
-# apiVersion: volsync.backube/v1alpha1
-# kind: ReplicationSource
-# metadata:
-#   name: "${PVC}-r2-updates-restic"
-#   labels:
-#     volsync.home.arpa/repo: "r2"
-# spec:
-#   sourcePVC: "${PVC}"
-#   trigger:
-#     manual: "${VS_APP_CURRENT_VERSION:=manual}"
-#   restic:
-#     copyMethod: "Snapshot"
-#     repository: "vs-${PVC}-r2-restic"
-#     volumeSnapshotClassName: "${SNAP:=file}"
-#     storageClassName: "${SC:=file}"
-#     accessModes: ["${SNAP_ACCESSMODE:=ReadOnlyMany}"] # CephFS shallow snapshot, and allow rsrc pod to schedule anywhere
-#     cacheStorageClassName: "${CACHE:=block}"
-#     cacheAccessModes: ["ReadWriteOnce"]
-#     cacheCapacity: "${CACHESIZE:=2Gi}"
-#     moverSecurityContext:
-#       runAsNonRoot: true
-#       runAsUser: ${RUID:=1000}
-#       runAsGroup: ${RGID:=1000}
-#       fsGroup: ${RFSG:=1000}
-#       seccompProfile: {type: "RuntimeDefault"}
-#     pruneIntervalDays: ${PRUNE:=14}
-#     retain: # keep all backups within 1 week (7 days), keep latest snapshot from each day within 2 weeks
-#       daily: ${DAILY:=14}
-#       within: ${WITHIN:=7d}
-#     moverPodLabels:
-#       egress.home.arpa/r2: allow
-#     moverResources:
-#       limits:
-#         cpu: 500m
-#         memory: 2Gi
-#     moverAffinity:
-#       podAntiAffinity:
-#         requiredDuringSchedulingIgnoredDuringExecution:
-#           - topologyKey: kubernetes.io/hostname
-#             labelSelector:
-#               matchLabels:
-#                 app.kubernetes.io/created-by: volsync
-#             namespaceSelector:
-#               matchExpressions:
-#                 - key: kubernetes.io/metadata.name
-#                   operator: Exists
+---
+# yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: "${PVC}-r2-updates-restic"
+  labels:
+    volsync.home.arpa/repo: "r2"
+spec:
+  sourcePVC: "${PVC}"
+  trigger:
+    manual: "${VS_APP_CURRENT_VERSION:=manual}"
+  restic:
+    copyMethod: "Snapshot"
+    repository: "vs-${PVC}-r2-restic"
+    volumeSnapshotClassName: "${SNAP:=file}"
+    storageClassName: "${SC:=file}"
+    accessModes: ["${SNAP_ACCESSMODE:=ReadOnlyMany}"] # CephFS shallow snapshot, and allow rsrc pod to schedule anywhere
+    cacheStorageClassName: "${CACHE:=block}"
+    cacheAccessModes: ["ReadWriteOnce"]
+    cacheCapacity: "${CACHESIZE:=2Gi}"
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: ${RUID:=1000}
+      runAsGroup: ${RGID:=1000}
+      fsGroup: ${RFSG:=1000}
+      seccompProfile: {type: "RuntimeDefault"}
+    pruneIntervalDays: ${PRUNE:=14}
+    retain: # keep all backups within 1 week (7 days), keep latest snapshot from each day within 2 weeks
+      daily: ${DAILY:=14}
+      within: ${WITHIN:=7d}
+    moverPodLabels:
+      egress.home.arpa/r2: allow
+    moverResources:
+      limits:
+        cpu: 500m
+        memory: 2Gi
+    moverAffinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/created-by: volsync
+            namespaceSelector:
+              matchExpressions:
+                - key: kubernetes.io/metadata.name
+                  operator: Exists
