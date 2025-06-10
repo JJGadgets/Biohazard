@@ -68,9 +68,10 @@
       "matchStrings": [
         "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\/app-template-(?<currentValue>[\\d\\.]+)/charts.+"
       ],
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "ghcr.io/bjw-s-labs/helm/app-template",
-      "versioningTemplate": "semver"
+      "datasourceTemplate": "helm",
+      "depNameTemplate": "app-template",
+      "registryUrlTemplate": "https://bjw-s-labs.github.io/helm-charts",
+      "versioningTemplate": "helm"
     }
     //{
     //  "description": "app-template schemas Flux API",
