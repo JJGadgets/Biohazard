@@ -18,7 +18,7 @@
       "semanticCommitType": "chore"
     },
     {
-      "matchPackageNames": [".*"],
+      "matchPackageNames": ["*"],
       "commitMessageTopic": "",
       "semanticCommitScope": "{{#if datasource}}{{#if (equals datasource 'docker')}}oci{{else if (equals datasource 'github-actions')}}gha{{else if (containsString datasource 'github')}}github{{else}}{{datasource}}{{/if}}/{{/if}}{{#if groupName}}/group/{{groupName}}{{else if depName}}{{depName}}{{else}}{{packageName}}{{/if}}",
       "commitMessageExtra": "{{#if currentVersion}}{{currentVersion}}{{else if currentDigestShort}}{{currentDigestShort}}{{else}}{{currentValue}}{{/if}} ➼ {{#if newVersion}}{{newVersion}}{{else if newDigestShort}}{{newDigestShort}}{{else}}{{newValue}}{{/if}}"
