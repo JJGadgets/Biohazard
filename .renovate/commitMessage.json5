@@ -2,10 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchUpdateTypes": ["major"],
-      "commitMessagePrefix": "{{semanticCommitType}}({{semanticCommitScope}})!:"
-    },
-    {
       "matchUpdateTypes": ["minor"],
       "semanticCommitType": "feat"
     },
@@ -43,6 +39,10 @@
       "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback", "bump"],
       "semanticCommitType": "chore",
       "semanticCommitScope": "mise/{{#if groupName}}/group/{{groupName}}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "{{semanticCommitType}}({{semanticCommitScope}})!:"
     }
   ]
 }
