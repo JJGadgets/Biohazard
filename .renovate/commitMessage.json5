@@ -25,7 +25,13 @@
     },
     {
       "matchDatasources": ["docker"],
-      "semanticCommitScope": "oci/{{#if groupName}}/group/{{groupName}}{{else if (lookup (split depName \"/\") 2)}}{{ lookup (split depName \"/\") 2 }}{{#if (lookup (split depName \"/\") 3)}}/{{ lookup (split depName \"/\") 3 }}{{/if}}{{#if (lookup (split depName \"/\") 4)}}/{{ lookup (split depName \"/\") 4 }}{{/if}}{{#if (lookup (split depName \"/\") 5)}}/{{ lookup (split depName \"/\") 5 }}{{/if}}{{else if (lookup (split depName \"/\") 1)}}{{ lookup (split depName \"/\") 1 }}{{else}}{{depName}}{{/if}}"
+      "matchUpdateTypes": ["!major"],
+      "semanticCommitScope": "oci/{{#if groupName}}/group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}}"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(oci/{{#if groupName}}/group/{{groupName}}{{else if (lookup (split depName '/') 2)}}{{ lookup (split depName '/') 2 }}{{#if (lookup (split depName '/') 3)}}/{{ lookup (split depName '/') 3 }}{{/if}}{{#if (lookup (split depName '/') 4)}}/{{ lookup (split depName '/') 4 }}{{/if}}{{#if (lookup (split depName '/') 5)}}/{{ lookup (split depName '/') 5 }}{{/if}}{{else if (lookup (split depName '/') 1)}}{{ lookup (split depName '/') 1 }}{{else}}{{depName}}{{/if}})!:"
     },
     {
       "matchDatasources": ["github-releases", "github-tags"],
