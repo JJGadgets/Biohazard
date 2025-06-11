@@ -315,7 +315,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4@sha256:146e06bc29abb5f5faf994aa996ec6cdfeb4eec816f4738424ec6d143d6dcb8d"
+              tag: "7.4.4@sha256:00f4e3d63a75f60f4d325714146ea7123e8829ce33e1f2e204d0979ee2dcf959"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc
