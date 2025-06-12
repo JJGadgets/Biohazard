@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/searxng/searxng"
-              tag: "latest@sha256:491d23da58f89764a9d89db98dd80318cb90c1a1d498d7e684cf1ef7ac63b5f5"
+              tag: "latest@sha256:6288308d7f2f34c4affb8625834063db2a1510dd643590d05728700210cae238"
             command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "/usr/local/searxng/.template/uwsgi.ini"]
             env:
               TZ: "${CONFIG_TZ}"
@@ -57,7 +57,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4-bookworm@sha256:386e6c443372b9ba651d593baa881c802f3d3f093e2586602e05d6ba47ea733e"
+              tag: "7.4.4-bookworm@sha256:2582cc7e28849e4bdca8b991c3ede503ec706112d2eb2feb2191e9e980d37e92"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
