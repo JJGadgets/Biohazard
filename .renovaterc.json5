@@ -17,6 +17,7 @@
     //"github>JJGadgets/Biohazard//.renovate/grafanaDashboards.json5",
     "github>buroa/k8s-gitops//.renovate/grafanaDashboards.json5#1b97193da1d11d80918f02de13840aa9f28ef06f",
     "github>JJGadgets/Biohazard//.renovate/mise.json5",
+    "github>JJGadgets/Biohazard//.renovate/customManagers.json5",
     "github>JJGadgets/Biohazard//.renovate/preUpdateBackups.json5",
     "github>JJGadgets/Biohazard//.renovate/groups.json5",
     "github>JJGadgets/Biohazard//.renovate/clusters.json5",
@@ -61,17 +62,6 @@
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
-    {
-      "description": ["app-template schemas"],
-      "customType": "regex",
-      "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"],
-      "matchStrings": [
-        "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<packageName>[\\w\\-]+\\/[\\w\\-]+)\\/(?<currentValue>app\\-template\\-[\\d\\.]+)"
-      ],
-      "datasourceTemplate": "github-tags",
-      "versioningTemplate": "semver",
-      "extractVersionTemplate": "^app-template-(?<version>.*)$"
-    }
     //{
     //  "description": "app-template schemas Flux API",
     //  "customType": "regex",

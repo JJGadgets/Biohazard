@@ -1,19 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  //"mise": { "enabled": false },
   "packageRules": [
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "mise"
-    },
-    {
-      "matchFileNames": [".mise.toml", "mise.toml"],
       "addLabels": ["renovate/mise"]
-    },
-    {
-      "matchFileNames": [".mise.toml", "mise.toml"],
-      "additionalBranchPrefix": "mise/"
     },
     {
       "description": "Mise GitHub: Use package name as user/org if no user/org",

@@ -94,3 +94,9 @@ spec:
               matchExpressions:
                 - key: kubernetes.io/metadata.name
                   operator: Exists
+      podAffinity: # create conflicting affinity so this won't schedule when scheduled is running
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                batch.kubernetes.io/job-name: "volsync-src-${PVC}-r2-restic"
