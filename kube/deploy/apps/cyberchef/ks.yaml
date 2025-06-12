@@ -4,7 +4,15 @@ kind: Kustomization
 metadata:
   name: cyberchef-app
   namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "cyberchef"
 spec:
+  targetNamespace: "cyberchef"
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/cyberchef/app
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: 1-core-ingress-nginx-app
+    - name: crds
+      namespace: flux-system
