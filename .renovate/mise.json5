@@ -3,11 +3,6 @@
   "packageRules": [
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "{{#unless groupName}}mise/{{depName}}{{/unless}}"
-    },
-    {
-      "matchFileNames": [".mise.toml", "mise.toml"],
       "addLabels": ["renovate/mise"]
     },
     {
