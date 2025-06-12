@@ -116,7 +116,7 @@
     {
       "description": "Separate all app-template updates",
       "matchPackageNames": ["**app-template"],
-      "matchDatasources": ["helm", "oci"],
+      "matchDatasources": ["helm", "docker"],
       "semanticCommitScope": "helm/app-template",
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
@@ -126,7 +126,7 @@
     {
       "description": "Manually approve app-template major releases",
       "matchPackageNames": ["**app-template"],
-      "matchDatasources": ["helm", "oci"],
+      "matchDatasources": ["helm", "docker"],
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true,
       "automerge": false,
@@ -135,7 +135,7 @@
     {
       "description": "Auto merge patch app-template versions",
       "matchPackageNames": ["**app-template"],
-      "matchDatasources": ["helm", "oci"],
+      "matchDatasources": ["helm", "docker"],
       "matchUpdateTypes": ["patch"],
       "dependencyDashboardApproval": false,
       "automerge": true,
@@ -146,7 +146,7 @@
     {
       "description": "Don't automerge app-template minor releases",
       "matchPackageNames": ["**app-template"],
-      "matchDatasources": ["helm", "oci"],
+      "matchDatasources": ["helm", "docker"],
       "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": false,
       "automerge": false,
