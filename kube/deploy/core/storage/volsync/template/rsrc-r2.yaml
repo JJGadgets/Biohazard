@@ -46,6 +46,10 @@ spec:
               matchExpressions:
                 - key: kubernetes.io/metadata.name
                   operator: Exists
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                batch.kubernetes.io/job-name: "volsync-src-${PVC}-r2-updates-restic"
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
@@ -94,8 +98,6 @@ spec:
               matchExpressions:
                 - key: kubernetes.io/metadata.name
                   operator: Exists
-      podAffinity: # create conflicting affinity so this won't schedule when scheduled is running
-        requiredDuringSchedulingIgnoredDuringExecution:
           - topologyKey: kubernetes.io/hostname
             labelSelector:
               matchLabels:
