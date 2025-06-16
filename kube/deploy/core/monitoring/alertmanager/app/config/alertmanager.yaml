@@ -16,14 +16,11 @@ route:
         - alertname =~ "Watchdog"
     - receiver: "null"
       matchers:
-        - alertname =~ "InfoInhibitor"
-        - alertname =~ "CPUThrottlingHigh"
-        - alertname =~ "etcdMemberCommunicationSlow"
+        - alertname =~ "InfoInhibitor|CPUThrottlingHigh|etcdMemberCommunicationSlow"
     - receiver: discord
       continue: true
       matchers:
-        - severity = "critical"
-        - severity = "warning" # gotta try it out to know what's what
+        - severity =~ "critical|warning"
 inhibit_rules:
   - equal: ["alertname", "namespace"]
     source_matchers:
@@ -53,7 +50,7 @@ receivers:
           {{- if ne .CommonLabels.namespace "" }} - {{ .CommonLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity }}){{- end }}
           ({{ .GroupLabels.cluster }})
-        message: |-
+        content: |-
           {{- $root := . }}
           {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" "severity" "alertgroup" "namespace" }}
           {{- $common := ( ( .CommonLabels.Remove $root.GroupLabels.Names ).Remove $rm ) }}
@@ -83,6 +80,7 @@ receivers:
             {{- if eq .Status "firing" }}
             ⌚️ Since: <t:{{ .StartsAt.Unix }}:F> (<t:{{ .StartsAt.Unix }}:R>)
             {{- else }}
+
             ✅ Ended: <t:{{ .EndsAt.Unix }}:F> (<t:{{ .EndsAt.Unix }}:R>) for {{ .StartsAt | since | humanizeDuration }}
             {{- end }}
             {{- $uniq := ( ( .Labels.Remove $root.GroupLabels.Names ).Remove $root.CommonLabels.Names ) }}
