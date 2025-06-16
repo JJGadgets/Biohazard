@@ -50,7 +50,8 @@ receivers:
           {{- if ne .CommonLabels.namespace "" }} - {{ .CommonLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity }}){{- end }}
           ({{ .GroupLabels.cluster }})
-        content: |-
+        content: ""
+        message: |-
           {{- $root := . }}
           {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" "severity" "alertgroup" "namespace" }}
           {{- $common := ( ( .CommonLabels.Remove $root.GroupLabels.Names ).Remove $rm ) }}
