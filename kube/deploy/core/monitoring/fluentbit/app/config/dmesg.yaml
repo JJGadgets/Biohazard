@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://github.com/JustinGrote/FluentBitJsonSchema/releases/latest/download/fluentbit.schema.json
+pipeline:
+  inputs:
+    - name: kmsg
+      alias: dmesg
+      tag: dmesg
+  outputs:
+    # Victoria Logs
+    - name: http
+      match: '*'
+      host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
+      port: 9428
+      uri: >-
+        /insert/jsonline?_stream_fields=stream,source,dmesg&_msg_field=log&_time_field=date
+      compress: gzip
+      format: json_lines
+      json_date_format: iso8601
+      header:
+        - 'AccountID 0'
+        - 'ProjectID 0'
+      log_response_payload: false
+    # # stdout
+    # - name: stdout
+    #   match: '*'
+    #   format: json_lines
+    #   json_date_format: iso8601

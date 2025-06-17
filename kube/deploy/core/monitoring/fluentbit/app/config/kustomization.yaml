@@ -5,6 +5,7 @@ configMapGenerator:
   - name: fluentbit-config
     namespace: fluentbit
     files:
-      - fluent-bit.yaml
+      - kubernetes.yaml
+      - dmesg.yaml
 generatorOptions:
   disableNameSuffixHash: true
