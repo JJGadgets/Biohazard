@@ -19,6 +19,9 @@ spec:
     controllers:
       kubernetes: &pod
         type: daemonset
+        pod:
+          automountServiceAccountToken: true
+          enableServiceLinks: true
         containers:
           app: &ct
             image: &img
@@ -75,34 +78,33 @@ spec:
       logs-containers: # normal Talos disk mount
         type: hostPath
         hostPath: &path "/var/log/containers"
-        globalMounts:
-          - path: *path
+        advancedMounts:
+          kubernetes:
+            app:
+              - path: *path
       logs-pods: # jank tmpfs bind mount from /run on Talos
         type: hostPath
         hostPath: &path "/var/log/pods"
-        globalMounts:
-          - path: *path
+        advancedMounts:
+          kubernetes:
+            app:
+              - path: *path
       dmesg:
         type: hostPath
         hostPath: &path "/dev/kmsg"
-        globalMounts:
-          - path: *path
+        advancedMounts:
+          dmesg:
+            app:
+              - path: *path
     defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
+      automountServiceAccountToken: false
+      enableServiceLinks: false
       securityContext:
         runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
