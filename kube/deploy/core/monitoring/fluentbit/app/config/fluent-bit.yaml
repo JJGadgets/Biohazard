@@ -8,6 +8,9 @@ pipeline:
       exclude_path: /var/log/*fluent*
       multiline.parser: cri
       tag: kubernetes.*
+    - name: kmsg
+      alias: dmesg
+      tag: dmesg.
   filters:
     # enrich and process logs with k8s metadata
     - name: kubernetes # https://docs.fluentbit.io/manual/pipeline/filters/kubernetes
@@ -21,7 +24,7 @@ pipeline:
       namespace_labels: "on"
       annotations: "on" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
       namespace_annotations: "off"
-      # owner_references: "on"
+      owner_references: "on"
       # use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
       # kubelet_host: "$${KUBE_NODE_IP}"
       # kube_ca_path: "/run/secrets/kubernetes.io/serviceaccount" # both apiserver SA CA and localhost kubelet CA are mounted here
@@ -40,6 +43,11 @@ pipeline:
       operation: lift
       nested_under: kubernetes
       add_prefix: kubernetes_
+    # - name: nest # TODO: convert this to grab controller type from owner_references
+    #   match: kubernetes.*
+    #   operation: lift
+    #   nested_under: kubernetes
+    #   add_prefix: kubernetes_
     - name: nest
       match: kubernetes.*
       operation: lift
@@ -59,6 +67,7 @@ pipeline:
       header:
         - 'AccountID 0'
         - 'ProjectID 0'
+      log_response_payload: false
     # # stdout
     # - name: stdout
     #   match: '*'

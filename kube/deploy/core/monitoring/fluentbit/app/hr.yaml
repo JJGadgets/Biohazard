@@ -36,12 +36,13 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                add: ["SYSLOG"]
             resources:
               requests:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "200Mi"
+                memory: "250Mi"
             #probes: # TODO: HTTP healthchecks via health API
             #  liveness:
             #    enabled: true
@@ -71,6 +72,11 @@ spec:
       logs-pods: # jank tmpfs bind mount from /run on Talos
         type: hostPath
         hostPath: &path "/var/log/pods"
+        globalMounts:
+          - path: *path
+      dmesg:
+        type: hostPath
+        hostPath: &path "/dev/kmsg"
         globalMounts:
           - path: *path
     defaultPodOptions:
