@@ -1,5 +1,11 @@
 ---
 # yaml-language-server: $schema=https://github.com/JustinGrote/FluentBitJsonSchema/releases/latest/download/fluentbit.schema.json
+service:
+  daemon: off
+  log_level: warn
+  http_server: "on"
+  http_listen: "[::]"
+  http_port: 8080
 pipeline:
   inputs:
     - name: tail # https://docs.fluentbit.io/manual/pipeline/inputs/tail
@@ -67,7 +73,7 @@ pipeline:
       header:
         - 'AccountID 0'
         - 'ProjectID 0'
-      log_response_payload: false
+      log_response_payload: "off"
     # # stdout
     # - name: stdout
     #   match: '*'

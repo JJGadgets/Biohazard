@@ -1,5 +1,11 @@
 ---
 # yaml-language-server: $schema=https://github.com/JustinGrote/FluentBitJsonSchema/releases/latest/download/fluentbit.schema.json
+service:
+  daemon: off
+  log_level: warn
+  http_server: "on"
+  http_listen: "[::]"
+  http_port: 8080
 pipeline:
   inputs:
     - name: kmsg
