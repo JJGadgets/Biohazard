@@ -38,7 +38,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v1.135.1@sha256:346ff2c420e9fe71140392a2270bf5a7d29e50fd9615d1981de4a8e564f3c0a2
+              tag: v1.135.2@sha256:4579a3501be09afc2cfeb6ebb09994daaf60aabdbbf1aaf818569299348f1eb0
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
             env: &env
               TZ: "${CONFIG_TZ}"
