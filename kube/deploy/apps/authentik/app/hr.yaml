@@ -461,7 +461,7 @@ spec:
                 path: /
                 pathType: Prefix
                 service:
-                  identifier: authentik
+                  identifier: app
                   port: http
         tls: &tls
           - hosts: [*host]
@@ -476,7 +476,7 @@ spec:
             paths:
               - <<: *path
                 service:
-                  identifier: authentik
+                  identifier: app
                   port: anubis
       harden:
         <<: *ingress
