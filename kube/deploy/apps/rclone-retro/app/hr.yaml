@@ -29,7 +29,7 @@ spec:
           main: &rclct
             image: &img
               repository: "jank.ing/jjgadgets/rclone"
-              tag: "1.70.1@sha256:4ea4bf7b2f213a5eda36b4648d2e5d51e306cec97c0256019771ca0c8c92fb1c"
+              tag: "1.70.2@sha256:b8dad82933961be28ebbe4aab87e14f2d2fcd23ed3e8335a43a837209cb46f5f"
             args: ["sync", "3ds:/", "/data/", "--progress", "--exclude", "/Nintendo 3DS/title/**/**/content/*.app", "--exclude", "**/*.cia", "--exclude", "**/*.fbi", "--exclude", "/GBA/**", "--exclude", "/GBA/*"]
             env: &env
               TZ: "${CONFIG_TZ}"
