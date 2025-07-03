@@ -30,7 +30,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/rclone/rclone
-              tag: 1.70.2@sha256:b8dad82933961be28ebbe4aab87e14f2d2fcd23ed3e8335a43a837209cb46f5f
+              tag: 1.70.2@sha256:2a25b0ac42aa0bcb690f039a0b9713974bdea501b48e4b4bb5de328ff3cf29ee
             args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
             env: &env
               TZ: "${CONFIG_TZ}"
