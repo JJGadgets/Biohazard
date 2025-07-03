@@ -98,7 +98,7 @@ spec:
               matchExpressions:
                 - key: kubernetes.io/metadata.name
                   operator: Exists
-          # - topologyKey: kubernetes.io/hostname
-          #   labelSelector:
-          #     matchLabels:
-          #       batch.kubernetes.io/job-name: "volsync-src-${PVC}-r2-restic"
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                batch.kubernetes.io/job-name: "volsync-src-${PVC}-r2-restic"
