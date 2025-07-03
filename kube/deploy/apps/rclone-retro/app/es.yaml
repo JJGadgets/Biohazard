@@ -17,7 +17,8 @@ spec:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
-    # template:
-    #   type: Opaque
-    #   data:
-    #     age.agekey: '{{ .agekey }}'
+    template:
+      type: Opaque
+      data:
+        RC_USER: '{{ .username }}'
+        RC_PASS: '{{ .password }}'
