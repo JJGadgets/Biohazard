@@ -30,7 +30,7 @@ spec:
             image: &img
               repository: ghcr.io/rclone/rclone
               tag: 1.70.2@sha256:b8dad82933961be28ebbe4aab87e14f2d2fcd23ed3e8335a43a837209cb46f5f
-            args: ["serve", "ftp", "local:", "--addr=:$(FTP_PORT)", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
             env: &env
               TZ: "${CONFIG_TZ}"
               FTP_PORT: &ftp 2121
@@ -103,7 +103,6 @@ spec:
                 "Progress": true
     service:
       app:
-        primary: false
         controller: app
         ports:
           http:
@@ -123,6 +122,7 @@ spec:
             targetPort: *ftp
             protocol: TCP
             appProtocol: ftp
+            primary: true
     ingress:
       main:
         className: nginx-internal
