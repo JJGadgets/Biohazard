@@ -31,7 +31,7 @@ spec:
             image: &img
               repository: ghcr.io/rclone/rclone
               tag: 1.70.2@sha256:2a25b0ac42aa0bcb690f039a0b9713974bdea501b48e4b4bb5de328ff3cf29ee
-            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
             env: &env
               TZ: "${CONFIG_TZ}"
               FTP_PORT: &ftp 2121
@@ -58,16 +58,16 @@ spec:
                 enabled: true
       3ds: &cron
         type: cronjob
-        cronjob:
+        cronjob: &cj
           schedule: "@hourly"
-          concurrencyPolicy: Replace
+          concurrencyPolicy: Forbid
           ttlSecondsAfterFinished: 60
           failedJobsHistory: 1
           backoffLimit: 2
         containers:
           main: &rclct
             image: *img
-            args: ["rc", "sync/sync", "3ds:/", "/data/3ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
+            args: ["rc", "sync/sync", "srcFs='3ds:/'", "dstFs='/data/3ds/'", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
             env:
               <<: *env
               FILTER: |
@@ -76,26 +76,42 @@ spec:
                 "Progress": true
             envFrom: *envFrom
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
+        initContainers:
+          01-ping: &ping
+            image: *img
+            command: ["/bin/sh", "-c", "until rclone backend features $(REMOTE): --contimeout=5s --timeout=5s; do printf 'Waiting for handheld to come online...'; sleep 2; done"]
+            env:
+              REMOTE: 3ds
+            securityContext: *sc
+        pod:
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "1"
+              memory: "128Mi"
       3ds-gba:
         <<: *cron
         containers:
           main:
             <<: *rclct
-            args: ["rc", "sync/sync", "3ds:GBA/", "/data/3ds-gba/", "_config='{$(CONFIG)}'"]
+            args: ["rc", "sync/sync", "srcFs='3ds:GBA/'", "dstFs='/data/3ds-gba/'", "_config='{$(CONFIG)}'"]
             env:
               <<: *env
               FILTER: |
                 "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
               CONFIG: |
                 "Progress": true
+        initContainers:
+          01-ping:
+            <<: *ping
+            env:
+              REMOTE: 3ds
       ds:
         <<: *cron
+        cronjob:
+          <<: *cj
+          schedule:
         containers:
           main:
             <<: *rclct
@@ -106,6 +122,11 @@ spec:
                 "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
               CONFIG: |
                 "Progress": true
+        initContainers:
+          01-ping:
+            <<: *ping
+            env:
+              REMOTE: ds
     service:
       app:
         controller: app
@@ -204,6 +225,7 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
+    defaultPodOptionsStrategy: merge
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
