@@ -25,6 +25,7 @@ spec:
             ingress.home.arpa/nginx-internal: allow
             prom.home.arpa/kps: allow
             egress.home.arpa/retro-consoles: allow
+            egress.home.arpa/github: allow
         containers:
           app:
             image: &img
