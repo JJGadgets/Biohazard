@@ -60,6 +60,10 @@ spec:
         type: cronjob
         cronjob:
           schedule: "@hourly"
+          concurrencyPolicy: Replace
+          ttlSecondsAfterFinished: 60
+          failedJobsHistory: 1
+          backoffLimit: 2
         containers:
           main: &rclct
             image: *img
