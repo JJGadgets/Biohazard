@@ -67,7 +67,8 @@ spec:
         containers:
           main: &rclct
             image: *img
-            args: ["rc", "sync/sync", "srcFs='3ds:/'", "dstFs='/data/3ds/'", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
+            command: ["rclone", "rc", "--rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)"]
+            args: ["sync/sync", "srcFs='3ds:/'", "dstFs='/data/3ds/'", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
             env:
               <<: *env
               FILTER: |
@@ -95,7 +96,7 @@ spec:
         containers:
           main:
             <<: *rclct
-            args: ["rc", "sync/sync", "srcFs='3ds:GBA/'", "dstFs='/data/3ds-gba/'", "_config='{$(CONFIG)}'"]
+            args: ["sync/sync", "srcFs='3ds:GBA/'", "dstFs='/data/3ds-gba/'", "_config='{$(CONFIG)}'"]
             env:
               <<: *env
               FILTER: |
@@ -115,7 +116,7 @@ spec:
         containers:
           main:
             <<: *rclct
-            args: ["rc", "sync/sync", "ds:/", "/data/ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
+            args: ["sync/sync", "ds:/", "/data/ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
             env:
               <<: *env
               FILTER: |
