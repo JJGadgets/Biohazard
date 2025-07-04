@@ -27,19 +27,17 @@ spec:
         containers:
           main:
             image: &img
-              repository: "docker.io/searxng/searxng"
+              repository: "ghcr.io/searxng/searxng"
               tag: "latest@sha256:82113a22917adebbda6ffc1e64bb5069c6b50217152968b1c128f8393717f8b2"
-            command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "/usr/local/searxng/.template/uwsgi.ini"]
+            command: ["/usr/local/searxng/venv/bin/granian", "searx.webapp:app"]
             env:
               TZ: "${CONFIG_TZ}"
-              BIND_ADDRESS: "[::]:8080"
-              UWSGI_THREADS: &cpu
+              GRANIAN_PORT: &http 8080
+              GRANIAN_BLOCKING_THREADS:
                 valueFrom:
                   resourceFieldRef:
                     containerName: main
                     resource: limits.cpu # not defined, so will use node allocatable
-              # UWSGI_WORKERS: *cpu
-              UWSGI_WORKERS: "1"
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -64,7 +62,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "32Mi"
     service:
       main:
