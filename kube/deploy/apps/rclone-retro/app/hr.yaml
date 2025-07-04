@@ -112,7 +112,7 @@ spec:
         <<: *cron
         cronjob:
           <<: *cj
-          schedule:
+          schedule: "30 21-23 * * *"
         containers:
           main:
             <<: *rclct
