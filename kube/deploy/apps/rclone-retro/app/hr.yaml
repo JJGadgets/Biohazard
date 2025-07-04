@@ -61,9 +61,9 @@ spec:
         cronjob: &cj
           schedule: "@hourly"
           concurrencyPolicy: Forbid
-          ttlSecondsAfterFinished: 60
-          failedJobsHistory: 1
-          backoffLimit: 2
+          # ttlSecondsAfterFinished: 60
+          # failedJobsHistory: 1
+          # backoffLimit: 2
         containers:
           main: &rclct
             image: *img
