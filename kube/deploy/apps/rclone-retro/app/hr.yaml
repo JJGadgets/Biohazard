@@ -70,7 +70,7 @@ spec:
             command: ["/bin/sh", "-c", "rclone rc --rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/ --rc-user=$(RC_USER) --rc-pass=$(RC_PASS) $(ARG)"]
             env:
               <<: *env
-              ARG: |
+              ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
                 sync/sync srcFs='3ds:/' dstFs='/data/3ds/' _config='{"Progress": true}' _filter='{ "ExcludeRule": [ "/Nintendo 3DS/title/**/**/content/*.app", "**/*.cia", "**/*.fbi", "**/*.nds", "/GBA/**", "/GBA/*", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ] }'
             envFrom: *envFrom
             securityContext: *sc
