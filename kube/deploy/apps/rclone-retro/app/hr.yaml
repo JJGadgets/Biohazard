@@ -67,16 +67,14 @@ spec:
         containers:
           main: &rclct
             image: *img
-            command: ["rclone", "rc", "--rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)"]
-            args:
-              - "sync/sync"
-              - "srcFs='3ds:/'"
-              - "dstFs='/data/3ds/'"
-              - |
-                _config='{"Progress": true}'
-              - |
-                _filter='{ "ExcludeRule": [ "/Nintendo 3DS/title/**/**/content/*.app", "**/*.cia", "**/*.fbi", "**/*.nds", "/GBA/**", "/GBA/*", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ] }'
-            env: *env
+            command: ["/bin/sh", "-c", "rclone", "rc", "--rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)"]
+            args: ["sync/sync", "srcFs='3ds:/'", "dstFs='/data/3ds/'", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
+            env:
+              <<: *env
+              FILTER: |
+                "IncludeRule": [ "/Nintendo 3DS/title/**/**/content/*.app", "**/*.cia", "**/*.fbi", "**/*.nds", "/GBA/**", "/GBA/*", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
+              CONFIG: |
+                "Progress": true
             envFrom: *envFrom
             securityContext: *sc
         initContainers:
@@ -98,13 +96,13 @@ spec:
         containers:
           main:
             <<: *rclct
-            args:
-              - "sync/sync"
-              - "srcFs='3ds:GBA/'"
-              - "dstFs='/data/3ds-gba/'"
-              - |
-                _config='{"Progress": true}'
-            env: *env
+            args: ["sync/sync", "srcFs='3ds:GBA/'", "dstFs='/data/3ds-gba/'", "_config='{$(CONFIG)}'"]
+            env:
+              <<: *env
+              FILTER: |
+                "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
+              CONFIG: |
+                "Progress": true
         initContainers:
           01-ping:
             <<: *ping
@@ -118,15 +116,13 @@ spec:
         containers:
           main:
             <<: *rclct
-            args:
-              - "sync/sync"
-              - "ds:/"
-              - "/data/ds/"
-              - |
-                _config='{"Progress": true}'
-              - |
-                _filter='{ "ExcludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ] }'
-            env: *env
+            args: ["sync/sync", "ds:/", "/data/ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
+            env:
+              <<: *env
+              FILTER: |
+                "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
+              CONFIG: |
+                "Progress": true
         initContainers:
           01-ping:
             <<: *ping
