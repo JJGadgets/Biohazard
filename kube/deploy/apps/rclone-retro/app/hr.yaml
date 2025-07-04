@@ -267,7 +267,7 @@ spec:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
       conosoles:
-        controller: app
+        podSelector: {}
         policyTypes: [Ingress, Egress]
         rules:
           ingress:
