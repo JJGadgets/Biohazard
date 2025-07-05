@@ -61,13 +61,13 @@ spec:
         cronjob: &cj
           schedule: "@hourly"
           concurrencyPolicy: Forbid
-          # ttlSecondsAfterFinished: 60
-          # failedJobsHistory: 1
-          # backoffLimit: 2
+          ttlSecondsAfterFinished: 3600
+          failedJobsHistory: 1
+          backoffLimit: 2
         containers:
           main: &rclct
             image: *img
-            command: ["/bin/sh", "-c", "rclone rc --rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/ --rc-user=$(RC_USER) --rc-pass=$(RC_PASS) $(ARG)"]
+            command: ["/bin/sh", "-c", "rclone rc --rc-addr=http://rclone-retro-app.rclone-retro.svc.cluster.local/ --rc-user=$(RC_USER) --rc-pass=$(RC_PASS) --timeout 1h $(ARG)"]
             env:
               <<: *env
               ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
@@ -197,8 +197,9 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
-            encoding = Slash,LtGt,DoubleQuote,Colon,Question,Asterisk,Pipe,BackSlash,Ctl,RightSpace,RightPeriod,InvalidUtf8,Dot,Del,RightSpace
             # needed for modtime support, use `rclone backend features 3ds:` to verify
+            encoding = Del,Ctl,RightSpace,Dot
+            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [ds]
             type = ftp
             host = ds.internal
@@ -209,6 +210,8 @@ spec:
             idle_timeout = 0s
             writing_mdtm = true
             # needed for modtime support, use `rclone backend features ds:` to verify
+            encoding = Del,Ctl,RightSpace,Dot
+            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [vita]
             type = ftp
             host = 3ds.internal
