@@ -34,10 +34,12 @@ spec:
             args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
             env: &env
               TZ: "${CONFIG_TZ}"
-              RC_ADDR: http://rclone-retro-app.rclone-retro.svc.cluster.local/ # overwritten by CLI arg, this one's for anchor
               FTP_PORT: &ftp 2121
               HTTP_PORT: &http 8080
               METRICS_PORT: &metrics 9090
+              # without the multithread config, every 64Mi the 3DS transfer will "write: broken pipe"
+              RCLONE_MULTI_THREAD_CUTOFF: "0"
+              RCLONE_MULTI_THREAD_STREAMS: "1"
             envFrom: &envFrom
               - secretRef:
                   name: rclone-retro-secrets
@@ -71,7 +73,7 @@ spec:
             command: ["/bin/sh", "-c", "rclone rc $(ARG)"]
             env: &envcr
               <<: *env
-              RCLONE_RC_ADDR: http://rclone-retro-app.rclone-retro.svc.cluster.local/
+              RCLONE_URL: http://rclone-retro-app.rclone-retro.svc.cluster.local/
               RCLONE_TIMEOUT: 1h
               ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
                 sync/sync srcFs='3ds:/' dstFs='/data/3ds/' _config='{"Progress": true}' _filter='{ "ExcludeRule": [ "/Nintendo 3DS/title/**/**/content/*.app", "**/*.cia", "**/*.fbi", "**/*.nds", "/GBA/**", "/GBA/*", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ] }'
