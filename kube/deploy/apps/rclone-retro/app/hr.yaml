@@ -37,6 +37,7 @@ spec:
               FTP_PORT: &ftp 2121
               HTTP_PORT: &http 8080
               METRICS_PORT: &metrics 9090
+              RCLONE_URL: http://rclone-retro-app.rclone-retro.svc.cluster.local/
               # without the multithread config, every 64Mi the 3DS transfer will "write: broken pipe"
               RCLONE_MULTI_THREAD_CUTOFF: "0"
               RCLONE_MULTI_THREAD_STREAMS: "1"
@@ -73,7 +74,6 @@ spec:
             command: ["/bin/sh", "-c", "rclone rc $(ARG)"]
             env: &envcr
               <<: *env
-              RCLONE_URL: http://rclone-retro-app.rclone-retro.svc.cluster.local/
               RCLONE_TIMEOUT: 1h
               ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
                 sync/sync srcFs='3ds:/' dstFs='/data/3ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**", "**/content/*.app","Nintendo 3DS/title/**/**/content/*.app","**/*.cia","**/*.fbi","**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
@@ -118,7 +118,7 @@ spec:
             env:
               <<: *envcr
               ARG: |
-                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{ "ExcludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ] }'
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
         initContainers:
           01-ping:
             <<: *ping
