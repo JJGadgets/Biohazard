@@ -197,6 +197,7 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
+            encoding = Slash,LtGt,DoubleQuote,Colon,Question,Asterisk,Pipe,BackSlash,Ctl,RightSpace,RightPeriod,InvalidUtf8,Dot,Del,RightSpace
             # needed for modtime support, use `rclone backend features 3ds:` to verify
             [ds]
             type = ftp
