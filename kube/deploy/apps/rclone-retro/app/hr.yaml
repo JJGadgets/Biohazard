@@ -171,11 +171,13 @@ spec:
             readOnly: true
       data:
         existingClaim: rclone-retro-data
-        globalMounts:
-          - subPath: data
-            path: /data
-          - subPath: cache
-            path: /.cache
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+              - subPath: cache
+                path: /.cache
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
