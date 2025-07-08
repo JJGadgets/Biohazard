@@ -31,7 +31,7 @@ spec:
             image: &img
               repository: ghcr.io/rclone/rclone
               tag: 1.70.2@sha256:2a25b0ac42aa0bcb690f039a0b9713974bdea501b48e4b4bb5de328ff3cf29ee
-            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**/／**", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "**/／*", "--exclude", "**/／**", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
             env: &env
               TZ: "${CONFIG_TZ}"
               FTP_PORT: &ftp 2121
@@ -121,7 +121,7 @@ spec:
             env:
               <<: *envcr
               ARG: |
-                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**", "**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
         initContainers:
           01-ping:
             <<: *ping
