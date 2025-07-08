@@ -168,12 +168,10 @@ spec:
       config:
         type: configMap
         identifier: config
-        advancedMounts:
-          app:
-            app:
-              - subPath: "rclone.conf"
-                path: "/.rclone.conf"
-                readOnly: true
+        globalMounts:
+          - subPath: "rclone.conf"
+            path: "/.rclone.conf"
+            readOnly: true
       data:
         existingClaim: rclone-retro-data
         advancedMounts:
