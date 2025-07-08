@@ -121,7 +121,7 @@ spec:
             env:
               <<: *envcr
               ARG: |
-                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**", "**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**","**.nds","**.NDS","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac","_gba/configs/*","_nds*/**","*","vmac","moonshl2","_wfwd*/**"]}'
         initContainers:
           01-ping:
             <<: *ping
