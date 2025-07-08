@@ -207,9 +207,6 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
-            disable_mlsd = true
-            disable_epsv = true
-            force_list_hidden = true
             # needed for modtime support, use `rclone backend features 3ds:` to verify
             [ds]
             type = ftp
@@ -220,9 +217,6 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
-            disable_mlsd = true
-            disable_epsv = true
-            force_list_hidden = true
             # needed for modtime support, use `rclone backend features ds:` to verify
             [vita]
             type = ftp
