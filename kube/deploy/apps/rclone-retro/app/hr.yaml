@@ -87,12 +87,15 @@ spec:
               REMOTE: 3ds
             securityContext: *sc
         pod:
+          annotations: &cran
+            reloader.stakater.com/auto: "false"
           resources:
             requests:
               cpu: "10m"
             limits:
               cpu: "1"
               memory: "128Mi"
+        annotations: *cran
       # 3ds-gba:
       #   <<: *cron
       #   containers:
@@ -165,10 +168,12 @@ spec:
       config:
         type: configMap
         identifier: config
-        globalMounts:
-          - subPath: "rclone.conf"
-            path: "/.rclone.conf"
-            readOnly: true
+        advancedMounts:
+          app:
+            app:
+              - subPath: "rclone.conf"
+                path: "/.rclone.conf"
+                readOnly: true
       data:
         existingClaim: rclone-retro-data
         advancedMounts:
@@ -204,9 +209,10 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
+            disable_mlsd = true
+            disable_epsv = true
+            force_list_hidden = true
             # needed for modtime support, use `rclone backend features 3ds:` to verify
-            encoding = Del,Ctl,RightSpace,Dot
-            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [ds]
             type = ftp
             host = ds.internal
@@ -216,9 +222,10 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
+            disable_mlsd = true
+            disable_epsv = true
+            force_list_hidden = true
             # needed for modtime support, use `rclone backend features ds:` to verify
-            encoding = Del,Ctl,RightSpace,Dot
-            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [vita]
             type = ftp
             host = 3ds.internal
