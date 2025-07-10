@@ -30,8 +30,8 @@ spec:
           app:
             image: &img
               repository: ghcr.io/rclone/rclone
-              tag: 1.70.2@sha256:2a25b0ac42aa0bcb690f039a0b9713974bdea501b48e4b4bb5de328ff3cf29ee
-            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
+              tag: 1.70.3@sha256:34c729127386abec1c610b2aa024e39b4498dc2b4a72a0798ae21fbdc1b0493b
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "**/／*", "--exclude", "**/／**", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
             env: &env
               TZ: "${CONFIG_TZ}"
               FTP_PORT: &ftp 2121
@@ -87,12 +87,15 @@ spec:
               REMOTE: 3ds
             securityContext: *sc
         pod:
+          annotations: &cran
+            reloader.stakater.com/auto: "false"
           resources:
             requests:
               cpu: "10m"
             limits:
               cpu: "1"
               memory: "128Mi"
+        annotations: *cran
       # 3ds-gba:
       #   <<: *cron
       #   containers:
@@ -118,7 +121,7 @@ spec:
             env:
               <<: *envcr
               ARG: |
-                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**","**.nds","**.NDS","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac","_gba/configs/*","_nds*/**","vmac","moonshl2","_wfwd*/**"]}'
         initContainers:
           01-ping:
             <<: *ping
@@ -171,11 +174,13 @@ spec:
             readOnly: true
       data:
         existingClaim: rclone-retro-data
-        globalMounts:
-          - subPath: data
-            path: /data
-          - subPath: cache
-            path: /.cache
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+              - subPath: cache
+                path: /.cache
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
@@ -203,8 +208,6 @@ spec:
             idle_timeout = 0s
             writing_mdtm = true
             # needed for modtime support, use `rclone backend features 3ds:` to verify
-            encoding = Del,Ctl,RightSpace,Dot
-            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [ds]
             type = ftp
             host = ds.internal
@@ -215,8 +218,6 @@ spec:
             idle_timeout = 0s
             writing_mdtm = true
             # needed for modtime support, use `rclone backend features ds:` to verify
-            encoding = Del,Ctl,RightSpace,Dot
-            # slash encoding will cause directories to be traversed twice incorrectly, e.g. /data/LOST.DIR will be accessed as both /data/LOST.DIR and /data/LOST.DIR/／data／LOST.DIR
             [vita]
             type = ftp
             host = 3ds.internal
