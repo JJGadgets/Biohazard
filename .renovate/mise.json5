@@ -7,7 +7,7 @@
     },
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
-      "overrideDepName": "{{(lookup (split depName ':') 2)}}"
+      "overrideDepName": "{{ lookup (split depName ':') 1 }}"
     },
     {
       "description": "Mise GitHub: Use package name as user/org if no user/org",
