@@ -42,7 +42,7 @@ metadata:
   name: "external-secrets-kubernetes-provider"
   namespace: "${PG_APP_NS}"
 ---
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: SecretStore
 metadata:
   name: "kubernetes-${PG_APP_NS}"
