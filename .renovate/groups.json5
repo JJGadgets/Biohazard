@@ -34,6 +34,13 @@
       "addLabels": ["renovate-itself"]
     },
     {
+      "description": "Auto merge all Renovate versions",
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
       // "matchDatasources": ["docker"],
       "automerge": true,
@@ -54,14 +61,15 @@
       "groupName": "Cilium",
       "matchPackageNames": ["**cilium**"],
       "versioning": "semver",
+      "automerge": false,
       "sourceUrl": "https://github.com/cilium/cilium",
-      "separateMinorPatch": true,
-      "pinDigests": false
+      "separateMinorPatch": true
     },
     {
       "description": "Flux Group",
       "groupName": "Flux",
       "matchPackageNames": ["**fluxcd**", "**flux2**", "!**miniflux**"],
+      "automerge": false,
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2"
     },
@@ -105,13 +113,15 @@
       "groupName": "Talos",
       "matchPackageNames": ["**siderolabs/installer", "**siderolabs/talos"],
       "overrideDepName": "{{{ replace 'installer' 'talos' depName }}}",
-      "versioning": "semver"
+      "versioning": "semver",
+      "automerge": false
     },
     {
       "description": "Kubernetes Group",
       "groupName": "Kubernetes",
       "matchPackageNames": ["**kubelet", "**kubectl", "**kube-apiserver"],
-      "versioning": "semver"
+      "versioning": "semver",
+      "automerge": false
     },
     {
       "description": "Separate all app-template updates",

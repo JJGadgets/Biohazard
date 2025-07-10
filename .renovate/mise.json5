@@ -6,6 +6,10 @@
       "addLabels": ["renovate/mise"]
     },
     {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "overrideDepName": "{{(lookup (split depName ':') 2)}}"
+    },
+    {
       "description": "Mise GitHub: Use package name as user/org if no user/org",
       "matchFileNames": [".mise.toml", "mise.toml"],
       "matchDatasources": ["github-releases", "github-tags"],
