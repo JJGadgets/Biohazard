@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app victoria-logs
@@ -25,7 +25,8 @@ spec:
         repository: docker.io/victoriametrics/victoria-logs
         tag: "v1.21.0-victorialogs@sha256:6cb89740618c6525ea23341b98581091f32159209090bb923be70377244b7a1c"
         pullPolicy: IfNotPresent
-      retentionPeriod: 1 # months
+      retentionPeriod: 1w
+      retentionDiskSpaceUsage: "20"
       persistentVolume:
         enabled: true
         existingClaim: victoria-logs-data
