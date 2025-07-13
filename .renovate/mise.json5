@@ -10,10 +10,6 @@
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
       "addLabels": ["renovate/mise"]
-    },
-    {
-      "matchFileNames": [".mise.toml", "mise.toml"],
-      "overrideDepName": "{{#if (lookup (split depName ':') 1)}}{{ lookup (split depName ':') 1 }}{{else}}{{depName}}{{/if}}"
     }
   ]
 }
