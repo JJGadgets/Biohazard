@@ -34,11 +34,13 @@
       "addLabels": ["renovate-itself"]
     },
     {
-      "description": "Auto merge all Renovate versions",
+      "description": "Auto merge all Mise versions",
       "matchFileNames": [".mise.toml", "mise.toml"],
+      "matchPackageNames": ["*"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true,
-      "automergeType": "pr"
+      "automergeType": "pr",
+      "rebaseWhen": "behind-base-branch"
     },
     {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
