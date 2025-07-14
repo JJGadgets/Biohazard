@@ -2,15 +2,15 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cyberchef-app
+  name: feishin-app
   namespace: flux-system
   labels: &l
-    app.kubernetes.io/name: "cyberchef"
+    app.kubernetes.io/name: "feishin"
 spec:
-  targetNamespace: "cyberchef"
+  targetNamespace: "feishin"
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/cyberchef/app
+  path: ./kube/deploy/apps/feishin/app
   components:
     - ../../../core/flux-system/alerts/template/
   dependsOn:

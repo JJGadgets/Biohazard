@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -65,7 +65,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped
-              tag: latest@sha256:2fcc0dcec2dfec853506434876219b2a8fe8715f2bdc88bbe2ce559c840d68bc
+              tag: latest@sha256:121d56e14a3eccfc107cf5bab084772ba16b395e243b65076a6fa73f8fa0e8b2
             env: *env
             securityContext: *sc
             probes: *probes
@@ -87,7 +87,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped-proxy
-              tag: latest@sha256:8ba6574e216ba65d9e43f82f961f6392f51648b458238ed71f7a52f909552a4f
+              tag: latest@sha256:15e8a3fe6eb72a9503cf52a6fa7ec29659ce6999dea2b348aa2936f41f73bfa8
             command: ["/app/piped-proxy"]
             env: *env
             securityContext: *sc

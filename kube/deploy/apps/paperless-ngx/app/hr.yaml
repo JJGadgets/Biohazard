@@ -29,7 +29,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/paperless-ngx/paperless-ngx"
-              tag: "2.16.3@sha256:5622c95b4e22c6b95d4791563d8ace03ae16e3147e2cdf2016b938dc9341d30a"
+              tag: "2.17.1@sha256:ab72a0ab42a792228cdbe83342b99a48acd49f7890ae54b1ae8e04401fba24ee"
             args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
@@ -100,7 +100,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4-bookworm@sha256:386e6c443372b9ba651d593baa881c802f3d3f093e2586602e05d6ba47ea733e"
+              tag: "7.4.5-bookworm@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
@@ -133,7 +133,7 @@ spec:
           main:
             image:
               repository: "docker.io/gotenberg/gotenberg"
-              tag: "8.21.0@sha256:8ccd9b57b537a92bba778a49a0c7a8367c61927170e632840fe8a056c4702d9f"
+              tag: "8.21.1@sha256:91486863744f7420ca985ee6cef7c216910e40faffd378f3da7c0fad724d01ba"
             command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
             securityContext: *sc
             resources: # TODO: adjust (Go app)

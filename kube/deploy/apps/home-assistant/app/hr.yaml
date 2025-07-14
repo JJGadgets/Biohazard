@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,14 +10,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "3.7.3"
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      home-assistant:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -33,6 +33,9 @@ spec:
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
           annotations:
+            # generate reproducible "locally assigned" (aka non-vendor-assigned) MAC address from a FQDN (e.g. for Home Assistant Multus)
+            # `echo "$FQDN" | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/'`
+            # source: https://serverfault.com/questions/299556/how-to-generate-a-random-mac-address-from-the-linux-command-line/299563#299563
             k8s.v1.cni.cncf.io/networks: |
               [{
                 "name":"iot",
@@ -41,14 +44,17 @@ spec:
                 "mac": "${APP_MAC_HOME_ASSISTANT_IOT}",
                 "gateway": "${IP_ROUTER_VLAN_IOT}"
               }]
-            # generate reproducible "locally assigned" (aka non-vendor-assigned) MAC address from a FQDN (e.g. for Home Assistant Multus)
-            # `echo "$FQDN" | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/'`
-            # source: https://serverfault.com/questions/299556/how-to-generate-a-random-mac-address-from-the-linux-command-line/299563#299563
+          resources:
+            requests:
+              cpu: 30m
+            limits:
+              cpu: 1
+              memory: 1Gi
         containers:
-          main:
+          app:
             image:
-              repository: "ghcr.io/onedr0p/home-assistant"
-              tag: "2025.3.3@sha256:9e2a7177b4600653d6cb46dff01b1598189a5ae93be0b99242fbc039d32d79f1"
+              repository: ghcr.io/home-operations/home-assistant
+              tag: 2025.6.3@sha256:6f6b427121f376c92dac2ce14b99ff088010da3f082142fd8b86b4ade563328f
             env:
               TZ: "${CONFIG_TZ}"
             #envFrom:
@@ -93,9 +99,10 @@ spec:
             args: ["restore", "-if-db-not-exists", "-if-replica-exists", "/config/home-assistant_v2.db"]
             env: *lsenv
     service:
-      home-assistant:
+      app:
         primary: true
-        controller: "home-assistant"
+        controller: app
+        forceRename: *app
         ports:
           http:
             port: 8123
@@ -104,7 +111,7 @@ spec:
             primary: true
       expose:
         primary: false
-        controller: "home-assistant"
+        controller: app
         type: LoadBalancer
         annotations:
           "io.cilium/lb-ipam-ips": "${APP_IP_HOME_ASSISTANT:=127.0.0.1}"
@@ -142,7 +149,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: home-assistant
+                  identifier: app
                   port: http
         tls: &tls
           - hosts: [*host]
@@ -150,11 +157,10 @@ spec:
       config:
         existingClaim: "home-assistant-data"
         advancedMounts:
-          home-assistant:
-            main: &pvc
+          app:
+            app: &pvc
               - subPath: "config"
                 path: "/config"
-                readOnly: false
             litestream: *pvc
             01-litestream-restore: *pvc
       tmp:
@@ -172,7 +178,7 @@ spec:
         type: secret
         name: "litestream-secrets"
         advancedMounts:
-          home-assistant:
+          app:
             litestream: &lsmnt
               - subPath: "litestream.yml"
                 path: "/etc/litestream.yml"
@@ -202,28 +208,10 @@ spec:
           - name: ndots
             value: "1"
     serviceMonitor:
-      home-assistant:
-        serviceName: *app
+      app:
+        service:
+          identifier: app
         endpoints:
           - port: http
             scheme: http
             path: /api/prometheus
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              kind: Deployment
-              name: home-assistant
-            patch: |
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: home-assistant
-              spec:
-                template:
-                  spec:
-                    requests:
-                      cpu: 30m
-                    limits:
-                      cpu: 1
-                      memory: 1Gi

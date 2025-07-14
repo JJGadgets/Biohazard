@@ -7,22 +7,22 @@ metadata:
   namespace: monitoring
 spec:
   useStrictSecurity: true
-  replicaCount: 3
+  replicaCount: 2
   evaluationInterval: 1m
   selectAllByDefault: true
   externalLabels:
     cluster: "${CLUSTER_NAME}"
   datasource: &vm
-    url: http://vmsingle-alerts.monitoring.svc:8429
+    url: http://vmsingle-alerts.monitoring.svc.cluster.local.:8429
   remoteRead:
-    url: http://vmsingle-victoria.monitoring.svc:8429
+    url: http://vmsingle-victoria.monitoring.svc.cluster.local.:8429
   remoteWrite:
-    url: http://vmagent-victoria.monitoring.svc:8429
+    url: http://vmagent-victoria.monitoring.svc.cluster.local.:8429
   notifiers:
-    - url: http://alertmanager.monitoring.svc:9093
-    - url: http://alertmanager-local-0.monitoring.svc:9093
-    - url: http://alertmanager-local-1.monitoring.svc:9093
-    - url: http://alertmanager-local-2.monitoring.svc:9093
+    - url: http://alertmanager.monitoring.svc.cluster.local.:9093
+    - url: http://alertmanager-local-0.monitoring.svc.cluster.local.:9093
+    - url: http://alertmanager-local-1.monitoring.svc.cluster.local.:9093
+    - url: http://alertmanager-local-2.monitoring.svc.cluster.local.:9093
   # notifiers:
   #   - selector:
   #       namespaceSelector:
@@ -32,11 +32,10 @@ spec:
   #             app.kubernetes.io/name: alertmanager
   resources:
     requests:
-      cpu: 20m
-      memory: 64Mi
+      cpu: 10m
     limits:
       cpu: 1
-      memory: 1Gi
+      memory: 100Mi
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname

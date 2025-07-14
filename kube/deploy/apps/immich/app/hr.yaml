@@ -38,7 +38,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v1.134.0@sha256:073fc04c7e3d18ace466c20763809cf17aa55765ed610f12971b392a6a80b50c
+              tag: v1.135.3@sha256:df5bbf4e29eff4688063a005708f8b96f13073200b4a7378f7661568459b31e9
             command: &cmd ["tini", "--", "node", "/usr/src/app/dist/main"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -158,7 +158,7 @@ spec:
           main:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.134.0-openvino@sha256:ec23f98efe6d3b88c600142951eeecbef0056a87844d0f5bea843fd0e29a58e3
+              tag: v1.135.3-openvino@sha256:9334b516111e6945cb1220cfeb772e44a48c67c114c9c3cb3faa597d081048ed
             env:
               <<: *env
               MACHINE_LEARNING_REQUEST_THREADS:
@@ -190,7 +190,7 @@ spec:
           main: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.134.0@sha256:e157e0fa0d4363b0b6bab1923adab5951bbcdb71cd9016470bc6810dae21d115
+              tag: v1.135.3@sha256:9f2f61d86af82d04926f9b896c995c502303052905517c5485dd26bf1e42a44e
             command: ["huggingface-cli", "download", "--exclude", ".git", "--local-dir"] # Immich ML image installs huggingface-cli
             args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
@@ -220,7 +220,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4@sha256:386e6c443372b9ba651d593baa881c802f3d3f093e2586602e05d6ba47ea733e"
+              tag: "7.4.5@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
             command: ["redis-server", "--save", "300 1", "--appendonly", "yes"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
