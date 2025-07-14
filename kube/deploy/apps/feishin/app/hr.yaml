@@ -89,6 +89,8 @@ spec:
             path: /var/cache/nginx
           - subPath: run
             path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
