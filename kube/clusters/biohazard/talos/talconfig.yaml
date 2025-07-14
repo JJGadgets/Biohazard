@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.9.5
+talosVersion: v1.10.3
 kubernetesVersion: v1.32.0
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
@@ -74,11 +74,22 @@ nodes:
       secureboot: true
     schematic:
       customization:
-        extraKernelArgs:
+        extraKernelArgs: &kernelArgs
+          # maybe KubeVirt PCIe passthrough?
           - intel_iommu=on
           - iommu=pt
+          # enable AppArmor over SELinux
+          - -selinux
           - apparmor=1
-          - security=apparmor
+          - lsm=yama,loadpin,safesetid,integrity,bpf,apparmor,lockdown,landlock,capability # https://github.com/siderolabs/pkgs/blob/8c4603e90335b9aaf180b954ebc43f65dcb2b7b6/kernel/build/config-amd64#L6522 as of 1.10.2, remove SELinux
+          # disable IMA (upstreamed as of Talos 1.11.0-alpha.1)
+          - ima=off
+          - -ima_template
+          - -ima_appraise
+          - -ima_hash
+          # allow long iGPU compute processes for headless stuff like LLMs
+          - i915.enable_hangcheck=0
+          - i915.request_timeout_ms=600000
         systemExtensions:
           officialExtensions:
             - siderolabs/gvisor
@@ -98,12 +109,7 @@ nodes:
               configure system description "Talos Node"
     extraManifests:
       - ./watchdog.yaml
-    patches:
-      - |
-        machine:
-          sysfs:
-            module.i915.parameters.enable_hangcheck: "N"
-            module.i915.parameters.request_timeout_ms: "600000"
+    # patches:
       # - |
       #   machine:
       #     sysfs:
@@ -174,13 +180,7 @@ nodes:
       secureboot: true
     schematic:
       customization:
-        extraKernelArgs:
-          - intel_iommu=on
-          - iommu=pt
-          - apparmor=1
-          - security=apparmor
-          - i915.enable_hangcheck=0
-          - i915.request_timeout_ms=600000
+        extraKernelArgs: *kernelArgs
         systemExtensions:
           officialExtensions:
             - siderolabs/iscsi-tools
@@ -194,13 +194,7 @@ nodes:
             - siderolabs/mei # Intel 12 gen & newer
             - siderolabs/thunderbolt
     extensionServices:
-      - &lldpd
-        name: lldpd
-        configFiles:
-          - mountPath: /usr/local/etc/lldpd/lldpd.conf
-            content: |
-              configure lldpd portidsubtype ifname
-              configure system description "Talos Node"
+      - *lldpd
     extraManifests:
       - ./watchdog.yaml
 
@@ -236,9 +230,6 @@ nodes:
       secureboot: true
     schematic:
       customization:
-        extraKernelArgs:
-          - apparmor=1
-          - security=apparmor
         systemExtensions:
           officialExtensions:
             - siderolabs/gvisor

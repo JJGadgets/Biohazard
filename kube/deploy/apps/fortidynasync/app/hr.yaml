@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -28,9 +28,10 @@ spec:
           main:
             image: &img
               repository: ghcr.io/jjgadgets/fortidynasync
-              tag: 0.0.1@sha256:96720b95efb82da4eabd1375061a28588fe0c9c60852c0946e585398b5715b95
+              tag: 0.0.3@sha256:f23521c8e80393f73d160cd7764e3d8e798880479c580c10a29c474de77af89a
             env: &env
               TZ: "${CONFIG_TZ}"
+              FGT_VCI: "true"
             envFrom: &envFrom
               - secretRef:
                   name: fortidynasync-secrets
@@ -44,7 +45,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "128Mi"
+                memory: "50Mi" # barely takes kilobytes according to Python, let's try
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

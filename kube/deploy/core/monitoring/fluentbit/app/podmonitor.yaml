@@ -1,0 +1,23 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: &app fluentbit
+  namespace: *app
+spec:
+  jobLabel: *app
+  namespaceSelector:
+    matchNames:
+      - *app
+  podMetricsEndpoints:
+    - honorLabels: true
+      path: /metrics
+      port: metrics
+      relabelings:
+        - sourceLabels: ["__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app_kubernetes_io_instance", "__meta_kubernetes_pod_label_app_kubernetes_io_controller", "__meta_kubernetes_pod_node_name"]
+          targetLabel: instance
+          separator: "/"
+          replacement: '$1$2$3$4'
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: *app

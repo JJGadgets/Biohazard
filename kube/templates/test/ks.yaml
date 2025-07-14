@@ -12,8 +12,28 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/${APPNAME}/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: ${APPNAME}-db
+    - name: ${APPNAME}-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ${APPNAME}-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: ${APPNAME}
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: ${APPNAME}
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  components:
+    - ../../../core/storage/volsync/component/
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -34,6 +54,7 @@ spec:
       #   ${APP_UID_APPNAME:=1000}
       # RFSG: !!str |
       #   ${APP_UID_APPNAME:=1000}
+      VS_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -57,3 +78,4 @@ spec:
       PG_NAME: "default"
       PG_DB_USER: &app "${APPNAME}"
       PG_APP_NS: *app
+      PG_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"

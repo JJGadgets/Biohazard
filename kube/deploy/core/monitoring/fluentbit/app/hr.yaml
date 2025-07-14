@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,23 +10,24 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      fluentbit:
+      kubernetes: &pod
         type: daemonset
-        serviceAccount:
-          name: fluentbit
+        pod:
+          automountServiceAccountToken: true
+          enableServiceLinks: true
         containers:
-          main:
+          app: &ct
             image: &img
               repository: cr.fluentbit.io/fluent/fluent-bit
               tag: 4.0.1@sha256:6ed008616796375fc6e22102d88e1336c12b995c7d3a741d486ed8d1afb707d3
-            args: ["--config=/config/fluent-bit.yaml"]
+            args: ["--config=/config/kubernetes.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
               KUBE_NODE_IP:
@@ -43,7 +44,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "128Mi"
+                memory: "250Mi"
             #probes: # TODO: HTTP healthchecks via health API
             #  liveness:
             #    enabled: true
@@ -51,6 +52,22 @@ spec:
             #    enabled: true
             #  #startup:
             #  #  enabled: true
+        serviceAccount:
+          name: *app
+      dmesg:
+        type: daemonset
+        containers:
+          app:
+            <<: *ct
+            args: ["--config=/config/dmesg.yaml"]
+            securityContext:
+              privileged: true # Fluentbit can't access /dev/kmsg even with SYSLOG
+            resources:
+              requests:
+                cpu: "5m"
+              limits:
+                cpu: "1"
+                memory: "50Mi"
     #service:
     #  fluentbit:
     #    controller: fluentbit
@@ -66,29 +83,33 @@ spec:
       logs-containers: # normal Talos disk mount
         type: hostPath
         hostPath: &path "/var/log/containers"
-        globalMounts:
-          - path: *path
+        advancedMounts:
+          kubernetes:
+            app:
+              - path: *path
       logs-pods: # jank tmpfs bind mount from /run on Talos
         type: hostPath
         hostPath: &path "/var/log/pods"
-        globalMounts:
-          - path: *path
+        advancedMounts:
+          kubernetes:
+            app:
+              - path: *path
+      dmesg:
+        type: hostPath
+        hostPath: &path "/dev/kmsg"
+        advancedMounts:
+          dmesg:
+            app:
+              - path: *path
     defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
+      automountServiceAccountToken: false
+      enableServiceLinks: false
       securityContext:
         runAsUser: &uid 0 # logs are stored as root
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

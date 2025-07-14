@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,14 +10,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      authentik:
+      app:
         type: deployment
         replicas: 2
         strategy: RollingUpdate
@@ -37,6 +37,12 @@ spec:
             # for OIDC sources
             egress.home.arpa/discord: allow
             egress.home.arpa/github: allow
+          resources:
+            requests:
+              cpu: 30m
+            limits:
+              cpu: "1"
+              memory: 900Mi
           topologySpreadConstraints:
             - &tsc
               maxSkew: 1
@@ -47,10 +53,10 @@ spec:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/component: *app
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2025.2.4@sha256:36233579415aa2e2e52a6b0c45736cb871fe71460bfe0cf95d83f67528fb1182
+              tag: 2025.6.3@sha256:334354d11e015037cc1b030a9710e564f6e3545369d28789db823e86171d3fdc
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -109,13 +115,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "30m"
-                memory: "600Mi"
-              limits:
-                cpu: "1"
-                memory: "2Gi"
             ports:
               - name: http
                 containerPort: &http 9000
@@ -152,13 +151,6 @@ spec:
               SERVE_ROBOTS_TXT: "true"
               TARGET: "http://127.0.0.1:9000"
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "5m"
-                memory: "32Mi"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
             ports:
               - name: anubis
                 containerPort: &anubis 8923
@@ -187,7 +179,7 @@ spec:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/component: worker
         containers:
-          main:
+          app:
             image: *img
             args: [worker]
             env: *env
@@ -195,11 +187,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "20m"
-                memory: "512Mi"
+                cpu: 20m
               limits:
-                cpu: "1000m"
-                memory: "2Gi"
+                cpu: "1"
+                memory: 750Mi
             probes:
               liveness: &worker-probe
                 enabled: true
@@ -228,11 +219,11 @@ spec:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/component: ldap
         containers:
-          main:
+          app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.2.4@sha256:cc98bc43e3713095097ae322df1ebd3b0ae76ecd0bd67ae7cd1e0375cce51b1b
+              tag: 2025.6.3@sha256:28831ab95e4f05df683fd7032df6ac6beb3fa0647172bcc9b13b99869d7ee821
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -243,11 +234,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
-                memory: "128Mi"
+                cpu: 10m
               limits:
-                cpu: "1000m"
-                memory: "512Mi"
+                cpu: "1"
+                memory: 50Mi
             probes:
               liveness: &ldap-probe
                 enabled: true
@@ -276,11 +266,11 @@ spec:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/component: radius
         containers:
-          main:
+          app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.2.4@sha256:a730e2912dfced9dce4f76fab9543857ce2d3b572c966738a4529530ce86e855
+              tag: 2025.6.3@sha256:c18cd5cb58e264ddd26bd66965068e78416bb3e1ee9477cfef388b7a6c9d459f
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -291,11 +281,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
-                memory: "128Mi"
+                cpu: 10m
               limits:
-                cpu: "1000m"
-                memory: "512Mi"
+                cpu: "1"
+                memory: "50Mi"
             probes:
               liveness: &radius-probe
                 enabled: true
@@ -315,17 +304,16 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.3@sha256:7df1eeff67eb0ba84f6b9d2940765a6bb1158081426745c185a03b1507de6a09"
+              tag: "7.4.5@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
-                memory: "32Mi"
+                cpu: 5m
               limits:
-                cpu: "1000m"
-                memory: "512Mi"
+                cpu: "1"
+                memory: "32Mi"
             probes:
               liveness:
                 enabled: true
@@ -385,8 +373,9 @@ spec:
       #         readiness:
       #           enabled: true
     service:
-      authentik:
-        controller: authentik
+      app:
+        controller: app
+        forceRename: *app
         ports:
           http: &port
             port: *http
@@ -410,7 +399,7 @@ spec:
             port: 6379
       expose:
         primary: false
-        controller: authentik
+        controller: app
         type: LoadBalancer
         annotations:
           io.cilium/internal: "true"
@@ -472,7 +461,7 @@ spec:
                 path: /
                 pathType: Prefix
                 service:
-                  identifier: authentik
+                  identifier: app
                   port: http
         tls: &tls
           - hosts: [*host]
@@ -487,7 +476,7 @@ spec:
             paths:
               - <<: *path
                 service:
-                  identifier: authentik
+                  identifier: app
                   port: anubis
       harden:
         <<: *ingress
@@ -502,6 +491,8 @@ spec:
                 path: /api/v3/propertymappings
               - <<: *path
                 path: /api/v3/managed/blueprints
+              - <<: *path
+                path: /if/admin
     persistence:
       pg-ca:
         type: secret
@@ -526,6 +517,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostUsers: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
@@ -551,14 +543,14 @@ spec:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
       vm-ad:
-        nameOverride: vm-ad
         controller: worker
         policyTypes: [Egress]
         rules:
           egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR:=127.0.0.1/32}"}}]]
     serviceMonitor:
       authentik:
-        serviceName: authentik
+        service:
+          identifier: app
         endpoints:
           - port: metrics
             scheme: http

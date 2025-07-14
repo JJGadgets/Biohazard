@@ -532,6 +532,19 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-retro-consoles
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/retro-consoles: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_RETROCONSOLES_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-user1
 spec:
   endpointSelector:

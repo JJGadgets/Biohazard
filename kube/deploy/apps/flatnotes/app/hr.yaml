@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: docker.io/dullage/flatnotes
-              tag: v5.5.1@sha256:ddc3aeac47869002b546a500fab2f9e1f43720eb011392b65cf03277f764a661
+              tag: v5.5.3@sha256:cfa8e12c818a977220677b72649a70db5fa49faf630b2e819e48ed37b1a9cba5
             env: &env
               TZ: "${CONFIG_TZ}"
               FLATNOTES_PORT: &http 8080
