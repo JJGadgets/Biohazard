@@ -23,11 +23,6 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            db.home.arpa/pg: pg-default
-            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            # authentik.home.arpa/https: allow
-            # prom.home.arpa/kps: allow
-            # egress.home.arpa/internet: allow
         containers:
           app:
             image: &img
@@ -60,8 +55,7 @@ spec:
         controller: app
         ports:
           http:
-            port: 80
-            targetPort: 9180
+            port: 9180
             protocol: HTTP
             appProtocol: http
     ingress:
