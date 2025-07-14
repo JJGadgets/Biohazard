@@ -71,6 +71,7 @@
       "description": "Flux Group",
       "groupName": "Flux",
       "matchPackageNames": ["**fluxcd**", "**flux2**", "!**miniflux**"],
+      "versioning": "semver",
       "automerge": false,
       "separateMinorPatch": true,
       "sourceUrl": "https://github.com/fluxcd/flux2"
@@ -81,6 +82,7 @@
       "matchPackageNames": ["**flux**", "!miniflux"],
       "matchDatasources": ["docker", "github-tags"],
       "matchUpdateTypes": ["patch"],
+      "versioning": "semver",
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch"
