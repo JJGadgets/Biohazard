@@ -92,19 +92,17 @@ hubble:
 
 ## NOTE: ingress/gateway
 ingressController:
-  enabled: true
-  enforceHttps: true
-  loadbalancerMode: shared
-  defaultSecretNamespace: ingress
-  defaultSecretName: short-domain-tls
-  service:
-    annotations:
-      lbipam.cilium.io/ips: "${APP_IP_CILIUM_INGRESS:=127.0.0.1}"
+  enabled: false
+  # enforceHttps: true
+  # loadbalancerMode: shared
+  # defaultSecretNamespace: ingress
+  # defaultSecretName: short-domain-tls
+  # service:
+  #   annotations:
+  #     lbipam.cilium.io/ips: "${APP_IP_CILIUM_INGRESS:=127.0.0.1}"
 
 gatewayAPI:
-  enabled: true
-  enableAlpn: true
-  enableAppProtocol: true
-  xffNumTrustedHops: 1
-  gatewayClass:
-    create: "true"
+  enabled: false
+  # enableAlpn: true
+  # enableAppProtocol: true
+  # xffNumTrustedHops: 1
