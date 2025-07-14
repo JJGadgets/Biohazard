@@ -27,19 +27,17 @@ spec:
         containers:
           main:
             image: &img
-              repository: "docker.io/searxng/searxng"
-              tag: "latest@sha256:5a9a87decb510d2bc922dbe62ce5a35226b51ec5760746ae251b7f0ff39aee71"
-            command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "/usr/local/searxng/.template/uwsgi.ini"]
+              repository: "ghcr.io/searxng/searxng"
+              tag: "latest@sha256:54097e8189288082454fc257cf39c51d8059f24efeb07a4abbe0abbc58e38772"
+            command: ["/usr/local/searxng/venv/bin/granian", "searx.webapp:app"]
             env:
               TZ: "${CONFIG_TZ}"
-              BIND_ADDRESS: "[::]:8080"
-              UWSGI_THREADS: &cpu
+              GRANIAN_PORT: &http 8080
+              GRANIAN_BLOCKING_THREADS:
                 valueFrom:
                   resourceFieldRef:
                     containerName: main
                     resource: limits.cpu # not defined, so will use node allocatable
-              # UWSGI_WORKERS: *cpu
-              UWSGI_WORKERS: "1"
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -57,14 +55,14 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4-bookworm@sha256:3f6417986458b10497af7648ef95e3632296b71566e5aba8007780c1a86cd804"
+              tag: "7.4.5-bookworm@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "32Mi"
     service:
       main:
