@@ -30,13 +30,17 @@ spec:
           app:
             image: &img
               repository: ghcr.io/rclone/rclone
-              tag: 1.70.2@sha256:2a25b0ac42aa0bcb690f039a0b9713974bdea501b48e4b4bb5de328ff3cf29ee
-            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-user=$(RC_USER)", "--rc-pass=$(RC_PASS)", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)"]
+              tag: 1.70.3@sha256:34c729127386abec1c610b2aa024e39b4498dc2b4a72a0798ae21fbdc1b0493b
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "**/／*", "--exclude", "**/／**", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
             env: &env
               TZ: "${CONFIG_TZ}"
               FTP_PORT: &ftp 2121
               HTTP_PORT: &http 8080
               METRICS_PORT: &metrics 9090
+              RCLONE_URL: http://rclone-retro-app.rclone-retro.svc.cluster.local/
+              # without the multithread config, every 64Mi the 3DS transfer will "write: broken pipe"
+              RCLONE_MULTI_THREAD_CUTOFF: "0"
+              RCLONE_MULTI_THREAD_STREAMS: "1"
             envFrom: &envFrom
               - secretRef:
                   name: rclone-retro-secrets
@@ -58,54 +62,71 @@ spec:
                 enabled: true
       3ds: &cron
         type: cronjob
-        cronjob:
+        cronjob: &cj
           schedule: "@hourly"
           concurrencyPolicy: Replace
-          ttlSecondsAfterFinished: 60
+          ttlSecondsAfterFinished: 3600
           failedJobsHistory: 1
           backoffLimit: 2
         containers:
           main: &rclct
             image: *img
-            args: ["rc", "sync/sync", "3ds:/", "/data/3ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
-            env:
+            command: ["/bin/sh", "-c", "rclone rc $(ARG)"]
+            env: &envcr
               <<: *env
-              FILTER: |
-                "IncludeRule": [ "/Nintendo 3DS/title/**/**/content/*.app", "**/*.cia", "**/*.fbi", "**/*.nds", "/GBA/**", "/GBA/*", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
-              CONFIG: |
-                "Progress": true
+              RCLONE_TIMEOUT: 1h
+              ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
+                sync/sync srcFs='3ds:/' dstFs='/data/3ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**", "**/content/*.app","Nintendo 3DS/title/**/**/content/*.app","**/*.cia","**/*.fbi","**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
             envFrom: *envFrom
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "128Mi"
-      3ds-gba:
-        <<: *cron
-        containers:
-          main:
-            <<: *rclct
-            args: ["rc", "sync/sync", "3ds:GBA/", "/data/3ds-gba/", "_config='{$(CONFIG)}'"]
+        initContainers:
+          01-ping: &ping
+            image: *img
+            command: ["/bin/sh", "-c", "until rclone backend features $(REMOTE): --contimeout=5s --timeout=5s; do printf 'Waiting for handheld to come online...'; sleep 2; done"]
             env:
-              <<: *env
-              FILTER: |
-                "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
-              CONFIG: |
-                "Progress": true
+              REMOTE: 3ds
+            securityContext: *sc
+        pod:
+          annotations: &cran
+            reloader.stakater.com/auto: "false"
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "1"
+              memory: "128Mi"
+        annotations: *cran
+      # 3ds-gba:
+      #   <<: *cron
+      #   containers:
+      #     main:
+      #       <<: *rclct
+      #       env:
+      #         <<: *envcr
+      #         ARG: |
+      #           sync/sync srcFs='3ds:GBA/' dstFs='/data/3ds-gba/' _config='{"Progress": true}'
+      #   initContainers:
+      #     01-ping:
+      #       <<: *ping
+      #       env:
+      #         REMOTE: 3ds
       ds:
         <<: *cron
+        cronjob:
+          <<: *cj
+          schedule: "30 21-23 * * *"
         containers:
           main:
             <<: *rclct
-            args: ["rc", "sync/sync", "ds:/", "/data/ds/", "_filter='{$(FILTER)}'", "_config='{$(CONFIG)}'"]
             env:
-              <<: *env
-              FILTER: |
-                "IncludeRule": [ "**/*.nds", "**/*.mp3", "**/*.m4a", "**/*.aac", "**/*.wav", "**/*.flac" ]
-              CONFIG: |
-                "Progress": true
+              <<: *envcr
+              ARG: |
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**","**.nds","**.NDS","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac","_gba/configs/*","_nds*/**","vmac","moonshl2","_wfwd*/**"]}'
+        initContainers:
+          01-ping:
+            <<: *ping
+            env:
+              REMOTE: ds
     service:
       app:
         controller: app
@@ -153,11 +174,13 @@ spec:
             readOnly: true
       data:
         existingClaim: rclone-retro-data
-        globalMounts:
-          - subPath: data
-            path: /data
-          - subPath: cache
-            path: /.cache
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+              - subPath: cache
+                path: /.cache
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
@@ -204,6 +227,7 @@ spec:
             concurrency = 1
             idle_timeout = 0s
             writing_mdtm = true
+    defaultPodOptionsStrategy: merge
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -244,7 +268,7 @@ spec:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
       conosoles:
-        controller: app
+        podSelector: {}
         policyTypes: [Ingress, Egress]
         rules:
           ingress:
