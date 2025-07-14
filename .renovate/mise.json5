@@ -2,14 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchFileNames": [".mise.toml", "mise.toml"],
-      "addLabels": ["renovate/mise"]
-    },
-    {
       "description": "Mise GitHub: Use package name as user/org if no user/org",
       "matchFileNames": [".mise.toml", "mise.toml"],
       "matchDatasources": ["github-releases", "github-tags"],
-      "overridePackageName": "{{#if (lookup (split packageName '/') 1)}}{{packageName}}{{else}}{{depName}}/{{depName}}{{/if}}"
+      "overridePackageName": "{{#if (lookup (split packageName '/') 1)}}{{packageName}}{{else if (lookup (split packageName ':') 1)}}{{ lookup (split packageName ':') 1 }}/{{ lookup (split packageName ':') 1 }}{{else}}{{packageName}}/{{packageName}}{{/if}}"
+    },
+    {
+      "matchFileNames": [".mise.toml", "mise.toml"],
+      "addLabels": ["renovate/mise"]
     }
   ]
 }

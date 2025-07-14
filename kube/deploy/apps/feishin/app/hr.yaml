@@ -1,40 +1,39 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app stirling-pdf
+  name: &app feishin
   namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      stirling-pdf:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          app:
             image: &img
-              repository: ghcr.io/stirling-tools/stirling-pdf
-              tag: 1.0.2-fat@sha256:cca7a69948f6af03ebc07a54dc0846b28fe90f4937cae0c1bd4a255f7b25aa04
+              repository: ghcr.io/jeffvli/feishin
+              tag: 0.18.0@sha256:aefb053a9f30f8a078687613978613bb9e217d1bd7970c289367ecdcb36b3044
             env: &env
               TZ: "${CONFIG_TZ}"
-              DOCKER_ENABLE_SECURITY: false
-              SECURITY_ENABLE_LOGIN: false
-            # envFrom: &envFrom
-            #   - secretRef:
-            #       name: stirling-pdf-secrets
+              SERVER_NAME: JJGadgets Music
+              SERVER_TYPE: navidrome
+              SERVER_URL: "https://${APP_DNS_NAVIDROME}"
+              SERVER_LOCK: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -43,56 +42,49 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "512Mi"
               limits:
                 cpu: "1"
-                memory: 2Gi
-            # probes:
-            #   liveness:
-            #     enabled: true
-            #   readiness:
-            #     enabled: true
-            #   #startup:
-            #   #  enabled: true
+                memory: "128Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      stirling-pdf:
-        controller: stirling-pdf
+      app:
+        controller: app
         ports:
           http:
-            port: 8080
+            port: 9180
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_STIRLING_PDF:=stirling-pdf}"
+          - host: &host "${APP_DNS_FEISHIN:=feishin}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: stirling-pdf
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      # data:
-      #   existingClaim: stirling-pdf-data
-      #   globalMounts:
-      #     - subPath: data
-      #       path: /data
       tmp:
         type: emptyDir
-        # medium: Memory
+        medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: configs
-            path: /configs
-          - subPath: logs
-            path: /logs
-          - subPath: tessdata
-            path: /usr/share/tessdata
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -106,15 +98,22 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 101
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/stirling-pdf
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
