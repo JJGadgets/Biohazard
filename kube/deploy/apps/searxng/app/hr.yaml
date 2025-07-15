@@ -27,19 +27,17 @@ spec:
         containers:
           main:
             image: &img
-              repository: "docker.io/searxng/searxng"
-              tag: "latest@sha256:d1a8f60bdb11fecdba2ba0c4a2e0aa35781ab6397c495deb0d3cf351dcfecd07"
-            command: ["/usr/local/searxng/venv/bin/uwsgi", "--master", "/usr/local/searxng/.template/uwsgi.ini"]
+              repository: "ghcr.io/searxng/searxng"
+              tag: "latest@sha256:54097e8189288082454fc257cf39c51d8059f24efeb07a4abbe0abbc58e38772"
+            command: ["/usr/local/searxng/venv/bin/granian", "searx.webapp:app"]
             env:
               TZ: "${CONFIG_TZ}"
-              BIND_ADDRESS: "[::]:8080"
-              UWSGI_THREADS: &cpu
+              GRANIAN_PORT: &http 8080
+              GRANIAN_BLOCKING_THREADS:
                 valueFrom:
                   resourceFieldRef:
                     containerName: main
                     resource: limits.cpu # not defined, so will use node allocatable
-              # UWSGI_WORKERS: *cpu
-              UWSGI_WORKERS: "1"
             envFrom:
               - secretRef:
                   name: "searxng-secrets"
@@ -57,14 +55,14 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.4-bookworm@sha256:2582cc7e28849e4bdca8b991c3ede503ec706112d2eb2feb2191e9e980d37e92"
+              tag: "7.4.5-bookworm@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "32Mi"
     service:
       main:
@@ -250,6 +248,9 @@ spec:
               - 'Open Access DOI rewrite'
               - 'Vim-like hotkeys'
               - 'Hostnames plugin'
+            plugins:
+              searx.plugins.tracker_url_remover.SXNGPlugin: # somehow doesn't go through SOCKS5?
+                active: false
             hostnames:
               replace:
                 '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
