@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: victoria-logs-single
-      version: 0.9.7
+      version: 0.11.5
       sourceRef:
         name: victoria
         kind: HelmRepository
@@ -23,7 +23,7 @@ spec:
         ingress.home.arpa/nginx-internal: allow
       image:
         repository: docker.io/victoriametrics/victoria-logs
-        tag: "v1.21.0-victorialogs@sha256:6cb89740618c6525ea23341b98581091f32159209090bb923be70377244b7a1c"
+        tag: "v1.24.0-victorialogs@sha256:1ec31ddccc39dc9ead2607cddbf2829be1eb5ad39890e72bba26b359be20801d"
         pullPolicy: IfNotPresent
       retentionPeriod: null
       retentionDiskSpaceUsage: "20"
