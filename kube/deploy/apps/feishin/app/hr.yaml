@@ -1,35 +1,39 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app librespeed
+  name: &app feishin
   namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      librespeed:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-external: allow
+            ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          app:
             image: &img
-              repository: ghcr.io/librespeed/speedtest-rust
-              tag: v1.3.8@sha256:7463fc82eea72e98caf4e163764b16ba0db9c62eb617e31be9ed5f32c16a54d7
+              repository: ghcr.io/jeffvli/feishin
+              tag: 0.18.0@sha256:aefb053a9f30f8a078687613978613bb9e217d1bd7970c289367ecdcb36b3044
             env: &env
               TZ: "${CONFIG_TZ}"
+              SERVER_NAME: JJGadgets Music
+              SERVER_TYPE: navidrome
+              SERVER_URL: "https://${APP_DNS_NAVIDROME}"
+              SERVER_LOCK: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -47,52 +51,46 @@ spec:
               readiness:
                 enabled: true
     service:
-      librespeed:
-        controller: librespeed
+      app:
+        controller: app
         ports:
           http:
-            port: 8080
+            port: 9180
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
-          - host: &host "${APP_DNS_LIBRESPEED:=librespeed}"
+          - host: &host "${APP_DNS_FEISHIN:=feishin}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: librespeed
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      config:
-        type: configMap
-        name: librespeed-config
-        advancedMounts:
-          librespeed:
-            main:
-              - subPath: configs.toml
-                path: /usr/local/bin/configs.toml
-    configMaps:
-      config:
-        enabled: true
-        data:
-          configs.toml: |-
-            bind_address="0.0.0.0"
-            listen_port=8080
-            worker_threads=1 # or auto
-            redact_ip_addresses=true
-            result_image_theme="dark"
-            database_type="none"
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
@@ -100,15 +98,22 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 101
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/librespeed
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

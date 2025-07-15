@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://flux.jank.ing/kustomization-kustomize-v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -12,8 +13,25 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/rclone-retro/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: rclone-retro-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: rclone-retro-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: rclone-retro
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: rclone-retro
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -28,3 +46,4 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+      VS_APP_CURRENT_VERSION: "ghcr.io/rclone/rclone:1.70.3@sha256:b8dad82933961be28ebbe4aab87e14f2d2fcd23ed3e8335a43a837209cb46f5f"
