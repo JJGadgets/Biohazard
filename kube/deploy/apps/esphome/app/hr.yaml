@@ -1,0 +1,122 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app esphome
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.1.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/iot: allow
+            # authentik.home.arpa/https: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/home-operations/esphome
+              tag: 2025.7.1@sha256:70b542eec3fb1a97a3918a2a4b5879f17a6baf550d55d568291d1572c890c38f
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "5m"
+                memory: "512Mi"
+              limits:
+                cpu: "1"
+                memory: "3Gi"
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 6052
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_ESPHOME:=esphome}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: esphome-data
+        globalMounts:
+          - subPath: data
+            path: /config
+      cache:
+        type: emptyDir
+      config:
+        type: configMap
+        name: esphome-config
+        globalMounts:
+          - subPath: common.yaml
+            path: /config/common.yaml
+          - subPath: wifi.yaml
+            path: /config/wifi.yaml
+          - subPath: mitsubishi-cn105-bt-proxy.yaml
+            path: /config/mitsubishi-cn105-bt-proxy.yaml
+          - subPath: living-room-ac.yaml
+            path: /config/living-room-ac.yaml
+      secrets:
+        type: secret
+        name: esphome-secrets
+        globalMounts:
+          - subPath: secrets.yaml
+            path: /config/secrets.yaml
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

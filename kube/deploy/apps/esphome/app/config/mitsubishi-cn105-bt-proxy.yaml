@@ -1,0 +1,65 @@
+---
+substitutions:
+  area_id: "$${area_id}"
+  area_name: "$${area_name}"
+  name: "ac-cn105"
+  friendly_name: "Air Conditioner"
+  description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area_name}"
+packages:
+  common: !include
+    file: ./common.yaml
+  wifi: !include
+    file: ./wifi.yaml
+
+# Mitsubishi CN105 air conditioner controller
+external_components:
+  - source: github://echavet/MitsubishiCN105ESPHome
+climate: # Climate entity config
+  - platform: cn105
+    id: aircon_$${area_id}
+    name: "Air Conditioner - $${area_name}"
+    update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
+uart:
+  id: HP_UART
+  baud_rate: 2400
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+
+# Bluetooth Proxy
+bluetooth_proxy:
+  active: true
+api:
+  # Only enable BLE tracking when wifi is up and api is connected
+  # Gives single-core ESP32-C3 devices time to manage wifi and authenticate with api
+  on_client_connected:
+     - esp32_ble_tracker.start_scan:
+        continuous: true
+  # Disable BLE tracking when there are no api connections live
+  on_client_disconnected:
+    if:
+      condition:
+        not:
+          api.connected:
+      then:
+        - esp32_ble_tracker.stop_scan:
+
+# Optimizations
+logger:
+  baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory
+  level: INFO
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf  # This is important: the default "arduino" framework does not perform well.
+    sdkconfig_options:
+      # @grigi found in testing that these options resulted in better responsiveness.
+      # BLE 4.2 is supported by ALL ESP32 boards that have bluetooth, the original and derivatives.
+      CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
+      # Also enable this on any derivative boards (S2, C3 etc) but not the original ESP32.
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
+      # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
+
+# Enable esphome OTA updates
+ota:
+  - platform: esphome

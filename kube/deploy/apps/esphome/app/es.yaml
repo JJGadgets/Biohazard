@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name esphome-secrets
+  namespace: esphome
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "esphome - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        age.agekey: '{{ .agekey }}'
+        secrets.yaml: |
+          wifi_ssid: "{{ .ESP_WIFI_SSID }}"
+          wifi_password: "{{ .ESP_WIFI_PASSWORD }}"
+          domain: "{{ .ESP_WIFI_DOMAIN }}"

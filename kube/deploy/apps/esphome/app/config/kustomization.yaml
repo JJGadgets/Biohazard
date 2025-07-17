@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: insurgency-sandstorm-config
+    files:
+      - ./common.yaml
+      - ./wifi.yaml
+      - ./mitsubishi-cn105-bt-proxy.yaml
+      - ./living-room-ac.yaml
+generatorOptions:
+  disableNameSuffixHash: true # Reloader
