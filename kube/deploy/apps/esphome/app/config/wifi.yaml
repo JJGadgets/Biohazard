@@ -4,24 +4,22 @@ substitutions:
   wifi_percent_id: wifi_signal_percent
 
 wifi:
-  ap: {}
-  domain: !secret domain_devices
+  domain: .esp.dhcp.internal
   networks:
     - ssid: !secret wifi_ssid
       password: !secret wifi_password
-      priority: 0.0
 
 sensor:
   - platform: wifi_signal # Reports the WiFi signal strength in dB
     name: WiFi Signal dB
-    id: ${wifi_db_id}
+    id: $${wifi_db_id}
     update_interval: 60s
     entity_category: diagnostic
 
   - platform: copy # Reports the WiFi signal strength in %
-    source_id: ${wifi_db_id}
+    source_id: $${wifi_db_id}
     name: WiFi Signal Percent
-    id: ${wifi_percent_id}
+    id: $${wifi_percent_id}
     filters:
       - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
     unit_of_measurement: "%"
