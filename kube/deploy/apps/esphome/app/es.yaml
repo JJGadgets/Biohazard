@@ -12,7 +12,7 @@ spec:
     name: 1p
   dataFrom:
     - extract:
-        key: "esphome - ${CLUSTER_NAME}"
+        key: "ESPHome - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -20,7 +20,6 @@ spec:
     template:
       type: Opaque
       data:
-        age.agekey: '{{ .agekey }}'
         secrets.yaml: |
           wifi_ssid: "{{ .ESP_WIFI_SSID }}"
           wifi_password: "{{ .ESP_WIFI_PASSWORD }}"
