@@ -31,8 +31,6 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  components:
-    - ../../../core/storage/volsync/component/
   dependsOn:
     - name: crds
       namespace: flux-system
