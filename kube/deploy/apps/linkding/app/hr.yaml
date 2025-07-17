@@ -20,7 +20,7 @@ spec:
       app:
         type: deployment
         replicas: 1
-        pod:
+        pod: &p
           labels:
             ingress.home.arpa/nginx-internal: allow
             authentik.home.arpa/https: allow
@@ -39,7 +39,10 @@ spec:
               LD_SERVER_PORT: &http 8080
               LD_LOG_X_FORWARDED_FOR: "true"
               LD_FAVICON_PROVIDER: "https://icons.duckduckgo.com/ip3/{domain}.ico"
-              LD_SINGLEFILE_PATH: &snap "/snapshots" # archive whole page locally
+              LD_ENABLE_SNAPSHOTS: "True"
+              LD_ASSET_FOLDER: &snap "/assets" # local archive path (do NOT use LD_SINGLEFILE_PATH that's the executable location)
+              LD_FAVICON_FOLDER: &fav "/favicons"
+              LD_PREVIEW_FOLDER: &preview "/preview"
               # Database
               LD_DB_ENGINE: sqlite
             envFrom:
@@ -53,15 +56,19 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: 200Mi
               limits:
                 cpu: "1"
-                memory: 2Gi
+                memory: 200Mi
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+      bg-tasks:
+        type: deployment
+        replicas: 1
+        pod: *p
+        containers:
           bg-tasks: # taken from supervisord config
             image: *img
             command: ["python", "manage.py", "run_huey", "-f"]
@@ -106,8 +113,15 @@ spec:
       snapshots:
         existingClaim: linkding-snapshots
         globalMounts:
-          - subPath: data
+          - subPath: assets
             path: *snap
+      misc:
+        existingClaim: linkding-snapshots
+        globalMounts:
+          - subPath: favicons
+            path: *fav
+          - subPath: preview
+            path: *preview
       tmp:
         type: emptyDir
         medium: Memory
