@@ -17,6 +17,7 @@ spec:
     - name: crds
       namespace: flux-system
     - name: linkding-pvc
+    - name: linkding-snapshots-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -39,6 +40,35 @@ spec:
       PVC: "linkding-data"
       SIZE: "10Gi"
       SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/sissbruecker/linkding:1.41.0-plus@sha256:a222fb777e1fade891eabfa037e67ff4514f96b87be746060b027b5c84a8e1ce"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: linkding-snapshots-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: linkding
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: linkding
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: "linkding-snapshots"
+      SIZE: "100Gi"
+      SC: &sc "file-ec-2-1"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
