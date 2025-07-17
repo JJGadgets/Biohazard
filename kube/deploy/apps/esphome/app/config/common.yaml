@@ -33,11 +33,6 @@ sensor:
     entity_category: diagnostic
     update_interval: 60s
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  domain: .esp.dhcp.internal
-
 time:
   - platform: sntp
     id: time_sntp
