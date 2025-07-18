@@ -1,34 +1,34 @@
 substitutions:
-  system_name: "${area_id}-${name}"
-  device_description: "${description}"
-  friendly_name: "${area_name} - ${friendly_name}"
+  system_name: "$${area_id}-$${name}"
+  device_description: "$${description}"
+  friendly_name: "$${area_name} - $${friendly_name}"
 
   status_id: status_sensor
   restart_id: restart_button
   uptime_id: uptime_sensor
 
 esphome:
-  name: "${system_name}"
-  comment: "${device_description}"
-  friendly_name: "${friendly_name}"
+  name: "$${system_name}"
+  comment: "$${device_description}"
+  friendly_name: "$${friendly_name}"
 
 binary_sensor:
   - platform: status
-    id: $${status_id}
+    id: "$${status_id}"
     name: Status
     entity_category: diagnostic
 
 button:
   - platform: restart
     name: Restart
-    id: $${restart_id}
+    id: "$${restart_id}"
     icon: mdi:restart
     entity_category: config
 
 sensor:
   - platform: uptime
     type: seconds
-    id: $${uptime_id}
+    id: "$${uptime_id}"
     name: Uptime
     entity_category: diagnostic
     update_interval: 60s
