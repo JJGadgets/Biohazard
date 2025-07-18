@@ -1,7 +1,7 @@
 substitutions:
-  system_name: "$${area_name | replace(\"_\", \"-\") | replace(\" \", \"-\") | lower }-$${name}"
+  system_name: "$${area | replace(\"_\", \"-\") | replace(\" - \", \"-\") | replace(\" \", \"-\") | lower}-$${name | replace(\"_\", \"-\") | replace(\" - \", \"-\") | replace(\" \", \"-\") | lower}"
   device_description: "$${description}"
-  friendly_name: "$${area_name} - $${friendly_name}"
+  friendly_name: "$${area} - $${name}"
 
   status_id: status_sensor
   restart_id: restart_button
@@ -11,6 +11,9 @@ esphome:
   name: "$${system_name}"
   comment: "$${device_description}"
   friendly_name: "$${friendly_name}"
+  area:
+    id: "$${area | replace(\"_\", \"-\") | replace(\" - \", \"-\") | replace(\" \", \"-\") | lower}"
+    name: "$${area}"
 
 binary_sensor:
   - platform: status
