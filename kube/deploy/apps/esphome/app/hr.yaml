@@ -70,13 +70,25 @@ spec:
         tls:
           - hosts: [*host]
     persistence:
+      data:
+        existingClaim: esphome-data
+        globalMounts:
+          - subPath: data
+            path: /config
       cache:
         type: emptyDir
       config:
         type: configMap
         name: esphome-config
         globalMounts:
-          - path: /config
+          - subPath: common.yaml
+            path: /config/common.yaml
+          - subPath: wifi.yaml
+            path: /config/wifi.yaml
+          - subPath: mitsubishi-cn105-bt-proxy.yaml
+            path: /config/mitsubishi-cn105-bt-proxy.yaml
+          - subPath: jj-room-ac.yaml
+            path: /config/jj-room-ac.yaml
       secrets:
         type: secret
         name: esphome-secrets
