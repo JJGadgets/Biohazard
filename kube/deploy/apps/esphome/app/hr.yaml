@@ -85,10 +85,12 @@ spec:
             path: /config/common.yaml
           - subPath: wifi.yaml
             path: /config/wifi.yaml
+          - subPath: metadata.yaml
+            path: /config/metadata.yaml
           - subPath: mitsubishi-cn105-bt-proxy.yaml
             path: /config/mitsubishi-cn105-bt-proxy.yaml
-          - subPath: living-room-ac.yaml
-            path: /config/living-room-ac.yaml
+          - subPath: jj-room-ac.yaml
+            path: /config/jj-room-ac.yaml
       secrets:
         type: secret
         name: esphome-secrets
