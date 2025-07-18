@@ -14,7 +14,8 @@ external_components:
   - source: github://echavet/MitsubishiCN105ESPHome
 climate: # Climate entity config
   - platform: cn105
-    id: "aircon_${AREA_ID}"
+    id: >
+      aircon_${AREA_ID}
     name: "Air Conditioner - $${area}"
     update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
 uart:
