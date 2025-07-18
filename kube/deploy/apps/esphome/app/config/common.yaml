@@ -1,5 +1,5 @@
 substitutions:
-  system_name: "$${area_id}-$${name}"
+  system_name: "$${area_name | replace(\"_\", \"-\") | replace(\" \", \"-\") | lower }-$${name}"
   device_description: "$${description}"
   friendly_name: "$${area_name} - $${friendly_name}"
 
