@@ -9,4 +9,3 @@ substitutions:
   name_dns: >
     $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
 
-packages: !include "$${include}"
