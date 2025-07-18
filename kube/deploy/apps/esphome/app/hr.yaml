@@ -43,7 +43,7 @@ spec:
                 cpu: "5m"
                 memory: "512Mi"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "3Gi"
     service:
       app:
@@ -120,3 +120,9 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+                  - key: "feature.node.kubernetes.io/cpu-model.family"
+                    operator: In
+                    values: ["6"] # Intel
+                  - key: "feature.node.kubernetes.io/cpu-model.id"
+                    operator: In
+                    values: ["154"] # Alder Lake / 12th Gen
