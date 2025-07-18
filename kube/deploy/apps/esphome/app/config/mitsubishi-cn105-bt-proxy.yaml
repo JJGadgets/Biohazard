@@ -1,9 +1,11 @@
 ---
 substitutions:
   area: "$${area}"
-  name: "AC CN105"
-  friendly_name: "Air Conditioner"
-  description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area_name}"
+  area_id: "$${area_id}"
+  area_dns: "$${area_dns}"
+  name: "$${name}"
+  name_dns: "$${name_dns}"
+  description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
 packages:
   common: !include
     file: ./common.yaml
@@ -15,8 +17,8 @@ external_components:
   - source: github://echavet/MitsubishiCN105ESPHome
 climate: # Climate entity config
   - platform: cn105
-    id: aircon_$${area_id}
-    name: "Air Conditioner - $${area_name}"
+    id: "aircon_$${area_id}"
+    name: "Air Conditioner - $${area}"
     update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
 uart:
   id: HP_UART
@@ -44,8 +46,8 @@ api:
 
 # Optimizations
 logger:
-  baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory
   level: INFO
+  baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory
 esp32:
   board: esp32-s3-devkitc-1
   framework:

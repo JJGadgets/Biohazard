@@ -1,0 +1,9 @@
+---
+substitutions:
+  area: "JJ's Room"
+  name: "AC - CN105"
+packages:
+  cn105: !include
+    file: ./metadata.yaml
+    vars:
+      include: ./mitsubishi-cn105-bt-proxy.yaml
