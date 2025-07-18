@@ -1,5 +1,5 @@
 substitutions:
-  system_name: "$${area_dns}-$${name_dns}"
+  system_name: "${AREA_DNS}-${NAME_DNS}"
   device_description: "$${description}"
   friendly_name: "$${area} - $${name}"
 
@@ -12,7 +12,7 @@ esphome:
   comment: "$${device_description}"
   friendly_name: "$${friendly_name}"
   area:
-    id: "$${area_id}"
+    id: "${AREA_ID}"
     name: "$${area}"
 
 binary_sensor:

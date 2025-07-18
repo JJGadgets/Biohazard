@@ -17,6 +17,14 @@ spec:
     - name: crds
       namespace: flux-system
     - name: esphome-pvc
+  postBuild:
+    substitute:
+      AREA_DNS: >
+        $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
+      AREA_ID: >
+        $${area | replace("'", "_") | replace(" - ", "-") | replace(" ", "-") | replace("-", "_") | lower}
+      NAME_DNS: >
+        $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
