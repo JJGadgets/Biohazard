@@ -70,17 +70,6 @@ spec:
         tls:
           - hosts: [*host]
     persistence:
-      data:
-        existingClaim: esphome-data
-        globalMounts:
-          - subPath: data
-            path: /config
-          - subPath: dot-esphome
-            path: /config/.esphome
-          - subPath: dot-local
-            path: /config/.local
-          - subPath: dot-cache
-            path: /config/.cache
       cache:
         type: emptyDir
       config:
