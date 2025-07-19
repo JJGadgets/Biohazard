@@ -33,6 +33,7 @@ spec:
               tag: 2025.7.2@sha256:863d5dd690b0ae4eee52b2be9cf811d3a4f00236d2cec2e840bd098425a00439
             env: &env
               TZ: "${CONFIG_TZ}"
+              ESPHOME_DASHBOARD_USE_PING: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -128,3 +129,12 @@ spec:
                   - key: "feature.node.kubernetes.io/cpu-model.id"
                     operator: In
                     values: ["154"] # Alder Lake / 12th Gen
+    networkpolicies:
+      esp:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - ipBlock:
+                    cidr: "${IP_VLAN_ESP_CIDR:=127.0.0.1/32}"
