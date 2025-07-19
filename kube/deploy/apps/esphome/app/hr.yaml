@@ -40,7 +40,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_RAW"] # ping, userns'ed so safer
+                # add: ["NET_RAW"] # ping, userns'ed so safer # gave up on ESPHome ping, it works without it so whatever lol
             resources:
               requests:
                 cpu: "5m"
