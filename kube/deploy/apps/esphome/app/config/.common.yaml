@@ -1,0 +1,62 @@
+.substitutions: &subs !include { file: "./.metadata.yaml", vars: { area: "$${area}", name: "$${name}" } }
+substitutions:
+  <<: *subs
+  system_name: >
+    ${AREA_DNS}-${NAME_DNS}
+  device_description: "$${description}"
+  friendly_name: "$${area} - $${name}"
+  board: "$${board | default('esp32-s3-devkitc-1')}"
+  framework: "$${framework | default('esp-idf')}" # This is important: the default "arduino" framework does not perform well.
+  log: "$${log | default('INFO')}"
+
+esphome:
+  name: "$${area_dns}-$${name_dns}"
+  #!include { file: "./metadata/esphome-name.yaml", vars: { area: "$${area}", name: "$${name}" } }
+  comment: "$${device_description}"
+  friendly_name: "$${friendly_name}"
+  area:
+    id: "$${area_id}"
+    #!include { file: "./metadata/area-id.yaml", vars: { area: "$${area}" } }
+    name: "$${area}"
+
+esp32:
+  board: "$${board}"
+  framework:
+    type: "$${framework}"
+
+api: {}
+
+ota: # Enable esphome OTA updates
+  - platform: esphome
+
+binary_sensor:
+  - platform: status
+    id: "status_sensor"
+    name: Status
+    entity_category: diagnostic
+
+button:
+  - platform: restart
+    name: Restart
+    id: "restart_button"
+    icon: mdi:restart
+    entity_category: config
+
+sensor:
+  - platform: uptime
+    type: seconds
+    id: "uptime_sensor"
+    name: Uptime
+    entity_category: diagnostic
+    update_interval: 60s
+
+time:
+  - platform: sntp
+    id: time_sntp
+    timezone: "Asia/Singapore"
+    update_interval: 6h
+
+# Optimizations
+logger:
+  level: "$${log}"
+  baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory

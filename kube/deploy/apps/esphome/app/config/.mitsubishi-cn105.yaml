@@ -1,0 +1,27 @@
+---
+.substitutions: &subs !include { file: "./.metadata.yaml", vars: { area: "$${area}", name: &name "AC - CN105" } }
+substitutions:
+  <<: *subs
+  area: "$${area}"
+  name: *name
+  description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
+packages:
+  common: !include
+    file: ./.common.yaml
+  wifi: !include
+    file: ./.wifi.yaml
+
+# Mitsubishi CN105 air conditioner controller
+external_components:
+  - source: github://echavet/MitsubishiCN105ESPHome
+climate: # Climate entity config
+  - platform: cn105
+    id: "aircon_$${area_id}"
+    #!include { file: "./metadata/area-id.yaml", vars: { area: "$${area}", prefix: "aircon_" } }
+    name: "Air Conditioner - $${area}"
+    update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
+uart:
+  id: HP_UART
+  baud_rate: 2400
+  tx_pin: GPIO17
+  rx_pin: GPIO16

@@ -1,4 +1,6 @@
 ---
 substitutions:
   area: "Master Bedroom"
-packages: !include ./mitsubishi-cn105-bt-proxy.yaml
+packages:
+  - !include ./.mitsubishi-cn105.yaml
+  - !include ./.bluetooth-proxy.yaml

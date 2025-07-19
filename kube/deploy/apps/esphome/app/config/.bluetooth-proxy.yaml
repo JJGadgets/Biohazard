@@ -1,29 +1,3 @@
----
-substitutions:
-  area: "$${area}"
-  name: "AC - CN105"
-  description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
-packages:
-  common: !include
-    file: ./common.yaml
-  wifi: !include
-    file: ./wifi.yaml
-
-# Mitsubishi CN105 air conditioner controller
-external_components:
-  - source: github://echavet/MitsubishiCN105ESPHome
-climate: # Climate entity config
-  - platform: cn105
-    id: >
-      aircon_${AREA_ID}
-    name: "Air Conditioner - $${area}"
-    update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
-uart:
-  id: HP_UART
-  baud_rate: 2400
-  tx_pin: GPIO17
-  rx_pin: GPIO16
-
 # Bluetooth Proxy
 bluetooth_proxy:
   active: true
@@ -42,14 +16,8 @@ api:
   #     then:
   #       - esp32_ble_tracker.stop_scan:
 
-# Optimizations
-logger:
-  level: INFO
-  baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory
 esp32:
-  board: esp32-s3-devkitc-1
   framework:
-    type: esp-idf  # This is important: the default "arduino" framework does not perform well.
     sdkconfig_options:
       # @grigi found in testing that these options resulted in better responsiveness.
       # BLE 4.2 is supported by ALL ESP32 boards that have bluetooth, the original and derivatives.
@@ -58,7 +26,3 @@ esp32:
       CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
       # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
-
-# Enable esphome OTA updates
-ota:
-  - platform: esphome
