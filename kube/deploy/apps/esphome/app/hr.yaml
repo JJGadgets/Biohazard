@@ -40,7 +40,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_"]
+                add: ["NET_RAW"] # ping, userns'ed so safer
             resources:
               requests:
                 cpu: "5m"
