@@ -33,14 +33,14 @@ api:
   on_client_connected:
      - esp32_ble_tracker.start_scan:
         continuous: true
-  # Disable BLE tracking when there are no api connections live
-  on_client_disconnected:
-    if:
-      condition:
-        not:
-          api.connected:
-      then:
-        - esp32_ble_tracker.stop_scan:
+  # # Disable BLE tracking when there are no api connections live
+  # on_client_disconnected:
+  #   if:
+  #     condition:
+  #       not:
+  #         api.connected:
+  #     then:
+  #       - esp32_ble_tracker.stop_scan:
 
 # Optimizations
 logger:
