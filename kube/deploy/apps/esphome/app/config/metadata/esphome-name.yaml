@@ -1,7 +1,1 @@
-AREA_DNS: >
-  $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
-AREA_ID: >
-  $${area | replace("'", "_") | replace(" - ", "-") | replace(" ", "-") | replace("-", "_") | lower}
-NAME_DNS: >
-  $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
-
+$${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}

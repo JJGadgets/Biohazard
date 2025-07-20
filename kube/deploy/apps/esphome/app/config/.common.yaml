@@ -1,6 +1,4 @@
-.substitutions: &subs !include { file: "./.metadata.yaml", vars: { area: "$${area}", name: "$${name}" } }
 substitutions:
-  <<: *subs
   system_name: >
     ${AREA_DNS}-${NAME_DNS}
   device_description: "$${description}"
@@ -11,12 +9,10 @@ substitutions:
 
 esphome:
   name: "$${area_dns}-$${name_dns}"
-  #!include { file: "./metadata/esphome-name.yaml", vars: { area: "$${area}", name: "$${name}" } }
-  comment: "$${device_description}"
-  friendly_name: "$${friendly_name}"
+  comment: "$${description}"
+  friendly_name: "$${area} - $${name}"
   area:
     id: "$${area_id}"
-    #!include { file: "./metadata/area-id.yaml", vars: { area: "$${area}" } }
     name: "$${area}"
 
 esp32:

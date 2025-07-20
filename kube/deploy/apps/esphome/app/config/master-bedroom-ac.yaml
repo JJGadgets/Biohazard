@@ -1,6 +1,13 @@
 ---
+.substitutions: &subs !include
+  file: "./.metadata.yaml"
+  vars:
+    area: &area "Master Bedroom"
+    name: &name "AC - CN105"
 substitutions:
-  area: "Master Bedroom"
+  <<: *subs
+  area: *area
+  name: *name
 packages:
   - !include ./.mitsubishi-cn105.yaml
   - !include ./.bluetooth-proxy.yaml
