@@ -27,3 +27,16 @@ esp32:
       CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
       # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
+
+# IRK
+external_components:
+  - components: [irk_enrollment]
+    source:
+      type: git
+      url: https://github.com/dgrnbrg/appdaemon-configs
+      ref: 175ec95b46db01ef02d3ed375aac2d577a2e8007
+      path: custom_components
+
+irk_enrollment:
+  latest_irk:
+    name: Latest IRK

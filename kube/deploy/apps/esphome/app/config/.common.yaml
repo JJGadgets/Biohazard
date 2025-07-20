@@ -1,8 +1,4 @@
 substitutions:
-  system_name: >
-    ${AREA_DNS}-${NAME_DNS}
-  device_description: "$${description}"
-  friendly_name: "$${area} - $${name}"
   board: "$${board | default('esp32-s3-devkitc-1')}"
   framework: "$${framework | default('esp-idf')}" # This is important: the default "arduino" framework does not perform well.
   log: "$${log | default('INFO')}"
