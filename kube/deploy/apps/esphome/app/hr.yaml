@@ -93,12 +93,16 @@ spec:
         type: configMap
         name: esphome-config
         globalMounts:
-          - subPath: common.yaml
-            path: /config/common.yaml
-          - subPath: wifi.yaml
-            path: /config/wifi.yaml
-          - subPath: mitsubishi-cn105-bt-proxy.yaml
-            path: /config/mitsubishi-cn105-bt-proxy.yaml
+          - subPath: .common.yaml
+            path: /config/.common.yaml
+          - subPath: .wifi.yaml
+            path: /config/.wifi.yaml
+          - subPath: .metadata.yaml
+            path: /config/.metadata.yaml
+          - subPath: .bluetooth-proxy.yaml
+            path: /config/.bluetooth-proxy.yaml
+          - subPath: .mitsubishi-cn105.yaml
+            path: /config/.mitsubishi-cn105.yaml
           - subPath: jj-room-ac.yaml
             path: /config/jj-room-ac.yaml
           - subPath: master-bedroom-ac.yaml
