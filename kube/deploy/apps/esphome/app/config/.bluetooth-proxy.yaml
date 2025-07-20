@@ -33,10 +33,45 @@ external_components:
   - components: [irk_enrollment]
     source:
       type: git
-      url: https://github.com/dgrnbrg/appdaemon-configs
-      ref: 175ec95b46db01ef02d3ed375aac2d577a2e8007
+      url: https://github.com/Foleychris/esphome-irk-enrollment
+      ref: 418ac2907af1c0101e2f644a8114c23b8a1d61ba
       path: custom_components
 
 irk_enrollment:
   latest_irk:
     name: Latest IRK
+
+# Enable BLE functionality
+esp32_ble:
+  # Set IO capability for pairing
+  io_capability: keyboard_only
+
+# Enable BLE server
+esp32_ble_server:
+  # Set device appearance to Heart Rate Sensor for better iOS visibility
+  appearance: 0x0341
+  # Add manufacturer data for better iOS visibility
+  manufacturer_data: [0xFF, 0xFF, 0x01, 0x02]
+  # Define BLE services
+  services:
+    - uuid: 0x180D  # Heart Rate Service
+      characteristics:
+        - uuid: 0x2A37  # Heart Rate Measurement
+          read: true
+          notify: true
+          value: "0600"  # Initial value (flags + heart rate)
+
+    - uuid: 0x180A  # Device Information Service
+      characteristics:
+        - uuid: 0x2A29  # Manufacturer Name
+          read: true
+          value: "ESPHome"
+        - uuid: 0x2A24  # Model Number
+          read: true
+          value: "IRK Collector"
+
+# Add a text sensor to display the latest IRK
+text_sensor:
+  - platform: irk_enrollment
+    name: "Latest IRK Sensor"
+    icon: "mdi:cellphone-key"
