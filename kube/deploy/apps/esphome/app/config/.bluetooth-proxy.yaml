@@ -69,9 +69,3 @@ esp32_ble_server:
         - uuid: 0x2A24  # Model Number
           read: true
           value: "IRK Collector"
-
-# Add a text sensor to display the latest IRK
-text_sensor:
-  - platform: irk_enrollment
-    name: "Latest IRK Sensor"
-    icon: "mdi:cellphone-key"
