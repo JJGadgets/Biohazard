@@ -78,17 +78,8 @@ spec:
         globalMounts:
           - subPath: data
             path: /config
-      misc:
-        existingClaim: esphome-misc
-        globalMounts:
-          - subPath: cache
-            path: /cache
-          - subPath: dot-cache
-            path: /config/.cache
-          - subPath: dot-local
-            path: /config/.local
-          - subPath: dot-esphome
-            path: /config/.esphome
+      cache:
+        type: emptyDir
       config:
         type: configMap
         name: esphome-config
