@@ -1,0 +1,56 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: esphome-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "esphome"
+spec:
+  targetNamespace: "esphome"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/esphome/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: esphome-pvc
+  postBuild:
+    substitute:
+      AREA_DNS: >
+        $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
+      AREA_ID: >
+        $${area | replace("'", "_") | replace(" - ", "-") | replace(" ", "-") | replace("-", "_") | lower}
+      NAME_DNS: >
+        $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: esphome-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: esphome
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: esphome
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: "esphome-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/home-operations/esphome:2025.7.2@sha256:70b542eec3fb1a97a3918a2a4b5879f17a6baf550d55d568291d1572c890c38f"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid

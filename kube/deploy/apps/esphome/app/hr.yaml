@@ -1,0 +1,146 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app esphome
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.1.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/iot: allow
+            egress.home.arpa/esp: allow
+            # authentik.home.arpa/https: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/home-operations/esphome
+              tag: 2025.7.2@sha256:863d5dd690b0ae4eee52b2be9cf811d3a4f00236d2cec2e840bd098425a00439
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              ESPHOME_DASHBOARD_USE_PING: "true"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                # add: ["NET_RAW"] # ping, userns'ed so safer # gave up on ESPHome ping, it works without it so whatever lol
+            resources:
+              requests:
+                cpu: "5m"
+                memory: "512Mi"
+              limits:
+                cpu: "4"
+                memory: "4Gi"
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 6052
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_ESPHOME:=esphome}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: esphome-data
+        globalMounts:
+          - subPath: data
+            path: /config
+      cache:
+        type: emptyDir
+      config:
+        type: configMap
+        name: esphome-config
+        globalMounts:
+          - subPath: .common.yaml
+            path: /config/.common.yaml
+          - subPath: .wifi.yaml
+            path: /config/.wifi.yaml
+          - subPath: .metadata.yaml
+            path: /config/.metadata.yaml
+          - subPath: .bluetooth-proxy.yaml
+            path: /config/.bluetooth-proxy.yaml
+          - subPath: .mitsubishi-cn105.yaml
+            path: /config/.mitsubishi-cn105.yaml
+          - subPath: jj-room-ac.yaml
+            path: /config/jj-room-ac.yaml
+          - subPath: master-bedroom-ac.yaml
+            path: /config/master-bedroom-ac.yaml
+      secrets:
+        type: secret
+        name: esphome-secrets
+        globalMounts:
+          - subPath: secrets.yaml
+            path: /config/secrets.yaml
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+                  - key: "feature.node.kubernetes.io/cpu-model.family"
+                    operator: In
+                    values: ["6"] # Intel
+                  - key: "feature.node.kubernetes.io/cpu-model.id"
+                    operator: In
+                    values: ["154"] # Alder Lake / 12th Gen
+    networkpolicies:
+      esp:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - ipBlock:
+                    cidr: "${IP_VLAN_ESP_CIDR:=127.0.0.1/32}"
