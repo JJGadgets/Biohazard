@@ -24,16 +24,16 @@ esp32_ble_tracker:
     interval: 320ms
     window: 300ms
 
-esp32:
-  framework:
-    sdkconfig_options:
-      # @grigi found in testing that these options resulted in better responsiveness.
-      # BLE 4.2 is supported by ALL ESP32 boards that have bluetooth, the original and derivatives.
-      # CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
-      # Also enable this on any derivative boards (S2, C3 etc) but not the original ESP32.
-      # CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
-      # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
-      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
+# esp32:
+#   framework:
+#     sdkconfig_options:
+#       # @grigi found in testing that these options resulted in better responsiveness.
+#       # BLE 4.2 is supported by ALL ESP32 boards that have bluetooth, the original and derivatives.
+#       # CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
+#       # Also enable this on any derivative boards (S2, C3 etc) but not the original ESP32.
+#       # CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
+#       # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
+#       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
 
 # IRK
 # external_components:
