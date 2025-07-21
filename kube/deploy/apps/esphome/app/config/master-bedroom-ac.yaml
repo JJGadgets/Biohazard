@@ -11,3 +11,5 @@ substitutions:
 packages:
   - !include ./.mitsubishi-cn105.yaml
   - !include ./.bluetooth-proxy.yaml
+---
+#  IO choose: [env:esp32-s3-supermini] platform = espressif32 board = lolin_s3_mini framework = arduino monitor_speed = 115200 build_flags = -DARDUINO_USB_CDC_ON_BOOT=1 -DARDUINO_USB_MODE=1 Tha
