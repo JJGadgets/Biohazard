@@ -8,6 +8,7 @@ substitutions:
   <<: *subs
   area: *area
   name: *name
+  board: "lolin_s3_mini"
 packages:
   - !include ./.mitsubishi-cn105.yaml
   - !include ./.bluetooth-proxy.yaml
