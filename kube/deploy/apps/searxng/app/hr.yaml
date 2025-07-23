@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "ghcr.io/searxng/searxng"
-              tag: "latest@sha256:4c0724b937d02f1872d7a7b944252938832ecf6a4fe4e12e0b109916d49d61b6"
+              tag: "latest@sha256:13ea0ddbe049a6dbd67ac185ec1aef5fe4d9474446d6b8e17f5b14e58f400830"
             command: ["/usr/local/searxng/venv/bin/granian", "searx.webapp:app"]
             env:
               TZ: "${CONFIG_TZ}"
