@@ -92,7 +92,7 @@ spec:
           ssh2:
             port: 22222
     ingress:
-      main:
+      app:
         className: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
@@ -104,39 +104,39 @@ spec:
                 path: /
                 pathType: Prefix
                 service: &http
-                  name: main
+                  identifier: app
                   port: http
           - host: &host "hugo.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &hugo
-                  name: main
+                  identifier: app
                   port: hugo
           - host: &host "vs-test.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &test
-                  name: main
+                  identifier: app
                   port: test
         tls:
           - hosts: [*host]
-      tailscale:
-        className: "tailscale"
-        annotations:
-          tailscale.com/tags: "tag:jjgadgets-apps"
-        hosts:
-          - host: &host "vs.${DNS_TS:=ts.net}"
-            paths:
-              - <<: *path
-                service: *http
-              - <<: *path
-                path: /hugo
-                service: *http
-              - <<: *path
-                path: /test
-                service: *http
-        tls:
-          - hosts: [*host]
+      # tailscale:
+      #   className: "tailscale"
+      #   annotations:
+      #     tailscale.com/tags: "tag:jjgadgets-apps"
+      #   hosts:
+      #     - host: &host "vs.${DNS_TS:=ts.net}"
+      #       paths:
+      #         - <<: *path
+      #           service: *http
+      #         - <<: *path
+      #           path: /hugo
+      #           service: *http
+      #         - <<: *path
+      #           path: /test
+      #           service: *http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       config:
         existingClaim: "code-server-data"
@@ -194,8 +194,8 @@ spec:
             path: "/tmp"
             readOnly: false
     serviceAccount:
-      name: "code-server"
-      create: true
+      app:
+        forceRename: *app
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
