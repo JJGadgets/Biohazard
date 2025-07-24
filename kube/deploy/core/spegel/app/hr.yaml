@@ -5,6 +5,7 @@ metadata:
   name: &app spegel
   namespace: kube-system
 spec:
+  interval: 5m
   chart:
     spec:
       chart: spegel
