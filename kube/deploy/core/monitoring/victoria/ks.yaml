@@ -91,7 +91,7 @@ spec:
   postBuild:
     substitute:
       PVC: "victoria-logs-data"
-      SIZE: "20Gi"
+      SIZE: "22Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"

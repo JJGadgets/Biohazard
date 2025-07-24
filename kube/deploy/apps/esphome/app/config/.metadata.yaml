@@ -1,0 +1,7 @@
+---
+area_dns: >
+  $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
+area_id: >
+  $${area | replace("'", "_") | replace(" - ", "-") | replace(" ", "-") | replace("-", "_") | lower}
+name_dns: >
+  $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
