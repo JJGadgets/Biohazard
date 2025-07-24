@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cert-manager/cert-manager/v1.17.2/deploy/charts/cert-manager
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: cert-manager
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: cert-manager
-      version: v1.17.4
+      version: v1.18.2
       sourceRef:
         name: jetstack
         kind: HelmRepository
