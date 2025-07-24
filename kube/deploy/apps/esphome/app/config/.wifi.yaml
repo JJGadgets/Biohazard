@@ -5,6 +5,7 @@ wifi:
   password: !secret wifi_password
   enable_btm: true
   enable_rrm: true
+  power_save_mode: none # getting frequent disconnects
 
 sensor:
   - platform: wifi_signal # Reports the WiFi signal strength in dB
@@ -22,3 +23,7 @@ sensor:
     unit_of_measurement: "%"
     entity_category: diagnostic
     device_class: ""
+
+logger:
+  logs:
+    WIFI: DEBUG
