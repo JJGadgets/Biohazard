@@ -24,27 +24,30 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/iot: allow
+            egress.home.arpa/esp: allow
             # authentik.home.arpa/https: allow
             egress.home.arpa/internet: allow
         containers:
           app:
             image: &img
               repository: ghcr.io/home-operations/esphome
-              tag: 2025.7.1@sha256:70b542eec3fb1a97a3918a2a4b5879f17a6baf550d55d568291d1572c890c38f
+              tag: 2025.7.3@sha256:6f13401d154cd939167133338ccbbcb50eea7b1ed67b98a5d0cb4b5e0dbdf3b5
             env: &env
               TZ: "${CONFIG_TZ}"
+              ESPHOME_DASHBOARD_USE_PING: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                # add: ["NET_RAW"] # ping, userns'ed so safer # gave up on ESPHome ping, it works without it so whatever lol
             resources:
               requests:
                 cpu: "5m"
                 memory: "512Mi"
               limits:
                 cpu: "4"
-                memory: "3Gi"
+                memory: "4Gi"
     service:
       app:
         controller: app
@@ -81,16 +84,20 @@ spec:
         type: configMap
         name: esphome-config
         globalMounts:
-          - subPath: common.yaml
-            path: /config/common.yaml
-          - subPath: wifi.yaml
-            path: /config/wifi.yaml
-          - subPath: metadata.yaml
-            path: /config/metadata.yaml
-          - subPath: mitsubishi-cn105-bt-proxy.yaml
-            path: /config/mitsubishi-cn105-bt-proxy.yaml
+          - subPath: .common.yaml
+            path: /config/.common.yaml
+          - subPath: .wifi.yaml
+            path: /config/.wifi.yaml
+          - subPath: .metadata.yaml
+            path: /config/.metadata.yaml
+          - subPath: .bluetooth-proxy.yaml
+            path: /config/.bluetooth-proxy.yaml
+          - subPath: .mitsubishi-cn105.yaml
+            path: /config/.mitsubishi-cn105.yaml
           - subPath: jj-room-ac.yaml
             path: /config/jj-room-ac.yaml
+          - subPath: master-bedroom-ac.yaml
+            path: /config/master-bedroom-ac.yaml
       secrets:
         type: secret
         name: esphome-secrets
@@ -128,3 +135,12 @@ spec:
                   - key: "feature.node.kubernetes.io/cpu-model.id"
                     operator: In
                     values: ["154"] # Alder Lake / 12th Gen
+    networkpolicies:
+      esp:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - ipBlock:
+                    cidr: "${IP_VLAN_ESP_CIDR:=127.0.0.1/32}"

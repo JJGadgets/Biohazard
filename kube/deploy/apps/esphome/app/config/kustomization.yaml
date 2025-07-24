@@ -4,10 +4,12 @@ kind: Kustomization
 configMapGenerator:
   - name: esphome-config
     files:
-      - ./common.yaml
-      - ./wifi.yaml
-      - ./metadata.yaml
-      - ./mitsubishi-cn105-bt-proxy.yaml
+      - ./.common.yaml
+      - ./.wifi.yaml
+      - ./.metadata.yaml
+      - ./.bluetooth-proxy.yaml
+      - ./.mitsubishi-cn105.yaml
       - ./jj-room-ac.yaml
+      - ./master-bedroom-ac.yaml
 generatorOptions:
   disableNameSuffixHash: true # Reloader
