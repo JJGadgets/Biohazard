@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: kps
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: 70.10.0
+      version: 75.13.0
       sourceRef:
         name: prometheus-community
         kind: HelmRepository

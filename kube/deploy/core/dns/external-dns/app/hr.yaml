@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/kubernetes-sigs/external-dns/master/charts/external-dns
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: external-dns
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: external-dns
-      version: 1.16.1
+      version: 1.18.0
       sourceRef:
         name: external-dns
         kind: HelmRepository
