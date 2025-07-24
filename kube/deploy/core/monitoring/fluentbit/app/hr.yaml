@@ -39,6 +39,9 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+            ports:
+              - name: metrics
+                containerPort: 8080
             resources:
               requests:
                 cpu: "10m"
@@ -68,14 +71,6 @@ spec:
               limits:
                 cpu: "1"
                 memory: "50Mi"
-    #service:
-    #  fluentbit:
-    #    controller: fluentbit
-    #    ports:
-    #      http:
-    #        port: 8080
-    #        protocol: HTTP
-    #        appProtocol: http
     persistence:
       config:
         type: configMap
