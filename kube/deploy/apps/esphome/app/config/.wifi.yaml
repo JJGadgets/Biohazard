@@ -1,0 +1,29 @@
+---
+wifi:
+  domain: .esp.dhcp.internal
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  enable_btm: true
+  enable_rrm: true
+  power_save_mode: none # getting frequent disconnects
+
+sensor:
+  - platform: wifi_signal # Reports the WiFi signal strength in dB
+    name: WiFi Signal dB
+    id: &src wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: *src
+    name: WiFi Signal Percent
+    id: wifi_signal_percent
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    device_class: ""
+
+logger:
+  logs:
+    WIFI: DEBUG

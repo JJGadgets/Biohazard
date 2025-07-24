@@ -33,4 +33,9 @@ spec:
         - ports:
             - port: "8123"
               protocol: ANY
-
+  egress:
+    - toFQDNs:
+        # HACS
+        - matchPattern: "*.hacs.xyz"
+        # Public Data
+        - matchPattern: "*.data.gov.sg"
