@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "linkding-misc"
-  namespace: &app "linkding"
+  name: "esphome-misc"
+  namespace: &app "esphome"
   annotations:
-    description: "PVC for saving Linkding page snapshots (similar to Wayback)"
+    description: "PVC for ESPHome cache etc"
   labels:
     app.kubernetes.io/name: *app
     snapshot.home.arpa/enabled: "true"
@@ -15,4 +15,4 @@ spec:
   accessModes: ["ReadWriteMany"]
   resources:
     requests:
-      storage: "100Gi"
+      storage: "10Gi"
