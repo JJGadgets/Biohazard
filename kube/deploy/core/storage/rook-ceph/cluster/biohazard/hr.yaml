@@ -52,7 +52,7 @@ spec:
       mon_data_avail_warn = 10
     cephClusterSpec:
       cephVersion:
-        image: "quay.io/ceph/ceph:v18.2.7@sha256:1b9158ce28975f95def6a0ad459fa19f1336506074267a4b47c1bd914a00fec0" # 2025-01-14: not v19 Squid yet due to CephFS MDS trim issue
+        image: "quay.io/ceph/ceph:v19.2.2@sha256:8214ebff6133ac27d20659038df6962dbf9d77da21c9438a296b2e2059a56af6" # 2025-01-14: not v19 Squid yet due to CephFS MDS trim issue
       network:
         provider: host
         addressRanges:
