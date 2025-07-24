@@ -32,8 +32,6 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  components:
-    - ../../../core/storage/volsync/component/
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -45,6 +43,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "${IMAGENAME}:${IMAGETAG}"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
@@ -54,7 +53,6 @@ spec:
       #   ${APP_UID_APPNAME:=1000}
       # RFSG: !!str |
       #   ${APP_UID_APPNAME:=1000}
-      VS_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
