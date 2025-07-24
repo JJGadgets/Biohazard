@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://flux.jank.ing/helmrelease-helm-v2beta2.json
 # this is for exposing apps meant for public usage, e.g. websites, social platforms, etc
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &zone nginx-public
