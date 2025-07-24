@@ -95,7 +95,7 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: authentik
             app.kubernetes.io/name: authentik
-            app.kubernetes.io/component: authentik
+            app.kubernetes.io/controller: app
       toPorts:
         - ports:
             - port: "9443"
