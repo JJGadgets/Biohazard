@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/librespeed/speedtest-rust
-              tag: v1.3.7@sha256:98902fbc9f188a71e77fb687027e5f9ba4dcc65e6501b213257c954e5e13a219
+              tag: v1.3.8@sha256:7463fc82eea72e98caf4e163764b16ba0db9c62eb617e31be9ed5f32c16a54d7
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

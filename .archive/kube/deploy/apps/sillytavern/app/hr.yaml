@@ -1,9 +1,10 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app komga
-  namespace: media
+  name: &app sillytavern
+  namespace: *app
 spec:
   interval: 5m
   chart:
@@ -16,26 +17,20 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      komga:
+      sillytavern:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            authentik.home.arpa/https: allow
-            egress.home.arpa/internet: allow # metadata
+            egress.home.arpa/cloudflare: allow
         containers:
           main:
             image: &img
-              repository: ghcr.io/gotson/komga
-              tag: 1.21.2@sha256:ba587695d786f0e8f4de8598b8aa2785cc8c671098ef1cb624819c2bb812789c
+              repository: ghcr.io/sillytavern/sillytavern
+              tag: 1.13.0@sha256:2f427b0062908ebe34410f80e1eec7d8c78156f96250274e62efefe9c5d69ae2
             env: &env
               TZ: "${CONFIG_TZ}"
-              KOMGA_CONFIGDIR: &pvc /config
-              SERVER_PORT: "8080"
-              LOGGING_FILE_NAME: /dev/stdout
-              KOMGA_OAUTH2_ACCOUNT_CREATION: "true"
-              KOMGA_OIDC_EMAIL_VERIFICATION: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -44,81 +39,79 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "1Gi"
+                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "4Gi"
+                cpu: "1"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
     service:
-      komga:
-        controller: komga
+      sillytavern:
+        controller: sillytavern
         ports:
           http:
-            port: 8080
+            port: 8000
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_KOMGA:=komga}"
+          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: komga
+                  identifier: sillytavern
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      config:
-        type: secret
-        name: komga-secrets
-        defaultMode: 0400
-        globalMounts:
-          - subPath: application.yml
-            path: /config/application.yml
       data:
-        existingClaim: komga-data
+        existingClaim: sillytavern-data
         globalMounts:
+          - subPath: config
+            path: /home/node/app/config
           - subPath: data
-            path: *pvc
-          - subPath: media
-            path: /ceph
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/media}"
+            path: /home/node/app/data
+          - subPath: plugins
+            path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
         globalMounts:
-          - path: /nas
-            readOnly: true
-      media:
-        existingClaim: "media-data" # VolSync
-        globalMounts:
-          - path: "/media"
-            readOnly: true
-      bulk:
-        existingClaim: "media-bulk" # no backups
-        globalMounts:
-          - path: "/bulk"
-            readOnly: true
+          - subPath: tmp
+            path: /tmp
+          - subPath: backups # temporarily not using due to VolSync
+            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_DNS_KOMGA:=1000}
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: [6969] # NAS
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
@@ -132,5 +125,15 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/komga
+                  - key: fuckoff.home.arpa/sillytavern
                     operator: DoesNotExist
+    networkpolicies:
+      to-llm:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: mlc-llm

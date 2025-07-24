@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app alertmanager
@@ -27,8 +27,8 @@ spec:
         containers: &ct
           main:
             image:
-              repository: "quay.io/prometheus/alertmanager"
-              tag: "v0.28.0-rc.0@sha256:73afcec2b830e615f21d94648901afddd7586ef5abdd5237b4dab8890f9dbc69" # TODO: using main because waiting on 0.27.1 for DiscordConfig webhook_url_file fix (https://github.com/prometheus/alertmanager/pull/3728)
+              repository: quay.io/prometheus/alertmanager
+              tag: v0.28.1@sha256:27c475db5fb156cab31d5c18a4251ac7ed567746a2483ff264516437a39b15ba
             args:
               - --config.file=/etc/alertmanager/alertmanager.yaml
               - --storage.path=/alertmanager
@@ -63,10 +63,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "1Gi"
+                cpu: "1"
+                memory: "100Mi"
             probes:
               readiness:
                 enabled: true

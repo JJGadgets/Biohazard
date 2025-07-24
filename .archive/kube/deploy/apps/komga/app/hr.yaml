@@ -1,0 +1,136 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app komga
+  namespace: media
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      komga:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+            egress.home.arpa/internet: allow # metadata
+        containers:
+          main:
+            image: &img
+              repository: ghcr.io/gotson/komga
+              tag: 1.21.3@sha256:72dc9f81a0a528752e953028a7d3ca6a83f8eabe2a617e3c7e53cfa594c84256
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              KOMGA_CONFIGDIR: &pvc /config
+              SERVER_PORT: "8080"
+              LOGGING_FILE_NAME: /dev/stdout
+              KOMGA_OAUTH2_ACCOUNT_CREATION: "true"
+              KOMGA_OIDC_EMAIL_VERIFICATION: "true"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "1Gi"
+              limits:
+                cpu: "3000m"
+                memory: "4Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      komga:
+        controller: komga
+        ports:
+          http:
+            port: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_KOMGA:=komga}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: komga
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        type: secret
+        name: komga-secrets
+        defaultMode: 0400
+        globalMounts:
+          - subPath: application.yml
+            path: /config/application.yml
+      data:
+        existingClaim: komga-data
+        globalMounts:
+          - subPath: data
+            path: *pvc
+          - subPath: media
+            path: /ceph
+      nfs:
+        type: nfs
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
+        globalMounts:
+          - path: /nas
+            readOnly: true
+      media:
+        existingClaim: "media-data" # VolSync
+        globalMounts:
+          - path: "/media"
+            readOnly: true
+      bulk:
+        existingClaim: "media-bulk" # no backups
+        globalMounts:
+          - path: "/bulk"
+            readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_DNS_KOMGA:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        supplementalGroups: [6969] # NAS
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: fuckoff.home.arpa/komga
+                    operator: DoesNotExist

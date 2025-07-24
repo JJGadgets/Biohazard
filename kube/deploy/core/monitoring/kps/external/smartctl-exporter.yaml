@@ -5,6 +5,8 @@ metadata:
   name: smartctl-exporter
   namespace: monitoring
 spec:
+  scrapeInterval: 1m
+  scrapeTimeout: 5s
   staticConfigs:
     - targets:
         - &blackhawk "${IP_BLACKHAWK}:9633" # My laptop

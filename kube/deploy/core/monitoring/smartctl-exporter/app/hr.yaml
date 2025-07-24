@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app smartctl-exporter
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: prometheus-smartctl-exporter
-      version: 0.14.0
+      version: 0.15.4
       sourceRef:
         name: prometheus-community
         kind: HelmRepository

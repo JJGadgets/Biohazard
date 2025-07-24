@@ -1,0 +1,18 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: feishin-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "feishin"
+spec:
+  targetNamespace: "feishin"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/feishin/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system

@@ -27,7 +27,7 @@ spec:
             imagePullPolicy: "IfNotPresent"
             image: &img
               repository: "docker.io/binwiederhier/ntfy"
-              tag: "v2.11.0@sha256:4a7d0f0adc6d5d9fc36e64ab55ef676e76e124a2bdd50ce115b6d9c1c7430294"
+              tag: "v2.13.0@sha256:cd107fa9ecca863b99e5cdd335bf27b0584cc54d170f1d0939253f314e0fdd4d"
             command: ["ntfy", "serve"]
             env: &env
               TZ: "${CONFIG_TZ}"

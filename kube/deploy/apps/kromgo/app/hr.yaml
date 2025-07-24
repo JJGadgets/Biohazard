@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/kashalls/kromgo
-              tag: v0.6.0@sha256:4b908ea0be5acd61e67ce38d8f1342d0731296b00b8ca2c35533aa519d804cc6
+              tag: v0.7.0@sha256:98202ba862023c1f78c6bc227f1de89d7777e5f621333511241a6242a230880e
             env: &env
               TZ: "${CONFIG_TZ}"
               PROMETHEUS_URL: http://vmsingle-victoria.monitoring.svc.cluster.local.:8429

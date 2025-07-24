@@ -14,7 +14,7 @@ resources:
   #- ../../../deploy/core/_networking/tailscale/
   # - ../../../deploy/core/_networking/frr/
   - ../../../deploy/core/_networking/bird/
-  - ../../../deploy/core/_networking/e1000e-fix/
+  # - ../../../deploy/core/_networking/e1000e-fix/
   - ../../../deploy/core/spegel/
   # - ../../../deploy/core/kyverno/_deps/
   # - ../../../deploy/core/kyverno/
@@ -23,7 +23,7 @@ resources:
   - ../../../deploy/core/secrets/external-secrets/
   - ../../../deploy/core/secrets/reflector/
   - ../../../deploy/core/storage/fstrim/
-  - ../../../deploy/core/storage/minio-nas/
+  # - ../../../deploy/core/storage/minio-nas/
   - ../../../deploy/core/storage/_external-snapshotter/
   - ../../../deploy/core/storage/_csi-addons/
   - ../../../deploy/core/storage/rook-ceph/
@@ -83,7 +83,7 @@ resources:
   - ../../../deploy/apps/media/jellyfin/
   - ../../../deploy/apps/media/plex/
   - ../../../deploy/apps/media/kavita/
-  - ../../../deploy/apps/media/komga/
+  # - ../../../deploy/apps/media/komga/
   - ../../../deploy/apps/media/navidrome/
   # - ../../../deploy/apps/kanidm/
   #- ../../../deploy/apps/syncthing/ # TODO: re-add once fixed up
@@ -95,7 +95,7 @@ resources:
   - ../../../deploy/apps/satisfactory/
   # - ../../../deploy/apps/headscale/
   - ../../../deploy/apps/zipline/
-  - ../../../deploy/apps/kah/
+  # - ../../../deploy/apps/kah/
   - ../../../deploy/apps/thelounge/
   - ../../../deploy/apps/atuin/
   - ../../../deploy/apps/miniflux/
@@ -140,9 +140,9 @@ resources:
   # - ../../../deploy/apps/blocky/
   - ../../../deploy/apps/cryptpad/
   - ../../../deploy/apps/languagetool/
-  - ../../../deploy/apps/mlc-llm/
-  - ../../../deploy/apps/open-webui/
-  - ../../../deploy/apps/sillytavern/
+  # - ../../../deploy/apps/mlc-llm/
+  # - ../../../deploy/apps/open-webui/
+  # - ../../../deploy/apps/sillytavern/
   - ../../../deploy/apps/morphos/
   - ../../../deploy/apps/actual/
   - ../../../deploy/apps/librespeed/
@@ -153,6 +153,10 @@ resources:
   - ../../../deploy/apps/maloja/
   - ../../../deploy/apps/silverbullet/
   - ../../../deploy/apps/rimgo/
+  - ../../../deploy/apps/talosctl-image-pull-agent/
+  - ../../../deploy/apps/rclone-retro/
+  - ../../../deploy/apps/feishin/
+  - ../../../deploy/apps/esphome/
   - ../../../deploy/vm/_kubevirt/
   #- ../../../deploy/vm/_base/
   - ../../../deploy/vm/ad/

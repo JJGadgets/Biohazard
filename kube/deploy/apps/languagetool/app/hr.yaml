@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.4.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: docker.io/erikvl87/languagetool
-              tag: latest@sha256:ccc06ec19a11cbac37dff45d9231614ae71d370f76c4b85abf82a09adbc14f0b # 6.4-docker-2 is a weird tag version scheme and I'm lazy
+              tag: latest@sha256:5515b486dbb4bd60ad19a7af6e34111a1ea661dd37402624696ef04f858a55d3 # 6.4-docker-2 is a weird tag version scheme and I'm lazy
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

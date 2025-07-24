@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -33,7 +33,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/navidrome/navidrome
-              tag: 0.55.2@sha256:3a66e262b7ea836faa06c08ad5b32076c49e9e63e2fa4de10080c8e9be9f0846
+              tag: 0.57.0@sha256:d753f3f0ba65d838d288e58c2cb1254a519f439b88fa0fa8378178f5e8b17587
             env:
               TZ: "${CONFIG_TZ}"
               ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
@@ -80,7 +80,7 @@ spec:
           edit:
             image: &img
               repository: ghcr.io/home-operations/beets
-              tag: 2.3.0@sha256:c2402e704cbcbcca2a9d200a0bab5e10a2d1014d60a2b73618382733f7afdc3e
+              tag: 2.3.1@sha256:cc4975f1a0be4e238d29fe13c18ce37e08964af0d5ceb1811485751b6490bcaf
             command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "sh", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
             env:
               TZ: "${CONFIG_TZ}"

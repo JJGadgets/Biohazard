@@ -37,16 +37,19 @@ spec:
           cpu: "${PG_CPU_REQ:=50m}"
           memory: "${PG_MEM_REQ:=512M}"
         limits:
-          cpu: "${PG_CPU_LIMIT:=2000m}"
+          cpu: "${PG_CPU_LIMIT:=2}"
           memory: "${PG_MEM_LIMIT:=2Gi}"
           "hugepages-${PG_HUGEPAGES_SIZE:=1Gi}": "${PG_HUGEPAGES_REQ:=1Gi}"
       affinity:
-        nodeAffinity:
+        nodeAffinity: &nodeAffinity
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: node-role.kubernetes.io/control-plane
                     operator: Exists
+      tolerations: &tolerations
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
@@ -72,9 +75,9 @@ spec:
             name: "pg-${PG_APP_NAME}-secrets"
         - secret:
             name: "pg-${PG_APP_NAME}-s3-crunchy"
-      #manual:
-      #  repoName: "repo2"
-      #  options: ["--type=full", "--annotation=reason=change-R2-buckets", "--archive-copy", "--checksum-page"]
+      manual:
+        repoName: "repo2"
+        options: ["--type=full", "--annotation=reason=${PG_APP_CURRENT_VERSION:=manual}", "--archive-copy", "--checksum-page"]
       global: &brflag
         archive-timeout: "60"
         compress-type: "bz2"
@@ -151,11 +154,12 @@ spec:
                   matchExpressions:
                     - key: postgres-operator.crunchydata.com/pgbackrest-cronjob
                       operator: Exists
+        tolerations: *tolerations
         resources:
           requests:
             cpu: 10m
           limits:
-            cpu: 1000m
+            cpu: "1000m"
             memory: 100Mi
   dataSource:
     pgbackrest:
@@ -186,9 +190,7 @@ spec:
             limits:
               cpu: 1000m
               memory: 10Mi
-      tolerations:
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
+      tolerations: *tolerations
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"

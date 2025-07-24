@@ -12,8 +12,26 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/${APPNAME}/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: ${APPNAME}-db
+    - name: ${APPNAME}-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ${APPNAME}-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: ${APPNAME}
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: ${APPNAME}
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -25,6 +43,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "${IMAGENAME}:${IMAGETAG}"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
@@ -57,3 +76,4 @@ spec:
       PG_NAME: "default"
       PG_DB_USER: &app "${APPNAME}"
       PG_APP_NS: *app
+      PG_APP_CURRENT_VERSION: "{{.IMAGENAME}}:{{.IMAGETAG}}"

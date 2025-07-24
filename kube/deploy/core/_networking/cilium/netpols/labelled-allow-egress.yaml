@@ -1,15 +1,15 @@
----
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: apiserver
-  namespace: default
-spec:
-  endpointSelector:
-    matchLabels:
-      component: apiserver
-      provider: kubernetes
+# ---
+# # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+# apiVersion: cilium.io/v2
+# kind: CiliumNetworkPolicy
+# metadata:
+#   name: apiserver
+#   namespace: default
+# spec:
+#   endpointSelector:
+#     matchLabels:
+#       component: apiserver
+#       provider: kubernetes
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -519,6 +519,19 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: labelled-allow-egress-esp
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/esp: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_ESP_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: labelled-allow-egress-appletv
 spec:
   endpointSelector:
@@ -527,6 +540,19 @@ spec:
   egress:
     - toCIDRSet:
         - cidr: "${IP_VLAN_APPLETV_CIDR}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-retro-consoles
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/retro-consoles: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_VLAN_RETROCONSOLES_CIDR}"
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
