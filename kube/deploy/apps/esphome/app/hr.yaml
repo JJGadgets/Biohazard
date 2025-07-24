@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app linkding
+  name: &app esphome
   namespace: *app
 spec:
   interval: 5m
@@ -20,82 +20,50 @@ spec:
       app:
         type: deployment
         replicas: 1
-        pod: &p
+        pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            authentik.home.arpa/https: allow
+            egress.home.arpa/iot: allow
+            egress.home.arpa/esp: allow
+            # authentik.home.arpa/https: allow
             egress.home.arpa/internet: allow
         containers:
           app:
             image: &img
-              repository: ghcr.io/sissbruecker/linkding
-              tag: 1.41.0-plus@sha256:a222fb777e1fade891eabfa037e67ff4514f96b87be746060b027b5c84a8e1ce
+              repository: ghcr.io/home-operations/esphome
+              tag: 2025.7.3@sha256:6f13401d154cd939167133338ccbbcb50eea7b1ed67b98a5d0cb4b5e0dbdf3b5
             env: &env
               TZ: "${CONFIG_TZ}"
-              # Security
-              LD_ENABLE_OIDC: "True"
-              LD_CSRF_TRUSTED_ORIGINS: "https://${APP_DNS_LINKDING}"
-              # Options
-              LD_SERVER_PORT: &http 8080
-              LD_LOG_X_FORWARDED_FOR: "true"
-              LD_FAVICON_PROVIDER: "https://icons.duckduckgo.com/ip3/{domain}.ico"
-              LD_ENABLE_SNAPSHOTS: "True"
-              LD_ASSET_FOLDER: &snap "/assets/" # local archive path (do NOT use LD_SINGLEFILE_PATH that's the executable location)
-              LD_FAVICON_FOLDER: &fav "/favicons"
-              LD_PREVIEW_FOLDER: &preview "/preview"
-              # Database
-              LD_DB_ENGINE: sqlite
-            envFrom:
-              - secretRef:
-                  name: linkding-secrets
+              ESPHOME_DASHBOARD_USE_PING: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                # add: ["NET_RAW"] # ping, userns'ed so safer # gave up on ESPHome ping, it works without it so whatever lol
             resources:
               requests:
-                cpu: "10m"
+                cpu: "5m"
+                memory: "512Mi"
               limits:
-                cpu: "1"
-                memory: 200Mi
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-      bg-tasks:
-        type: deployment
-        replicas: 1
-        pod: *p
-        containers:
-          bg-tasks: # taken from supervisord config
-            image: *img
-            command: ["python", "manage.py", "run_huey", "-f"]
-            env:
-              <<: *env
-              HOME: /tmp/home
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                cpu: "1"
-                memory: 2Gi
+                cpu: "4"
+                memory: "4Gi"
     service:
       app:
         controller: app
         ports:
           http:
             port: 80
-            targetPort: *http
+            targetPort: 6052
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
         hosts:
-          - host: &host "${APP_DNS_LINKDING:=linkding}"
+          - host: &host "${APP_DNS_ESPHOME:=esphome}"
             paths: &paths
               - path: /
                 pathType: Prefix
@@ -106,29 +74,36 @@ spec:
           - hosts: [*host]
     persistence:
       data:
-        existingClaim: linkding-data
+        existingClaim: esphome-data
         globalMounts:
           - subPath: data
-            path: /etc/linkding/data
-      snapshots:
-        existingClaim: linkding-snapshots
-        globalMounts:
-          - subPath: assets
-            path: *snap
-      misc:
-        existingClaim: linkding-misc
-        globalMounts:
-          - subPath: favicons
-            path: *fav
-          - subPath: preview
-            path: *preview
-      tmp:
+            path: /config
+      cache:
         type: emptyDir
-        medium: Memory
-        sizeLimit: 16Mi
+      config:
+        type: configMap
+        name: esphome-config
         globalMounts:
-          - subPath: tmp
-            path: /tmp
+          - subPath: .common.yaml
+            path: /config/.common.yaml
+          - subPath: .wifi.yaml
+            path: /config/.wifi.yaml
+          - subPath: .metadata.yaml
+            path: /config/.metadata.yaml
+          - subPath: .bluetooth-proxy.yaml
+            path: /config/.bluetooth-proxy.yaml
+          - subPath: .mitsubishi-cn105.yaml
+            path: /config/.mitsubishi-cn105.yaml
+          - subPath: jj-room-ac.yaml
+            path: /config/jj-room-ac.yaml
+          - subPath: master-bedroom-ac.yaml
+            path: /config/master-bedroom-ac.yaml
+      secrets:
+        type: secret
+        name: esphome-secrets
+        globalMounts:
+          - subPath: secrets.yaml
+            path: /config/secrets.yaml
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -142,7 +117,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 33 # www-data
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -154,3 +129,18 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+                  - key: "feature.node.kubernetes.io/cpu-model.family"
+                    operator: In
+                    values: ["6"] # Intel
+                  - key: "feature.node.kubernetes.io/cpu-model.id"
+                    operator: In
+                    values: ["154"] # Alder Lake / 12th Gen
+    networkpolicies:
+      esp:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - ipBlock:
+                    cidr: "${IP_VLAN_ESP_CIDR:=127.0.0.1/32}"
