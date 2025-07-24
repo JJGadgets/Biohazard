@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: k8s-gateway
@@ -29,7 +29,6 @@ spec:
         tailscale.com/tags: "tag:k8s-gateway"
       labels:
         io.cilium/l2: "true"
-    watchedResources: [Ingress] # GRPCRoute error due to old apiVersion watched by k8sgw
     extraZonePlugins:
       - name: log
       - name: errors

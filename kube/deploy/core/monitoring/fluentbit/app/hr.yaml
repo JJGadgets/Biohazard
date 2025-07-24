@@ -26,7 +26,7 @@ spec:
           app: &ct
             image: &img
               repository: cr.fluentbit.io/fluent/fluent-bit
-              tag: 4.0.1@sha256:6ed008616796375fc6e22102d88e1336c12b995c7d3a741d486ed8d1afb707d3
+              tag: 4.0.5@sha256:ef17f25f3a76c11a267f95467cda283dddd69bdd1079f5134b0926a7998ba356
             args: ["--config=/config/kubernetes.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -39,6 +39,9 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+            ports:
+              - name: metrics
+                containerPort: 8080
             resources:
               requests:
                 cpu: "10m"
@@ -68,14 +71,6 @@ spec:
               limits:
                 cpu: "1"
                 memory: "50Mi"
-    #service:
-    #  fluentbit:
-    #    controller: fluentbit
-    #    ports:
-    #      http:
-    #        port: 8080
-    #        protocol: HTTP
-    #        appProtocol: http
     persistence:
       config:
         type: configMap

@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,23 +10,16 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    X-pod-securityContext: &podsc
-      runAsNonRoot: true
-      runAsUser: &uid ${APP_UID_IMMICH:=1000}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-      seccompProfile: { type: "RuntimeDefault" }
     controllers:
-      immich:
+      app:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         pod:
           labels:
@@ -79,7 +72,7 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
                 memory: "128Mi"
               limits:
                 cpu: "1"
@@ -91,7 +84,7 @@ spec:
                 enabled: true
       microservices:
         type: deployment
-        replicas: 3
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -100,7 +93,6 @@ spec:
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
           securityContext:
-            <<: *podsc
             supplementalGroups: [44, 104, 109, 128, 226] # GPU
           topologySpreadConstraints:
             - maxSkew: 1
@@ -110,7 +102,7 @@ spec:
                 matchLabels:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/instance: *app
-                  app.kubernetes.io/component: microservices
+                  app.kubernetes.io/controller: microservices
         containers:
           main:
             image: *img
@@ -122,10 +114,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
                 memory: "300Mi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
             probes:
@@ -143,7 +135,6 @@ spec:
           labels:
             db.home.arpa/pg: pg-home
           securityContext:
-            <<: *podsc
             supplementalGroups: [44, 104, 109, 128, 226] # GPU
           topologySpreadConstraints:
             - maxSkew: 1
@@ -153,7 +144,7 @@ spec:
                 matchLabels:
                   app.kubernetes.io/name: *app
                   app.kubernetes.io/instance: *app
-                  app.kubernetes.io/component: ml
+                  app.kubernetes.io/controller: ml
         containers:
           main:
             image:
@@ -167,7 +158,7 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
                 memory: "1Gi"
               limits:
                 cpu: "1"
@@ -181,7 +172,7 @@ spec:
       ml-model-pull-clip: &ml-model-pull
         type: cronjob
         cronjob:
-          schedule: "@daily"
+          schedule: "@yearly"
           concurrencyPolicy: "Replace"
         pod:
           labels:
@@ -200,9 +191,9 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "2Gi"
       ml-model-pull-facial:
         <<: *ml-model-pull
@@ -220,15 +211,15 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.5@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
+              tag: "7.4.5@sha256:49061c0de5717822cf6702ef3197f6817f26b98d46765c308c1e23e6b261997b"
             command: ["redis-server", "--save", "300 1", "--appendonly", "yes"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
-                cpu: "10m"
+                cpu: 10m
                 memory: "32Mi"
               limits:
-                cpu: "1000m"
+                cpu: "1"
                 memory: "512Mi"
             probes:
               liveness:
@@ -236,9 +227,10 @@ spec:
               readiness:
                 enabled: true
     service:
-      immich:
-        controller: immich
+      app:
+        controller: app
         primary: true
+        forceRename: *app
         ports:
           http:
             port: 2283
@@ -269,7 +261,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: immich
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
@@ -277,7 +269,7 @@ spec:
       data:
         existingClaim: immich-data
         advancedMounts:
-          immich: &mount
+          app: &mount
             main:
               - subPath: data
                 path: *pvc
@@ -289,7 +281,7 @@ spec:
       misc:
         existingClaim: immich-misc
         advancedMounts:
-          immich: &misc
+          app: &misc
             main:
               - subPath: encodedvideo
                 path: /data/encoded-video
@@ -326,13 +318,21 @@ spec:
         globalMounts:
           - subPath: ca.crt
             path: /secrets/pg/ca.crt
+    defaultPodOptionsStrategy: merge
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      securityContext: *podsc
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -358,7 +358,8 @@ spec:
             - to: [{podSelector: *sel}]
     serviceMonitor:
       immich:
-        serviceName: immich
+        service:
+          identifier: app
         endpoints:
           - port: metrics
             scheme: http
@@ -366,7 +367,8 @@ spec:
             interval: 1m
             scrapeTimeout: 30s
       microservices:
-        serviceName: microservices
+        service:
+          identifier: microservices
         endpoints:
           - port: metrics
             scheme: http
