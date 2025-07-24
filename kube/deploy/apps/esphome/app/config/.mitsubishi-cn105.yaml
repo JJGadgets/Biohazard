@@ -1,9 +1,11 @@
 ---
-.substitutions: &subs !include { file: "./.metadata.yaml", vars: { area: "$${area}", name: &name "AC - CN105" } }
 substitutions:
-  <<: *subs
+  board: "lolin_s3_mini"
   area: "$${area}"
-  name: *name
+  name: "$${name}"
+  area_id: "$${area_id}"
+  area_dns: "$${area_dns}"
+  name_dns: "$${name_dns}"
   description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
 packages:
   common: !include
@@ -19,9 +21,35 @@ climate: # Climate entity config
     id: "aircon_$${area_id}"
     #!include { file: "./metadata/area-id.yaml", vars: { area: "$${area}", prefix: "aircon_" } }
     name: "Air Conditioner - $${area}"
+    icon: mdi:air-conditioner
     update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
+    outside_air_temperature_sensor:
+      name: Outside Air Temp
+      disabled_by_default: false
+    horizontal_vane_select:
+      name: Horizontal Vane
+      disabled_by_default: false
+    input_power_sensor:
+      name: Input Power
+      disabled_by_default: false
+    kwh_sensor:
+      name: Energy Usage
+      disabled_by_default: false
+    runtime_hours_sensor:
+      name: Runtime Hours
+      entity_category: diagnostic
+      disabled_by_default: false
+    sub_mode_sensor:
+      name: Sub Mode
+      entity_category: diagnostic
+      disabled_by_default: true
+    auto_sub_mode_sensor:
+      name: Auto Sub Mode
+      entity_category: diagnostic
+      disabled_by_default: true
 uart:
   id: HP_UART
   baud_rate: 2400
-  tx_pin: GPIO17
-  rx_pin: GPIO16
+  # TX and RX have to be inverted from pinout
+  tx_pin: GPIO44
+  rx_pin: GPIO43

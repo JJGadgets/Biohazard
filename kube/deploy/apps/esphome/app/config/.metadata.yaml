@@ -1,3 +1,4 @@
+---
 area_dns: >
   $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
 area_id: >

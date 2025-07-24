@@ -31,7 +31,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/home-operations/esphome
-              tag: 2025.7.2@sha256:863d5dd690b0ae4eee52b2be9cf811d3a4f00236d2cec2e840bd098425a00439
+              tag: 2025.7.3@sha256:6f13401d154cd939167133338ccbbcb50eea7b1ed67b98a5d0cb4b5e0dbdf3b5
             env: &env
               TZ: "${CONFIG_TZ}"
               ESPHOME_DASHBOARD_USE_PING: "true"
@@ -47,7 +47,7 @@ spec:
                 memory: "512Mi"
               limits:
                 cpu: "4"
-                memory: "3Gi"
+                memory: "4Gi"
     service:
       app:
         controller: app
@@ -78,27 +78,22 @@ spec:
         globalMounts:
           - subPath: data
             path: /config
-      misc:
-        existingClaim: esphome-misc
-        globalMounts:
-          - subPath: cache
-            path: /cache
-          - subPath: dot-cache
-            path: /config/.cache
-          - subPath: dot-local
-            path: /config/.local
-          - subPath: dot-esphome
-            path: /config/.esphome
+      cache:
+        type: emptyDir
       config:
         type: configMap
         name: esphome-config
         globalMounts:
-          - subPath: common.yaml
-            path: /config/common.yaml
-          - subPath: wifi.yaml
-            path: /config/wifi.yaml
-          - subPath: mitsubishi-cn105-bt-proxy.yaml
-            path: /config/mitsubishi-cn105-bt-proxy.yaml
+          - subPath: .common.yaml
+            path: /config/.common.yaml
+          - subPath: .wifi.yaml
+            path: /config/.wifi.yaml
+          - subPath: .metadata.yaml
+            path: /config/.metadata.yaml
+          - subPath: .bluetooth-proxy.yaml
+            path: /config/.bluetooth-proxy.yaml
+          - subPath: .mitsubishi-cn105.yaml
+            path: /config/.mitsubishi-cn105.yaml
           - subPath: jj-room-ac.yaml
             path: /config/jj-room-ac.yaml
           - subPath: master-bedroom-ac.yaml
