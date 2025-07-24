@@ -167,8 +167,8 @@ spec:
         name: "code-server-secrets"
         defaultMode: 0600
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: "ssh-privkey"
                 path: "/home/coder/.ssh/id_rsa"
                 readOnly: true
@@ -180,8 +180,8 @@ spec:
         name: "talos"
         defaultMode: 0400
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - path: "/var/run/secrets/talos.dev"
                 readOnly: true
               - path: "/home/coder/.talos"
