@@ -1,0 +1,283 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app rclone-retro
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.1.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            prom.home.arpa/kps: allow
+            egress.home.arpa/retro-consoles: allow
+            egress.home.arpa/github: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/rclone/rclone
+              tag: 1.70.3@sha256:34c729127386abec1c610b2aa024e39b4498dc2b4a72a0798ae21fbdc1b0493b
+            args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "**/／*", "--exclude", "**/／**", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              FTP_PORT: &ftp 2121
+              HTTP_PORT: &http 8080
+              METRICS_PORT: &metrics 9090
+              RCLONE_URL: http://rclone-retro-app.rclone-retro.svc.cluster.local/
+              # without the multithread config, every 64Mi the 3DS transfer will "write: broken pipe"
+              RCLONE_MULTI_THREAD_CUTOFF: "0"
+              RCLONE_MULTI_THREAD_STREAMS: "1"
+            envFrom: &envFrom
+              - secretRef:
+                  name: rclone-retro-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "128Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      3ds: &cron
+        type: cronjob
+        cronjob: &cj
+          schedule: "@hourly"
+          concurrencyPolicy: Replace
+          ttlSecondsAfterFinished: 3600
+          failedJobsHistory: 1
+          backoffLimit: 2
+        containers:
+          main: &rclct
+            image: *img
+            command: ["/bin/sh", "-c", "rclone rc $(ARG)"]
+            env: &envcr
+              <<: *env
+              RCLONE_TIMEOUT: 1h
+              ARG: | # TODO: so much jank over k8s doing auto shell escaping on args and me wanting to not repeat the command line
+                sync/sync srcFs='3ds:/' dstFs='/data/3ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**", "**/content/*.app","Nintendo 3DS/title/**/**/content/*.app","**/*.cia","**/*.fbi","**/*.nds","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac"]}'
+            envFrom: *envFrom
+            securityContext: *sc
+        initContainers:
+          01-ping: &ping
+            image: *img
+            command: ["/bin/sh", "-c", "until rclone backend features $(REMOTE): --contimeout=5s --timeout=5s; do printf 'Waiting for handheld to come online...'; sleep 2; done"]
+            env:
+              REMOTE: 3ds
+            securityContext: *sc
+        pod:
+          annotations: &cran
+            reloader.stakater.com/auto: "false"
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "1"
+              memory: "128Mi"
+        annotations: *cran
+      # 3ds-gba:
+      #   <<: *cron
+      #   containers:
+      #     main:
+      #       <<: *rclct
+      #       env:
+      #         <<: *envcr
+      #         ARG: |
+      #           sync/sync srcFs='3ds:GBA/' dstFs='/data/3ds-gba/' _config='{"Progress": true}'
+      #   initContainers:
+      #     01-ping:
+      #       <<: *ping
+      #       env:
+      #         REMOTE: 3ds
+      ds:
+        <<: *cron
+        cronjob:
+          <<: *cj
+          schedule: "30 21-23 * * *"
+        containers:
+          main:
+            <<: *rclct
+            env:
+              <<: *envcr
+              ARG: |
+                sync/sync srcFs='ds:/' dstFs='/data/ds/' _config='{"Progress": true}' _filter='{"ExcludeRule":["**/／*","**/／**","**.nds","**.NDS","**/*.mp3","**/*.m4a","**/*.aac","**/*.wav","**/*.flac","_gba/configs/*","_nds*/**","vmac","moonshl2","_wfwd*/**"]}'
+        initContainers:
+          01-ping:
+            <<: *ping
+            env:
+              REMOTE: ds
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+      expose:
+        controller: app
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: "${APP_DNS_RCLONE_RETRO_FTP:=rclone-retro}"
+          lbipam.cilium.io/ips: "${APP_IP_RCLONE_RETRO_FTP:=127.0.0.1}"
+        ports:
+          ftp:
+            port: 21
+            targetPort: *ftp
+            protocol: TCP
+            appProtocol: ftp
+            primary: true
+    ingress:
+      main:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_RCLONE_RETRO:=rclone-retro}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - subPath: "rclone.conf"
+            path: "/.rclone.conf"
+            readOnly: true
+      data:
+        existingClaim: rclone-retro-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+              - subPath: cache
+                path: /.cache
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_PERSIST_K8S:=/home}"
+      #   globalMounts:
+      #     - subPath: rclone-retro
+      #       path: /nfs
+      tmp:
+        type: emptyDir
+        medium: Memory
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    configMaps:
+      config:
+        data:
+          rclone.conf: |
+            [3ds]
+            type = ftp
+            host = 3ds.internal
+            port = 5000
+            user = anonymous
+            pass = PyY5-F-6MhsVR9BYdBGEQy0
+            concurrency = 1
+            idle_timeout = 0s
+            writing_mdtm = true
+            # needed for modtime support, use `rclone backend features 3ds:` to verify
+            [ds]
+            type = ftp
+            host = ds.internal
+            port = 5000
+            user = anonymous
+            pass = PyY5-F-6MhsVR9BYdBGEQy0
+            concurrency = 1
+            idle_timeout = 0s
+            writing_mdtm = true
+            # needed for modtime support, use `rclone backend features ds:` to verify
+            [vita]
+            type = ftp
+            host = 3ds.internal
+            port = 5000
+            user = anonymous
+            pass = PyY5-F-6MhsVR9BYdBGEQy0
+            concurrency = 1
+            idle_timeout = 0s
+            writing_mdtm = true
+    defaultPodOptionsStrategy: merge
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
+      conosoles:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from: &consoles
+                - ipBlock:
+                    cidr: "${IP_VLAN_RETROCONSOLES_CIDR:=127.0.0.1/32}"
+                - ipBlock:
+                    cidr: "${IP_VLAN_NDS_CIDR:=127.0.0.1/32}"
+            # from: [{ podSelector: {} }]]
+          egress:
+            - to: *consoles
+    # serviceMonitor: # TODO: add serviceMonitors

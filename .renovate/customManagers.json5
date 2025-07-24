@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "description": ["app-template schemas"],
+      "customType": "regex",
+      "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "\\# yaml\\-language\\-server\\: \\$schema\\=https\\:\\/\\/raw\\.githubusercontent\\.com\\/(?<registryUrl>[\\w\\-]+\\/[\\w\\-]+)\\/(?<packageName>[\\w\\-]+)-(?<currentValue>[\\d\\.]+)/.+"
+      ],
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "depNameTemplate": "app-template",
+      "registryUrlTemplate": "https://bjw-s-labs.github.io/helm-charts"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/jjgadgets/goatcounter
-              tag: 2.5.0
+              tag: 2.6.0@sha256:79bc2927454ed10f8d14f7333a6aa5f251c2a271e9cf08f0469a7b709313dd54
             # runtime config already in image CMD as command args, not using PG because I don't really care about this data or having stuck PVC attachments
             env:
               TZ: "${CONFIG_TZ}"

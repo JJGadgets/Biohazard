@@ -16,10 +16,12 @@ spec:
     - fromEndpoints:
         - matchLabels:
             prometheus: "kps"
+            io.kubernetes.pod.namespace: monitoring
     # VictoriaMetrics
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: "vmagent"
+            io.kubernetes.pod.namespace: monitoring
   egress:
     # same namespace
     - toEndpoints:

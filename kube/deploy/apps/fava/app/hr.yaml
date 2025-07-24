@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/fava
-              tag: 1.30.2@sha256:fa4a09e99ca0c4cd486e37beac1adf5de8d423d8375b6a93f937a076dac9028b
+              tag: 1.30.5@sha256:ca86149d91c7235e5f025b99534f850453f451c95f6471a6aebd8ac3218284f5
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

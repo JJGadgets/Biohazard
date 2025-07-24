@@ -1,11 +1,11 @@
 ---
 prometheus:
-  enabled: false
-  externalUrl: "https://${APP_DNS_PROMETHEUS}/"
+  enabled: true # prompp still froze nodes :(
+  externalUrl: "https://${APP_DNS_PROMETHEUS:=prom}/"
   ingress:
-    enabled: false
+    enabled: true # prompp still froze nodes :(
     ingressClassName: "nginx-internal"
-    hosts: &hostprom ["${APP_DNS_PROMETHEUS}"]
+    hosts: &hostprom ["${APP_DNS_PROMETHEUS:=prom}"]
     tls: [hosts: *hostprom]
     paths: ["/"]
     pathType: Prefix
@@ -15,14 +15,14 @@ prometheus:
     scrapeInterval: "60s"
     #scrapeInterval: "30s"
     #scrapeTimeout: "15s"
-    replicas: 0 # 3
+    replicas: 0
     retention: 14d
     retentionSize: 30GB
     walCompression: true
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: local
+          storageClassName: block
           resources:
             requests:
               storage: 35Gi
@@ -31,9 +31,17 @@ prometheus:
         cpu: 250m
         memory: 2Gi
       limits:
-        cpu: 1000m # it uses less than this, just to be safe
+        cpu: 1 # it uses less than this, just to be safe
         memory: 8Gi
     # scheduling
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values: [ange, charlotte, dorothy]
     topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: "kubernetes.io/hostname"
@@ -47,20 +55,28 @@ prometheus:
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
     scrapeConfigSelectorNilUsesHelmValues: false
-    # enable features
-    enableAdminAPI: true
-    enableFeatures:
-      - auto-gomaxprocs
-      - memory-snapshot-on-shutdown
-      - new-service-discovery-manager
+    # # enable features
+    # enableAdminAPI: true
+    # enableFeatures:
+    #   - auto-gomaxprocs
+    #   - memory-snapshot-on-shutdown
+    #   - new-service-discovery-manager
     # multi clusters
     externalLabels:
       cluster: "${CLUSTER_NAME}"
     replicaExternalLabelName: "__replica__" # must match with thanos value `.query.replicaLabel[0]`
-    # image: # testing out dedupe labels https://github.com/prometheus/prometheus/releases/tag/v2.51.0-rc.0%2Bdedupelabels
-    #   registry: quay.io
-    #   repository: prometheus/prometheus
-    #   tag: v2.51.0-rc.0-dedupelabels
+    image:
+      registry: docker.io
+      repository: prompp/prompp
+      tag: 2.53.2-0.2.3
+      # registry: quay.io
+      # repository: prometheus/prometheus
+      # tag: v2.51.0-rc.0-dedupelabels
+    securityContext: # needed for prompp
+      runAsNonRoot: true
+      runAsUser: 64535
+      runAsGroup: 64535
+      fsGroup: 64535
     # external AlertManager (non-KPS)
     alertingEndpoints:
       - apiVersion: v2

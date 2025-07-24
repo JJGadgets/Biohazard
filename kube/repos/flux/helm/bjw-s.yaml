@@ -1,10 +1,12 @@
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: bjw-s
   namespace: flux-system
 spec:
   interval: 1h
-  timeout: 3m0s
+  timeout: 30s
+  # url: oci://ghcr.io/bjw-s-labs/helm
+  # Renovate categorizes these properly
   url: https://bjw-s-labs.github.io/helm-charts/

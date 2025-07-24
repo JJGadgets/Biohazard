@@ -5,6 +5,6 @@ metadata:
   name: fluentbit
   labels:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    pod-security.kubernetes.io/enforce: &ps privileged # hostPath
+    pod-security.kubernetes.io/enforce: &ps privileged # hostPath & dmesg
     pod-security.kubernetes.io/audit: *ps
     pod-security.kubernetes.io/warn: *ps

@@ -16,19 +16,21 @@ route:
         - alertname =~ "Watchdog"
     - receiver: "null"
       matchers:
-        - alertname =~ "InfoInhibitor"
-        - alertname =~ "CPUThrottlingHigh"
+        - alertname =~ "InfoInhibitor|CPUThrottlingHigh|etcdMemberCommunicationSlow"
     - receiver: discord
       continue: true
       matchers:
-        - severity = "critical"
-        - severity = "warning" # gotta try it out to know what's what
+        - severity =~ "critical|warning"
 inhibit_rules:
   - equal: ["alertname", "namespace"]
     source_matchers:
       - severity = "critical"
     target_matchers:
       - severity = "warning"
+  - equal: ["alertname"]
+    source_matchers: &kcce
+      - alertname = "KubeClientCertificateExpire"
+    target_matchers: *kcce
 receivers:
   - name: heartbeat
     webhook_configs:
@@ -40,13 +42,15 @@ receivers:
       - send_resolved: true
         webhook_url_file: "/secrets/discord"
         # yoinked below from onedr0p, blame him if something doesn't work
+        # TODO: add severity text to emoji function to reuse in message
         title: >-
+          {{- if eq .Status "firing" }}🚨:{{ .Alerts.Firing | len }}{{- else if eq .Status "resolved" }}✅{{- end }}
           {{ .GroupLabels.alertname }}
           {{- if ne .GroupLabels.namespace "" }} - {{ .GroupLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.namespace "" }} - {{ .CommonLabels.namespace }}{{- end }}
           {{- if ne .CommonLabels.severity "" }} ({{ .CommonLabels.severity }}){{- end }}
           ({{ .GroupLabels.cluster }})
-          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
+        content: ""
         message: |-
           {{- $root := . }}
           {{- $rm := stringSlice "instance" "kubernetes_node" "endpoint" "prometheus" "service" "cluster" "container" "job" "severity" "alertgroup" "namespace" }}
@@ -66,18 +70,24 @@ receivers:
           {{- end }}
           {{- range .Alerts }}
             {{- if ne .Annotations.description "" }}
-          - **{{ .Annotations.description }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
+          - **{{ .Annotations.description }}**
             {{- else if ne .Annotations.summary "" }}
-          - **{{ .Annotations.summary }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
+          - **{{ .Annotations.summary }}**
             {{- else if ne .Annotations.message "" }}
-          - **{{ .Annotations.message }}** [{{ .Fingerprint }}]({{ .GeneratorURL }})
+          - **{{ .Annotations.message }}**
             {{- else }}
-          - **Alert description not available** [{{ .Fingerprint }}]({{ .GeneratorURL }})
+          - **Alert description not available**
+            {{- end }}
+            {{- if eq .Status "firing" }}
+            ⌚️ Since: <t:{{ .StartsAt.Unix }}:F> (<t:{{ .StartsAt.Unix }}:R>)
+            {{- else }}
+
+            ✅ Ended: <t:{{ .EndsAt.Unix }}:F> (<t:{{ .EndsAt.Unix }}:R>) for {{ .StartsAt | since | humanizeDuration }}
             {{- end }}
             {{- $uniq := ( ( .Labels.Remove $root.GroupLabels.Names ).Remove $root.CommonLabels.Names ) }}
             {{- if gt (len $uniq.SortedPairs) 0 }}
               {{- range $uniq.SortedPairs }}
-          > {{ .Name }}: `{{ .Value }}`
+            > {{ .Name }}: `{{ .Value }}`
               {{- end }}
             {{- end }}
           {{- end }}

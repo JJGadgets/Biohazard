@@ -1,35 +1,39 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app sillytavern
+  name: &app feishin
   namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      sillytavern:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          app:
             image: &img
-              repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.12.14@sha256:6e636bd4129569fb263e9b5df23a4e33f8754d0b916565ccced87aab859d2159
+              repository: ghcr.io/jeffvli/feishin
+              tag: 0.18.0@sha256:aefb053a9f30f8a078687613978613bb9e217d1bd7970c289367ecdcb36b3044
             env: &env
               TZ: "${CONFIG_TZ}"
+              SERVER_NAME: JJGadgets Music
+              SERVER_TYPE: navidrome
+              SERVER_URL: "https://${APP_DNS_NAVIDROME}"
+              SERVER_LOCK: "true"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -38,62 +42,49 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "1"
-                memory: "1Gi"
+                memory: "128Mi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-              startup:
-                enabled: true
-                spec:
-                  periodSeconds: 1
-                  failureThreshold: 600
     service:
-      sillytavern:
-        controller: sillytavern
+      app:
+        controller: app
         ports:
           http:
-            port: 8000
+            port: 9180
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
+          - host: &host "${APP_DNS_FEISHIN:=feishin}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: sillytavern
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      data:
-        existingClaim: sillytavern-data
-        globalMounts:
-          - subPath: config
-            path: /home/node/app/config
-          - subPath: data
-            path: /home/node/app/data
-          - subPath: plugins
-            path: /home/node/app/plugins
-          - subPath: extensions
-            path: /home/node/app/public/scripts/extensions/third-party
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 64Mi
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: backups # temporarily not using due to VolSync
-            path: /home/node/app/backups
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -107,7 +98,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 101
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -118,21 +109,11 @@ spec:
           whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: *app
+              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/sillytavern
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
-    networkpolicies:
-      to-llm:
-        podSelector: {}
-        policyTypes: [Ingress, Egress]
-        rules:
-          egress:
-            - to:
-                - namespaceSelector:
-                    matchLabels:
-                      kubernetes.io/metadata.name: mlc-llm

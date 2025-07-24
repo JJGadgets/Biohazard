@@ -115,6 +115,6 @@ jobs:
           sudo chown -R 12021:$(id -g) /tmp/renovate
 
       - name: Renovate
-        uses: renovatebot/github-action@fdbe2b88946ea8b6fb5785a5267b46677d13a4d2 # v41.0.21
+        uses: renovatebot/github-action@bdfd950c25796ebf1aa0c127ad55b69a14b04f69 # v43.0.3
         with:
           token: "${{ steps.oauth-token.outputs.token }}"

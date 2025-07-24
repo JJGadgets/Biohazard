@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.6.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -31,7 +31,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/miniflux/miniflux
-              tag: "2.2.8-distroless@sha256:d98377d6a865395953a987fffdc9d068344768eda8604aea71e670c570bae98b"
+              tag: "2.2.10-distroless@sha256:61ac6988d60804e2c03f2e4cbd94e73d0a0819ec253425243fbe162ce760031d"
             env:
               TZ: "${CONFIG_TZ}"
               BASE_URL: "https://${APP_DNS_MINIFLUX}"

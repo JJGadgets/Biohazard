@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.16.4/install/kubernetes/cilium/values.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.17.5/install/kubernetes/cilium/values.schema.json
 
 ## NOTE: required for Talos
 securityContext:
@@ -89,3 +89,20 @@ hubble:
   ui:
     enabled: true
     rollOutPods: true
+
+## NOTE: ingress/gateway
+ingressController:
+  enabled: false
+  # enforceHttps: true
+  # loadbalancerMode: shared
+  # defaultSecretNamespace: ingress
+  # defaultSecretName: short-domain-tls
+  # service:
+  #   annotations:
+  #     lbipam.cilium.io/ips: "${APP_IP_CILIUM_INGRESS:=127.0.0.1}"
+
+gatewayAPI:
+  enabled: false
+  # enableAlpn: true
+  # enableAppProtocol: true
+  # xffNumTrustedHops: 1

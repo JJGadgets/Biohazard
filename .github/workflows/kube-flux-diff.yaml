@@ -17,13 +17,6 @@ jobs:
         path: ["kube"]
         resource: ["helmrelease", "kustomization"]
     steps:
-      - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
-        id: oauth-token
-        with:
-          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
-          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
-
       - name: Setup Flux
         uses: fluxcd/flux2/action@8d5f40dca5aa5d3c0fc3414457dda15a0ac92fa4 # v2.5.1
         with:
@@ -31,7 +24,7 @@ jobs:
           version: "2.5.1"
 
       - name: Diff Resources
-        uses: allenporter/flux-local/action/diff@23b8f4e593254e34b2913728007c419b52789382 # 7.3.0
+        uses: allenporter/flux-local/action/diff@42e5af6147d86834fe1ab51e8da9f7c14bf85246 # 7.5.6
         #uses: allenporter/flux-local/action/diff@flux-build
         id: diff
         with:
@@ -39,15 +32,68 @@ jobs:
           path: "${{ matrix.path }}"
           resource: "${{ matrix.resource }}"
           debug: true
+          limit-bytes: 0
 
-      - if: ${{ steps.diff.outputs.diff != '' }}
-        name: Add comment
+      - name: Split diff output # to fit Linux argument list & GitHub API limitations
+        id: split
+        shell: bash
+        run: |
+          mkdir split && cd split
+          mkdir -p ${{ matrix.path }}/${{ matrix.resource }}
+          mkdir -p final/${{ matrix.path }}/${{ matrix.resource }}
+          # echo 'CURRENTPATH=${{ matrix.path }}' | sed -e 's/\//-/g' >> "${GITHUB_ENV}"
+          cat <<EOF | split -C 65500 --numeric-suffixes - ${{ matrix.path }}/${{ matrix.resource }}/out
+          ${{ steps.diff.outputs.diff }}
+          EOF
+          readarray -d '' splitfiles < <(find ${{ matrix.path }}/${{ matrix.resource }} -type f -print0)
+          IFS=$'%' echo "${splitfiles[*]}"
+          for i in "${splitfiles[@]}"; do
+            echo "## ${i}" > "final/${i}"
+            echo '```diff' >> "final/${i}"
+            cat "${i}" >> "final/${i}"
+            echo '```' >> "final/${i}"
+          done
+          echo 'artifact=${{ github.run_id }}/${{ matrix.path }}/${{ matrix.resource }}' | sed -e 's/\//_/g' >> "$GITHUB_OUTPUT"
+          echo -n "files=" >> "$GITHUB_OUTPUT"
+          jq -c -n '$ARGS.positional' --args "${splitfiles[@]}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Splits
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ steps.split.outputs.artifact }}"
+          path: split/final
+    outputs:
+      files: "${{ steps.split.outputs.files }}"
+      artifact: "${{ steps.split.outputs.artifact }}"
+
+  add-comments:
+    name: Flux Diff - Add Comments
+    needs: [flux-diff]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    strategy:
+      matrix:
+        path: ["kube"]
+        resource: ["helmrelease", "kustomization"]
+        files: ${{ fromJson(needs.flux-diff.outputs.files) }}
+    steps:
+      - name: "Generate Short Lived OAuth App Token (ghs_*)"
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        id: oauth-token
+        with:
+          app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
+          private-key: "${{ secrets.BOT_JWT_PRIVATE_KEY }}" # $BOT_JWT_PRIVATE_KEY is generated in GitHub App main settings page, uses the X.509 private key format
+      - name: Download Splits
+        uses: actions/download-artifact@v4
+        with:
+          name: "${{ needs.flux-diff.outputs.artifact }}"
+      - run: |
+          cat ${{ matrix.files }}
+      - name: Add comment
         uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         with:
           repo-token: "${{ steps.oauth-token.outputs.token }}"
-          message-id: "${{ github.event.pull_request.number }}/${{ matrix.path }}/${{ matrix.resource }}"
+          message-id: "${{ github.event.pull_request.number }}/${{ matrix.files }}"
           message-failure: Diff was not successful
-          message: |
-            ```diff
-            ${{ steps.diff.outputs.diff }}
-            ```
+          message-path: "${{ matrix.files }}"

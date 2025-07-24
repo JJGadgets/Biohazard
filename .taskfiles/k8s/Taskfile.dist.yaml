@@ -89,7 +89,7 @@ tasks:
     vars:
       dns: '{{ or .dns (fail "Missing search query!") }}'
     cmds:
-      - kubectl get ingress,svc -A -o yaml | yq -r '.items | map(select(.metadata.annotations."external-dns.alpha.kubernetes.io/target"=="*{{.dns}}*").metadata.name)'
+      - kubectl get ingress,svc --all-namespaces=true -o yaml | yq -r '.items | map(select(.metadata.annotations."external-dns.alpha.kubernetes.io/target"=="*{{.dns}}*").metadata.name)'
 
   sops-apply:
     aliases: [sa]
@@ -126,10 +126,14 @@ tasks:
     desc: Copy app folder structure template, substitute APPNAME, and (TODO) prompt user for variables values such as DNS, UID etc.
     vars:
       APP: &app-fail '{{ or .APP (fail "Missing `app` variable!") }}'
+      IMAGENAME: &imagename-fail '{{ or .IMAGENAME (fail "Missing `IMAGENAME` variable!") }}'
+      IMAGETAG: &imagetag-fail '{{ or .IMAGETAG (fail "Missing `IMAGETAG` variable!") }}'
     cmds:
       - cp -r ./kube/templates/test ./kube/deploy/apps/{{.APP}}
       # lowercase, used for resource names etc
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
+      - grep -lR 'IMAGENAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${IMAGENAME}/{{.IMAGENAME}}/g' %
+      - grep -lR 'IMAGETAG' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${IMAGETAG}/{{.IMAGETAG}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g;s/\(_{{.APP}}:=\)/\U\1/g' %
       - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
@@ -146,9 +150,9 @@ tasks:
     cmds:
       - |-
         while true; do
-          kubectl delete pod -A --field-selector=status.phase==Failed || true;
-          kubectl delete pod -A --field-selector=status.phase==Pending || true;
-          kubectl delete pod -A --field-selector=status.phase==Succeeded || true;
+          kubectl delete pod --wait=false --all-namespaces=true --field-selector=status.phase==Failed || true;
+          kubectl delete pod --wait=false --all-namespaces=true --field-selector=status.phase==Pending || true;
+          kubectl delete pod --wait=false --all-namespaces=true --field-selector=status.phase==Succeeded || true;
         done
 
   delete-stuck-pvc:

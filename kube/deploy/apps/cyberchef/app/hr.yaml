@@ -1,58 +1,100 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app cyberchef
   namespace: *app
 spec:
+  interval: 5m
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 4.1.1
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: docker.io/mpepping/cyberchef
-      tag: v10.19.4@sha256:91e04eaaa1ba1eac6b8e410d6f7b340e1ea0450d48ccbb52ec67ce6faa3672c5
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-    env:
-      TZ: "${CONFIG_TZ}"
+    controllers:
+      app:
+        type: deployment
+        replicas: 2
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: docker.io/mpepping/cyberchef
+              tag: v10.19.4@sha256:91e04eaaa1ba1eac6b8e410d6f7b340e1ea0450d48ccbb52ec67ce6faa3672c5
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "64Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: 8000
+            port: 80
+            targetPort: 8000
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
+        className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_CYBERCHEF:=cyberchef}"
             paths:
               - path: /
                 pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
         tls:
-          - hosts:
-              - *host
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_CYBERCHEF:=1000}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 256Mi
+          - hosts: [*host]
+    persistence:
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
