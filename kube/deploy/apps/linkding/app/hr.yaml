@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,70 +10,44 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
-        strategy: RollingUpdate # only snapshots data might be written to disk directly, external Postgres used
-        pod:
+        pod: &p
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            db.home.arpa/pg: "pg-home"
-            authentik.home.arpa/https: "allow"
-            egress.home.arpa/internet: "allow"
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+            egress.home.arpa/internet: allow
         containers:
-          main:
+          app:
             image: &img
-              repository: "docker.io/sissbruecker/linkding"
-              tag: "1.40.0-plus-alpine@sha256:b96899827000fb06edb333d86cce1edea7c4e1c6968250d7b972103886ea9913"
-            env:
+              repository: ghcr.io/sissbruecker/linkding
+              tag: 1.41.0-plus@sha256:a222fb777e1fade891eabfa037e67ff4514f96b87be746060b027b5c84a8e1ce
+            env: &env
               TZ: "${CONFIG_TZ}"
               # Security
               LD_ENABLE_OIDC: "True"
               LD_CSRF_TRUSTED_ORIGINS: "https://${APP_DNS_LINKDING}"
               # Options
-              LD_SERVER_PORT: &http "8080"
+              LD_SERVER_PORT: &http 8080
               LD_LOG_X_FORWARDED_FOR: "true"
               LD_FAVICON_PROVIDER: "https://icons.duckduckgo.com/ip3/{domain}.ico"
-              LD_SINGLEFILE_PATH: &snap "/snapshots" # archive whole page locally
+              LD_ENABLE_SNAPSHOTS: "True"
+              LD_ASSET_FOLDER: &snap "/assets/" # local archive path (do NOT use LD_SINGLEFILE_PATH that's the executable location)
+              LD_FAVICON_FOLDER: &fav "/favicons"
+              LD_PREVIEW_FOLDER: &preview "/preview"
               # Database
-              LD_DB_ENGINE: "postgres"
-              LD_DB_OPTIONS: |-
-                {"sslmode": "require"}
-              LD_DB_HOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-linkding"
-                    key: "pgbouncer-host"
-              LD_DB_PORT:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-linkding"
-                    key: "pgbouncer-port"
-              LD_DB_DATABASE:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-linkding"
-                    key: "dbname"
-              LD_DB_USER:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-linkding"
-                    key: "user"
-              LD_DB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-linkding"
-                    key: "password"
+              LD_DB_ENGINE: sqlite
             envFrom:
               - secretRef:
-                  name: "linkding-secrets"
+                  name: linkding-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -81,73 +56,101 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "1Gi"
+                cpu: "1"
+                memory: 200Mi
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      bg-tasks:
+        type: deployment
+        replicas: 1
+        pod: *p
+        containers:
+          bg-tasks: # taken from supervisord config
+            image: *img
+            command: ["python", "manage.py", "run_huey", "-f"]
+            env:
+              <<: *env
+              HOME: /tmp/home
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: "1"
+                memory: 2Gi
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
     ingress:
       main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
+        className: nginx-internal
         hosts:
           - host: &host "${APP_DNS_LINKDING:=linkding}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
     persistence:
-      config:
-        enabled: false
-      tmp:
-        enabled: true
-        type: emptyDir
-        medium: Memory
+      data:
+        existingClaim: linkding-data
         globalMounts:
-          - subPath: "data"
-            path: "/etc/linkding/data"
-            readOnly: false
-          - subPath: "tmp"
-            path: "/tmp"
-            readOnly: false
+          - subPath: data
+            path: /etc/linkding/data
       snapshots:
         existingClaim: linkding-snapshots
         globalMounts:
-          - subPath: "data"
+          - subPath: assets
             path: *snap
+      misc:
+        existingClaim: linkding-misc
+        globalMounts:
+          - subPath: favicons
+            path: *fav
+          - subPath: preview
+            path: *preview
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_LINKDING:=1000}
+        runAsUser: &uid 33 # www-data
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/linkding"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

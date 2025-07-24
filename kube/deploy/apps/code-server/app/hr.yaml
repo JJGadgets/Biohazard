@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,14 +10,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: "2.6.0"
+      version: "4.1.2"
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         annotations: &anno
@@ -31,10 +32,10 @@ spec:
             egress.home.arpa/world: "allow"
             egress.home.arpa/cluster: "allow"
         containers:
-          main:
+          app:
             image:
               repository: "ghcr.io/coder/code-server"
-              tag: "4.100.3@sha256:c5b7ec231b24f26ecee243e8d9f9df57af906d03c9c8238efd893217c9f1f725"
+              tag: "4.102.1@sha256:8e54ed8a175d4dc223186078dc0c89157887ad8a2c17b41b2ff6f1a0b3d724d9"
             command: ["dumb-init", "/bin/bash", "-c"]
             args: ["/home/linuxbrew/.linuxbrew/sbin/sshd -p 2222 || true; /usr/bin/code-server --auth none --disable-telemetry --user-data-dir /home/coder/.vscode --extensions-dir /home/coder/.vscode --bind-addr 0.0.0.0:8080 --port 8080 /home/coder"]
             env:
@@ -56,8 +57,15 @@ spec:
               limits:
                 cpu: "1000m" # I previously had a code-server that would eat cores
                 memory: "4Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        forceRename: *app
+        controller: app
         ports:
           http:
             port: 8080
@@ -66,11 +74,9 @@ spec:
           test:
             port: 8081
       ssh:
-        enabled: true
         primary: false
-        controller: main
+        controller: app
         type: LoadBalancer
-        externalTrafficPolicy: Cluster
         annotations:
           coredns.io/hostname: "vs-ssh.${DNS_SHORT:=internal}"
           io.cilium/lb-ipam-ips: "${APP_IP_CODE_SERVER_SSH:=127.0.0.1}"
@@ -80,16 +86,13 @@ spec:
           io.cilium/l2: "true"
         ports:
           http:
-            enabled: true
             port: 22
             targetPort: 2222
             protocol: TCP
           ssh2:
             port: 22222
     ingress:
-      main:
-        enabled: true
-        primary: true
+      app:
         className: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
@@ -101,44 +104,41 @@ spec:
                 path: /
                 pathType: Prefix
                 service: &http
-                  name: main
+                  identifier: app
                   port: http
           - host: &host "hugo.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &hugo
-                  name: main
+                  identifier: app
                   port: hugo
           - host: &host "vs-test.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &test
-                  name: main
+                  identifier: app
                   port: test
         tls:
           - hosts: [*host]
-      tailscale:
-        enabled: true
-        primary: false
-        className: "tailscale"
-        annotations:
-          tailscale.com/tags: "tag:jjgadgets-apps"
-        hosts:
-          - host: &host "vs.${DNS_TS:=ts.net}"
-            paths:
-              - <<: *path
-                service: *http
-              - <<: *path
-                path: /hugo
-                service: *http
-              - <<: *path
-                path: /test
-                service: *http
-        tls:
-          - hosts: [*host]
+      # tailscale:
+      #   className: "tailscale"
+      #   annotations:
+      #     tailscale.com/tags: "tag:jjgadgets-apps"
+      #   hosts:
+      #     - host: &host "vs.${DNS_TS:=ts.net}"
+      #       paths:
+      #         - <<: *path
+      #           service: *http
+      #         - <<: *path
+      #           path: /hugo
+      #           service: *http
+      #         - <<: *path
+      #           path: /test
+      #           service: *http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       config:
-        enabled: true
         existingClaim: "code-server-data"
         globalMounts:
           - subPath: "data"
@@ -148,7 +148,6 @@ spec:
           - subPath: "nix-var"
             path: "/nix/var"
       misc: # not backed up
-        enabled: true
         existingClaim: "code-server-misc"
         globalMounts:
           - subPath: "ignore"
@@ -164,13 +163,12 @@ spec:
           - subPath: "go"
             path: "/home/coder/go"
       secrets:
-        enabled: true
         type: secret
         name: "code-server-secrets"
         defaultMode: 0600
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: "ssh-privkey"
                 path: "/home/coder/.ssh/id_rsa"
                 readOnly: true
@@ -178,19 +176,17 @@ spec:
                 path: "/home/coder/.ssh/id_rsa.pub"
                 readOnly: true
       talos-admin:
-        enabled: true
         type: secret
         name: "talos"
         defaultMode: 0400
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - path: "/var/run/secrets/talos.dev"
                 readOnly: true
               - path: "/home/coder/.talos"
                 readOnly: true
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
         globalMounts:
@@ -198,12 +194,13 @@ spec:
             path: "/tmp"
             readOnly: false
     serviceAccount:
-      name: "code-server"
-      create: true
+      app:
+        forceRename: *app
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
       hostname: "${CLUSTER_NAME:=biohazard}-code-server"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000 # `coder` user

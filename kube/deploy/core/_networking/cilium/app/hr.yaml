@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cilium/cilium/v1.16.5/install/kubernetes/cilium
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cilium/cilium/v1.17.5/install/kubernetes/cilium
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: cilium
@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.17.4"
+      version: "1.17.5"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository
@@ -105,6 +105,9 @@ spec:
           #annotations:
           #  grafana_folder: "Cilium"
       eventQueueSize: "50000" # default is 6144 which fills up
+      dropEventEmitter:
+        enabled: true
+        reasons: [auth_required, policy_denied, policy_deny, fib_lookup_failed, unsupported_l3_protocol, service_backend_not_found]
     operator:
       prometheus:
         enabled: true

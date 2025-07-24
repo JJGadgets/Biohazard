@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: volsync
@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: volsync
-      version: 0.12.1
+      version: 0.13.0
       interval: 5m
       sourceRef:
         kind: HelmRepository

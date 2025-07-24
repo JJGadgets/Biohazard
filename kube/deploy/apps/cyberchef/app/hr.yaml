@@ -66,6 +66,20 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+    persistence:
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
+          - subPath: config
+            path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

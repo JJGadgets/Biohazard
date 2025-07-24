@@ -50,7 +50,7 @@
     {
       "matchFileNames": [".mise.toml", "mise.toml"],
       "semanticCommitType": "{{#unless groupName}}chore{{/unless}}",
-      "semanticCommitScope": "{{#unless groupName}}mise/{{depName}}{{/unless}}"
+      "semanticCommitScope": "{{#unless groupName}}mise/{{#if (lookup (split depName ':') 1)}}{{ lookup (split depName ':') 1 }}{{else}}{{depName}}{{/if}}{{/unless}}"
     }
   ]
 }
