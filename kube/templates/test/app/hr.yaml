@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 4.1.1
+      version: 4.1.2
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -124,7 +124,7 @@ spec:
         type: LoadBalancer
         annotations:
           coredns.io/hostname: "${APP_DNS_APPNAME:=${APPNAME}}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_APPNAME:=127.0.0.1}"
+          lbipam.cilium.io/ips: "${APP_IP_APPNAME:=127.0.0.1}"
         ports:
           http:
             port: 443
@@ -139,7 +139,7 @@ spec:
             targetPort: 3636
             protocol: UDP
     ingress:
-      main:
+      app:
         className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
