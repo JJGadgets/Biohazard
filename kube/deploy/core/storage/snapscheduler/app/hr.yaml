@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app snapscheduler
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: snapscheduler
-      version: 3.4.0
+      version: 3.5.0
       sourceRef:
         name: backube
         kind: HelmRepository
