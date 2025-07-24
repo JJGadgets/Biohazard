@@ -56,7 +56,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2025.6.3@sha256:334354d11e015037cc1b030a9710e564f6e3545369d28789db823e86171d3fdc
+              tag: 2025.6.4@sha256:acde6a1fc963301fe27f7e86facb9aefbc68eb523210bcab5679a899e6bf72d5
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -223,7 +223,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.6.3@sha256:28831ab95e4f05df683fd7032df6ac6beb3fa0647172bcc9b13b99869d7ee821
+              tag: 2025.6.4@sha256:bceb7718ae590d6c60cbc4f02cdd591d4d1cc763f5c44ab099059888462e4b43
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -270,7 +270,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.6.3@sha256:c18cd5cb58e264ddd26bd66965068e78416bb3e1ee9477cfef388b7a6c9d459f
+              tag: 2025.6.4@sha256:282aa5e085d42c6424f051ee668a44645408392a6602a93362f4f8b9c4731673
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -304,7 +304,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "7.4.5@sha256:b52fce7a50c718c6836eef354f19428a9c9a6802379da6eb8a23853152e23f89"
+              tag: "8.0.3@sha256:f957ce918b51f3ac10414244bedd0043c47db44a819f98b9902af1bd9d0afcea"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc
