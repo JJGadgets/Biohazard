@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: multus
@@ -28,7 +28,8 @@ spec:
     resources:
       requests:
         cpu: 5m
+        memory: 128Mi
       limits:
-        memory: 512Mi
+        memory: 2Gi
     hostPaths:
       netns: /var/run/netns
