@@ -9,8 +9,8 @@ metadata:
     kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   path: ./kube/deploy/core/_networking/cilium/app
-  dependsOn:
-    - name: 1-core-1-networking-cilium-gwapi-crd
+  dependsOn: []
+    # - name: 1-core-1-networking-cilium-gwapi-crd
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
