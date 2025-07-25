@@ -1,5 +1,5 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: external-proxy-x
@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: haproxy
-      version: 1.23.0
+      version: 1.24.0
       sourceRef:
         name: haproxytech
         kind: HelmRepository
@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: haproxytech/haproxy-debian
-      tag: "2.9.6@sha256:84eacbc84c38558fb550394499ac08bd0c3df923e7e95326f5c95f807f10c088"
+      tag: "3.2.3@sha256:4ec4d37fc9a76cc444bc40d8501e66d032fd6c868519587a2b70b4078ecccdbd"
       pullPolicy: IfNotPresent
     kind: DaemonSet
     podLabels:

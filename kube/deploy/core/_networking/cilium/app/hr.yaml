@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cilium/cilium/v1.17.5/install/kubernetes/cilium
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: cilium
@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.17.5"
+      version: "1.17.6"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository

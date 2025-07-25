@@ -1,5 +1,6 @@
 [env]
 _.path = ["{{env.HOME}}/.krew/bin"]
+_.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
 KUBECTL_INTERACTIVE_DELETE = "true"
 KUBECTL_COMMAND_HEADERS = "true"
 K9S_CONFIG_DIR = "{{config_root}}/dots/k9s"
@@ -7,7 +8,6 @@ K9S_DEFAULT_PF_ADDRESS = "[::]"
 K9S_FG_NODE_SHELL = "true"
 #SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
 UV_PYTHON = "3.11"
-_.python.venv = { path = ".venv", create = true } # create the venv if it doesn't exist
 CARAPACE_BRIDGES = "zsh,fish,bash,inshellisense"
 
 [settings]
@@ -17,45 +17,50 @@ python_default_packages_file = "{{config_root}}/.venv/.mise-py-pkg"
 pipx_uvx = true
 
 [tools]
-"aqua:jdx/mise" = ["2025.6.1"]
-"aqua:neovim" = ["0.10.1"]
+"aqua:jdx/mise" = ["2025.7.27"]
+"aqua:fish-shell/fish-shell" = ["4.0.2"]
+"aqua:neovim" = ["0.11.3"]
+"aqua:starship/starship" = ["1.23.0"]
 "aqua:kubernetes/kubectl" = ["1.30.1"]
-"aqua:kubecolor" = ["0.0.25"]
+"aqua:kubecolor/kubecolor" = ["0.5.1"]
 "aqua:kubernetes-sigs/krew" = ["0.4.5"]
 "ubi:brumhard/krewfile" = ["0.6.3"]
 "aqua:ahmetb/kubectx" = ["0.9.5"]
-"aqua:junegunn/fzf" = ["0.62.0"] # used by kubectx interactive mode
+"aqua:junegunn/fzf" = ["0.64.0"] # used by kubectx interactive mode
 "aqua:BurntSushi/ripgrep" = ["14.1.1"]
 "aqua:kubernetes-sigs/kustomize" = ["5.3.0"]
-"aqua:helm" = ["3.18.2"]
-"aqua:fluxcd/flux2" = ["2.4.0"]
+"aqua:helm" = ["3.18.4"]
+"aqua:fluxcd/flux2" = ["2.6.4"]
 "aqua:siderolabs/talos" = ["1.10.3"]
-"aqua:budimanjojo/talhelper" = ["3.0.29"]
-"aqua:go-task/task" = ["3.44.0"]
+"aqua:budimanjojo/talhelper" = ["3.0.31"]
+"aqua:go-task/task" = ["3.44.1"]
 "aqua:stern" = ["1.32.0"]
-"aqua:cilium/cilium-cli"= ["0.18.4"]
-"aqua:1password/cli" = ["2.24.0"]
+"aqua:cilium/cilium-cli"= ["0.18.5"]
+"aqua:1password/cli" = "latest"
 "aqua:restic" = ["0.18.0"]
-"aqua:derailed/k9s" = ["0.50.6"]
+"aqua:derailed/k9s" = ["0.50.9"]
 soft-serve = ["0.7.4"]
 #pulumi = ["3.95.0"]
-"aqua:mikefarah/yq" = ["4.45.4"]
+"aqua:mikefarah/yq" = ["4.47.1"]
 "aqua:jq" = ["1.7.1"]
-"aqua:cli/cli" = ["2.74.1"] # GitHub CLI
+"aqua:cli/cli" = ["2.76.1"] # GitHub CLI
 "aqua:termkit/gama" = ["1.2.1"] # GHA TUI
 "ubi:CrunchyData/postgres-operator-client" = { version = "0.5.1" }
 "ubi:jkulzer/kubefetch" = ["0.8.1"]
+"ubi:theimpostor/osc" = ["0.4.8"]
 # experimental backends, use `mise up` to install because `mise install` is currently broken for these https://github.com/jdx/mise/issues/2458
-python = ["3.11"]
-"aqua:astral-sh/uv" = ["0.7.12"] # faster than pipx, and can be installed with mise directly
-"pipx:flux-local" = ["7.5.4", "5.5.1"]
-"pipx:robusta-dev/krr" = ["v1.23.0"]
+python = ["3.13.5"]
+"aqua:astral-sh/uv" = ["0.8.3"] # faster than pipx, and can be installed with mise directly
+"pipx:flux-local" = ["7.7.0", "5.5.1"]
+"pipx:pipx" = ["1.7.1"]
+"pipx:robusta-dev/krr" = { version = "v1.25.0", uvx_args = "--no-config", matching_regex = "krr-ubuntu-latest" }
+"pipx:esphome" = ["2025.7.3"]
 # rust = ["1.80.1"]
 # "cargo:cargo-binstall" = ["1.10.3"]
-"aqua:cargo-bins/cargo-binstall" = ["1.13.0"]
+"aqua:cargo-bins/cargo-binstall" = ["1.14.1"]
 "cargo:atac" = ["0.20.0"] # HTTP requests tester, like Postman
 "cargo:viddy" = ["1.1.6"]
-go = ["1.24.3"]
+go = ["1.24.5"]
 # "go:src.elv.sh/cmd/elvish" = ["0.21.0"]
 "go:github.com/aymanbagabas/shcopy" = ["0.1.5"] # ANSI OSC52, magic copy to OS via most terminals
 "go:github.com/gcla/termshark/v2/cmd/termshark" = ["2.4.0"] # PCAP TUI
@@ -65,10 +70,11 @@ node = ["23.11.1"]
 # "npm:handlebars" = ["4.7.8"]
 # personal
 "cargo:himalaya" = ["1.0.0"] # mail TUI
-"ubi:guyfedwards/nom" = ["2.10.0"] # RSS TUI
+"ubi:guyfedwards/nom" = ["2.13.0"] # RSS TUI
 "aqua:bloznelis/typioca" = ["3.1.0"] # typing test
-"go:github.com/digitalghost-dev/poke-cli" = ["1.3.1"] # PokeAPI TUI
+"go:github.com/digitalghost-dev/poke-cli" = ["1.5.0"] # PokeAPI TUI
 "pipx:markitdown" = "latest" # MS Office converter
+"ubi:Velocidex/velociraptor" = ["0.74"]
 
 [hooks]
 postinstall = [
