@@ -47,7 +47,8 @@ time:
   - platform: sntp
     id: time_sntp
     timezone: "Asia/Singapore"
-    update_interval: 6h
+    update_interval: 1h
+    servers: [time.apple.com] # Apple is stratum 1 in SEA
 
 # Optimizations
 logger:
