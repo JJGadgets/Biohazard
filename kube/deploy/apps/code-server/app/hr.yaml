@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: "ghcr.io/coder/code-server"
-              tag: "4.102.1@sha256:8e54ed8a175d4dc223186078dc0c89157887ad8a2c17b41b2ff6f1a0b3d724d9"
+              tag: "4.102.2@sha256:8c2aaafb74a2978f48d193135eb3ea6fc0e24563dd59c028b9f1808cefd0fa33"
             command: ["dumb-init", "/bin/bash", "-c"]
             args: ["/home/linuxbrew/.linuxbrew/sbin/sshd -p 2222 || true; /usr/bin/code-server --auth none --disable-telemetry --user-data-dir /home/coder/.vscode --extensions-dir /home/coder/.vscode --bind-addr 0.0.0.0:8080 --port 8080 /home/coder"]
             env:
@@ -92,7 +92,7 @@ spec:
           ssh2:
             port: 22222
     ingress:
-      main:
+      app:
         className: "nginx-internal"
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: |
@@ -104,39 +104,39 @@ spec:
                 path: /
                 pathType: Prefix
                 service: &http
-                  name: main
+                  identifier: app
                   port: http
           - host: &host "hugo.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &hugo
-                  name: main
+                  identifier: app
                   port: hugo
           - host: &host "vs-test.${DNS_SHORT:=internal}"
             paths:
               - <<: *path
                 service: &test
-                  name: main
+                  identifier: app
                   port: test
         tls:
           - hosts: [*host]
-      tailscale:
-        className: "tailscale"
-        annotations:
-          tailscale.com/tags: "tag:jjgadgets-apps"
-        hosts:
-          - host: &host "vs.${DNS_TS:=ts.net}"
-            paths:
-              - <<: *path
-                service: *http
-              - <<: *path
-                path: /hugo
-                service: *http
-              - <<: *path
-                path: /test
-                service: *http
-        tls:
-          - hosts: [*host]
+      # tailscale:
+      #   className: "tailscale"
+      #   annotations:
+      #     tailscale.com/tags: "tag:jjgadgets-apps"
+      #   hosts:
+      #     - host: &host "vs.${DNS_TS:=ts.net}"
+      #       paths:
+      #         - <<: *path
+      #           service: *http
+      #         - <<: *path
+      #           path: /hugo
+      #           service: *http
+      #         - <<: *path
+      #           path: /test
+      #           service: *http
+      #   tls:
+      #     - hosts: [*host]
     persistence:
       config:
         existingClaim: "code-server-data"
@@ -167,8 +167,8 @@ spec:
         name: "code-server-secrets"
         defaultMode: 0600
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: "ssh-privkey"
                 path: "/home/coder/.ssh/id_rsa"
                 readOnly: true
@@ -180,8 +180,8 @@ spec:
         name: "talos"
         defaultMode: 0400
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - path: "/var/run/secrets/talos.dev"
                 readOnly: true
               - path: "/home/coder/.talos"
@@ -194,8 +194,8 @@ spec:
             path: "/tmp"
             readOnly: false
     serviceAccount:
-      name: "code-server"
-      create: true
+      app:
+        forceRename: *app
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true

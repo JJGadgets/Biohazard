@@ -1,6 +1,6 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helmrelease_v2beta1.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: grafana
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: grafana
-      version: 8.13.1
+      version: 9.3.0
       sourceRef:
         name: grafana
         kind: HelmRepository
