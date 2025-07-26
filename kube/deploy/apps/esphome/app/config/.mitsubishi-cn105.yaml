@@ -1,12 +1,13 @@
 ---
 substitutions:
-  board: "lolin_s3_mini"
   area: "$${area}"
   name: "$${name}"
   area_id: "$${area_id}"
   area_dns: "$${area_dns}"
   name_dns: "$${name_dns}"
+  climate_id: "aircon_$${area_id}"
   description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
+  board: "$${board | default('lolin_s3_mini')}"
 packages:
   common: !include
     file: ./.common.yaml
@@ -18,8 +19,7 @@ external_components:
   - source: github://echavet/MitsubishiCN105ESPHome
 climate: # Climate entity config
   - platform: cn105
-    id: "aircon_$${area_id}"
-    #!include { file: "./metadata/area-id.yaml", vars: { area: "$${area}", prefix: "aircon_" } }
+    id: "$${climate_id}"
     name: "Air Conditioner - $${area}"
     icon: mdi:air-conditioner
     update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
@@ -58,8 +58,43 @@ uart:
   id: HP_UART
   baud_rate: 2400
   # TX and RX have to be inverted from pinout
-  tx_pin: GPIO44
-  rx_pin: GPIO43
+  tx_pin: "${{tx_pin | default('GPIO44')}}"
+  rx_pin: "${{rx_pin | default('GPIO43')}}"
+# feed current temperature from HASS sensor
+sensor:
+  - platform: homeassistant
+    name: "Remote Temperature Sensor"
+    entity_id: "$${hass_temp_sensor}" # Replace with your HomeAssistant remote sensor entity id, or include in substitutions
+    # internal: false # idk why example uses this
+    # disabled_by_default: true
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    filters:
+      - clamp: # Limits values to range accepted by Mitsubishi units
+          min_value: 1
+          max_value: 40
+          ignore_out_of_range: true
+      - throttle: 30s
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: "return id(remote_temp_switch).state"
+            then:
+              - logger.log:
+                  level: INFO
+                  format: "Remote temperature received from HA: %.1f C"
+                  args: ["x"]
+              - lambda: "id($${climate_id}).set_remote_temperature(x);"
+switch:
+  - platform: template
+    name: "Enable Remote Temperature"
+    id: remote_temp_switch
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_off_action:
+      - delay: 2
+      - lambda: "id($${climate_id}).set_remote_temperature(0)"
 logger:
   logs:
     CYCLE: WARN
