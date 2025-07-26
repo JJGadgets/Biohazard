@@ -30,21 +30,8 @@ climate: # Climate entity config
       name: Compressor Frequency
       entity_category: diagnostic
       disabled_by_default: false
-    outside_air_temperature_sensor:
-      name: Outside Air Temp
-      disabled_by_default: false
     horizontal_vane_select:
       name: Horizontal Vane
-      disabled_by_default: false
-    input_power_sensor:
-      name: Input Power
-      disabled_by_default: false
-    kwh_sensor:
-      name: Energy Usage
-      disabled_by_default: false
-    runtime_hours_sensor:
-      name: Runtime Hours
-      entity_category: diagnostic
       disabled_by_default: false
     sub_mode_sensor:
       name: Sub Mode
@@ -58,8 +45,8 @@ uart:
   id: HP_UART
   baud_rate: 2400
   # TX and RX have to be inverted from pinout
-  tx_pin: "${{tx_pin | default('GPIO44')}}"
-  rx_pin: "${{rx_pin | default('GPIO43')}}"
+  tx_pin: "$${tx_pin | default('GPIO44')}"
+  rx_pin: "$${rx_pin | default('GPIO43')}"
 # feed current temperature from HASS sensor
 sensor:
   - platform: homeassistant
