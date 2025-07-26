@@ -7,10 +7,11 @@ substitutions:
   name_dns: "$${name_dns}"
   climate_id: "aircon_$${area_id}"
   description: "Mitsubishi CN105 compatible ESP32 serial air conditioner controller for $${area}"
-  board: "$${board | default('lolin_s3_mini')}"
 packages:
   common: !include
     file: ./.common.yaml
+    vars:
+      board: "$${board | default('lolin_s3_mini')}"
   wifi: !include
     file: ./.wifi.yaml
 
@@ -80,7 +81,7 @@ switch:
     id: remote_temp_switch
     restore_mode: RESTORE_DEFAULT_ON
     turn_off_action:
-      - delay: 2
+      - delay: 2s
       - lambda: "id($${climate_id}).set_remote_temperature(0)"
 logger:
   logs:
