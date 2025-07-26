@@ -68,7 +68,7 @@ sensor:
       then:
         - if:
             condition:
-              lambda: "return id(remote_temp_switch).state"
+              lambda: "return id(remote_temp_switch).state;"
             then:
               - logger.log:
                   level: INFO
@@ -77,12 +77,15 @@ sensor:
               - lambda: "id($${climate_id}).set_remote_temperature(x);"
 switch:
   - platform: template
-    name: "Enable Remote Temperature"
+    name: "Enable Remote Temperature (default On)"
     id: remote_temp_switch
     restore_mode: RESTORE_DEFAULT_ON
     turn_off_action:
       - delay: 2s
-      - lambda: "id($${climate_id}).set_remote_temperature(0)"
+      - logger.log:
+          level: INFO
+          format: "Remote temperature disabled, setting to 0 to revert to internal temperature"
+      - lambda: "id($${climate_id}).set_remote_temperature(0);"
 logger:
   logs:
     CYCLE: WARN
