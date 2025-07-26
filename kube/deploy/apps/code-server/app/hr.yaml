@@ -55,13 +55,15 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1000m" # I previously had a code-server that would eat cores
+                cpu: "1" # I previously had a code-server that would eat cores
                 memory: "4Gi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+        serviceAccount:
+          identifier: app
     service:
       app:
         forceRename: *app
@@ -193,9 +195,6 @@ spec:
           - subPath: "tmp"
             path: "/tmp"
             readOnly: false
-    serviceAccount:
-      app:
-        forceRename: *app
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
@@ -222,3 +221,14 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/code-server"
                     operator: "DoesNotExist"
+    serviceAccount:
+      app: {}
+    rbac:
+      bindings:
+        app:
+          roleRef:
+            kind: ClusterRole
+            name: cluster-admin
+          subjects:
+            - kind: ServiceAccount
+              identifier: app
