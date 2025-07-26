@@ -226,6 +226,7 @@ spec:
     rbac:
       bindings:
         app:
+          type: ClusterRoleBinding
           roleRef:
             kind: ClusterRole
             name: cluster-admin
