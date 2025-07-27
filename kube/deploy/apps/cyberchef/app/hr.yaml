@@ -29,7 +29,7 @@ spec:
               repository: docker.io/mpepping/cyberchef
               tag: v10.19.4@sha256:91e04eaaa1ba1eac6b8e410d6f7b340e1ea0450d48ccbb52ec67ce6faa3672c5
             securityContext: &sc
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false # TODO: caddy-fy CyberChef
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
@@ -78,8 +78,8 @@ spec:
             path: /var/cache/nginx
           - subPath: run
             path: /var/run
-          - subPath: config
-            path: /etc/nginx/conf.d
+          # - subPath: config
+          #   path: /etc/nginx/conf.d
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
