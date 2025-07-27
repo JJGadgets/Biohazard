@@ -13,5 +13,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Purge
-        uses: kevincobain2000/action-camo-purge@5169e719d6daf0fdbf8d2174f9438f919627aa87 # v1
+      # - name: Purge
+      #   uses: kevincobain2000/action-camo-purge@5169e719d6daf0fdbf8d2174f9438f919627aa87 # v1
+      - name: Purge images from camo.githubusercontent.com
+        shell: bash
+        run: |
+          urls=$(curl -sLk "https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/tree/${{ github.ref_name }}" | grep -Eo "(http|https)://camo.githubusercontent.com[a-zA-Z0-9./?=_%:-]*")
+          while IFS= read -r url; do curl -X PURGE "$url"; done <<< "$urls"
