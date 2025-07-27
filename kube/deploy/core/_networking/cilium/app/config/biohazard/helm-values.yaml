@@ -91,8 +91,8 @@ hubble:
     rollOutPods: true
 
 ## NOTE: ingress/gateway
-ingressController:
-  enabled: false
+# ingressController:
+#   enabled: false
   # enforceHttps: true
   # loadbalancerMode: shared
   # defaultSecretNamespace: ingress
@@ -101,8 +101,8 @@ ingressController:
   #   annotations:
   #     lbipam.cilium.io/ips: "${APP_IP_CILIUM_INGRESS:=127.0.0.1}"
 
-gatewayAPI:
-  enabled: false
+# gatewayAPI:
+#   enabled: false
   # enableAlpn: true
   # enableAppProtocol: true
   # xffNumTrustedHops: 1
