@@ -27,13 +27,25 @@ climate: # Climate entity config
     visual:
       min_temperature: 16
       max_temperature: 27
+      temperature_step: 1
     compressor_frequency_sensor:
       name: Compressor Frequency
       entity_category: diagnostic
       disabled_by_default: false
+    vertical_vane_select:
+      name: Vertical Vane
+      disabled_by_default: false
     horizontal_vane_select:
       name: Horizontal Vane
-      disabled_by_default: false
+      disabled_by_default: true
+    isee_sensor:
+      name: ISEE Sensor
+      disabled_by_default: true
+    stage_sensor:
+      name: Stage
+      # use_as_operating_fallback: false     # set to true if your unit doesn't provide activity indicator
+      entity_category: diagnostic
+      disabled_by_default: true
     sub_mode_sensor:
       name: Sub Mode
       entity_category: diagnostic
@@ -77,9 +89,9 @@ sensor:
               - lambda: "id($${climate_id}).set_remote_temperature(x);"
 switch:
   - platform: template
-    name: "Enable Remote Temperature (default On)"
+    name: "Enable Remote Temperature (default $${remote_temp_enable})"
     id: remote_temp_switch
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: "RESTORE_DEFAULT_$${remote_temp_enable}"
     optimistic: true
     turn_off_action:
       - delay: 2s

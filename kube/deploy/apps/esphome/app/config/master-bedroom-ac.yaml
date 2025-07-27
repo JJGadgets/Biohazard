@@ -8,7 +8,8 @@ substitutions:
   <<: *subs
   area: *area
   name: *name
-  hass_temp_sensor: "sensor.0xa4c13884230ae8b7_temperature"
+  remote_temp_enable: "OFF"
+  hass_temp_sensor: "sensor.0x44e2f8fffe0b3437_temperature"
 packages:
   - !include ./.mitsubishi-cn105.yaml
   - !include ./.bluetooth-proxy.yaml
