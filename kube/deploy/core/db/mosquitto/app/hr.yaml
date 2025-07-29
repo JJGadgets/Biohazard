@@ -75,6 +75,8 @@ spec:
       bridge:
         primary: false
         controller: app
+        clusterIP: None
+        publishNotReadyAddresses: true
         ports:
           http:
             port: 2883
@@ -95,7 +97,7 @@ spec:
         globalMounts:
           - path: /secrets
           - subPath: bridge-1.conf
-            path: /bridge/bridge-1.conf
+            path: /bridge-1/bridge-1.conf
       tls:
         type: secret
         name: short-domain-tls
