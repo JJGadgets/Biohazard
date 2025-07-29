@@ -59,6 +59,11 @@ spec:
                         /usr/bin/mosquitto_pub -h localhost -p 1883 -t mosquitto/healthcheck/$(hostname)/liveness -m "ok $(date)" -r -q 0
               readiness:
                 enabled: true
+        initContainers:
+          01-passwd-hash:
+            image: *img
+            securityContext: *sc
+            command: ["sh", "-c", "cp -r /secrets/passwd /passwd/passwd && mosquitto_passwd -U /passwd/passwd"]
     service:
       app:
         controller: app
@@ -109,6 +114,9 @@ spec:
         defaultMode: 0400
         globalMounts:
           - path: /tls
+      passwd:
+        type: emptyDir
+        medium: Memory
     configMaps:
       config:
         data:
@@ -118,7 +126,7 @@ spec:
 
             allow_anonymous false
             per_listener_settings false
-            password_file /secrets/passwd
+            password_file /passwd/passwd
             acl_file /secrets/acl.conf
 
             listener 1883
