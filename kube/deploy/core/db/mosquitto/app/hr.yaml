@@ -21,6 +21,9 @@ spec:
         type: statefulset
         replicas: 2
         strategy: RollingUpdate
+        statefulset:
+          serviceName:
+            identifier: bridge
         containers:
           app:
             image: &img
