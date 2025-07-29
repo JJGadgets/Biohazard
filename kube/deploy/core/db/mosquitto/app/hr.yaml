@@ -75,8 +75,10 @@ spec:
       bridge:
         primary: false
         controller: app
-        clusterIP: None
+        # jank since https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#discovery-for-specific-pods-in-a-statefulset somehow isn't working for me?
         publishNotReadyAddresses: true
+        extraSelectorLabels:
+          apps.kubernetes.io/pod-index: "0"
         ports:
           http:
             port: 2883
