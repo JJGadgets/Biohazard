@@ -49,14 +49,14 @@ spec:
             probes:
               liveness:
                 enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - /bin/sh
-                      - -c
-                      - >-
-                        /usr/bin/mosquitto_pub -h localhost -p 1883 -t mosquitto/healthcheck/$(hostname)/liveness -m "ok $(date)" -r -q 0
+                # custom: true # ACL'ed off
+                # spec:
+                #   exec:
+                #     command:
+                #       - /bin/sh
+                #       - -c
+                #       - >-
+                #         /usr/bin/mosquitto_pub -h localhost -p 2883 -t mosquitto/healthcheck/$(hostname)/liveness -m "ok $(date)" -r -q 0
               readiness:
                 enabled: true
         initContainers:
