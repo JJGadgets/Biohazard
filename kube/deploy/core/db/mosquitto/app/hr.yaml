@@ -63,7 +63,7 @@ spec:
           01-passwd-hash:
             image: *img
             securityContext: *sc
-            command: ["sh", "-c", "cp -r /secrets/passwd /passwd/passwd && mosquitto_passwd -U /passwd/passwd"]
+            command: ["sh", "-c", "cat /secrets/passwd > /passwd/passwd && chmod 0700 /passwd/passwd && mosquitto_passwd -U /passwd/passwd"]
     service:
       app:
         controller: app
@@ -114,6 +114,9 @@ spec:
         defaultMode: 0400
         globalMounts:
           - path: /tls
+      tmp:
+        type: emptyDir
+        medium: Memory
       passwd:
         type: emptyDir
         medium: Memory
