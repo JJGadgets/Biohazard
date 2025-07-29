@@ -1,0 +1,168 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app mosquitto
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.1.2
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: statefulset
+        replicas: 2
+        containers:
+          app:
+            image: &img
+              repository: public.ecr.aws/docker/library/eclipse-mosquitto
+              tag: 2.0.22@sha256:d219d3a72847f3aed6a1d66975972d3b17f86e39e8f6f6b86b4088b879c1a2d6
+            command: ["sh", "-c"]
+            args:
+              - exec mosquitto -c "/config/$(hostname).conf"
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                cpu: "1"
+                memory: 256Mi
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - /bin/sh
+                      - -c
+                      - >-
+                        /usr/bin/mosquitto_pub -h localhost -p 1883 -t mosquitto/healthcheck/$(hostname)/liveness -m "ok $(date)" -r -q 0
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: "${APP_DNS_MOSQUITTO:=mosquitto}"
+          lbipam.cilium.io/ips: "${APP_IP_MOSQUITTO:=127.0.0.1}"
+        ports:
+          # mqtt:
+          #   port: 1883
+          #   protocol: TCP
+          #   appProtocol: mqtt
+          tls:
+            port: 8883
+            protocol: TCP
+            appProtocol: secure-mqtt
+      bridge:
+        primary: false
+        controller: app
+        ports:
+          http:
+            port: 2883
+            protocol: TCP
+            appProtocol: mqtt
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /config
+      secrets:
+        type: secret
+        name: mosquitto-secrets
+        defaultMode: 0400
+        globalMounts:
+          - path: /secrets
+      tls:
+        type: secret
+        name: short-domain-tls
+        defaultMode: 0400
+        globalMounts:
+          - path: /tls
+    configMaps:
+      config:
+        data:
+          common.conf: |
+            log_type error
+            log_type warning
+
+            allow_anonymous false
+            per_listener_settings false
+            password_file /secrets/passwd
+            acl_file /secrets/acl.conf
+
+            listener 1883
+            protocol mqtt
+            use_username_as_clientid true
+
+            listener 8883
+            protocol mqtt
+            use_username_as_clientid true
+            certfile /tls/tls.crt
+            keyfile /tls/tls.key
+
+            listener 2883
+            protocol mqtt
+            use_username_as_clientid false
+          mosquitto-0.conf: |
+            include_dir /config/common
+          mosquitto-1.conf: |
+            include_dir /config/common
+            include_dir /secrets/bridge
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
