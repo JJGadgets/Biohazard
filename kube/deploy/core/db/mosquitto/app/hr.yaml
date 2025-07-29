@@ -20,6 +20,7 @@ spec:
       app:
         type: statefulset
         replicas: 2
+        strategy: RollingUpdate
         containers:
           app:
             image: &img
@@ -85,12 +86,16 @@ spec:
         identifier: config
         globalMounts:
           - path: /config
+          - subPath: common.conf
+            path: /config/common/common.conf
       secrets:
         type: secret
         name: mosquitto-secrets
         defaultMode: 0400
         globalMounts:
           - path: /secrets
+          - subPath: bridge-1.conf
+            path: /config/bridge/bridge-1.conf
       tls:
         type: secret
         name: short-domain-tls
@@ -126,7 +131,7 @@ spec:
             include_dir /config/common
           mosquitto-1.conf: |
             include_dir /config/common
-            include_dir /secrets/bridge
+            include_dir /config/bridge-1
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
