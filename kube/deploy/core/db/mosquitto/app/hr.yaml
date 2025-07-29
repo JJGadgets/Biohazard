@@ -87,7 +87,7 @@ spec:
         globalMounts:
           - path: /config
           - subPath: common.conf
-            path: /config/common/common.conf
+            path: /common/common.conf
       secrets:
         type: secret
         name: mosquitto-secrets
@@ -95,7 +95,7 @@ spec:
         globalMounts:
           - path: /secrets
           - subPath: bridge-1.conf
-            path: /config/bridge/bridge-1.conf
+            path: /bridge/bridge-1.conf
       tls:
         type: secret
         name: short-domain-tls
@@ -128,10 +128,10 @@ spec:
             protocol mqtt
             use_username_as_clientid false
           mosquitto-0.conf: |
-            include_dir /config/common
+            include_dir /common
           mosquitto-1.conf: |
-            include_dir /config/common
-            include_dir /config/bridge-1
+            include_dir /common
+            include_dir /bridge-1
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
