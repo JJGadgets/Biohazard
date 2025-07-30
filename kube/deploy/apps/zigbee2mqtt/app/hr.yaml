@@ -24,7 +24,7 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/iot: allow
-            db.home.arpa/emqx: emqx
+            db.home.arpa/mqtt: allow
         containers:
           main:
             image: &img

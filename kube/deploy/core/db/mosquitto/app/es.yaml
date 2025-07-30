@@ -1,0 +1,65 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name mosquitto-secrets
+  namespace: mosquitto
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Mosquitto - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        passwd: |
+          {{ .X_EMQX_MQTT_BRIDGE_USERNAME }}:{{ .X_EMQX_MQTT_BRIDGE_PASSWORD }}
+          {{ .X_EMQX_MQTT_HASS_USERNAME }}:{{ .X_EMQX_MQTT_HASS_PASSWORD }}
+          {{ .X_EMQX_MQTT_Z2M_USERNAME }}:{{ .X_EMQX_MQTT_Z2M_PASSWORD }}
+          {{ .X_EMQX_MQTT_VALETUDO_USERNAME }}:{{ .X_EMQX_MQTT_VALETUDO_PASSWORD }}
+          {{ .X_EMQX_MQTT_ESPHOME_CN105_USERNAME }}:{{ .X_EMQX_MQTT_ESPHOME_CN105_PASSWORD }}
+        acl.conf: |
+          user {{ .X_EMQX_MQTT_BRIDGE_USERNAME }}
+          topic readwrite #
+
+          user {{ .X_EMQX_MQTT_HASS_USERNAME }}
+          topic readwrite homeassistant/#
+          topic readwrite hass/#
+          topic readwrite zigbee2mqtt/#
+          topic readwrite valetudo/#
+
+          user {{ .X_EMQX_MQTT_Z2M_USERNAME }}
+          topic write homeassistant/#
+          topic read homeassistant/status
+          topic readwrite zigbee2mqtt/#
+
+          user {{ .X_EMQX_MQTT_VALETUDO_USERNAME }}
+          topic write homeassistant/#
+          topic read homeassistant/status
+          topic readwrite valetudo/#
+
+          user {{ .X_EMQX_MQTT_ESPHOME_CN105_USERNAME }}
+          topic write homeassistant/#
+          topic read homeassistant/status
+          topic readwrite esphome/#
+          topic readwrite cn105/+/#
+        bridge-1.conf: |
+          connection mosquitto-0-bridge
+          address mosquitto-0.mosquitto-bridge.mosquitto.svc.cluster.local:2883
+          topic # both 0
+          local_username {{ .X_EMQX_MQTT_BRIDGE_USERNAME }}
+          local_password {{ .X_EMQX_MQTT_BRIDGE_PASSWORD }}
+          local_clientid mosquitto-0-bridge
+          remote_username {{ .X_EMQX_MQTT_BRIDGE_USERNAME }}
+          remote_password {{ .X_EMQX_MQTT_BRIDGE_PASSWORD }}
+          remote_clientid mosquitto-1-bridge
+          try_private true
+          bridge_protocol_version mqttv50
