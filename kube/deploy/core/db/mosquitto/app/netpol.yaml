@@ -3,59 +3,51 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: "apps-to-emqx"
+  name: "apps-to-mosquitto"
 spec:
   endpointSelector:
     matchLabels:
-      db.home.arpa/emqx: "emqx"
+      db.home.arpa/mqtt: "allow"
   egress:
-    - toEndpoints: &emqx
+    - toEndpoints: &mosquitto
         - matchLabels:
-            io.kubernetes.pod.namespace: emqx
-            apps.emqx.io/instance: emqx
+            io.kubernetes.pod.namespace: mosquitto
+            app.kubernetes.io/name: mosquitto
       toPorts:
         - ports:
             - port: "8883"
               protocol: TCP
-    - toEndpoints: *emqx
+    - toEndpoints: *mosquitto
       icmps: [{}]
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: &app emqx
+  name: &app mosquitto
   namespace: *app
 spec:
   endpointSelector: &cluster
     matchLabels:
-      apps.emqx.io/instance: emqx
+      app.kubernetes.io/name: mosquitto
   ingress:
-    # EMQX operator (readiness gate)
-    - fromEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: emqx-operator
-    # same EMQX cluster
+    # same mosquitto cluster
     - fromEndpoints: [*cluster]
     # labelled pods
     - fromEndpoints: &labelled
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
-            - key: db.home.arpa/emqx
+            - key: db.home.arpa/mqtt
               operator: In
-              values: [emqx]
+              values: [allow]
       toPorts: &ports
         - ports:
             - port: "8883"
               protocol: TCP
     - fromEndpoints: *labelled
       icmps: [{}]
-    # operator
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: emqx
-            app.kubernetes.io/name: emqx-operator
+    # Valetudo
     - fromCIDRSet:
         - cidr: "${IP_ROBOROCK}/32"
       toPorts: *ports
