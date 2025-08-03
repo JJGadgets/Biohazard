@@ -32,4 +32,4 @@ spec:
           mqtt_cn105_username: "{{ .X_EMQX_MQTT_ESPHOME_CN105_USERNAME }}"
           mqtt_cn105_password: "{{ .X_EMQX_MQTT_ESPHOME_CN105_PASSWORD }}"
           mqtt_tls_ca: |
-            {{ index . "tls-combined.pem" | b64dec | filterPEM "CERTIFICATE" | filterCertChain "intermediate" }}
+          {{ index . "tls-combined.pem" | b64dec | filterPEM "CERTIFICATE" | filterCertChain "intermediate" | indent 2 }}

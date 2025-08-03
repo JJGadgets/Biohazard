@@ -1,12 +1,12 @@
 ---
 mqtt:
   broker: !secret mqtt_broker
-  port: !!int $${mqtt_port | default('8884')}
+  port: 8883
   username: "$${mqtt_username}"
   password: "$${mqtt_password}"
   topic_prefix: "$${mqtt_prefix}"
   certificate_authority: !secret mqtt_tls_ca
-  # skip_cert_cn_check: true # mbedTLS doesn't support wildcards as of 2025.7.2
+  skip_cert_cn_check: true # mbedTLS doesn't support wildcards as of 2025.7.2
   discovery_unique_id_generator: mac
   discovery_object_id_generator: device_name
   idf_send_async: true
