@@ -302,10 +302,10 @@ patches:
       allowSchedulingOnMasters: true
       allowSchedulingOnControlPlanes: true
       discovery:
-        enabled: true
+        enabled: false
         registries:
           kubernetes:
-            disabled: false
+            disabled: true
           service:
             disabled: true
       proxy:
@@ -315,8 +315,7 @@ patches:
     machine:
       features:
         kubePrism:
-          enabled: true
-          port: 7445
+          enabled: false
 
   - &hostDNS |
     machine:
@@ -576,7 +575,7 @@ controlPlane:
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: AuthorizeNodeWithSelectors=false,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true # K8s 1.32 authz breaks Talos node discovery via Kubernetes, K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
+            feature-gates: UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
             feature-gates: PodLevelResources=true

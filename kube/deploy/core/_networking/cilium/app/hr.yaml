@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.17.6"
+      version: "1.18.0"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository
@@ -53,6 +53,8 @@ spec:
       #    "io.cilium/lb-ipam-ips": "${APP_IP_CILIUM_INGRESS}"
     ## NOTE: Observability with Hubble & Prometheus
     hubble:
+      networkPolicyCorrelation:
+        enabled: false # 1.18.0 bug https://github.com/cilium/cilium/issues/40804
       ui:
         ingress:
           enabled: true

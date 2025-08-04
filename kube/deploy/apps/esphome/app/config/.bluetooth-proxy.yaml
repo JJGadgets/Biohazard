@@ -21,8 +21,8 @@ esp32_ble_tracker:
   scan_parameters:
     continuous: False
     active: True
-    interval: 320ms
-    window: 300ms
+    # interval: 320ms
+    # window: 300ms
 
 esp32:
   framework:
@@ -34,45 +34,3 @@ esp32:
       CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
       # Extend the watchdog timeout, so the device reboots if the device appears locked up for over 10 seconds.
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "10"
-
-# IRK
-# external_components:
-#   - components: [irk_enrollment]
-#     source:
-#       type: git
-#       url: https://github.com/Foleychris/esphome-irk-enrollment
-#       ref: 418ac2907af1c0101e2f644a8114c23b8a1d61ba
-#       path: custom_components
-#
-# irk_enrollment:
-#   latest_irk:
-#     name: Latest IRK
-#
-# # Enable BLE functionality
-# esp32_ble:
-#   # Set IO capability for pairing
-#   io_capability: keyboard_only
-#
-# # Enable BLE server
-# esp32_ble_server:
-#   # Set device appearance to Heart Rate Sensor for better iOS visibility
-#   appearance: 0x0341
-#   # Add manufacturer data for better iOS visibility
-#   manufacturer_data: [0xFF, 0xFF, 0x01, 0x02]
-#   # Define BLE services
-#   services:
-#     - uuid: 0x180D  # Heart Rate Service
-#       characteristics:
-#         - uuid: 0x2A37  # Heart Rate Measurement
-#           read: true
-#           notify: true
-#           value: "0600"  # Initial value (flags + heart rate)
-#
-#     - uuid: 0x180A  # Device Information Service
-#       characteristics:
-#         - uuid: 0x2A29  # Manufacturer Name
-#           read: true
-#           value: "ESPHome"
-#         - uuid: 0x2A24  # Model Number
-#           read: true
-#           value: "IRK Collector"

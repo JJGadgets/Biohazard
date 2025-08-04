@@ -27,7 +27,7 @@ spec:
           main:
             image: &img
               repository: docker.io/erikvl87/languagetool
-              tag: latest@sha256:5515b486dbb4bd60ad19a7af6e34111a1ea661dd37402624696ef04f858a55d3 # 6.4-docker-2 is a weird tag version scheme and I'm lazy
+              tag: latest@sha256:9c8763802e69a77f88fbdee0a796247fc9e4845ef8db4b0656dd18f6fd94d45c # 6.4-docker-2 is a weird tag version scheme and I'm lazy
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc

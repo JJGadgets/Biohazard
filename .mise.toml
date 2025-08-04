@@ -17,7 +17,7 @@ python_default_packages_file = "{{config_root}}/.venv/.mise-py-pkg"
 pipx_uvx = true
 
 [tools]
-"aqua:jdx/mise" = ["2025.7.29"]
+"aqua:jdx/mise" = ["2025.8.4"]
 "aqua:fish-shell/fish-shell" = ["4.0.2"]
 "aqua:neovim" = ["0.11.3"]
 "aqua:starship/starship" = ["1.23.0"]
@@ -26,16 +26,16 @@ pipx_uvx = true
 "aqua:kubernetes-sigs/krew" = ["0.4.5"]
 "ubi:brumhard/krewfile" = ["0.6.3"]
 "aqua:ahmetb/kubectx" = ["0.9.5"]
-"aqua:junegunn/fzf" = ["0.65.0"] # used by kubectx interactive mode
+"aqua:junegunn/fzf" = ["0.65.1"] # used by kubectx interactive mode
 "aqua:BurntSushi/ripgrep" = ["14.1.1"]
 "aqua:kubernetes-sigs/kustomize" = ["5.3.0"]
 "aqua:helm" = ["3.18.4"]
 "aqua:fluxcd/flux2" = ["2.6.4"]
 "aqua:siderolabs/talos" = ["1.10.3"]
-"aqua:budimanjojo/talhelper" = ["3.0.31"]
+"aqua:budimanjojo/talhelper" = ["3.0.32"]
 "aqua:go-task/task" = ["3.44.1"]
 "aqua:stern" = ["1.32.0"]
-"aqua:cilium/cilium-cli"= ["0.18.5"]
+"aqua:cilium/cilium-cli"= ["0.18.6"]
 "aqua:1password/cli" = "latest"
 "aqua:restic" = ["0.18.0"]
 "aqua:derailed/k9s" = ["0.50.9"]
@@ -43,21 +43,21 @@ soft-serve = ["0.7.4"]
 #pulumi = ["3.95.0"]
 "aqua:mikefarah/yq" = ["4.47.1"]
 "aqua:jq" = ["1.7.1"]
-"aqua:cli/cli" = ["2.76.1"] # GitHub CLI
+"aqua:cli/cli" = ["2.76.2"] # GitHub CLI
 "aqua:termkit/gama" = ["1.2.1"] # GHA TUI
-"ubi:CrunchyData/postgres-operator-client" = { version = "0.5.1" }
+"ubi:CrunchyData/postgres-operator-client" = { version = "0.5.2" }
 "ubi:jkulzer/kubefetch" = ["0.8.1"]
 "ubi:theimpostor/osc" = ["0.4.8"]
 # experimental backends, use `mise up` to install because `mise install` is currently broken for these https://github.com/jdx/mise/issues/2458
 python = ["3.13.5"]
-"aqua:astral-sh/uv" = ["0.8.3"] # faster than pipx, and can be installed with mise directly
+"aqua:astral-sh/uv" = ["0.8.4"] # faster than pipx, and can be installed with mise directly
 "pipx:flux-local" = ["7.7.1", "5.5.1"]
 "pipx:pipx" = ["1.7.1"]
-"pipx:robusta-dev/krr" = { version = "v1.25.0", uvx_args = "--no-config", matching_regex = "krr-ubuntu-latest" }
+"pipx:robusta-dev/krr" = { version = "v1.25.1", uvx_args = "--no-config", matching_regex = "krr-ubuntu-latest" }
 "pipx:esphome" = ["2025.7.4"]
 # rust = ["1.80.1"]
 # "cargo:cargo-binstall" = ["1.10.3"]
-"aqua:cargo-bins/cargo-binstall" = ["1.14.2"]
+"aqua:cargo-bins/cargo-binstall" = ["1.14.3"]
 "cargo:atac" = ["0.20.0"] # HTTP requests tester, like Postman
 "cargo:viddy" = ["1.1.6"]
 go = ["1.24.5"]

@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.17.5/install/kubernetes/cilium/values.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.18.0/install/kubernetes/cilium/values.schema.json
 
 ## NOTE: required for Talos
 securityContext:
@@ -32,8 +32,10 @@ ipam:
   mode: kubernetes
 kubeProxyReplacement: true
 ### Talos 1.5 and above come with KubePrism which is an internal TCP load balancer for kube-apiserver. DO NOT COPY IF NOT ON TALOS OR A KUBEPRISM-SUPPORTED KUBERNETES DISTRIBUTION!!!
-k8sServiceHost: "127.0.0.1"
-k8sServicePort: "7445"
+# k8sServiceHost: "127.0.0.1"
+# k8sServicePort: "7445"
+k8s:
+  apiServerURLs: "https://${IP_ROUTER_VLAN_K8S_PREFIX}1:6443 https://${IP_ROUTER_VLAN_K8S_PREFIX}2:6443 https://${IP_ROUTER_VLAN_K8S_PREFIX}3:6443"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 enableIPv4Masquerade: false # BGP advertise PodCIDR so only FortiGate does NAT
 directRoutingSkipUnreachable: true # use local L2 within cluster while outside cluster uses BGP

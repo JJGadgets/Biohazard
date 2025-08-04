@@ -3,8 +3,8 @@
 # "CiliumBGPPeeringPolicy" Custom Resource will replace the old MetalLB BGP's "bgp-config" ConfigMap
 # "CiliumBGPPeeringPolicy" is used with `bgpControlPlane.enabled: true` which uses GoBGP, NOT the old `bgp.enabled: true` which uses MetalLB
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpclusterconfig_v2alpha1.json
-apiVersion: cilium.io/v2alpha1
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpclusterconfig_v2.json
+apiVersion: cilium.io/v2
 kind: CiliumBGPClusterConfig
 metadata:
   name: bgp-loadbalancer-ip-main
@@ -17,13 +17,16 @@ spec:
       localASN: &router ${ASN_ROUTER} # ASNs are processed in uint32
       peers:
         - name: ciel
-          peerAddress: "${IP_ROUTER_VLAN_K8S}" # unlike bgp-config ConfigMap, peerAddress needs to be in CIDR notation
           peerASN: *router
+          autoDiscovery:
+            mode: "DefaultGateway"
+            defaultGateway:
+              addressFamily: ipv4
           peerConfigRef:
             name: ciel
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeerconfig_v2alpha1.json
-apiVersion: cilium.io/v2alpha1
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeerconfig_v2.json
+apiVersion: cilium.io/v2
 kind: CiliumBGPPeerConfig
 metadata:
   name: ciel
@@ -44,8 +47,8 @@ spec:
         matchLabels:
           bgp.home.arpa/peer: ciel
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpadvertisement_v2alpha1.json
-apiVersion: cilium.io/v2alpha1
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpadvertisement_v2.json
+apiVersion: cilium.io/v2
 kind: CiliumBGPAdvertisement
 metadata:
   name: ciel
