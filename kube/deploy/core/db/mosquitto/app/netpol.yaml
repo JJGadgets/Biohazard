@@ -41,7 +41,7 @@ spec:
             - key: db.home.arpa/mqtt
               operator: In
               values: [allow]
-      toPorts: &ports
+      toPorts: &tls
         - ports:
             - port: "8883"
               protocol: TCP
@@ -50,7 +50,14 @@ spec:
     # Valetudo
     - fromCIDRSet:
         - cidr: "${IP_ROBOROCK}/32"
-      toPorts: *ports
+      toPorts: *tls
+    # ESPHome
+    - fromCIDRSet:
+        - cidr: "${IP_VLAN_ESP_CIDR:=127.0.0.1/32}"
+      toPorts: *tls
+        # - ports:
+        #     - port: "1883"
+        #       protocol: TCP
   egress:
     # same cluster
     - toEndpoints: [*cluster]

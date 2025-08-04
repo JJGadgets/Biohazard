@@ -46,7 +46,7 @@ spec:
                 cpu: "5m"
                 memory: "512Mi"
               limits:
-                cpu: "4"
+                cpu: "6"
                 memory: "4Gi"
     service:
       app:
@@ -88,6 +88,8 @@ spec:
             path: /config/.common.yaml
           - subPath: .wifi.yaml
             path: /config/.wifi.yaml
+          - subPath: .mqtt.yaml
+            path: /config/.mqtt.yaml
           - subPath: .metadata.yaml
             path: /config/.metadata.yaml
           - subPath: .bluetooth-proxy.yaml
