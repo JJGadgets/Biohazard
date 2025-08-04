@@ -249,8 +249,10 @@ spec:
               - 'Vim-like hotkeys'
               - 'Hostnames plugin'
             plugins:
-              searx.plugins.tracker_url_remover.SXNGPlugin: # somehow doesn't go through SOCKS5?
-                active: false
+              searx.plugins.hostnames.SXNGPlugin:
+                active: true
+              searx.plugins.tracker_url_remover.SXNGPlugin:
+                active: true
             hostnames:
               replace:
                 '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
