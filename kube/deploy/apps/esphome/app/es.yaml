@@ -13,6 +13,10 @@ spec:
   dataFrom:
     - extract:
         key: "ESPHome - ${CLUSTER_NAME}"
+    - extract:
+        key: "Mosquitto - ${CLUSTER_NAME}"
+    - extract:
+        key: "TLS - short-domain-tls - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -24,3 +28,8 @@ spec:
           wifi_ssid: "{{ .ESP_WIFI_SSID }}"
           wifi_password: "{{ .ESP_WIFI_PASSWORD }}"
           domain: "{{ .ESP_WIFI_DOMAIN }}"
+          mqtt_broker: "{{ .APP_DNS_MOSQUITTO }}"
+          mqtt_cn105_username: "{{ .X_EMQX_MQTT_ESPHOME_CN105_USERNAME }}"
+          mqtt_cn105_password: "{{ .X_EMQX_MQTT_ESPHOME_CN105_PASSWORD }}"
+          mqtt_tls_ca: |
+          {{ index . "tls-combined.pem" | b64dec | filterPEM "CERTIFICATE" | filterCertChain "intermediate" | indent 2 }}
