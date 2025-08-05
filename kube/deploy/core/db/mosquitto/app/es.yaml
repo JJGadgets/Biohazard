@@ -35,6 +35,8 @@ spec:
           topic readwrite hass/#
           topic readwrite zigbee2mqtt/#
           topic readwrite valetudo/#
+          topic readwrite esphome/#
+          topic readwrite cn105/+/#
 
           user {{ .X_EMQX_MQTT_Z2M_USERNAME }}
           topic write homeassistant/#
