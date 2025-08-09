@@ -19,9 +19,13 @@ spec:
           "ipam": {
             "type": "static",
             "routes": [
+              { "dst": "0.0.0.0/0", "gw": "${IP_ROUTER_VLAN_IOT}" }
               { "dst": "224.0.0.0/4", "gw": "${IP_ROUTER_VLAN_IOT}" }
             ]
           }
+        },
+        {
+          "type": "sbr"
         }
       ]
     }
