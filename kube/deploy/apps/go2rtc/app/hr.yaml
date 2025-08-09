@@ -24,6 +24,15 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/iot: allow
+          annotations:
+            k8s.v1.cni.cncf.io/networks: |
+              [{
+                "name":"iot",
+                "namespace": "home-assistant",
+                "ips": ["${APP_IP_GO2RTC_IOT}"],
+                "mac": "${APP_MAC_GO2RTC_IOT}",
+                "gateway": "${IP_ROUTER_VLAN_IOT}"
+              }]
         containers:
           app:
             image: &img
@@ -47,7 +56,7 @@ spec:
               limits:
                 cpu: "1"
                 memory: "512Mi"
-                gpu.intel.com/i915: "1"
+                # gpu.intel.com/i915: "1"
             probes:
               liveness:
                 enabled: true
@@ -93,10 +102,9 @@ spec:
         type: configMap
         name: go2rtc-config
         advancedMounts:
-          go2rtc:
-            main:
-              - subPath: go2rtc.yaml
-                path: /config/go2rtc.yaml
+          app:
+            app:
+              - path: /config
                 readOnly: true
       # tls:
       #   type: secret
