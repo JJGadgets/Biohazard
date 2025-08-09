@@ -23,7 +23,8 @@ rtsp:
 
 streams:
   living_room_c220: onvif://${TAPO_C220_LIVING_ROOM_USERNAME}:${TAPO_C220_LIVING_ROOM_PASSWORD}@${TAPO_C220_LIVING_ROOM_HOST}:2020
-  living_room_c220_homekit: ffmpeg:living_room_c220#audio=opus # #video=h264 # no need to transcode video as C220 is already 2650x1440@15 H264
+  living_room_c220_rtsp: rtsp://${TAPO_C220_LIVING_ROOM_USERNAME}:${TAPO_C220_LIVING_ROOM_PASSWORD}@${TAPO_C220_LIVING_ROOM_HOST}:554/stream1
+  living_room_c220_homekit: ffmpeg:living_room_c220_rtsp#audio=opus#video=copy # #video=h264 # no need to transcode video as C220 is already 2650x1440@15 H264
 
 homekit:
   living_room_c220_homekit:
