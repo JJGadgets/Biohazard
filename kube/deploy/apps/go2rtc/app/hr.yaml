@@ -65,21 +65,22 @@ spec:
     service:
       app:
         controller: app
+        forceRename: *app
         ports:
           http:
             port: 80
             targetPort: *http
             protocol: HTTP
             appProtocol: http
-      expose:
-        primary: false
-        controller: app
-        type: LoadBalancer
-        annotations:
-          # coredns.io/hostname: "${APP_DNS_GO2RTC:=go2rtc}"
-          lbipam.cilium.io/ips: "${APP_IP_GO2RTC:=127.0.0.1}"
-        ports:
-          http:
+      # expose:
+      #   primary: false
+      #   controller: app
+      #   type: LoadBalancer
+      #   annotations:
+      #     # coredns.io/hostname: "${APP_DNS_GO2RTC:=go2rtc}"
+      #     lbipam.cilium.io/ips: "${APP_IP_GO2RTC:=127.0.0.1}"
+      #   ports:
+          rtsp:
             port: *rtsp
             protocol: TCP
     ingress:
@@ -160,7 +161,7 @@ spec:
             - from:
                 - namespaceSelector:
                     matchLabels:
-                      kubernetes.io/metadata.name: go2rtc
+                      kubernetes.io/metadata.name: home-assistant
                   podSelector:
                     matchLabels:
-                      app.kubernetes.io/name: go2rtc
+                      app.kubernetes.io/name: home-assistant
