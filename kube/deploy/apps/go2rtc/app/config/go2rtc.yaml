@@ -1,0 +1,31 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/AlexxIT/go2rtc/master/website/schema.json
+log:
+  output: stdout
+  level: debug
+
+api:
+  listen: :${HTTP_PORT}
+
+rtsp:
+  listen: ":${RTSP_PORT}"
+  username: "${RTSP_USERNAME}"
+  password: "${RTSP_PASSWORD}"
+
+# webrtc:
+#   listen: :8555
+#   candidates:
+#     - ${APP_IP_GO2RTC}:8555
+  #   - stun:8555
+  # ice_servers:
+  #   - urls:
+  #       - stun:stun.cloudflare.com:3478
+
+streams:
+  living_room_c220: onvif://${TAPO_C220_LIVING_ROOM_USERNAME}:${TAPO_C220_LIVING_ROOM_PASSWORD}@${TAPO_C220_LIVING_ROOM_HOST}:2020
+  living_room_c220_homekit: ffmpeg:living_room_c220#audio=opus # #video=h264 # no need to transcode video as C220 is already 2650x1440@15 H264
+
+homekit:
+  living_room_c220_homekit:
+    name: Living Room
+    pin: ${TAPO_C220_LIVING_ROOM_HOMEKIT_PIN}

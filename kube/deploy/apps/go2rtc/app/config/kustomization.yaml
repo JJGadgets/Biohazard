@@ -1,0 +1,11 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: go2rtc-config
+    files:
+      - ./go2rtc.yaml
+generatorOptions:
+  disableNameSuffixHash: true # Reloader
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

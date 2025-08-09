@@ -1,0 +1,18 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: go2rtc-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "go2rtc"
+spec:
+  targetNamespace: "go2rtc"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/go2rtc/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
