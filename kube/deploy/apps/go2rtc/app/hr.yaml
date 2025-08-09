@@ -151,3 +151,16 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+    networkpolicies:
+      app:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: go2rtc
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: go2rtc
