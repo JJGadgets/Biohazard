@@ -28,7 +28,7 @@ spec:
             k8s.v1.cni.cncf.io/networks: |
               [{
                 "name":"iot",
-                "namespace": "home-assistant",
+                "namespace": "go2rtc",
                 "ips": ["${APP_IP_GO2RTC_IOT}"],
                 "mac": "${APP_MAC_GO2RTC_IOT}",
                 "gateway": "${IP_ROUTER_VLAN_IOT}"
