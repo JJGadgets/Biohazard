@@ -34,8 +34,14 @@ spec:
             - port: "8123"
               protocol: ANY
   egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: go2rtc
+            app.kubernetes.io/name: go2rtc
     - toFQDNs:
         # HACS
         - matchPattern: "*.hacs.xyz"
         # Public Data
         - matchPattern: "*.data.gov.sg"
+        # Tapo Camera Control
+        - matchPattern: "wheels.home-assistant.io"
