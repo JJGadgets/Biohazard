@@ -1,0 +1,31 @@
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: iot
+  namespace: go2rtc
+  annotations:
+    description: VLAN tagging based on MAC handled by FortiSwitch NAC
+spec:
+  config: |-
+    {
+      "cniVersion": "0.3.1",
+      "name": "iot",
+      "plugins": [
+        {
+          "type": "bridge",
+          "bridge": "br0",
+          "capabilities": { "ips": true, "mac": true },
+          "ipam": {
+            "type": "static",
+            "routes": [
+              { "dst": "0.0.0.0/0", "gw": "${IP_ROUTER_VLAN_IOT}" },
+              { "dst": "224.0.0.0/4", "gw": "${IP_ROUTER_VLAN_IOT}" }
+            ]
+          }
+        },
+        {
+          "type": "sbr"
+        }
+      ]
+    }
