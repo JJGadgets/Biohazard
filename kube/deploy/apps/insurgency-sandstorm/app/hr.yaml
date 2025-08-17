@@ -30,12 +30,16 @@ spec:
               repository: docker.io/andrewmhub/insurgency-sandstorm
               tag: lite@sha256:7af9c159a00a3ea4ad707a1d1e37a1caf372c40c82a2a82ccf67acb7c7ff2e25
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
-            args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="${CONFIG_SANDSTORM_MODS}"', "-mutators=${CONFIG_SANDSTORM_MUTATORS}", "-ModDownloadTravelTo=${CONFIG_SANDSTORM_INIT_MAP}?Scenario=Scenario_${CONFIG_SANDSTORM_INIT_MAP}_${CONFIG_SANDSTORM_INIT_SCENARIO}?Password=$(PASSWORD)"]
+            args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="$(MODS)"', "-mutators=$(MUTATORS)", "-ModDownloadTravelTo=$(INIT_MAP)?Scenario=Scenario_$(INIT_MAP)_$(INIT_SCENARIO)?Password=$(PASSWORD)"]
             env: &env
               TZ: "${CONFIG_TZ}"
               HOSTNAME: "${CONFIG_SANDSTORM_NAME}"
               PORT: &port 27102
               QUERYPORT: &query 27131
+              MODS: "98145,100175,132183,101966,98373,98685,1161703,164061,156146,125754,4437188,3904299,2862675,3493292"
+              MUTATORS: "NoRestrictedArea,MoreAmmo,JumpShoot,RemoveSmoke,FastFunX,RoundProgress,WelcomeMessage,JoinLeaveMessage,Humvee,FFReflectFix,Healthy,FPLegsRevived"
+              INIT_MAP: "Prison"
+              INIT_SCENARIO: "Checkpoint_Security"
               PASSWORD:
                 valueFrom:
                   secretKeyRef:
