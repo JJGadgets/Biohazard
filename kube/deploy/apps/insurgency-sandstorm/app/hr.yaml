@@ -67,6 +67,8 @@ spec:
           schedule: "@daily"
           concurrencyPolicy: "Replace"
         pod:
+          annotations:
+            reloader.stakater.com/auto: "false"
           labels:
             egress.home.arpa/internet: allow
         containers:
