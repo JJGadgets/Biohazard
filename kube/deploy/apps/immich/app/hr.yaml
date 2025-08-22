@@ -147,7 +147,7 @@ spec:
           main:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.138.1-openvino@sha256:e6cb2260af56bc4b826a5de9aa5b0ca25bb3a2a340e41c3f306c96c5f393acbd
+              tag: v1.139.2-openvino@sha256:e16ede0cb0f9c31a0bd8832294e9d5eaecd674b044beef5bb259a8d00fcf0d04
             env:
               <<: *env
               MACHINE_LEARNING_REQUEST_THREADS:
@@ -179,7 +179,7 @@ spec:
           main: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.138.1@sha256:f34e855424fd91c5990132e5b2bde91e1d178ec5205de293ebd8779839a4a77c
+              tag: v1.139.2@sha256:735cacb990861a2e8e69ee71389d5551d4ca1db426b330c7c5a83ab28901b3b0
             command: ["huggingface-cli", "download", "--exclude", ".git", "--local-dir"] # Immich ML image installs huggingface-cli
             args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
