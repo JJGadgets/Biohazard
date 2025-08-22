@@ -33,6 +33,7 @@
   // "schedule": ["on saturday"], // TODO: re-add it when I stop being a shut-in NEET
   // NOTE: forward slashes do not need escaping on Renovate, and a proper escape backslash needs double backslashes because JSON moment
   "ignorePaths": ["**/archive/**", "**/.archive/**", "**/**.sops.**", "./.git", "**/ignore/**"],
+  "lockFileMaintenance": { "enabled": true }, // for uv.lock or Nix or whatnot
   "flux": {
     "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"]
   },
