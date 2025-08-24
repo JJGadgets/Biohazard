@@ -459,6 +459,9 @@ spec:
     matchLabels:
       egress.home.arpa/mullvad: allow
   egress:
+    - # direct
+      toFQDNs:
+        - matchPattern: "*.relays.mullvad.net"
     - # SOCKS5 proxy
       toCIDRSet:
         - cidr: "10.8.0.1/32"
