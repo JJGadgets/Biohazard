@@ -461,6 +461,7 @@ spec:
   egress:
     - # direct
       toFQDNs:
+        - matchPattern: "*.mullvad.net"
         - matchPattern: "*.relays.mullvad.net"
     - # SOCKS5 proxy
       toCIDRSet:
