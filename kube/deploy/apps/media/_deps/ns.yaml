@@ -5,6 +5,6 @@ metadata:
   name: media
   labels:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    pod-security.kubernetes.io/enforce: &ps baseline # NFS pod-level volumeMount
+    pod-security.kubernetes.io/enforce: &ps privileged # NFS pod-level volumeMount
     pod-security.kubernetes.io/audit: *ps
     pod-security.kubernetes.io/warn: *ps
