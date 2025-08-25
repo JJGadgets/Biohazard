@@ -7,11 +7,11 @@ resources:
   - ks.yaml
 components:
   - ../../../core/flux-system/alerts/template/
-transformers:
-  - |-
-    apiVersion: builtin
-    kind: NamespaceTransformer
-    unsetOnly: true
-    metadata:
-      name: not-used
-      namespace: authentik
+# transformers:
+#   - |-
+#     apiVersion: builtin
+#     kind: NamespaceTransformer
+#     unsetOnly: true
+#     metadata:
+#       name: not-used
+#       namespace: media
