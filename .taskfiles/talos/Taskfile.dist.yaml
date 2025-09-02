@@ -83,3 +83,18 @@ tasks:
     cmds:
       - op user get --me # check signin status, fail if not signed in
       - export $(talhelper gensecret | yq --input-format yaml --output-format shell | sed -e 's/\'$//g' -e 's/=\'/=/g'); op item create --category=PASSWORD --title='.{{.C}}-talos' --vault='{{.C}}' --generate-password='64,letters,digits,symbols' Secrets.cluster_id[password]="$cluster_id" Secrets.cluster_secret[password]="$cluster_secret" Secrets.secrets_bootstraptoken[password]="$secrets_bootstraptoken" Secrets.secrets_secretboxencryptionsecret[password]="$secrets_secretboxencryptionsecret" Secrets.trustdinfo_token[password]="$trustdinfo_token" Secrets.certs_etcd_crt[password]="$certs_etcd_crt" Secrets.certs_etcd_key[password]="$certs_etcd_key" Secrets.certs_k8s_crt[password]="$certs_k8s_crt" Secrets.certs_k8s_key[password]="$certs_k8s_key" Secrets.certs_k8saggregator_crt[password]="$certs_k8saggregator_crt" Secrets.certs_k8saggregator_key[password]="$certs_k8saggregator_key" Secrets.certs_k8sserviceaccount_key[password]="$certs_k8sserviceaccount_key" Secrets.certs_os_crt[password]="$certs_os_crt" Secrets.certs_os_key[password]="$certs_os_key" # TODO: this is a fish command, check if it works on Task's sh interpreter
+
+  upgrade:
+    aliases: [up]
+    desc: Upgrade a node
+    vars:
+      C: '{{ or .C (fail "Missing C environment variable for cluster!") }}'
+      NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
+      VERSION: '{{ or .VERSION (fail "Missing `VERSION` environment variable!") }}'
+      DNS_CLUSTER:
+        sh: |
+          op read "op://{{.C}}/.{{.C}}-vars/DNS_CLUSTER"
+    cmds:
+      - kubectl drain --delete-emptydir-data --ignore-daemonsets --timeout 0 --skip-wait-for-delete-timeout 1 --grace-period 60 --chunk-size 0 --disable-eviction --pod-selector rook_cluster!=rook-ceph {{.NODE}}
+      - sleep 60 # let stuff shutdown properly
+      - talosctl upgrade --reboot-mode powercycle --debug --nodes {{.NODE}} --image "$(task t:run C={{.C}} -- genurl installer --node {{.NODE}}.{{.DNS_CLUSTER}} --secure-boot --version {{.VERSION}} 2>/dev/null)"
