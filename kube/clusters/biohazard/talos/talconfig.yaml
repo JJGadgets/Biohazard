@@ -1,8 +1,8 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.10.3
-kubernetesVersion: v1.32.0
+talosVersion: v1.11.0
+kubernetesVersion: v1.34.0
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -82,11 +82,6 @@ nodes:
           - -selinux
           - apparmor=1
           - lsm=yama,loadpin,safesetid,integrity,bpf,apparmor,lockdown,landlock,capability # https://github.com/siderolabs/pkgs/blob/8c4603e90335b9aaf180b954ebc43f65dcb2b7b6/kernel/build/config-amd64#L6522 as of 1.10.2, remove SELinux
-          # disable IMA (upstreamed as of Talos 1.11.0-alpha.1)
-          - ima=off
-          - -ima_template
-          - -ima_appraise
-          - -ima_hash
           # allow long iGPU compute processes for headless stuff like LLMs
           - i915.enable_hangcheck=0
           - i915.request_timeout_ms=600000
@@ -565,17 +560,17 @@ controlPlane:
               - code-server
               - talosctl-image-pull-agent
 
-    - &MutatingAdmissionPolicy |
-      cluster:
-        apiServer:
-          extraArgs:
-            runtime-config: admissionregistration.k8s.io/v1alpha1=true
+    # - &MutatingAdmissionPolicy |
+    #   cluster:
+    #     apiServer:
+    #       extraArgs:
+    #         runtime-config: admissionregistration.k8s.io/v1beta1=true
 
     - &PodLevelResourcesCluster |
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
+            feature-gates: UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
             feature-gates: PodLevelResources=true

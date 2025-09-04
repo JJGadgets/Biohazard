@@ -65,7 +65,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped
-              tag: latest@sha256:643db1205c19b1618acc54dbb204344832aa70dd62daa00ec3d7ae8f1ac62a3e
+              tag: latest@sha256:8d43187b250b5fab56cc294c978cd20862ae19dac2ae779f2b48de8984cc20a1
             env: *env
             securityContext: *sc
             probes: *probes
@@ -87,7 +87,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped-proxy
-              tag: latest@sha256:0946d5ac9f33795d85858f706ca076a45c8ecbb8110e816464ed72d8f36f9520
+              tag: latest@sha256:34c01c602a8c1c52e947bc9cc5a5f66e2404b07722f35928eb9ac3faf1e83fae
             command: ["/app/piped-proxy"]
             env: *env
             securityContext: *sc
