@@ -4,9 +4,28 @@ kind: Kustomization
 metadata:
   name: 1-core-1-networking-multus-app
   namespace: flux-system
-  labels:
-    prune.home.arpa/disabled: "false"
+  labels: &l
+    app.kubernetes.io/name: "multus"
 spec:
+  targetNamespace: "multus"
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/_networking/multus/app
+  components:
+    - ../../../flux-system/alerts/template/
   dependsOn: []
-  prune: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-1-networking-multus-networks
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "multus"
+spec:
+  targetNamespace: "multus"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/_networking/multus/networks
+  dependsOn:
+    - name: 1-core-1-networking-multus-app

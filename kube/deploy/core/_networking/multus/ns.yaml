@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multus
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    pod-security.kubernetes.io/enforce: &ps privileged
+    pod-security.kubernetes.io/audit: *ps
+    pod-security.kubernetes.io/warn: *ps

@@ -1,35 +1,100 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: multus
-  namespace: kube-system
+  name: &app multus
+  namespace: *app
 spec:
   interval: 5m
   chart:
     spec:
-      chart: multus
-      version: 5.0.7
+      chart: app-template
+      version: 4.2.0
       sourceRef:
-        name: multus
+        name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
-    image:
-      repository: ghcr.io/k8snetworkplumbingwg/multus-cni
-      tag: v4.2.2-thick@sha256:a60a21ee1d00c9f215b0b2fa03b3d5e384ab7ddb9ea0d231d36aef220e95a69c
-    cni:
-      image:
-        repository: ghcr.io/angelnu/cni-plugins
-        tag: 1.7.1@sha256:e4cf8d7d9efd1466d0e558229f38ae508c0b5678180539f8b9b8ef4b7389a950
-      paths:
-        config: /etc/cni/net.d
-        bin: /opt/cni/bin
-    resources:
-      requests:
-        cpu: 5m
-        memory: 128Mi
-      limits:
-        memory: 2Gi
-    hostPaths:
-      netns: /var/run/netns
+    controllers:
+      app:
+        type: daemonset
+        serviceAccount:
+          identifier: app
+        # initContainers:
+        #   01-install-cni-plugins: # NOTE: only required for CNI plugins not in base Talos image, basically anything not bridge, e.g. macvlan, sbr (https://github.com/siderolabs/talos/discussions/10524#discussioncomment-12492587)
+        #     image:
+        #       repository: ghcr.io/home-operations/cni-plugins
+        #       tag: 1.8.0@sha256:9353f70c1d202437a492935e9c053f91c352e69c8fa683ef039ae550ac4a27f5
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/k8snetworkplumbingwg/multus-cni
+              tag: v4.2.2@sha256:7591a27cd28eeafd6dfb197618b06dabd9446a7026164b9b21fee67adc925761
+            args:
+              - --cleanup-config-on-exit
+              - --multus-cni-conf-dir=/tmp
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_ADMIN"]
+    persistence:
+      etc-cni-net-d:
+        type: hostPath
+        hostPath: /etc/cni/net.d
+        globalMounts:
+          - path: /host/etc/cni/net.d
+      opt-cni-bin:
+        type: hostPath
+        hostPath: /opt/cni/bin
+        globalMounts:
+          - path: /host/opt/cni/bin
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+    defaultPodOptions:
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      automountServiceAccountToken: true
+      resources:
+        requests:
+          cpu: 10m
+        limits:
+          cpu: "1"
+          memory: 128Mi
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    serviceAccount:
+      app: {}
+    rbac:
+      roles:
+        app:
+          type: ClusterRole
+          rules:
+            - apiGroups: ["k8s.cni.cncf.io"]
+              resources: ["*"]
+              verbs: ["*"]
+            - apiGroups: [""]
+              resources: ["pods", "pods/status"]
+              verbs: ["get", "update"]
+            - apiGroups: ["", "events.k8s.io"]
+              resources: ["events"]
+              verbs: ["create", "patch", "update"]
+      bindings:
+        app:
+          type: ClusterRoleBinding
+          roleRef:
+            identifier: app
+          subjects:
+            - identifier: app
