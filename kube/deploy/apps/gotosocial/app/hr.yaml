@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,14 +10,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.2.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      gotosocial:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -35,7 +35,7 @@ spec:
           main:
             image: &img
               repository: "docker.io/superseriousbusiness/gotosocial"
-              tag: "0.17.4@sha256:c8e8d722b3ed8546a4af9c81edff1537d8ed7e35cc8d09e07cbf6bd4aa94e4a4"
+              tag: "0.18.3@sha256:5eb48f2273092126e71e1290c80c92df90ba3ef72b1e81de070ae38fd5d85d27"
             env: &env
               TZ: "${CONFIG_TZ}"
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -43,7 +43,7 @@ spec:
               GTS_HOST: &host "social.jjgadgets.tech"
               GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
               GTS_PROTOCOL: "https" # not HTTP server listen mode, but used for generating URLs etc
-              GTS_PORT: "8080"
+              GTS_PORT: &http 8080
               GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
               GTS_ADVANCED_RATE_LIMIT_EXCEPTIONS: "${IP_JJ_V4}"
               GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
@@ -117,15 +117,16 @@ spec:
                   periodSeconds: 1
                   failureThreshold: 3600
     service:
-      gotosocial:
+      app:
         controller: gotosocial
         ports:
           http:
-            port: 8080
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
-      main:
+      app:
         className: nginx-public
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
@@ -137,7 +138,7 @@ spec:
                 path: /
                 pathType: Prefix
                 service:
-                  identifier: gotosocial
+                  identifier: app
                   port: http
         tls: &tls
           - hosts: [*host]
@@ -174,7 +175,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true # TODO: tmp migrate
-        runAsUser: &uid 568
+        runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -205,7 +206,7 @@ spec:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
     serviceMonitor:
-      main:
+      app:
         serviceName: gotosocial
         endpoints:
           - port: http
