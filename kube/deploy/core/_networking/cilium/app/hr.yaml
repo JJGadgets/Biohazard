@@ -158,7 +158,7 @@ spec:
           - patch: |
               - op: add
                 path: /spec/template/spec/initContainers/0/command/-
-                value: "$(API_SERVER_URLS)"
+                value: "--k8s-api-server-urls=$(API_SERVER_URLS)"
             target:
               kind: DaemonSet
               name: cilium
