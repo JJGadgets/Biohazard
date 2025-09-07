@@ -110,6 +110,23 @@ spec:
       dropEventEmitter:
         enabled: true
         reasons: [auth_required, policy_denied, policy_deny, fib_lookup_failed, unsupported_l3_protocol, service_backend_not_found]
+      export:
+        dynamic:
+          enabled: true
+          config:
+            content:
+              - name: blocked
+                filePath: /dev/stderr
+                includeFilters:
+                  - verdict: [DROPPED]
+                    # traffic_direction: [EGRESS]
+                excludeFilters:
+                  - IP:
+                      - destination: 224.0.0.0/4
+                  # - l4:
+                  #     - udp:
+                  #         - destination_port: "1900"
+                  #         - destination_port: "5353"
     operator:
       prometheus:
         enabled: true
@@ -135,3 +152,13 @@ spec:
       limits:
         cpu: "2"
         memory: "6Gi"
+  postRenderers:
+    - kustomize:
+        patches:
+          - patch: |
+              - op: add
+                path: /spec/template/spec/initContainers/0/command/-
+                value: "$(API_SERVER_URLS)"
+            target:
+              kind: DaemonSet
+              name: cilium
