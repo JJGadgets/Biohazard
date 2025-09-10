@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: keda-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "keda"
+spec:
+  targetNamespace: "keda"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/keda/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: 1-core-monitoring-victoria-cluster
+      namespace: flux-system

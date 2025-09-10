@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app keda
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: keda
+      version: 2.17.2
+      sourceRef:
+        name: keda
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    clusterName: "${CLUSTER_NAME:=biohazard}"
+    enableServiceLinks: false
+    # networkPolicy:
+    #   enabled: true
+    #   flavor: "cilium"
+    operator:
+      replicaCount: 2
+    webhooks:
+      replicaCount: 2
+    resources:
+      operator:
+        limits:
+          cpu: 1
+          memory: 1000Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      metricServer:
+        limits:
+          cpu: 1
+          memory: 1000Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      webhooks:
+        limits:
+          cpu: 1
+          memory: 1000Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi
+    prometheus:
+      metricServer:
+        enabled: true
+        podMonitor:
+          enabled: true
+      operator:
+        enabled: true
+        podMonitor:
+          enabled: true
+      webhooks:
+        enabled: true
+        serviceMonitor:
+          enabled: true
