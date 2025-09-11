@@ -16,6 +16,11 @@ spec:
         kind: HelmRepository
         namespace: flux-system
   values:
+    podLabels:
+      keda: &netpol
+        egress.home.arpa/apiserver: allow
+      metricsAdapter: *netpol
+      webhooks: *netpol
     clusterName: "${CLUSTER_NAME:=biohazard}"
     enableServiceLinks: false
     # networkPolicy:
