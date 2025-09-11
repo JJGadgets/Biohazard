@@ -10,9 +10,9 @@ spec:
   targetNamespace: "keda"
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/keda/app
+  path: ./kube/deploy/core/monitoring/keda/app
   components:
-    - ../../../core/flux-system/alerts/template/
+    - ../../../flux-system/alerts/template/
   dependsOn:
     - name: crds
       namespace: flux-system
