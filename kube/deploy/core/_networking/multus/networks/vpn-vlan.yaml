@@ -1,0 +1,63 @@
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: vpn-vlan
+  annotations:
+    description: Multus interface to override Cilium default route with priority, except RFC1918 (private IPv4), RFC6598 (CG-NAT), and multicast range.
+spec:
+  config: |-
+    {
+      "cniVersion": "1.1.0",
+      "name": "vpn-vlan",
+      "plugins": [
+        {
+          "type": "bridge",
+          "bridge": "br0",
+          "capabilities": { "ips": true, "mac": true },
+          "ipam": {
+            "type": "static",
+            "routes": [
+              { "dst": "0.0.0.0/5", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "8.0.0.0/7", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "11.0.0.0/8", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "12.0.0.0/6", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "16.0.0.0/4", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "32.0.0.0/3", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "64.0.0.0/3", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "96.0.0.0/6", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "100.0.0.0/10", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "100.128.0.0/9", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "101.0.0.0/8", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "102.0.0.0/7", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "104.0.0.0/5", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "112.0.0.0/4", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "128.0.0.0/3", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "160.0.0.0/5", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "168.0.0.0/6", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "172.0.0.0/12", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "172.32.0.0/11", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "172.64.0.0/10", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "172.128.0.0/9", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "173.0.0.0/8", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "174.0.0.0/7", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "176.0.0.0/4", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.0.0.0/9", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.128.0.0/11", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.160.0.0/13", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.169.0.0/16", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.170.0.0/15", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.172.0.0/14", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.176.0.0/12", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "192.192.0.0/10", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "193.0.0.0/8", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "194.0.0.0/7", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "196.0.0.0/6", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "200.0.0.0/5", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "208.0.0.0/4", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+              { "dst": "240.0.0.0/4", "gw": "${IP_ROUTER_VLAN_K8S_VPN}", "priority": 1 },
+            ]
+          }
+        }
+      ]
+    }
