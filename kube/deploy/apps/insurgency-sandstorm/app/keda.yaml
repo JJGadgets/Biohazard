@@ -18,6 +18,7 @@ spec:
       type: prometheus
       metadata:
         serverAddress: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
+          # count(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", traffic_direction="ingress", source="reserved:world", source_pod!~"coredns.*"} > 0) * count(irate(container_network_receive_bytes_total{pod=~"insurgency-sandstorm.*"}) >= 512)
         query: |
-          count(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", traffic_direction="ingress", source="reserved:world", source_pod!~"coredns.*"} > 0) * count(irate(container_network_receive_bytes_total{pod=~"insurgency-sandstorm.*"}) >= 512)
+          irate(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", source="reserved:world", source_pod!~"coredns.*"})>0
         threshold: "1"
