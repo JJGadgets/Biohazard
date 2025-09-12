@@ -18,7 +18,9 @@ spec:
   values:
     podLabels:
       keda: &netpol
+        prom.home.arpa/kps: allow
         egress.home.arpa/apiserver: allow
+        egress.home.arpa/kps: allow
       metricsAdapter: *netpol
       webhooks: *netpol
     clusterName: "${CLUSTER_NAME:=biohazard}"
