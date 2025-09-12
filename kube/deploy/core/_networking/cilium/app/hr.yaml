@@ -75,7 +75,7 @@ spec:
           - drop:labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
           - tcp:labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
           - flow:sourceContext=reserved-identity|workload|app|pod|ip;destinationContext=reserved-identity|workload|app|pod|ip;labelsContext=source_ip,source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
-          - flows-to-world:any-drop;port;labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
+          - flows-to-world:any-drop;port;destinationContext=dns|ip;labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
           - port-distribution:labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
           - httpV2:labelsContext=source_pod,source_workload,source_namespace,destination_ip,destination_pod,destination_workload,destination_namespace,traffic_direction
         serviceMonitor:
