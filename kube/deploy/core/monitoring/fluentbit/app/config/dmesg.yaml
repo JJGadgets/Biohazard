@@ -12,6 +12,9 @@ pipeline:
       alias: dmesg
       tag: dmesg
   filters:
+    - name: grep
+      match: dmesg
+      exclude: "msg ^eth0: renamed from tmp.*"
     - name: modify
       match: dmesg
       add:
