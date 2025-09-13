@@ -31,6 +31,8 @@ spec:
         enabled: true
         existingClaim: victoria-logs-data
         subPath: data
+      service:
+        clusterIP: null
       ingress:
         enabled: true
         annotations:
