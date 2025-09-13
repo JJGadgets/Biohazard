@@ -12,9 +12,11 @@ pipeline:
       alias: dmesg
       tag: dmesg
   filters:
-    - name: sysinfo
+    - name: modify
       match: dmesg
-      hostname_key: dmesg_host
+      add:
+        - dmesg dmesg
+        - dmesg_host $${KUBE_NODE_NAME}
   outputs:
     # Victoria Logs
     - name: http
@@ -22,7 +24,7 @@ pipeline:
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
       uri: >-
-        /insert/jsonline?_stream_fields=stream,dmesg_host&_msg_field=log&_time_field=date
+        /insert/jsonline?_stream_fields=stream,dmesg,dmesg_host&_msg_field=msg&_time_field=date
       compress: gzip
       format: json_lines
       json_date_format: iso8601
