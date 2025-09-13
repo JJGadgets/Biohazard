@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,21 +10,21 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.2.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      radicale:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          app:
             image: &img
               repository: jank.ing/jjgadgets/radicale
               tag: 3.5.5@sha256:e1a10196d6abceb8a2fa81d1031c7057595740b0009da8042f3d15c90f71eedb
@@ -37,25 +38,24 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "1Gi"
+                cpu: "1"
+                memory: "128Mi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
     service:
-      radicale:
-        controller: radicale
+      app:
+        controller: app
         ports:
           http:
             port: 8080
             protocol: HTTP
             appProtocol: http
     ingress:
-      main:
+      app:
         className: nginx-internal
         annotations:
           # nginx.ingress.kubernetes.io/auth-signin annotation not needed since we're only using the "Receiving HTTP basic auth" part of the authentik Proxy Provider which handles forward auth
@@ -76,7 +76,7 @@ spec:
                 path: /
                 pathType: Prefix
                 service:
-                  identifier: radicale
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
@@ -117,9 +117,10 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
         - ip: "${APP_IP_AUTHENTIK_LDAP:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK_LDAP:=authentik}"]
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_RADICALE:=1000}
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -136,5 +137,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/radicale
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
