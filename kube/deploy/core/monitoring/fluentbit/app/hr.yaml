@@ -30,6 +30,10 @@ spec:
             args: ["--config=/config/kubernetes.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
+              KUBE_NODE_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
               KUBE_NODE_IP:
                 valueFrom:
                   fieldRef:
