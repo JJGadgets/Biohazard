@@ -1,24 +1,24 @@
----
-# yaml-language-server: $schema=https://crds.jank.ing/keda.sh/scaledobject_v1alpha1.json
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  name: &app insurgency-sandstorm
-  namespace: *app
-spec:
-  cooldownPeriod: 0
-  minReplicaCount: 0
-  maxReplicaCount: 1
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: *app
-  triggers:
-    - name: *app
-      type: prometheus
-      metadata:
-        serverAddress: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
-          # count(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", traffic_direction="ingress", source="reserved:world", source_pod!~"coredns.*"} > 0) * count(irate(container_network_receive_bytes_total{pod=~"insurgency-sandstorm.*"}) >= 512)
-        query: |
-          irate(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", source="reserved:world", source_pod!~"coredns.*"})>0
-        threshold: "1"
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/keda.sh/scaledobject_v1alpha1.json
+# apiVersion: keda.sh/v1alpha1
+# kind: ScaledObject
+# metadata:
+#   name: &app insurgency-sandstorm
+#   namespace: *app
+# spec:
+#   cooldownPeriod: 0
+#   minReplicaCount: 0
+#   maxReplicaCount: 1
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: *app
+#   triggers:
+#     - name: *app
+#       type: prometheus
+#       metadata:
+#         serverAddress: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
+#           # count(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", traffic_direction="ingress", source="reserved:world", source_pod!~"coredns.*"} > 0) * count(irate(container_network_receive_bytes_total{pod=~"insurgency-sandstorm.*"}) >= 512)
+#         query: | # TODO: disabled temporarily because there's no metrics for detecting Cilium LB traffic to scale back up
+#           irate(hubble_flows_processed_total{destination_workload="insurgency-sandstorm", source="reserved:world", source_pod!~"coredns.*"})>0
+#         threshold: "1"
