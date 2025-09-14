@@ -21,12 +21,12 @@ spec:
       mode: deployment
       podLabels:
         ingress.home.arpa/nginx-internal: allow
-      image:
-        repository: docker.io/victoriametrics/victoria-logs
-        tag: "v1.24.0-victorialogs@sha256:1ec31ddccc39dc9ead2607cddbf2829be1eb5ad39890e72bba26b359be20801d"
-        pullPolicy: IfNotPresent
-      retentionPeriod: null
-      retentionDiskSpaceUsage: "20"
+      # image:
+      #   repository: docker.io/victoriametrics/victoria-logs
+      #   tag: "v1.24.0-victorialogs@sha256:1ec31ddccc39dc9ead2607cddbf2829be1eb5ad39890e72bba26b359be20801d"
+      #   pullPolicy: IfNotPresent
+      retentionPeriod: "100y"
+      retentionDiskSpaceUsage: "20" # GiB
       persistentVolume:
         enabled: true
         existingClaim: victoria-logs-data
