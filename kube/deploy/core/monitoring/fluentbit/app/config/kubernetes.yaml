@@ -11,12 +11,9 @@ pipeline:
     - name: tail # https://docs.fluentbit.io/manual/pipeline/inputs/tail
       alias: kubernetes
       path: /var/log/containers/*.log
-      exclude_path: /var/log/*fluent*
+      exclude_path: /var/log/*fluent* # comma separated
       multiline.parser: cri
       tag: kubernetes.*
-    # - name: kmsg
-    #   alias: dmesg
-    #   tag: dmesg.
   filters:
     # enrich and process logs with k8s metadata
     - name: kubernetes # https://docs.fluentbit.io/manual/pipeline/filters/kubernetes
@@ -25,12 +22,13 @@ pipeline:
       kube_tag_prefix: kubernetes.var.log.containers.
       buffer_size: "0"
       merge_log: "on"
+      keep_log: "off"
       "k8s-logging.parser": "on"
       "k8s-logging.exclude": "on"
       namespace_labels: "on"
-      annotations: "on" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
+      annotations: "off" # too big and mostly irrelevant, as it contains stuff like Reloader and Multus
       namespace_annotations: "off"
-      owner_references: "on"
+      owner_references: "off" # ended up not being that helpful
       # use_kubelet: "on" # wanna use it but can't verify TLS without rotate-server-certificates :(
       # kubelet_host: "$${KUBE_NODE_IP}"
       # kube_ca_path: "/run/secrets/kubernetes.io/serviceaccount" # both apiserver SA CA and localhost kubelet CA are mounted here
@@ -49,24 +47,19 @@ pipeline:
       operation: lift
       nested_under: kubernetes
       add_prefix: kubernetes_
-    # - name: nest # TODO: convert this to grab controller type from owner_references
-    #   match: kubernetes.*
-    #   operation: lift
-    #   nested_under: kubernetes
-    #   add_prefix: kubernetes_
-    - name: nest
+    - name: modify
       match: kubernetes.*
-      operation: lift
-      nested_under: k_labels
-      add_prefix: k_labels_
+      remove_wildcard:
+        - kubernetes_annotations
+        - kubernetes_docker_id
   outputs:
-    # Victoria Logs
+      # Victoria Logs
     - name: http
       match: '*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
       uri: >-
-        /insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name&ignore_fields=kubernetes_annotations*&_msg_field=log&_time_field=date
+        /insert/jsonline?_stream_fields=stream,source,kubernetes_namespace_name,kubernetes_pod_name,kubernetes_container_name,kubernetes_host,kubernetes_pod_ip&ignore_fields=kubernetes_annotations*&_msg_field=log&_time_field=date
       compress: gzip
       format: json_lines
       json_date_format: iso8601
