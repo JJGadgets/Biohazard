@@ -12,6 +12,10 @@ packages:
     file: ./.common.yaml
     vars:
       board: "$${board | default('lolin_s3_mini')}"
+  wifi: !include
+    file: ./.wifi.yaml
+    vars:
+      wifi_ip: "$${wifi_ip}"
 #   mqtt: !include
 #     file: ./.mqtt.yaml
 #     vars:
