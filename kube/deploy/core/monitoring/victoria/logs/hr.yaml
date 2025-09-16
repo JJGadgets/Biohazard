@@ -51,7 +51,8 @@ spec:
           cpu: 50m
         limits:
           cpu: "1"
-          memory: 2560Mi
+          # memory: 2560Mi
+          memory: 700Mi
       securityContext:
         enabled: true
         allowPrivilegeEscalation: false
