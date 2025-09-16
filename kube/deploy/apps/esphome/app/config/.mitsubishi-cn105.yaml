@@ -12,14 +12,12 @@ packages:
     file: ./.common.yaml
     vars:
       board: "$${board | default('lolin_s3_mini')}"
-  wifi: !include
-    file: ./.wifi.yaml
-  mqtt: !include
-    file: ./.mqtt.yaml
-    vars:
-      mqtt_username: !secret mqtt_cn105_username
-      mqtt_password: !secret mqtt_cn105_password
-      mqtt_prefix: "cn105/$${area_dns}"
+#   mqtt: !include
+#     file: ./.mqtt.yaml
+#     vars:
+#       mqtt_username: !secret mqtt_cn105_username
+#       mqtt_password: !secret mqtt_cn105_password
+#       mqtt_prefix: "cn105/$${area_dns}"
 
 # Mitsubishi CN105 air conditioner controller
 external_components:
@@ -32,7 +30,7 @@ climate: # Climate entity config
     update_interval: 2s # update interval can be adjusted after a first run and logs monitoring
     visual:
       min_temperature: 16
-      max_temperature: 27
+      max_temperature: 28
       temperature_step: 1
     compressor_frequency_sensor:
       name: Compressor Frequency
@@ -41,25 +39,25 @@ climate: # Climate entity config
     vertical_vane_select:
       name: Vertical Vane
       disabled_by_default: false
-    horizontal_vane_select:
-      name: Horizontal Vane
-      disabled_by_default: true
-    isee_sensor:
-      name: ISEE Sensor
-      disabled_by_default: true
-    stage_sensor:
-      name: Stage
-      # use_as_operating_fallback: false     # set to true if your unit doesn't provide activity indicator
-      entity_category: diagnostic
-      disabled_by_default: true
-    sub_mode_sensor:
-      name: Sub Mode
-      entity_category: diagnostic
-      disabled_by_default: true
-    auto_sub_mode_sensor:
-      name: Auto Sub Mode
-      entity_category: diagnostic
-      disabled_by_default: true
+    # horizontal_vane_select:
+    #   name: Horizontal Vane
+    #   disabled_by_default: true
+    # isee_sensor:
+    #   name: ISEE Sensor
+    #   disabled_by_default: true
+    # stage_sensor:
+    #   name: Stage
+    #   # use_as_operating_fallback: false     # set to true if your unit doesn't provide activity indicator
+    #   entity_category: diagnostic
+    #   disabled_by_default: true
+    # sub_mode_sensor:
+    #   name: Sub Mode
+    #   entity_category: diagnostic
+    #   disabled_by_default: true
+    # auto_sub_mode_sensor:
+    #   name: Auto Sub Mode
+    #   entity_category: diagnostic
+    #   disabled_by_default: true
 uart:
   id: HP_UART
   baud_rate: 2400
@@ -105,6 +103,6 @@ switch:
           level: INFO
           format: "Remote temperature disabled, setting to 0 to revert to internal temperature"
       - lambda: "id($${climate_id}).set_remote_temperature(0);"
-logger:
-  logs:
-    CYCLE: WARN
+# logger:
+#   logs:
+#     CYCLE: WARN

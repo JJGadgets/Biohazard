@@ -10,6 +10,9 @@ substitutions:
   name: *name
   remote_temp_enable: "ON"
   hass_temp_sensor: "sensor.0xa4c13884230ae8b7_temperature"
+  wifi_ip: !secret jj_room_ac_cn105_ip
+  # wifi_jj_room: 2
+  # wifi_living_room: 1
 packages:
   - !include ./.mitsubishi-cn105.yaml
   - !include ./.bluetooth-proxy.yaml

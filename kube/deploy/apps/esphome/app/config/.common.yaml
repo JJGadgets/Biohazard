@@ -2,7 +2,6 @@
 substitutions:
   board: "$${board | default('esp32-s3-devkitc-1')}"
   framework: "$${framework | default('esp-idf')}" # This is important: the default "arduino" framework does not perform well.
-  log: "$${log | default('INFO')}"
 
 esphome:
   name: "$${area_dns}-$${name_dns}"
@@ -52,5 +51,5 @@ time:
 
 # Optimizations
 logger:
-  level: "$${log}"
+  level: "$${log | default('INFO')}"
   baud_rate: 0  # 0 Enables logging, but disables serial-port logging to free CPU and memory

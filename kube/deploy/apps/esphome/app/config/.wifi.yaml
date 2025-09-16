@@ -1,8 +1,23 @@
 ---
 wifi:
   domain: .esp.dhcp.internal
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  networks:
+    - &wifi
+      ssid: &ssid !secret wifi_ssid
+      password: &pw !secret wifi_password
+      # bssid: !secret living_room_bssid
+      priority: $${wifi_living_room | default("2")}
+      manual_ip:
+        static_ip: "$${wifi_ip}"
+        subnet: "255.255.255.248"
+        gateway: !secret wifi_gw
+        dns1: !secret wifi_gw
+    # - <<: *wifi
+    #   bssid: !secret jj_room_bssid
+    #   priority: $${wifi_jj_room | default("1")}
+    - ssid: *ssid
+      password: *pw
+      priority: 0
   enable_btm: true
   enable_rrm: true
 

@@ -27,6 +27,11 @@ spec:
         secrets.yaml: |
           wifi_ssid: "{{ .ESP_WIFI_SSID }}"
           wifi_password: "{{ .ESP_WIFI_PASSWORD }}"
+          wifi_gw: "{{ .ESP_WIFI_GW }}"
+          living_room_bssid: "{{ .ESP_WIFI_BSSID_LIVING_ROOM }}"
+          jj_room_bssid: "{{ .ESP_WIFI_BSSID_JJ_ROOM }}"
+          living_room_ac_cn105_ip: "{{ .ESP_WIFI_IP_LIVING_ROOM_AC_CN105 }}"
+          jj_room_ac_cn105_ip: "{{ .ESP_WIFI_IP_JJ_ROOM_AC_CN105 }}"
           domain: "{{ .ESP_WIFI_DOMAIN }}"
           mqtt_broker: "{{ .APP_DNS_MOSQUITTO }}"
           mqtt_cn105_username: "{{ .X_EMQX_MQTT_ESPHOME_CN105_USERNAME }}"
