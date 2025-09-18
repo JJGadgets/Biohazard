@@ -152,13 +152,3 @@ spec:
       limits:
         cpu: "2"
         memory: "6Gi"
-  postRenderers:
-    - kustomize:
-        patches:
-          - patch: |
-              - op: add
-                path: /spec/template/spec/initContainers/0/command/-
-                value: "--k8s-api-server-urls=$(API_SERVER_URLS)"
-            target:
-              kind: DaemonSet
-              name: cilium
