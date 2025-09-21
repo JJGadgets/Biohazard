@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/snapshot.storage.k8s.io/volumesnapshot_v1.json
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: media-data-pre-wrtag
+  namespace: media
+spec:
+  volumeSnapshotClassName: file
+  source:
+    persistentVolumeClaimName: media-data
