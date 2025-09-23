@@ -12,8 +12,24 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/media/navidrome/app
   components:
-    - ../../../../core/storage/volsync/component/
     - ../../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: navidrome-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: navidrome
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: media
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -25,11 +41,39 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/navidrome/navidrome:0.57.0@sha256:d753f3f0ba65d838d288e58c2cb1254a519f439b88fa0fa8378178f5e8b17587"
       RUID: &uid "6969"
       RGID: *uid
       RFSG: *uid
-      # # renovate: datasource=docker depName=ghcr.io/navidrome/navidrome
-      # VS_APP_CURRENT_VERSION: 0.54.5@sha256:2a4deb64be3d42f245947b4330988bb8b48b99271f6afdaf68384ed3c3de9d51
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: beets-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: beets
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: media
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: "beets-data"
+      SIZE: "2Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "docker.io/sentriz/betanin:v0.5.6@sha256:880d57edb58044ac9ef6e816a84380f3b92edec3d48714f50743765920835849"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
