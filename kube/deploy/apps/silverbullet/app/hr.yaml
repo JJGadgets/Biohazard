@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,21 +10,21 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.2.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      silverbullet:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/silverbulletmd/silverbullet
               tag: 0.10.4@sha256:69e37ce27c693fe6640d2c792c5161413d0b715195660df9fea024fd42a7162b
@@ -52,18 +52,17 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-              #startup:
-              #  enabled: true
     service:
-      silverbullet:
-        controller: silverbullet
+      app:
+        controller: app
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     ingress:
-      main:
+      app:
         className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
@@ -73,7 +72,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: silverbullet
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
@@ -106,5 +105,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/silverbullet
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

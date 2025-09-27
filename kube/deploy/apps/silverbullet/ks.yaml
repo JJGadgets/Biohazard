@@ -6,15 +6,31 @@ metadata:
   namespace: flux-system
   labels: &l
     app.kubernetes.io/name: "silverbullet"
-    kustomization.flux.home.arpa/default: no-deps
 spec:
   targetNamespace: "silverbullet"
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/silverbullet/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: silverbullet-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: silverbullet-pvc
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: silverbullet
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: silverbullet
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -26,6 +42,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/silverbulletmd/silverbullet:0.10.4@sha256:69e37ce27c693fe6640d2c792c5161413d0b715195660df9fea024fd42a7162b"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
