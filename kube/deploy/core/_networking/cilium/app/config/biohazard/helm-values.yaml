@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.18.2/install/kubernetes/cilium/values.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.18.0/install/kubernetes/cilium/values.schema.json
 
 # image:
 #   override: "quay.io/cilium/cilium-ci:v1.18@sha256:ca7d1b4f23674837b22a1b16b832835b2e5076d6fbe9e2898ae5263112ed2eb1"
@@ -29,7 +29,6 @@ endpointRoutes: # supposedly helps with LB routing...?
 loadBalancer:
   algorithm: maglev
   mode: dsr
-  dsrDispatch: geneve
 
 ## NOTE: Cilium's networking internals
 ipam:
@@ -49,8 +48,6 @@ bpf:
   tproxy: true # L7 netpols stuff
   preallocateMaps: true # reduce latency, increased memory usage
   policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
-  lbModeAnnotation: true
-  lbAlgorithmAnnotation: true
 l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
 socketLB:
   enabled: true # faster and more direct same-node pod routing than tc/tcx # supposed to be default off, but it's enabled anyway if unspecified, and looks fun lol
