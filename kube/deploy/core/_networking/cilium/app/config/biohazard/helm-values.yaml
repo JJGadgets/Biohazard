@@ -21,6 +21,7 @@ cluster:
 
 ## NOTE: Cilium's routing modes for inter-nodes pod traffic
 routingMode: native
+tunnelProtocol: geneve
 devices: 'br0'
 autoDirectNodeRoutes: true
 ipv4NativeRoutingCIDR: "${IP_POD_CIDR_V4}"
