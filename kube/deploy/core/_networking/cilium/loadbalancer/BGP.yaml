@@ -24,6 +24,14 @@ spec:
               addressFamily: ipv4
           peerConfigRef:
             name: ciel
+    - name: node-local
+      localASN: &router ${ASN_CLUSTER_NODES} # ASNs are processed in uint32
+      peers:
+        - name: node-local
+          peerASN: *router
+          peerAddress: 127.0.0.1
+          peerConfigRef:
+            name: node-local
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
@@ -64,3 +72,43 @@ spec:
         matchExpressions:
           - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
           - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgppeerconfig_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumBGPPeerConfig
+metadata:
+  name: node-local
+spec:
+  transport:
+    peerPort: 61790
+  # authSecretRef: cilium-bgp-password-router
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 120
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          bgp.home.arpa/peer: node-local
+    - afi: ipv6
+      safi: unicast
+      advertisements:
+        matchLabels:
+          bgp.home.arpa/peer: node-local
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumbgpadvertisement_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumBGPAdvertisement
+metadata:
+  name: node-local
+  labels:
+    bgp.home.arpa/peer: node-local
+spec:
+  advertisements:
+    - advertisementType: Service
+      service:
+        addresses: [LoadBalancerIP]
+      selector:
+        matchExpressions:
+          - {key: io.cilium/bgp, operator: NotIn, values: ["deny", "false"]}
