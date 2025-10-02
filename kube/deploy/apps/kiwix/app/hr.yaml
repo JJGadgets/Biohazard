@@ -29,7 +29,7 @@ spec:
             image: &img
               repository: ghcr.io/kiwix/kiwix-tools
               tag: 3.7.0@sha256:0962ac16ff6e3a4f13107e4cbf099d40b3f28ae91f651058a8b81e9f263f4e05
-            command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases *.zim"]
+            command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases /data/*.zim"]
             env: &env
               TZ: "${CONFIG_TZ}"
               PORT: &http 8080
@@ -68,7 +68,7 @@ spec:
               tag: latest
               pullPolicy: Always
             # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
-            command: ["curl", "--no-clobber", "-vLo", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
+            command: ["wget", "--no-clobber", "--output-document=/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
             env:
               CAT: ifixit # category
               ZIM: ifixit_en_all_2025-06
