@@ -64,7 +64,7 @@ spec:
         containers:
           app: &dl-ct
             image:
-              repository: nixery.dev/curl
+              repository: nixery.dev/wget
               tag: latest
               pullPolicy: Always
             # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
