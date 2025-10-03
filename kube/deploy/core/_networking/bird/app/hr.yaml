@@ -25,6 +25,8 @@ spec:
               tag: "2.14-r0"
             securityContext:
               readOnlyRootFilesystem: true
+              capabilities:
+                add: [NET_ADMIN]
             resources:
               requests:
                 cpu: "10m"

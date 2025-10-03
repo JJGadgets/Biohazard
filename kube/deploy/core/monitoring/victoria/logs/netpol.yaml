@@ -17,3 +17,9 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: fluentbit
+    - from:
+        - ipBlock:
+            cidr: "${IP_ROUTER_VLAN_K8S:=127.0.0.1}/32"
+      ports:
+        - port: 51401
+          protocol: TCP
