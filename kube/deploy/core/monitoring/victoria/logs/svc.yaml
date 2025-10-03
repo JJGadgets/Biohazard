@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: "victoria-logs-expose"
   annotations:
-    coredns.io/hostname: "${APP_DNS_VICTORIA_LOGS_EXPOSE:=victoria-logs-expose"
+    coredns.io/hostname: "${APP_DNS_VICTORIA_LOGS_EXPOSE:=victoria-logs-expose}"
     lbipam.cilium.io/ips: "${APP_IP_VICTORIA_LOGS_EXPOSE:=127.0.0.1}"
 spec:
   type: LoadBalancer
