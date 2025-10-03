@@ -31,6 +31,12 @@ spec:
         enabled: true
         existingClaim: victoria-logs-data
         subPath: data
+      extraArgs:
+        syslog.listenAddr.tcp: ":51401"
+        syslog.tenantID.tcp: "51401:0"
+        syslog.tls: ""
+        syslog.tlsCertFile: &cert /tls/tls.crt
+        syslog.tlsKeyFile: &key /tls/tls.key
       service:
         clusterIP: null
       ingress:
@@ -53,6 +59,13 @@ spec:
           cpu: "1"
           # memory: 2560Mi
           memory: 700Mi
+      extraVolumes:
+        - name: tls
+          secret:
+            secretName: short-domain-tls
+      extraVolumeMounts:
+        - name: tls
+          mountPath: /tls
       securityContext:
         enabled: true
         allowPrivilegeEscalation: false
