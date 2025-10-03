@@ -34,7 +34,7 @@ spec:
       extraArgs:
         syslog.listenAddr.tcp: ":51401"
         syslog.tenantID.tcp: "51401:0"
-        syslog.tls: ""
+        syslog.tls: true
         syslog.tlsCertFile: &cert /tls/tls.crt
         syslog.tlsKeyFile: &key /tls/tls.key
       service:
