@@ -81,7 +81,7 @@ spec:
         controller: kubernetes
         type: LoadBalancer
         annotations:
-          coredns.io/hostname: "${APP_DNS_FLUENTBIT:=fluentbit"
+          coredns.io/hostname: "${APP_DNS_FLUENTBIT:=fluentbit}"
           lbipam.cilium.io/ips: "${APP_IP_FLUENTBIT:=127.0.0.1}"
         ports:
           fortigate-syslog:
