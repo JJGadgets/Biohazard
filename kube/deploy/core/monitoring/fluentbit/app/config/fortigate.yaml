@@ -11,15 +11,15 @@ pipeline:
   inputs:
     - name: syslog
       alias: fortigate
-      mode: tcp
+      mode: udp
       port: 51401
       parser: syslog-rfc5424
       buffer_chunk_size: 2048000
-      tls: "on"
-      tls.debug: 4
-      tls.verify: "off"
-      tls.crt_file: /tls/tls.crt
-      tls.key_file: /tls/tls.key
+      # tls: "on"
+      # tls.debug: 4
+      # tls.verify: "off"
+      # tls.crt_file: /tls/tls.crt
+      # tls.key_file: /tls/tls.key
       # tag: fortigate.*
   filters:
     - name: parser

@@ -103,9 +103,12 @@ spec:
           coredns.io/hostname: "${APP_DNS_FLUENTBIT:=fluentbit}"
           lbipam.cilium.io/ips: "${APP_IP_FLUENTBIT:=127.0.0.1}"
         ports:
-          fortigate-syslog:
+          fortigate-syslog-tcp:
             port: 51401
             protocol: TCP
+          fortigate-syslog-udp:
+            port: 51401
+            protocol: UDP
     persistence:
       config:
         type: configMap
