@@ -14,6 +14,7 @@ pipeline:
       mode: tcp
       port: 51401
       parser: syslog-rfc5424
+      buffer_chunk_size: 2048000
       tls: "on"
       tls.debug: 4
       tls.verify: "off"
