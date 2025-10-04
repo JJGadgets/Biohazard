@@ -25,3 +25,21 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
             k8s-app: kube-dns
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: &app fluentbit
+  namespace: *app
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: *app
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: "${IP_ROUTER_VLAN_K8S:=127.0.0.1}/32"
+      ports:
+        - port: 51401
+          protocol: TCP
