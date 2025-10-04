@@ -69,7 +69,7 @@ pipeline:
       preserve_key: true
   outputs:
       # Victoria Logs
-    - name: victoria-logs-kubernetes
+    - name: http
       match: 'kubernetes.*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
@@ -82,7 +82,7 @@ pipeline:
         - 'AccountID 0'
         - 'ProjectID 0'
       log_response_payload: "off"
-    - name: victoria-logs-fortigate
+    - name: http
       match: 'fortigate.*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
