@@ -1,0 +1,175 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app kiwix
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.2.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 2
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/kiwix/kiwix-tools
+              tag: 3.7.0@sha256:0962ac16ff6e3a4f13107e4cbf099d40b3f28ae91f651058a8b81e9f263f4e05
+            command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases /data/*.zim"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              PORT: &http 8080
+              IP:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      dl-ifixit: &dl
+        type: job
+        pod:
+          annotations:
+            reloader.stakater.com/auto: "false"
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app: &dl-ct
+            image:
+              repository: nixery.dev/wget
+              tag: latest
+              pullPolicy: Always
+            # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
+            command: ["wget", "--no-clobber", "--output-document=/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
+            env:
+              CAT: ifixit # category
+              ZIM: ifixit_en_all_2025-06
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+      dl-archlinux:
+        <<: *dl
+        containers:
+          app:
+            <<: *dl-ct
+            env:
+              CAT: other
+              ZIM: archlinux_en_all_maxi_2025-09
+      dl-alpinelinux:
+        <<: *dl
+        containers:
+          app:
+            <<: *dl-ct
+            env:
+              CAT: other
+              ZIM: alpinelinux_en_all_maxi_2025-09
+      dl-wikipedia-mini:
+        <<: *dl
+        containers:
+          app:
+            <<: *dl-ct
+            env:
+              CAT: wikipedia
+              ZIM: wikipedia_en_all_mini_2025-06
+      dl-wikipedia-computers:
+        <<: *dl
+        containers:
+          app:
+            <<: *dl-ct
+            env:
+              CAT: wikipedia
+              ZIM: wikipedia_en_computer_nopic_2025-09
+      # dl-gobyexample:
+      #   gobyexample.com_en_all_2025-08
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      app:
+        className: nginx-internal
+        hosts:
+          - host: &host "${APP_DNS_KIWIX:=kiwix}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: kiwix-library
+        globalMounts:
+          - subPath: data
+            path: /data
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

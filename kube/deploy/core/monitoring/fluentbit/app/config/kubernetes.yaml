@@ -6,6 +6,7 @@ service:
   http_server: "on"
   http_listen: "[::]"
   http_port: 8080
+  parsers_file: /fluent-bit/etc/parsers.conf
 pipeline:
   inputs:
     - name: tail # https://docs.fluentbit.io/manual/pipeline/inputs/tail
@@ -14,6 +15,15 @@ pipeline:
       exclude_path: /var/log/*fluent* # comma separated
       multiline.parser: cri
       tag: kubernetes.*
+    - name: syslog
+      alias: fortigate
+      mode: tcp
+      port: 51401
+      parser: syslog-rfc5424
+      tls: "on"
+      tls.crt_file: /tls/tls.crt
+      tls.key_file: /tls/tls.key
+      tag: fortigate.*
   filters:
     # enrich and process logs with k8s metadata
     - name: kubernetes # https://docs.fluentbit.io/manual/pipeline/filters/kubernetes
@@ -52,10 +62,16 @@ pipeline:
       remove_wildcard:
         - kubernetes_annotations
         - kubernetes_docker_id
+    - name: parser
+      match: fortigate.*
+      key_name: message
+      parser: logfmt
+      reserve_data: true
+      preserve_key: true
   outputs:
       # Victoria Logs
     - name: http
-      match: '*'
+      match: 'kubernetes.*'
       host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
       port: 9428
       uri: >-
@@ -65,6 +81,19 @@ pipeline:
       json_date_format: iso8601
       header:
         - 'AccountID 0'
+        - 'ProjectID 0'
+      log_response_payload: "off"
+    - name: http
+      match: 'fortigate.*'
+      host: victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local
+      port: 9428
+      uri: >-
+        /insert/jsonline?_stream_fields=host,type,subtype,vd&_msg_field=message&_time_field=date
+      compress: gzip
+      format: json_lines
+      json_date_format: iso8601
+      header:
+        - 'AccountID 51401'
         - 'ProjectID 0'
       log_response_payload: "off"
     # # stdout
