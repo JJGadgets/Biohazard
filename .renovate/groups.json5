@@ -100,7 +100,8 @@
     {
       "description": "Immich Group",
       "groupName": "Immich",
-      "matchPackageNames": ["**immich**"],
+      "matchDatasources": ["docker", "github-tags"],
+      "matchPackageNames": ["**immich**", "ghcr.io/immich-app/**"],
       "versioning": "semver",
       "sourceUrl": "https://github.com/immich-app/immich",
       "separateMinorPatch": true

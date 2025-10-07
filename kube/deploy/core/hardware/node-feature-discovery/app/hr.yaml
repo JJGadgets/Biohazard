@@ -1,18 +1,32 @@
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
+# yaml-language-server: $schema=https://flux.jank.ing/ocirepository-source-v1.json?test
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
 metadata:
   name: node-feature-discovery
   namespace: kube-system
 spec:
-  chart:
-    spec:
-      chart: node-feature-discovery
-      version: 0.17.3
-      sourceRef:
-        kind: HelmRepository
-        name: node-feature-discovery
-        namespace: flux-system
+  interval: 1h
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  url: oci://registry.k8s.io/nfd/charts/node-feature-discovery
+  ref:
+    tag: 0.18.0
+---
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/kubernetes-sigs/node-feature-discovery/master/deployment/helm/node-feature-discovery
+# TODO: change above from master to latest version tag, once a release includes values schema
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app node-feature-discovery
+  namespace: &ns kube-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
   values:
     worker:
       config:
