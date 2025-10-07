@@ -68,13 +68,44 @@ spec:
             <<: *ct
             args: ["--config=/config/dmesg.yaml"]
             securityContext:
-              privileged: true # Fluentbit can't access /dev/kmsg even with SYSLOG
+              privileged: true # Fluentbit can't access /dev/kmsg even with SYSLOG capabilities
             resources:
               requests:
                 cpu: "5m"
               limits:
                 cpu: "1"
                 memory: "50Mi"
+      fortigate:
+        type: deployment
+        replicas: 2
+        pod:
+          hostUsers: false
+          securityContext:
+            runAsUser: &uid 65534
+            runAsGroup: *uid
+            runAsNonRoot: true
+        containers:
+          app:
+            <<: *ct
+            args: ["--config=/config/fortigate.yaml"]
+            resources:
+              requests:
+                cpu: "5m"
+              limits:
+                cpu: "1"
+                memory: "50Mi"
+    service:
+      fortigate:
+        # primary: false
+        controller: fortigate
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: "${APP_DNS_FLUENTBIT:=fluentbit}"
+          lbipam.cilium.io/ips: "${APP_IP_FLUENTBIT:=127.0.0.1}"
+        ports:
+          fortigate-syslog:
+            port: 51401
+            protocol: UDP
     persistence:
       config:
         type: configMap
@@ -100,6 +131,9 @@ spec:
           dmesg:
             app:
               - path: *path
+      tls:
+        type: secret
+        name: short-domain-tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
