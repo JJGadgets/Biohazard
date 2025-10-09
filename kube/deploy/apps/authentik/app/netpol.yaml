@@ -76,7 +76,7 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: authentik
             app.kubernetes.io/name: authentik
-            app.kubernetes.io/component: authentik
+            app.kubernetes.io/controller: authentik
       toPorts:
         - ports:
             - port: "9000"
@@ -110,7 +110,7 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: *app
-      app.kubernetes.io/component: ldap
+      app.kubernetes.io/controller: ldap
   ingress:
     # allow LDAP traffic
     - fromEndpoints:
@@ -140,7 +140,7 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: authentik
             app.kubernetes.io/name: authentik
-            app.kubernetes.io/component: ldap
+            app.kubernetes.io/controller: ldap
       toPorts:
         - ports:
             - port: "6636"
@@ -155,7 +155,7 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: *app
-      app.kubernetes.io/component: radius
+      app.kubernetes.io/controller: radius
   ingress:
     # allow radius traffic
     - fromCIDRSet:
