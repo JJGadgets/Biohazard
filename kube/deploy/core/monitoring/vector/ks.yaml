@@ -1,0 +1,18 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vector-app
+  namespace: flux-system
+  labels: &l
+    app.kubernetes.io/name: "vector"
+spec:
+  targetNamespace: "vector"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/monitoring/vector/app
+  components:
+    - ../../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
