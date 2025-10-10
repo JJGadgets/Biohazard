@@ -102,3 +102,17 @@ spec:
         policyTypes: [Ingress, Egress]
         rules:
           ingress: [from: [{ipBlock: {cidr: "${IP_ROUTER_VLAN_K8S}/32"}}]]
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: monitoring
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: victoria-logs
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: monitoring
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: victoria-logs-single
