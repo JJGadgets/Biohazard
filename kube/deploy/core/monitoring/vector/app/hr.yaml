@@ -25,7 +25,7 @@ spec:
             image: &img
               repository: ghcr.io/vectordotdev/vector
               tag: 0.50.0-distroless-libc@sha256:2f0769913c408e6a21dfd7cad18aa9ca590e77809a2f9c8acb03b295231c2f10
-              args: ["--config", "/config/fortigate.yaml"]
+            args: ["--config", "/config/fortigate.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
               KUBE_NODE_NAME:
