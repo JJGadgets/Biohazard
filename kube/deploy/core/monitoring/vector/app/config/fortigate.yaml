@@ -6,7 +6,7 @@ sources:
     type: syslog
     address: "[::]:51401"
     mode: tcp
-    permit_origin: ["${IP_ROUTER_VLAN_K8S}/32"]
+    # permit_origin: ["${IP_ROUTER_VLAN_K8S}/32"]
     max_length: 2048000
     tls:
       enabled: true
@@ -17,7 +17,8 @@ transforms:
     type: remap
     inputs: [fortigate]
     source: |
-      . = parse_key_value!(.message)
+      parsed = parse_key_value!(.message)
+      . = merge(., parsed)
 sinks:
   vlogs:
     inputs: [fortigate-parse-message]
@@ -34,3 +35,9 @@ sinks:
       method: newline_delimited
     healthcheck:
       enabled: false
+  # stdout:
+  #   inputs: [fortigate-parse-message]
+  #   type: console
+  #   target: stdout
+  #   encoding:
+  #     codec: json
