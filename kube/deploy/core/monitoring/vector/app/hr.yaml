@@ -49,6 +49,7 @@ spec:
                 memory: "512Mi"
     service:
       fortigate:
+        type: LoadBalancer
         controller: fortigate
         annotations:
           coredns.io/hostname: "${APP_DNS_VECTOR_FORTIGATE:=vector}"
