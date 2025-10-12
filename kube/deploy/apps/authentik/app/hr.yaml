@@ -51,7 +51,8 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: *app
-                  app.kubernetes.io/component: *app
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/controller: app
         containers:
           app:
             image: &img
@@ -161,7 +162,7 @@ spec:
                 enabled: true
       worker:
         type: deployment
-        replicas: 2
+        replicas: null # HPA
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -177,7 +178,8 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: *app
-                  app.kubernetes.io/component: worker
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/controller: worker
         containers:
           app:
             image: *img
@@ -217,7 +219,8 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: *app
-                  app.kubernetes.io/component: ldap
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/controller: ldap
         containers:
           app:
             image:
@@ -264,7 +267,8 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: *app
-                  app.kubernetes.io/component: radius
+                  app.kubernetes.io/instance: *app
+                  app.kubernetes.io/controller: radius
         containers:
           app:
             image:
@@ -428,7 +432,7 @@ spec:
             protocol: UDP
           ldaps-tcp: &ldaps
             port: 636
-            targetPort: 6636
+            targetPort: &ldapsPort 6636
             protocol: TCP
             appProtocol: ldaps
           ldaps-udp:
