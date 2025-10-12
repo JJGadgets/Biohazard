@@ -1,0 +1,130 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app trilium
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.2.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/triliumnext/trilium
+              tag: v0.99.1@sha256:bdd9266ccd00c01bc83b970a929a18a4ecf0a7702c388b27e3e70810e2befb5c
+            command: ["node", "./main.cjs"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              TRILIUM_GENERAL_INSTANCE_NAME: "${CLUSTER_NAME:=k8s}"
+              TRILIUM_ENV: production
+              TRILIUM_DATA_DIR: &pvc /data
+              TRILIUM_NETWORK_PORT: &http 8080
+              TRILIUM_NETWORK_TRUSTEDREVERSEPROXY: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://${APP_DNS_TRILIUM}"
+              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "JJGadgets Auth"
+              # TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://raw.githubusercontent.com/JJGadgets/images/main/icon.png"
+            envFrom: &envFrom
+              - secretRef:
+                  name: trilium-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      app:
+        className: nginx-internal
+        annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
+        hosts:
+          - host: &host "${APP_DNS_TRILIUM:=trilium}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: trilium-data
+        globalMounts:
+          - subPath: data
+            path: *pvc
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1001 # upstream trilium user
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: "{{ .Release.Name }}"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

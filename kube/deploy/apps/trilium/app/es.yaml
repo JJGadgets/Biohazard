@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name trilium-secrets
+  namespace: trilium
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Trilium - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: '{{ .TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL }}'
+        TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTID: '{{ .TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTID }}'
+        TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTSECRET: '{{ .TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTSECRET }}'
