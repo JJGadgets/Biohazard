@@ -39,7 +39,7 @@ spec:
               TRILIUM_NETWORK_TRUSTEDREVERSEPROXY: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://${APP_DNS_TRILIUM}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "JJGadgets Auth"
-              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://jjgadgets.tech/images/icon.png"
+              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://jjgadgets.tech/images/favicon.png"
             envFrom: &envFrom
               - secretRef:
                   name: trilium-secrets
