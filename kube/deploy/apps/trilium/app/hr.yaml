@@ -89,13 +89,10 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
-      # tmp:
-      #   type: emptyDir
-      #   medium: Memory
-      #   sizeLimit: 16Mi
-      #   globalMounts:
-      #     - subPath: tmp
-      #       path: /tmp
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
