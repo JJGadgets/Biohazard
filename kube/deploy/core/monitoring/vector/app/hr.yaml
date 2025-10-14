@@ -1,0 +1,118 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app vector
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.2.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      fortigate:
+        type: deployment
+        replicas: 2
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/vectordotdev/vector
+              tag: 0.50.0-distroless-libc@sha256:2f0769913c408e6a21dfd7cad18aa9ca590e77809a2f9c8acb03b295231c2f10
+            args: ["--config", "/config/fortigate.yaml"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              KUBE_NODE_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
+              KUBE_NODE_IP:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+    service:
+      fortigate:
+        type: LoadBalancer
+        controller: fortigate
+        annotations:
+          coredns.io/hostname: "${APP_DNS_VECTOR_FORTIGATE:=vector}"
+          lbipam.cilium.io/ips: "${APP_IP_VECTOR_FORTIGATE:=127.0.0.1}"
+        ports:
+          fortigate-syslog:
+            port: 6514
+            targetPort: 51401
+            protocol: TCP
+    persistence:
+      config:
+        type: configMap
+        name: vector-config
+      data:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+      tls:
+        type: secret
+        name: short-domain-tls
+        defaultMode: 0400
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      fortigate:
+        controller: fortigate
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{ipBlock: {cidr: "${IP_ROUTER_VLAN_K8S}/32"}}]]
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: monitoring
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: victoria-logs
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: monitoring
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: victoria-logs-single

@@ -17,6 +17,12 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: fluentbit
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vector
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vector
     - from:
         - ipBlock:
             cidr: "${IP_ROUTER_VLAN_K8S:=127.0.0.1}/32"

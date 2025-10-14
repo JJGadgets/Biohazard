@@ -1,0 +1,43 @@
+---
+timezone: Asia/Singapore
+data_dir: /data
+sources:
+  fortigate:
+    type: syslog
+    address: "[::]:51401"
+    mode: tcp
+    # permit_origin: ["${IP_ROUTER_VLAN_K8S}/32"]
+    max_length: 2048000
+    tls:
+      enabled: true
+      crt_file: /tls/tls.crt
+      key_file: /tls/tls.key
+transforms:
+  fortigate-parse-message:
+    type: remap
+    inputs: [fortigate]
+    source: |
+      parsed = parse_key_value!(.message)
+      . = merge(., parsed)
+sinks:
+  vlogs:
+    inputs: [fortigate-parse-message]
+    type: http
+    uri: http://victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local:9428/insert/jsonline?_stream_fields=host,type,subtype,vd&_msg_field=message&_time_field=date
+    request:
+      headers:
+        AccountID: "51401"
+        ProjectID: "0"
+    compression: gzip
+    encoding:
+      codec: json
+    framing:
+      method: newline_delimited
+    healthcheck:
+      enabled: false
+  # stdout:
+  #   inputs: [fortigate-parse-message]
+  #   type: console
+  #   target: stdout
+  #   encoding:
+  #     codec: json
