@@ -18,10 +18,10 @@ jobs:
         resource: ["helmrelease", "kustomization"]
     steps:
       - name: Setup Flux
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@4a15fa6a023259353ef750acf1c98fe88407d4d0 # v2.7.2
         with:
           # renovate: datasource=github-releases depName=fluxcd/flux2
-          version: "2.6.4"
+          version: "2.7.2"
 
       - name: Diff Resources
         uses: allenporter/flux-local/action/diff@53ed3899b2b0dce255069e45e94d91d529c78007 # 7.8.0
