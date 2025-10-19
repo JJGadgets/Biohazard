@@ -75,6 +75,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+          nginx.ingress.kubernetes.io/custom-headers: etherpad/etherpad-headers
         hosts:
           - host: &host "${APP_DNS_ETHERPAD:=etherpad}"
             paths: &paths
@@ -85,6 +86,11 @@ spec:
                   port: http
         tls:
           - hosts: [*host]
+    configMaps:
+      headers:
+        forceRename: etherpad-headers
+        data:
+          Content-Security-Policy: frame-ancestors 'self'
     persistence:
       data:
         existingClaim: etherpad-data
