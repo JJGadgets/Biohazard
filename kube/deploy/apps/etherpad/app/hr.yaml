@@ -1,0 +1,129 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app etherpad
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.4.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: docker.io/etherpad/etherpad
+              tag: 2.3.2@sha256:0de56784bff922b31689ad12510b6c5a75ef0285d2601df3e4d6c7ce015b0bf5
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              TITLE: "Biohazard Pad"
+              IP:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+              PORT: &http 8080
+              DB_TYPE: sqlite
+              DB_FILENAME: /data/etherpad.db
+              TRUST_PROXY: "true"
+              SHOW_SETTINGS_IN_ADMIN_PAGE: "false"
+            envFrom: &envFrom
+              - secretRef:
+                  name: etherpad-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      main:
+        className: nginx-external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "${APP_DNS_ETHERPAD:=etherpad}"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      data:
+        existingClaim: etherpad-data
+        globalMounts:
+          - subPath: data
+            path: /data
+          - subPath: opt
+            path: /opt/etherpad-lite/var
+          - subPath: plugins
+            path: /opt/etherpad-lite/src/plugin_packages
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 5001 # upstream `etherpad` user
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
