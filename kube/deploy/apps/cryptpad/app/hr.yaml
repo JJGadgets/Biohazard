@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -21,7 +22,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/nginx-external: allow
             authentik.home.arpa/https: allow
             egress.home.arpa/github: allow
         containers:
@@ -42,10 +43,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "3000m"
-                memory: "6Gi"
+                cpu: "1"
+                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
@@ -87,7 +87,10 @@ spec:
             appProtocol: http
     ingress:
       main:
-        className: nginx-internal
+        className: nginx-external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_CRYPTPAD:=cryptpad}"
             paths: &paths
@@ -136,15 +139,18 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: tmp
-            path: /tmp
+        sizeLimit: 100Mi
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 4001 # upstream `cryptpad` user
