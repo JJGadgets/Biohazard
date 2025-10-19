@@ -102,6 +102,7 @@
       "groupName": "Immich",
       "matchDatasources": ["docker", "github-tags"],
       "matchPackageNames": ["**immich**", "ghcr.io/immich-app/**"],
+      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$",
       "versioning": "semver",
       "sourceUrl": "https://github.com/immich-app/immich",
       "separateMinorPatch": true
@@ -110,6 +111,7 @@
       "description": "1Password Group",
       "groupName": "1Password",
       "matchPackageNames": ["**1password**"],
+      "matchDatasources": ["docker", "github-tags"],
       "versioning": "semver"
     },
     {
@@ -172,6 +174,13 @@
       "matchDatasources": ["docker"],
       "versioning": "semver",
       "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$"
+    },
+    {
+      "description": "CryptPad Docker images",
+      "matchPackageNames": ["**cryptpad**"],
+      "matchDatasources": ["docker"],
+      "versioning": "semver",
+      "versionCompatibility": "^(?<compatibility>[^-]+-)(?<version>.*)?$"
     },
     // {
     //   "description": "SearXNG versioning",
