@@ -12,7 +12,6 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/talosctl-image-pull-agent/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
   dependsOn:
     - name: crds
