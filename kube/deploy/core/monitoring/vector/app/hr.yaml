@@ -56,6 +56,7 @@ spec:
                 memory: "512Mi"
     service:
       fortigate:
+        primary: true
         type: LoadBalancer
         controller: fortigate
         annotations:
@@ -66,6 +67,13 @@ spec:
             port: 6514
             targetPort: 51401
             protocol: TCP
+      fortigate-metrics:
+        primary: false
+        controller: fortigate
+        ports:
+          metrics:
+            port: *prom
+            protocol: HTTP
     persistence:
       config:
         type: configMap
@@ -126,7 +134,7 @@ spec:
     serviceMonitor:
       fortigate:
         service:
-          identifier: fortigate
+          identifier: fortigate-metrics
         endpoints:
           - port: metrics
             scheme: http
