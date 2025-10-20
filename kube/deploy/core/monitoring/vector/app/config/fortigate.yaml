@@ -24,7 +24,7 @@ transforms:
       parsed = parse_key_value!(.message)
       . = merge(., parsed)
   fortigate-del-msg-metrics:
-    inputs: [fortigate]
+    inputs: [fortigate-parse-message]
     type: remap
     source: |
       del(.message)
