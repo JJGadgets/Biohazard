@@ -350,10 +350,18 @@ patches:
           featureGates:
             PodLevelResources: true
 
+  - &ImageVolume |-
+    machine:
+      kubelet:
+        extraConfig:
+          featureGates:
+            ImageVolume: true
+
   - &kubeletNodePressure |
     machine:
       kubelet:
         extraConfig:
+          serializeImagePulls: false
           imageGCLowThresholdPercent: 70
           imageGCHighThresholdPercent: 90
           kubeReserved:
@@ -534,6 +542,10 @@ controlPlane:
             kind: KubeSchedulerConfiguration
             profiles:
               - schedulerName: default-scheduler
+                plugins:
+                  score:
+                    disabled:
+                      - name: ImageLocality # Favors nodes that already have the container images that the Pod runs. Irrelevant when Spegel is in use.
                 pluginConfig:
                   - name: PodTopologySpread
                     args:
@@ -560,17 +572,17 @@ controlPlane:
               - code-server
               - talosctl-image-pull-agent
 
-    # - &MutatingAdmissionPolicy |
-    #   cluster:
-    #     apiServer:
-    #       extraArgs:
-    #         runtime-config: admissionregistration.k8s.io/v1beta1=true
+    - &MutatingAdmissionPolicy |
+      cluster:
+        apiServer:
+          extraArgs:
+            runtime-config: admissionregistration.k8s.io/v1beta1=true
 
     - &PodLevelResourcesCluster |
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
+            feature-gates: ImageVolume=true,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true,ResourceHealthStatus=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
             feature-gates: PodLevelResources=true
