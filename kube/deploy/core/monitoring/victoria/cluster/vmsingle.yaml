@@ -13,7 +13,7 @@ spec:
   retentionPeriod: "6" # months if no unit specified
   extraArgs:
     dedup.minScrapeInterval: 60s
-    maxLabelsPerTimeseries: "40"
+    maxLabelsPerTimeseries: "60"
     search.minStalenessInterval: 5m
     vmalert.proxyURL: http://vmalert-victoria.monitoring.svc.cluster.local.:8080
   storage:
