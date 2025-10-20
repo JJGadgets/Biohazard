@@ -17,20 +17,27 @@ transforms:
     inputs: [fortigate]
     type: remap
     source: |
+      del(.source_ip)
+      del(.source_type)
+      del(.version)
+      .fortigate = del(.host)
       parsed = parse_key_value!(.message)
       . = merge(., parsed)
   fortigate-del-msg-metrics:
-    inputs: [fortigate-parse-message]
+    inputs: [fortigate]
     type: remap
     source: |
       del(.message)
+      del(.eventtime)
+      del(.tz)
   fortigate-convert-metrics:
     inputs: [fortigate-del-msg-metrics]
     type: log_to_metric
     metrics:
       - type: counter
         field: subtype
-        namespace: "{{ type }}"
+        name: "{{ subtype }}"
+        namespace: "fortigate_{{ fortigate }}_{{ type }}"
         tags:
           "*": "{{ . }}"
 sinks:

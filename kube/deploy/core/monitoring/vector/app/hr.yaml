@@ -59,6 +59,7 @@ spec:
         primary: true
         type: LoadBalancer
         controller: fortigate
+        externalTrafficPolicy: Local # FortiGate itself will only stick to 1 BGP route, why have DSR re-route
         annotations:
           coredns.io/hostname: "${APP_DNS_VECTOR_FORTIGATE:=vector}"
           lbipam.cilium.io/ips: "${APP_IP_VECTOR_FORTIGATE:=127.0.0.1}"
