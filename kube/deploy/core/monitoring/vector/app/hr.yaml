@@ -20,6 +20,9 @@ spec:
       fortigate:
         type: deployment
         replicas: 2
+        pod:
+          labels:
+            prom.home.arpa/kps: allow
         containers:
           app:
             image: &img
