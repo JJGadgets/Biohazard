@@ -172,15 +172,16 @@
       "description": "Miniflux enforce distroless images",
       "matchPackageNames": ["**miniflux**"],
       "matchDatasources": ["docker"],
-      "versioning": "semver",
-      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$"
+      "versionCompatibility": "^(?<version>[^-]+)(?<compatibility>-.*)?$",
+      "versioning": "semver"
     },
     {
       "description": "CryptPad Docker images",
       "matchPackageNames": ["**cryptpad**", "docker.io/cryptpad/cryptpad"],
       "matchDatasources": ["docker"],
       "versionCompatibility": "^(?<compatibility>.*)-(?<version>.*)$",
-      "versioning": "semver"
+      "versioning": "semver",
+      "sourceUrl": "https://github.com/cryptpad/cryptpad"
     },
     // {
     //   "description": "SearXNG versioning",
