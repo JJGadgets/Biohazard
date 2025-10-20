@@ -19,8 +19,13 @@ transforms:
     source: |
       parsed = parse_key_value!(.message)
       . = merge(., parsed)
+  fortigate-del-msg-metrics:
+    inputs: [fortigate-parse-message]
+    type: remap
+    source: |
+      del(.message)
   fortigate-convert-metrics:
-    inputs: [fortigate]
+    inputs: [fortigate-del-msg-metrics]
     type: log_to_metric
     metrics:
       - type: counter
@@ -47,7 +52,7 @@ sinks:
   prometheus:
     inputs: [fortigate-convert-metrics]
     type: prometheus_exporter
-    address: "0.0.0.0:${PROM_HTTP}"
+    address: "[::]:$${PROM_HTTP}"
   # stdout:
   #   inputs: [fortigate-parse-message]
   #   type: console
