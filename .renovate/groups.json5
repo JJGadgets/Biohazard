@@ -177,10 +177,10 @@
     },
     {
       "description": "CryptPad Docker images",
-      "matchPackageNames": ["**cryptpad**"],
+      "matchPackageNames": ["**cryptpad**", "docker.io/cryptpad/cryptpad"],
       "matchDatasources": ["docker"],
-      "versioning": "semver",
-      "versionCompatibility": "^(?<compatibility>[^-]+-)(?<version>.*)?$"
+      "versionCompatibility": "^(?<compatibility>.*)-(?<version>.*)$",
+      "versioning": "semver"
     },
     // {
     //   "description": "SearXNG versioning",
