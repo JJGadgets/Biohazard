@@ -28,6 +28,7 @@ spec:
             args: ["--config", "/config/fortigate.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
+              PROM_HTTP: &prom 8081
               KUBE_NODE_NAME:
                 valueFrom:
                   fieldRef:
@@ -36,6 +37,9 @@ spec:
                 valueFrom:
                   fieldRef:
                     fieldPath: status.hostIP
+            ports:
+              - name: metrics
+                containerPort: *prom
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -116,3 +120,13 @@ spec:
                   podSelector:
                     matchLabels:
                       app.kubernetes.io/name: victoria-logs-single
+    serviceMonitor:
+      fortigate:
+        service:
+          identifier: fortigate
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 30s

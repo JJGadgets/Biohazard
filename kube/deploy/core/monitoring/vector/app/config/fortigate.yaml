@@ -14,11 +14,20 @@ sources:
       key_file: /tls/tls.key
 transforms:
   fortigate-parse-message:
-    type: remap
     inputs: [fortigate]
+    type: remap
     source: |
       parsed = parse_key_value!(.message)
       . = merge(., parsed)
+  fortigate-convert-metrics:
+    inputs: [fortigate]
+    type: log_to_metric
+    metrics:
+      - type: counter
+        field: subtype
+        namespace: "{{ type }}"
+        tags:
+          "*": "{{ . }}"
 sinks:
   vlogs:
     inputs: [fortigate-parse-message]
@@ -35,6 +44,10 @@ sinks:
       method: newline_delimited
     healthcheck:
       enabled: false
+  prometheus:
+    inputs: [fortigate-convert-metrics]
+    type: prometheus_exporter
+    address: "0.0.0.0:${PROM_HTTP}"
   # stdout:
   #   inputs: [fortigate-parse-message]
   #   type: console
