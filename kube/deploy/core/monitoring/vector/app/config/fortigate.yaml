@@ -23,23 +23,69 @@ transforms:
       .fortigate = del(.host)
       parsed = parse_key_value!(.message)
       . = merge(., parsed)
+      .vdom = del(.vd)
   fortigate-del-msg-metrics:
     inputs: [fortigate-parse-message]
     type: remap
     source: |
       del(.message)
+      del(.timestamp)
       del(.eventtime)
       del(.tz)
-  fortigate-convert-metrics:
+      del(.facility)
+      del(.dstuuid)
+      del(.poluuid)
+      del(.srcuuid)
+      del(.sessionid)
+      del(.sentbyte)
+      del(.sentpkt)
+      del(.rcvdbyte)
+      del(.rcvdpkt)
+      del(.cookies)
+  fortigate-route-logs-for-metrics:
     inputs: [fortigate-del-msg-metrics]
+    type: route
+    reroute_unmatched: true
+    route:
+      perf-gauge: '.logid == "0100040704"'
+      discard: '.logid == "0100036883"'
+  fortigate-convert-metrics:
+    inputs: [fortigate-route-logs-for-metrics._unmatched]
     type: log_to_metric
     metrics:
       - type: counter
         field: subtype
         name: "{{ subtype }}"
-        namespace: "fortigate_{{ fortigate }}_{{ vd }}_{{ type }}"
+        namespace: "fortigate_{{ type }}"
         tags:
           "*": "{{ . }}"
+  fortigate-perf-metrics:
+    inputs: [fortigate-route-logs-for-metrics.perf-gauge]
+    type: log_to_metric
+    metrics:
+      - &perf
+        type: gauge
+        field: cpu
+        namespace: "fortigate_perf"
+        tags:
+          fortigate: "{{ fortigate }}"
+          vdom: "{{ vdom }}"
+      - <<: *perf
+        field: mem
+      - <<: *perf
+        field: totalsession
+      - <<: *perf
+        field: setuprate
+      - <<: *perf
+        field: sysuptime
+      # - <<: *perf # NOTE: unused by my FortiGate 40F
+      #   field: disk
+      # - <<: *perf
+      #   field: disklograte
+      # - <<: *perf
+      #   field: fazlograte
+      # - <<: *perf
+      #   field: freediskstorage
 sinks:
   vlogs:
     inputs: [fortigate-parse-message]
@@ -57,7 +103,7 @@ sinks:
     healthcheck:
       enabled: false
   prometheus:
-    inputs: [fortigate-convert-metrics]
+    inputs: [fortigate-convert-metrics, fortigate-perf-metrics]
     type: prometheus_exporter
     address: "[::]:$${PROM_HTTP}"
   # stdout:
