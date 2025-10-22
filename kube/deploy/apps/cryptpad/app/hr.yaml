@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,14 +10,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.4.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      cryptpad:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -26,10 +26,10 @@ spec:
             authentik.home.arpa/https: allow
             egress.home.arpa/github: allow
         containers:
-          main:
+          app:
             image: &img
               repository: docker.io/cryptpad/cryptpad
-              tag: version-2025.6.0@sha256:0667fd73d03f92e2930ebaf03dfa01028a3f923ec2734d2603832114fd52a197
+              tag: version-2025.9.0@sha256:353d98ac893158b699dcf345b6c8271dea9200d1015a9d367441625c046486e4
             command: ["npm", "start"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -57,25 +57,25 @@ spec:
             env: *env
             command: ["/cryptpad/install-onlyoffice.sh", "--accept-license", "--trust-repository"]
             securityContext: *sc
-          02-install-plugin-sso:
-            image: *img
-            env:
-              # renovate: datasource=github-tags depName=cryptpad/sso
-              SSO_VERSION: "0.3.0"
-            command: ["/usr/bin/env", "bash", "-c"]
-            args:
-              - |
-                cd /cryptpad/lib/plugins
-                git clone --depth 1 --branch $(SSO_VERSION) https://github.com/cryptpad/sso || cd sso; git pull
-            securityContext: *sc
+          # 02-install-plugin-sso:
+          #   image: *img
+          #   env:
+          #     # renovate: datasource=github-tags depName=cryptpad/sso
+          #     SSO_VERSION: "0.3.0"
+          #   command: ["/usr/bin/env", "bash", "-c"]
+          #   args:
+          #     - |
+          #       cd /cryptpad/lib/plugins
+          #       git clone --depth 1 --branch $(SSO_VERSION) https://github.com/cryptpad/sso || cd sso; git pull
+          #   securityContext: *sc
           99-npm-build:
             image: *img
             env: *env
             command: ["npm", "run", "build"]
             securityContext: *sc
     service:
-      cryptpad:
-        controller: cryptpad
+      app:
+        controller: app
         ports:
           http:
             port: 3000
@@ -86,7 +86,7 @@ spec:
             protocol: HTTP
             appProtocol: http
     ingress:
-      main:
+      app:
         className: nginx-external
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
@@ -97,12 +97,12 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: cryptpad
+                  identifier: app
                   port: http
               - path: /cryptpad_websocket
                 pathType: Prefix
                 service:
-                  identifier: cryptpad
+                  identifier: app
                   port: ws
           - host: &hostSafe "${APP_DNS_CRYPTPAD_SAFE:=cryptpad}"
             paths: *paths
@@ -136,6 +136,14 @@ spec:
             path: /cryptpad/www/common/onlyoffice/dist
           - subPath: onlyoffice-conf
             path: /cryptpad/onlyoffice-conf
+      sso:
+        type: image
+        image:
+          repository: jank.ing/jjgadgets/cryptpad-sso
+          tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
+        globalMounts:
+          - subPath: cryptpad/lib/plugins/sso
+            path: /cryptpad/lib/plugins/sso
       tmp:
         type: emptyDir
         medium: Memory
@@ -158,17 +166,10 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/cryptpad
+                  - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
