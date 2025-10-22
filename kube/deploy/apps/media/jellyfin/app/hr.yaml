@@ -49,11 +49,16 @@ spec:
                 cpu: "1"
                 memory: "6Gi"
                 gpu.intel.com/i915: "1"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+            # probes: # TODO: disabled for 10.11.0 migration
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup:
+            #     enabled: true
+            #     spec:
+            #       periodSeconds: 1
+            #       failureThreshold: 3600
     service:
       jellyfin:
         controller: jellyfin
@@ -86,7 +91,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 128Mi
+        sizeLimit: 3Gi
       media:
         existingClaim: "media-data" # VolSync
         globalMounts:
