@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -12,14 +12,14 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.4.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      navidrome:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -30,7 +30,7 @@ spec:
           annotations:
             fluentbit.io/parser: "logfmt"
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/navidrome/navidrome
               tag: 0.58.0@sha256:2ae037d464de9f802d047165a13b1c9dc2bdbb14920a317ae4aef1233adc0a3c
@@ -77,36 +77,8 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-          edit:
-            image: &img
-              repository: ghcr.io/home-operations/beets
-              tag: 2.3.1@sha256:cc4975f1a0be4e238d29fe13c18ce37e08964af0d5ceb1811485751b6490bcaf
-            command: ["/usr/bin/catatonit", "--", "/usr/bin/env", "sh", "-c", "sleep infinity"] # just the CLI ma'am, just the CLI
-            env:
-              TZ: "${CONFIG_TZ}"
-            envFrom: &envFrom
-              - secretRef:
-                  name: navidrome-secrets
-            securityContext: &sc
-              runAsUser: 65534
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "0m"
-                memory: "0Mi"
-              limits:
-                cpu: "2"
-                memory: "2Gi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
     service:
-      navidrome:
+      app:
         controller: navidrome
         type: LoadBalancer # TODO: tmp to test Amperfy song restart bug https://github.com/BLeeEZ/amperfy/issues/305
         annotations:
@@ -130,7 +102,7 @@ spec:
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: navidrome
+                  identifier: app
                   port: http
         tls:
           - hosts: [*host]
@@ -143,7 +115,7 @@ spec:
                 path: /rest
                 pathType: Prefix
                 service:
-                  identifier: navidrome
+                  identifier: app
                   port: http
               - <<: *path
                 path: /auth
@@ -152,9 +124,11 @@ spec:
     persistence:
       data:
         existingClaim: navidrome-data
-        globalMounts:
-          - subPath: data
-            path: /data
+        advancedMounts:
+          navidrome:
+            main:
+              - subPath: data
+                path: /data
       media:
         existingClaim: media-data
         advancedMounts:
@@ -188,6 +162,14 @@ spec:
                 readOnly: true
       tmp:
         type: emptyDir
+      ffmpeg:
+        type: image
+        image:
+          repository: ghcr.io/jellyfin/jellyfin
+          tag: 10.11.0@sha256:519b02989eafcc4bdb558bdc7014c2395c19608e5c2d7ed99a5f3edd0c75f7ef
+        globalMounts:
+          - subPath: usr/lib/jellyfin-ffmpeg
+            path: /usr/lib/jellyfin-ffmpeg
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
