@@ -57,16 +57,19 @@ spec:
             env: *env
             command: ["/cryptpad/install-onlyoffice.sh", "--accept-license", "--trust-repository"]
             securityContext: *sc
-          # 02-install-plugin-sso:
-          #   image: *img
-          #   env:
-          #     # renovate: datasource=github-tags depName=cryptpad/sso
-          #     SSO_VERSION: "0.3.0"
-          #   command: ["/usr/bin/env", "bash", "-c"]
-          #   args:
-          #     - |
-          #       cd /cryptpad/lib/plugins
-          #       git clone --depth 1 --branch $(SSO_VERSION) https://github.com/cryptpad/sso || cd sso; git pull
+          02-install-plugin-sso:
+            image: *img
+            env:
+              # renovate: datasource=github-tags depName=cryptpad/sso
+              SSO_VERSION: "0.4.0"
+            command: ["/usr/bin/env", "bash", "-c"]
+            args:
+              - |
+                cd /cryptpad/lib/plugins
+                git clone --no-checkout --filter=tree:0 --depth 1 https://github.com/cryptpad/sso || true
+                cd sso
+                git fetch --depth 1 origin $(SSO_VERSION)
+                git checkout FETCH_HEAD
           #   securityContext: *sc
           99-npm-build:
             image: *img
@@ -136,14 +139,14 @@ spec:
             path: /cryptpad/www/common/onlyoffice/dist
           - subPath: onlyoffice-conf
             path: /cryptpad/onlyoffice-conf
-      sso:
-        type: image
-        image:
-          repository: jank.ing/jjgadgets/cryptpad-sso
-          tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
-        globalMounts:
-          - subPath: cryptpad/lib/plugins/sso
-            path: /cryptpad/lib/plugins/sso
+      # sso:
+      #   type: image
+      #   image:
+      #     repository: jank.ing/jjgadgets/cryptpad-sso
+      #     tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
+      #   globalMounts:
+      #     - subPath: cryptpad/lib/plugins/sso
+      #       path: /cryptpad/lib/plugins/sso
       tmp:
         type: emptyDir
         medium: Memory
