@@ -70,7 +70,7 @@ spec:
                 cd sso
                 git fetch --depth 1 origin $(SSO_VERSION)
                 git checkout FETCH_HEAD
-          #   securityContext: *sc
+            securityContext: *sc
           99-npm-build:
             image: *img
             env: *env
