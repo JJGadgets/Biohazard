@@ -24,7 +24,10 @@ spec:
           labels:
             ingress.home.arpa/nginx-external: allow
             authentik.home.arpa/https: allow
-            egress.home.arpa/github: allow
+            egress.home.arpa/github: allow # will be de-escalated
+            egress.home.arpa/apiserver: allow # will be de-escalated
+        serviceAccount:
+          identifier: app
         containers:
           app:
             image: &img
@@ -71,11 +74,26 @@ spec:
                 git fetch --depth 1 origin $(SSO_VERSION)
                 git checkout FETCH_HEAD
             securityContext: *sc
-          99-npm-build:
+          03-npm-build:
             image: *img
             env: *env
             command: ["npm", "run", "build"]
             securityContext: *sc
+          99-de-escalate-netpols:
+            image:
+              repository: registry.k8s.io/kubectl
+              tag: v1.34.0@sha256:497d298f891edb7608dfce9dae4bb08dffc4ddcd7f5d24a0512d4bbf33e04f26
+            command: ["kubectl", "label", "pods", "--namespace", "$(POD_NS)", "$(POD_NAME)", "egress.home.arpa/github-", "egress.home.arpa/apiserver-"]
+            env:
+              <<: *env
+              POD_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              POD_NS:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
     service:
       app:
         controller: app
@@ -151,6 +169,30 @@ spec:
         type: emptyDir
         medium: Memory
         sizeLimit: 100Mi
+      serviceAccount:
+        type: custom
+        volumeSpec:
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  expirationSeconds: 600
+                  path: token
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.namespace
+                      path: namespace
+        advancedMounts:
+          app:
+            99-de-escalate-netpols:
+              - path: /var/run/secrets/kubernetes.io/serviceaccount
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -176,3 +218,23 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
+    serviceAccount:
+      app: {}
+    rbac:
+      roles:
+        app:
+          type: Role
+          rules:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["get", "list", "patch", "update", "watch"]
+              # resourceNames: ["cryptpad-0"] # MutatingAdmissionPolicy will handle this
+      bindings:
+        app:
+          type: RoleBinding
+          roleRef:
+            kind: Role
+            identifier: app
+          subjects:
+            - kind: ServiceAccount
+              identifier: app
