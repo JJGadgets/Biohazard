@@ -62,9 +62,6 @@ spec:
             securityContext: *sc
           02-install-plugin-sso:
             image: *img
-            env:
-              # renovate: datasource=github-tags depName=cryptpad/sso
-              SSO_VERSION: "0.4.0"
             command: ["/usr/bin/env", "bash", "-c"]
             args:
               - |
@@ -73,11 +70,14 @@ spec:
                 cd sso
                 git fetch --depth 1 origin $(SSO_VERSION)
                 git checkout FETCH_HEAD
+            env:
+              # renovate: datasource=github-tags depName=cryptpad/sso
+              SSO_VERSION: "0.4.0"
             securityContext: *sc
           03-npm-build:
             image: *img
-            env: *env
             command: ["npm", "run", "build"]
+            env: *env
             securityContext: *sc
           99-de-escalate-netpols:
             image:
@@ -85,7 +85,6 @@ spec:
               tag: v1.34.1@sha256:59bafa07ff3a6d4b417e7633ddb9d79a9606ca98bf64bac080b3e65748669250
             command: ["kubectl", "label", "pods", "--namespace", "$(POD_NS)", "$(POD_NAME)", "egress.home.arpa/github-", "egress.home.arpa/apiserver-"]
             env:
-              <<: *env
               POD_NAME:
                 valueFrom:
                   fieldRef:
@@ -94,6 +93,7 @@ spec:
                 valueFrom:
                   fieldRef:
                     fieldPath: metadata.namespace
+            securityContext: *sc
     service:
       app:
         controller: app
