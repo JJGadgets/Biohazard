@@ -53,7 +53,7 @@ spec:
               GTS_OIDC_IDP_NAME: "JJGadgets Auth"
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "sqlite"
-              GTS_DB_ADDRESS: "/gotosocial/storage/sqlite.db"
+              GTS_DB_ADDRESS: "/gotosocial/storage/db/gotosocial.db"
               # GTS_DB_TLS_MODE: "enable"
               # GTS_DB_TLS_CA_CERT: &pgca /secrets/pg/ca.crt
               # GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
@@ -76,7 +76,7 @@ spec:
               #     secretKeyRef:
               #       name: *pgsec
               #       key: "password"
-              #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+              #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage/media"
               GTS_STORAGE_BACKEND: "s3"
               GTS_STORAGE_S3_PROXY: "true"
               GTS_STORAGE_S3_USE_SSL: "false"
