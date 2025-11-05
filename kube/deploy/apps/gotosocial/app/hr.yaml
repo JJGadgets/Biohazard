@@ -36,7 +36,6 @@ spec:
             image: &img
               repository: "docker.io/superseriousbusiness/gotosocial"
               tag: "0.18.3@sha256:5eb48f2273092126e71e1290c80c92df90ba3ef72b1e81de070ae38fd5d85d27"
-            command: ["/bin/sh", "-c", "sleep 3600"]
             env: &env
               TZ: "${CONFIG_TZ}"
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
