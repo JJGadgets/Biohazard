@@ -37,9 +37,9 @@ spec:
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: "568"
-      RGID: "568"
-      RFSG: "568"
+      RUID: "65534"
+      RGID: "65534"
+      RFSG: "65534"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
