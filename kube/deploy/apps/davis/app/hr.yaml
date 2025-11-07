@@ -68,7 +68,7 @@ spec:
           caddy:
             image:
               repository: jank.ing/jjgadgets/caddy-distroless-base
-              tag: "2.10.2@sha256:4b40d15700bd96173bf072a71048de33c69ad24881e30afd28f07806ad2eef3e"
+              tag: "2.10.2@sha256:b8211840edf949089b31a6b6912b8f3ef82cf853836dde1db1a3ac970ac5e293"
             args: ["run", "--config", "/config/Caddyfile"]
             securityContext:
               readOnlyRootFilesystem: true
