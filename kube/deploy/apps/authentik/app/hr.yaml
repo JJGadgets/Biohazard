@@ -57,7 +57,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2025.8.4@sha256:a10398480e7f8292dbcc27b64fe572f6abed6220bd40f4b6d28e9c12d4b78dca
+              tag: 2025.10.1@sha256:8f70895ad48bb7de656a2aac7c78c2bec6a4e820e009a570b0c285fe406eadac
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -193,18 +193,18 @@ spec:
               limits:
                 cpu: "1"
                 memory: 750Mi
-            probes:
-              liveness: &worker-probe
-                enabled: true
-                custom: true
-                spec: &wps
-                  exec:
-                    command: ["ak", "healthcheck"]
-              readiness: *worker-probe
-              startup:
-                <<: *worker-probe
-                spec:
-                  <<: [*startup, *wps]
+            # probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
+            #   liveness: &worker-probe
+            #     enabled: true
+            #     custom: true
+            #     spec: &wps
+            #       exec:
+            #         command: ["ak", "healthcheck"]
+            #   readiness: *worker-probe
+            #   startup:
+            #     <<: *worker-probe
+            #     spec:
+            #       <<: [*startup, *wps]
       ldap:
         type: deployment
         replicas: 2
@@ -226,7 +226,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.8.4@sha256:5948a57d5c9af9134eb22550cbc4084c8d441fd00c2cab250f4a1445727d3262
+              tag: 2025.10.1@sha256:feefd8648fd43f11a091ef351122778735b51d43b275aa4293554b23daa9aa52
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -274,7 +274,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.8.4@sha256:4a329cbcccd3c2491497f40858b005a66cd695f7966090cce6a2552622922909
+              tag: 2025.10.1@sha256:80b7f3dbb518437de6f16173cfc63929c3cbf3c2b41b74bda67096570f5e44a8
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -308,7 +308,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.2.3@sha256:d318520052025d3cc5850ba3de966810916c7a7b327b412322399f38be39a39c"
+              tag: "8.2.3@sha256:5c7c0445ed86918cb9efb96d95a6bfc03ed2059fe2c5f02b4d74f477ffe47915"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--requirepass", "$(AUTHENTIK_REDIS__PASSWORD)"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             envFrom: *envFrom
             securityContext: *sc

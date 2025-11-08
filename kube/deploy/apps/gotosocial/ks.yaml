@@ -30,6 +30,12 @@ spec:
   dependsOn:
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-rook-ceph-cluster
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.all(s, s.reason == "WaitingForManual") && status.latestMoverStatus.result == "Successful"
+      inProgress: status.conditions.all(s, s.reason == "SyncInProgress")
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
   postBuild:
     substitute:
       PVC: "gotosocial-data"
@@ -37,9 +43,9 @@ spec:
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: "568"
-      RGID: "568"
-      RFSG: "568"
+      RUID: "65534"
+      RGID: "65534"
+      RFSG: "65534"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -58,7 +64,7 @@ spec:
       PG_APP_NS: *app
       PG_DB_NAME: *app
       PG_DB_USER: *app
-      PG_REPLICAS: "3"
+      PG_REPLICAS: "0"
       PG_SC: "local"
       PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"

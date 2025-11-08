@@ -30,12 +30,13 @@ spec:
             authentik.home.arpa/https: "allow"
             egress.home.arpa/internet: "allow"
             prom.home.arpa/kps: "allow"
+          annotations:
             fluentbit.io/parser: "logfmt"
         containers:
-          main:
+          app:
             image: &img
               repository: "docker.io/superseriousbusiness/gotosocial"
-              tag: "0.18.3@sha256:5eb48f2273092126e71e1290c80c92df90ba3ef72b1e81de070ae38fd5d85d27"
+              tag: 0.19.2@sha256:1aa074861fdb9913950ea9ee8923f342a1593b4c66dd9c3a1592140ac9164966
             env: &env
               TZ: "${CONFIG_TZ}"
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -51,30 +52,31 @@ spec:
               GTS_OIDC_ENABLED: "true"
               GTS_OIDC_IDP_NAME: "JJGadgets Auth"
               # OIDC secrets in ExternalSecret envFrom
-              GTS_DB_TYPE: "postgres"
-              GTS_DB_TLS_MODE: "enable"
-              GTS_DB_TLS_CA_CERT: &pgca /secrets/pg/ca.crt
-              GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
-              #  valueFrom:
-              #    secretKeyRef:
-              #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
-              #      key: "pgbouncer-host"
-              GTS_DB_DATABASE:
-                valueFrom:
-                  secretKeyRef:
-                    name: &pgsec "pg-gotosocial-pguser-gotosocial"
-                    key: "dbname"
-              GTS_DB_USER:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pgsec
-                    key: "user"
-              GTS_DB_PASSWORD:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pgsec
-                    key: "password"
-              #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage"
+              GTS_DB_TYPE: "sqlite"
+              GTS_DB_ADDRESS: "/gotosocial/storage/db/gotosocial.db"
+              # GTS_DB_TLS_MODE: "enable"
+              # GTS_DB_TLS_CA_CERT: &pgca /secrets/pg/ca.crt
+              # GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
+              # #  valueFrom:
+              # #    secretKeyRef:
+              # #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
+              # #      key: "pgbouncer-host"
+              # GTS_DB_DATABASE:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: &pgsec "pg-gotosocial-pguser-gotosocial"
+              #       key: "dbname"
+              # GTS_DB_USER:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: *pgsec
+              #       key: "user"
+              # GTS_DB_PASSWORD:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: *pgsec
+              #       key: "password"
+              #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage/media"
               GTS_STORAGE_BACKEND: "s3"
               GTS_STORAGE_S3_PROXY: "true"
               GTS_STORAGE_S3_USE_SSL: "false"
@@ -94,6 +96,8 @@ spec:
             envFrom: &envFrom
               - secretRef:
                   name: gotosocial-secrets
+              - secretRef:
+                  name: gotosocial-media-s3
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -106,16 +110,16 @@ spec:
               limits:
                 cpu: "1"
                 memory: 1536Mi
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup: # in case of large DB migrations
-                enabled: true
-                spec:
-                  periodSeconds: 1
-                  failureThreshold: 14400
+            # probes:
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup: # in case of large DB migrations
+            #     enabled: true
+            #     spec:
+            #       periodSeconds: 1
+            #       failureThreshold: 14400
     service:
       app:
         controller: app
@@ -154,18 +158,25 @@ spec:
                 path: /api/v1/media
         tls: *tls
     persistence:
+      data:
+        existingClaim: gotosocial-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /gotosocial/storage
       tmp:
         type: emptyDir
         medium: Memory
         sizeLimit: 128Mi
-      pg-ca:
-        type: secret
-        #name: pg-authentik-pgbouncer
-        name: pg-gotosocial-cluster-cert
-        defaultMode: 0400
-        globalMounts:
-          - subPath: ca.crt
-            path: *pgca
+      # pg-ca:
+      #   type: secret
+      #   #name: pg-authentik-pgbouncer
+      #   name: pg-gotosocial-cluster-cert
+      #   defaultMode: 0400
+      #   globalMounts:
+      #     - subPath: ca.crt
+      #       path: *pgca
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -175,7 +186,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true # TODO: tmp migrate
-        runAsUser: &uid 1000
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
