@@ -32,7 +32,7 @@ spec:
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.all(s, s.reason == "WaitingForManual") && status.latestMoverStatus.result == "Successful"
+      current: status.conditions.all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       inProgress: status.conditions.all(s, s.reason == "SyncInProgress")
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
   postBuild:
