@@ -3,11 +3,11 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: ${APPNAME}-app
-  namespace: flux-system
+  namespace: &ns ${APPNAME}
   labels: &l
     app.kubernetes.io/name: "${APPNAME}"
 spec:
-  targetNamespace: "${APPNAME}"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/${APPNAME}/app
@@ -28,7 +28,7 @@ metadata:
     app.kubernetes.io/name: ${APPNAME}
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: ${APPNAME}
+  targetNamespace: &ns ${APPNAME}
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -37,7 +37,7 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "${APPNAME}-data"
+      PVC: &pvc "${APPNAME}-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
@@ -47,12 +47,21 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
-      # RUID: !!str &uid |
-      #   ${APP_UID_APPNAME:=1000}
-      # RGID: !!str |
-      #   ${APP_UID_APPNAME:=1000}
-      # RFSG: !!str |
-      #   ${APP_UID_APPNAME:=1000}
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "${APPNAME}-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.all(s, s.reason == "WaitingForManual") && status.latestMoverStatus.result == "Successful"
+      inProgress: status.conditions.all(s, s.reason == "SyncInProgress")
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
