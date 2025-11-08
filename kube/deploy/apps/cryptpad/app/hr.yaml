@@ -24,7 +24,10 @@ spec:
           labels:
             ingress.home.arpa/nginx-external: allow
             authentik.home.arpa/https: allow
-            egress.home.arpa/github: allow
+            egress.home.arpa/github: allow # will be de-escalated
+            egress.home.arpa/apiserver: allow # will be de-escalated
+        serviceAccount:
+          identifier: app
         containers:
           app:
             image: &img
@@ -57,21 +60,39 @@ spec:
             env: *env
             command: ["/cryptpad/install-onlyoffice.sh", "--accept-license", "--trust-repository"]
             securityContext: *sc
-          # 02-install-plugin-sso:
-          #   image: *img
-          #   env:
-          #     # renovate: datasource=github-tags depName=cryptpad/sso
-          #     SSO_VERSION: "0.3.0"
-          #   command: ["/usr/bin/env", "bash", "-c"]
-          #   args:
-          #     - |
-          #       cd /cryptpad/lib/plugins
-          #       git clone --depth 1 --branch $(SSO_VERSION) https://github.com/cryptpad/sso || cd sso; git pull
-          #   securityContext: *sc
-          99-npm-build:
+          02-install-plugin-sso:
             image: *img
-            env: *env
+            command: ["/usr/bin/env", "bash", "-c"]
+            args:
+              - |
+                cd /cryptpad/lib/plugins
+                git clone --no-checkout --filter=tree:0 --depth 1 https://github.com/cryptpad/sso || true
+                cd sso
+                git fetch --depth 1 origin $(SSO_VERSION)
+                git checkout FETCH_HEAD
+            env:
+              # renovate: datasource=github-tags depName=cryptpad/sso
+              SSO_VERSION: "0.4.0"
+            securityContext: *sc
+          03-npm-build:
+            image: *img
             command: ["npm", "run", "build"]
+            env: *env
+            securityContext: *sc
+          99-de-escalate-netpols:
+            image:
+              repository: registry.k8s.io/kubectl
+              tag: v1.34.1@sha256:59bafa07ff3a6d4b417e7633ddb9d79a9606ca98bf64bac080b3e65748669250
+            command: ["kubectl", "label", "pods", "--namespace", "$(POD_NS)", "$(POD_NAME)", "egress.home.arpa/github-", "egress.home.arpa/apiserver-"]
+            env:
+              POD_NAME:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              POD_NS:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
             securityContext: *sc
     service:
       app:
@@ -136,18 +157,42 @@ spec:
             path: /cryptpad/www/common/onlyoffice/dist
           - subPath: onlyoffice-conf
             path: /cryptpad/onlyoffice-conf
-      sso:
-        type: image
-        image:
-          repository: jank.ing/jjgadgets/cryptpad-sso
-          tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
-        globalMounts:
-          - subPath: cryptpad/lib/plugins/sso
-            path: /cryptpad/lib/plugins/sso
+      # sso:
+      #   type: image
+      #   image:
+      #     repository: jank.ing/jjgadgets/cryptpad-sso
+      #     tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
+      #   globalMounts:
+      #     - subPath: cryptpad/lib/plugins/sso
+      #       path: /cryptpad/lib/plugins/sso
       tmp:
         type: emptyDir
         medium: Memory
         sizeLimit: 100Mi
+      serviceaccount:
+        type: custom
+        volumeSpec:
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  expirationSeconds: 600
+                  path: token
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.namespace
+                      path: namespace
+        advancedMounts:
+          app:
+            99-de-escalate-netpols:
+              - path: /var/run/secrets/kubernetes.io/serviceaccount
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -173,3 +218,23 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/{{ .Release.Name }}
                     operator: DoesNotExist
+    serviceAccount:
+      app: {}
+    rbac:
+      roles:
+        app:
+          type: Role
+          rules:
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["get", "list", "patch", "update", "watch"]
+              resourceNames: ["cryptpad-0"] # MutatingAdmissionPolicy will handle this
+      bindings:
+        app:
+          type: RoleBinding
+          roleRef:
+            kind: Role
+            identifier: app
+          subjects:
+            - kind: ServiceAccount
+              identifier: app

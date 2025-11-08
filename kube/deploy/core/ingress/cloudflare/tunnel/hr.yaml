@@ -21,7 +21,7 @@ spec:
       prom.home.arpa/kps: "allow"
     image:
       repository: cloudflare/cloudflared
-      tag: 2025.10.0@sha256:396cd2e6f021275ad09969a1b4f1a7e62ca5349fde62781ce082bb2c18105c70
+      tag: 2025.11.1@sha256:89ee50efb1e9cb2ae30281a8a404fed95eb8f02f0a972617526f8c5b417acae2
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
@@ -46,6 +46,10 @@ spec:
         mountPath: /etc/cloudflared/credentials.json
         subPath: credentials.json
         readOnly: true
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
     configMaps:
       config:
         enabled: true
@@ -67,8 +71,7 @@ spec:
                 service: "http://webhook-receiver.flux-system.svc.cluster.local:80"
 
               - hostname: "social.jjgadgets.tech"
-                service: http://gotosocial.gotosocial.svc.cluster.local.:8080
-                #service: https://gotosocial.gotosocial.svc.cluster.local.:8080
+                service: http://gotosocial.gotosocial.svc.cluster.local:80
                 #originRequest:
                 #  originServerName: "social.jjgadgets.tech"
 
