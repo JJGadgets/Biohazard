@@ -30,12 +30,13 @@ spec:
             authentik.home.arpa/https: "allow"
             egress.home.arpa/internet: "allow"
             prom.home.arpa/kps: "allow"
+          annotations:
             fluentbit.io/parser: "logfmt"
         containers:
           app:
             image: &img
               repository: "docker.io/superseriousbusiness/gotosocial"
-              tag: "0.18.3@sha256:5eb48f2273092126e71e1290c80c92df90ba3ef72b1e81de070ae38fd5d85d27"
+              tag: 0.19.2@sha256:1aa074861fdb9913950ea9ee8923f342a1593b4c66dd9c3a1592140ac9164966
             env: &env
               TZ: "${CONFIG_TZ}"
               GTS_APPLICATION_NAME: "The JJGadgets Hut"
@@ -95,6 +96,8 @@ spec:
             envFrom: &envFrom
               - secretRef:
                   name: gotosocial-secrets
+              - secretRef:
+                  name: gotosocial-media-s3
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
