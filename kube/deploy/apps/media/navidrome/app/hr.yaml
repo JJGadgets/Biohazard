@@ -79,7 +79,7 @@ spec:
                 enabled: true
     service:
       app:
-        controller: navidrome
+        controller: app
         type: LoadBalancer # TODO: tmp to test Amperfy song restart bug https://github.com/BLeeEZ/amperfy/issues/305
         annotations:
           coredns.io/hostname: "svc-${APP_DNS_NAVIDROME:=${APPNAME}}"
@@ -91,7 +91,7 @@ spec:
             protocol: HTTP
             appProtocol: http
     ingress:
-      main:
+      app:
         className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/auth-signin: |-
@@ -196,15 +196,15 @@ spec:
                   - key: fuckoff.home.arpa/navidrome
                     operator: DoesNotExist
     serviceMonitor:
-      main:
+      app:
         serviceName: *app
         endpoints:
           - port: http
             scheme: http
             path: *metrics
     networkpolicies:
-      maloja:
-        controller: navidrome
+      to-maloja:
+        controller: app
         policyTypes: [Egress]
         rules:
           egress:
