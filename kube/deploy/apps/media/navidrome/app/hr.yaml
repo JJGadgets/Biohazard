@@ -125,26 +125,26 @@ spec:
       data:
         existingClaim: navidrome-data
         advancedMounts:
-          navidrome:
-            main:
+          app:
+            app:
               - subPath: data
                 path: /data
       media:
         existingClaim: media-data
         advancedMounts:
-          navidrome:
+          app:
             edit:
               - &mount
                 subPath: Music
                 path: /media/ceph
-            main:
+            app:
               - <<: *mount
                 readOnly: true
       bulk:
         existingClaim: media-bulk
         advancedMounts:
-          navidrome:
-            edit:
+          app:
+            app:
               - subPath: music-edit-venv
                 path: /config/.venv
       nfs:
@@ -152,12 +152,12 @@ spec:
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
         advancedMounts:
-          navidrome:
+          app:
             edit:
               - &mount
                 subPath: Music
                 path: /media/nfs
-            main:
+            app:
               - <<: *mount
                 readOnly: true
       tmp:
