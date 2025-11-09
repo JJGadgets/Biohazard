@@ -62,40 +62,59 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               # PostgreSQL
-              AUTHENTIK_POSTGRESQL__HOST:
+              AUTHENTIK_POSTGRESQL__HOST: &pghost
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
-                    key: pgbouncer-host
-                    # key: host
-              AUTHENTIK_POSTGRESQL__PORT:
+                    # key: pgbouncer-host
+                    key: host
+              AUTHENTIK_POSTGRESQL__PORT: &pgport
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     #key: pgbouncer-port
                     key: port
-              AUTHENTIK_POSTGRESQL__NAME:
+              AUTHENTIK_POSTGRESQL__NAME: &pgname
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: dbname
-              AUTHENTIK_POSTGRESQL__USER:
+              AUTHENTIK_POSTGRESQL__USER: &pguser
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: user
-              AUTHENTIK_POSTGRESQL__PASSWORD:
+              AUTHENTIK_POSTGRESQL__PASSWORD: &pgpass
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: password
-              AUTHENTIK_POSTGRESQL__SSLMODE: verify-ca
+              AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG than Redis
-              # pgBouncer
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: "0" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
-              AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: "true"
-              AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
+              # pgBouncer / Database Connection Health
+              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "None" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
+              # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
+              # Read Replicas
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgpage
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgpage
+              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
               # KV cache
               AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
               # media storage
