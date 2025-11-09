@@ -66,8 +66,8 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
-                    # key: pgbouncer-host
-                    key: host
+                    key: pgbouncer-host
+                    # key: host
               AUTHENTIK_POSTGRESQL__PORT: &pgport
                 valueFrom:
                   secretKeyRef:
@@ -93,28 +93,28 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG than Redis
               # pgBouncer / Database Connection Health
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "60" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "0" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
-              # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
+              AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
               # KV cache
               AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
               # media storage
