@@ -172,9 +172,10 @@ spec:
   proxy:
     pgBouncer:
       port: 5432
-      replicas: 3
-      # config:
-      #   global:
+      replicas: ${PGBOUNCER_REPLICAS:=3}
+      config:
+        global:
+          track_extra_parameters: "IntervalStyle,search_path"
       #     pool_mode: "transaction"
       resources:
         requests:
