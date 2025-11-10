@@ -1,0 +1,175 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app strfry
+  namespace: *app
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.4.0
+      sourceRef:
+        name: bjw-s
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/hoytech/strfry
+              tag: latest@sha256:03e9572b264bb6c136339c1c169af8c4c6f92febc35506e60a8aa7ff4e6281b5
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 8080
+            protocol: HTTP
+            appProtocol: http
+    ingress:
+      app:
+        className: nginx-public
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hosts:
+          - host: &host "strfry.jjgadgets.tech"
+            paths: &paths
+              - path: /
+                pathType: Prefix
+                service:
+                  identifier: app
+                  port: http
+        tls:
+          - hosts: [*host]
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          app:
+            app:
+              - subPath: strfry.conf
+                path: /etc/strfry.conf
+      data:
+        existingClaim: strfry-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+    configMaps:
+      config:
+        data:
+          strfry.conf: |
+            db = "/data"
+
+            dbParams {
+                # Disables read-ahead when accessing the LMDB mapping. Reduces IO activity when DB size is larger than RAM. (restart required)
+                noReadAhead = false
+            }
+
+            events {
+                # Maximum size of normalised JSON, in bytes
+                maxEventSize = 65536
+                # Maximum number of tags allowed
+                maxNumTags = 2000
+                # Maximum size for tag values, in bytes
+                maxTagValSize = 1024
+            }
+
+            relay {
+                bind = "0.0.0.0"
+                port = 8080
+                # Set OS-limit on maximum number of open files/sockets (if 0, don't attempt to set) (restart required)
+                nofiles = 1000000
+                # HTTP header that contains the client's real IP, before reverse proxying (ie x-real-ip) (MUST be all lower-case)
+                realIpHeader = "x-real-ip"
+                info {
+                    name = "The JJGadgets Hut"
+                    description = "Home to the Destroyer of Tech, JJGadgets."
+                    pubkey = "" # NIP-11: Administrative nostr pubkey, for contact purposes
+                    contact = "https://jjgadgets.tech"
+                    icon = "https://jjgadgets.tech/images/icon.png"
+                }
+
+                # Maximum accepted incoming websocket frame size (should be larger than max event) (restart required)
+                maxWebsocketPayloadSize = 131072
+                # Maximum number of filters allowed in a REQ
+                maxReqFilterSize = 200
+                # Websocket-level PING message frequency (should be less than any reverse proxy idle timeouts) (restart required)
+                autoPingSeconds = 55
+                # If TCP keep-alive should be enabled (detect dropped connections to upstream reverse proxy)
+                enableTcpKeepalive = true
+
+                writePolicy {
+                    plugin = ""
+                }
+
+                logging {
+                    invalidEvents = false
+                }
+            }
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

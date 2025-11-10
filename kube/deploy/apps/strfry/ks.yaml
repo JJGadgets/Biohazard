@@ -2,33 +2,32 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ${APPNAME}-app
-  namespace: &ns ${APPNAME}
+  name: strfry-app
+  namespace: &ns strfry
   labels: &l
-    app.kubernetes.io/name: "${APPNAME}"
+    app.kubernetes.io/name: "strfry"
 spec:
   targetNamespace: *ns
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/${APPNAME}/app
+  path: ./kube/deploy/apps/strfry/app
   components:
     - ../../../core/flux-system/alerts/template/
   dependsOn:
     - name: crds
       namespace: flux-system
-    - name: ${APPNAME}-db
-    - name: ${APPNAME}-pvc
+    - name: strfry-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: ${APPNAME}-pvc
-  namespace: &ns ${APPNAME}
+  name: strfry-pvc
+  namespace: &ns strfry
   labels: &l
-    app.kubernetes.io/name: ${APPNAME}
+    app.kubernetes.io/name: strfry
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: *ns
+  targetNamespace: &ns strfry
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -37,13 +36,13 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: &pvc "${APPNAME}-data"
+      PVC: &pvc "strfry-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "${IMAGENAME}:${IMAGETAG}"
+      VS_APP_CURRENT_VERSION: "ghcr.io/hoytech/strfry:latest@sha256:03e9572b264bb6c136339c1c169af8c4c6f92febc35506e60a8aa7ff4e6281b5"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
@@ -54,7 +53,7 @@ spec:
       namespace: *ns
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      name: "${APPNAME}-data-r2-updates-restic"
+      name: "strfry-data-r2-updates-restic"
       namespace: *ns
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
@@ -62,27 +61,3 @@ spec:
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: ${APPNAME}-db
-  namespace: &ns pg
-  labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
-    app.kubernetes.io/name: "${APPNAME}"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: *ns
-  dependsOn:
-    - name: 1-core-db-pg-clusters-default
-    - name: 1-core-secrets-es-k8s
-  postBuild:
-    substitute:
-      PG_NAME: "default"
-      PG_DB_USER: &app "${APPNAME}"
-      PG_APP_NS: *app
-      PG_APP_CURRENT_VERSION: "${IMAGENAME}:${IMAGETAG}"
