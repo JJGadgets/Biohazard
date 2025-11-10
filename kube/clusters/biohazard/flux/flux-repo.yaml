@@ -65,6 +65,17 @@ spec:
         spec:
           interval: 5m0s
           timeout: 10m0s
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        version: v1
+        kind: Kustomization
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: not-used
+          namespace: flux-system
+        spec:
           decryption:
             provider: sops
             secretRef:
@@ -73,6 +84,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
+        namespace: flux-system
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
