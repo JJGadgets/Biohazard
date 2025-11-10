@@ -15,8 +15,6 @@ spec:
         key: ".${CLUSTER_NAME}-vars"
     - extract:
         key: "authentik vars - ${CLUSTER_NAME}"
-    - extract:
-        key: "strfry - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -27,7 +25,5 @@ spec:
         # Core cluster-wide vars
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
-        # App specific
-        APP_DNS_APPNAME: '{{ .APP_DNS_APPNAME }}'
         # Other cluster-wide vars
         DNS_CF: '{{ .DNS_CF }}'
