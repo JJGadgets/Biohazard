@@ -30,8 +30,6 @@ spec:
             authentik.home.arpa/https: "allow"
             egress.home.arpa/internet: "allow"
             prom.home.arpa/kps: "allow"
-          annotations:
-            fluentbit.io/parser: "logfmt"
         containers:
           app:
             image: &img
@@ -44,43 +42,30 @@ spec:
               GTS_HOST: &host "social.jjgadgets.tech"
               GTS_ACCOUNT_DOMAIN: "jjgadgets.tech"
               GTS_PROTOCOL: "https" # not HTTP server listen mode, but used for generating URLs etc
+              GTS_BIND_ADDRESS: &ip
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
               GTS_PORT: &http 8080
               GTS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
               GTS_ADVANCED_RATE_LIMIT_EXCEPTIONS: "${IP_JJ_V4}"
               GTS_ACCOUNTS_REGISTRATION_OPEN: "false"
+              GTS_LOG_FORMAT: json
               GTS_METRICS_ENABLED: "true"
+              OTEL_METRICS_PRODUCERS: prometheus
+              OTEL_METRICS_EXPORTER: prometheus
+              OTEL_EXPORTER_PROMETHEUS_HOST: *ip
+              OTEL_EXPORTER_PROMETHEUS_PORT: &prom 9464
               GTS_OIDC_ENABLED: "true"
               GTS_OIDC_IDP_NAME: "JJGadgets Auth"
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "sqlite"
               GTS_DB_ADDRESS: "/gotosocial/storage/db/gotosocial.db"
-              # GTS_DB_TLS_MODE: "enable"
-              # GTS_DB_TLS_CA_CERT: &pgca /secrets/pg/ca.crt
-              # GTS_DB_ADDRESS: "pg-gotosocial-pgbouncer.gotosocial.svc.cluster.local"
-              # #  valueFrom:
-              # #    secretKeyRef:
-              # #      name: &pgsec "pg-gotosocial-pguser-gotosocial"
-              # #      key: "pgbouncer-host"
-              # GTS_DB_DATABASE:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: &pgsec "pg-gotosocial-pguser-gotosocial"
-              #       key: "dbname"
-              # GTS_DB_USER:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: *pgsec
-              #       key: "user"
-              # GTS_DB_PASSWORD:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: *pgsec
-              #       key: "password"
               #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage/media"
               GTS_STORAGE_BACKEND: "s3"
               GTS_STORAGE_S3_PROXY: "true"
               GTS_STORAGE_S3_USE_SSL: "false"
-              #GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local.:6953"
               GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
               GTS_STORAGE_S3_BUCKET: "gotosocial-media"
               GTS_STORAGE_S3_ACCESS_KEY:
@@ -110,23 +95,29 @@ spec:
               limits:
                 cpu: "1"
                 memory: 1536Mi
-            # probes:
-            #   liveness:
-            #     enabled: true
-            #   readiness:
-            #     enabled: true
-            #   startup: # in case of large DB migrations
-            #     enabled: true
-            #     spec:
-            #       periodSeconds: 1
-            #       failureThreshold: 14400
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup: # in case of large DB migrations
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 14400
     service:
       app:
         controller: app
         ports:
           http:
+            primary: true
             port: 80
             targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+          metrics:
+            primary: false
+            port: *prom
             protocol: HTTP
             appProtocol: http
     ingress:
@@ -221,6 +212,6 @@ spec:
         service:
           identifier: app
         endpoints:
-          - port: http
+          - port: metrics
             scheme: http
             path: /metrics
