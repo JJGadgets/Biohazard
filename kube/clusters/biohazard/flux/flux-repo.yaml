@@ -93,6 +93,12 @@ spec:
           path: /spec/dependsOn/-
           value:
             name: 0-biohazard-config
+            namespace: flux-system
+        - op: add
+          path: /spec/dependsOn/-
+          value:
+            name: zzz-flux-repos-helm
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -108,16 +114,6 @@ spec:
     #     version: v1
     #     kind: Kustomization
     #     labelSelector: kustomization.flux.home.arpa/name notin (cilium, flux, kubevirt)
-    - patch: |
-        - op: add
-          path: /spec/dependsOn/-
-          value:
-            name: zzz-flux-repos-helm
-      target:
-        group: kustomize.toolkit.fluxcd.io
-        version: v1
-        kind: Kustomization
-        labelSelector: kustomization.flux.home.arpa/default notin (false, no-deps)
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -133,7 +129,7 @@ spec:
                 optional: false
               - kind: Secret
                 name: biohazard-secrets
-                optional: false
+                optional: true
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -548,10 +544,12 @@ spec:
           path: /spec/dependsOn/-
           value:
             name: 0-biohazard-config
+            namespace: flux-system
         - op: add
           path: /spec/dependsOn/-
           value:
             name: zzz-flux-repos-helm
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -568,6 +566,7 @@ spec:
           path: /spec/dependsOn/-
           value:
             name: 1-core-1-networking-cilium-app
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
