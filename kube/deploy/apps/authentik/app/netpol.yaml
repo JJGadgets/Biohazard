@@ -33,9 +33,10 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # allow Duo
+    # allow external auth services (Duo & Plex)
     - toFQDNs:
         - &duo { matchPattern: "api-*.duosecurity.com" }
+        - &plex { matchName: "plex.tv" }
       toPorts:
         - ports:
             - port: "443"
@@ -61,6 +62,7 @@ spec:
             dns:
               - *duo
               - *smtp
+              - *plex
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
