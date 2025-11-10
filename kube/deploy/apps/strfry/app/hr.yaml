@@ -23,7 +23,7 @@ spec:
         strategy: RollingUpdate
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/nginx-public: allow
             egress.home.arpa/internet: allow
         containers:
           app:
