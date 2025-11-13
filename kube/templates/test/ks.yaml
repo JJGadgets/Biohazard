@@ -13,11 +13,15 @@ spec:
   path: ./kube/deploy/apps/${APPNAME}/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm/oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
-    - name: ${APPNAME}-db
+    # - name: ${APPNAME}-db
     - name: ${APPNAME}-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
