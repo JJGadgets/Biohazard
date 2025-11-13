@@ -10,7 +10,7 @@ spec:
   chartRef:
     kind: OCIRepository
     name: *app
-    namespace: *ns
+    namespace: *app
   values:
     controllers:
       app:
