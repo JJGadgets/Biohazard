@@ -20,7 +20,7 @@ spec:
     crds:
       enabled: true
     extraArgs:
-      - --dns01-recursive-nameservers="https://cloudflare-dns.com/dns-query","https://one.one.one.one/dns-query","https://1.1.1.1:443/dns-query","https://1.0.0.1:443/dns-query","https://security.cloudflare-dns.com/dns-query","https://1.1.1.2:443/dns-query","https://1.0.0.2:443/dns-query","https://family.cloudflare-dns.com/dns-query","https://1.1.1.3:443/dns-query","https://1.0.0.3:443/dns-query"
+      - --dns01-recursive-nameservers="https://1.0.0.1:443/dns-query","https://security.cloudflare-dns.com/dns-query","https://1.1.1.2:443/dns-query","https://1.0.0.2:443/dns-query","https://family.cloudflare-dns.com/dns-query","https://1.1.1.3:443/dns-query","https://1.0.0.3:443/dns-query"
       - --dns01-recursive-nameservers-only
     featureGates: "AdditionalCertificateOutputFormats=true"
     webhook:
