@@ -30,6 +30,7 @@ spec:
             egress.home.arpa/appletv: allow
             egress.home.arpa/r2: allow
             egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
+            # egress.home.arpa/github: allow
             db.home.arpa/mqtt: allow
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
@@ -40,7 +41,7 @@ spec:
             k8s.v1.cni.cncf.io/networks: |
               [{
                 "name":"iot",
-                "namespace": "home-assistant",
+                "namespace": "multus",
                 "ips": ["${APP_IP_HOME_ASSISTANT_IOT}"],
                 "mac": "${APP_MAC_HOME_ASSISTANT_IOT}",
                 "gateway": "${IP_ROUTER_VLAN_IOT}"
@@ -71,34 +72,6 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-          litestream: &ls
-            image:
-              repository: "docker.io/litestream/litestream"
-              tag: "0.3.13@sha256:027eda2a89a86015b9797d2129d4dd447e8953097b4190e1d5a30b73e76d8d58"
-            args: ["replicate"]
-            envFrom:
-              - secretRef:
-                  name: litestream-secrets
-            env: &lsenv
-              DB_PATH: "/config/home-assistant_v2.db"
-              REMOTE_PATH: "home-assistant/home-assistant_v2"
-              VALIDATION_INTERVAL: "24h"
-              AGE_PUBKEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: "home-assistant-secrets"
-                    key: "AGE_PUBKEY"
-              AGE_SECRET:
-                valueFrom:
-                  secretKeyRef:
-                    name: "home-assistant-secrets"
-                    key: "AGE_SECRET"
-            securityContext: *sc
-        initContainers:
-          01-litestream-restore:
-            <<: *ls
-            args: ["restore", "-if-db-not-exists", "-if-replica-exists", "/config/home-assistant_v2.db"]
-            env: *lsenv
     service:
       app:
         primary: true
@@ -167,7 +140,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 16Mi
+        sizeLimit: 50Mi
         globalMounts:
           - subPath: "tmp"
             path: "/tmp"
