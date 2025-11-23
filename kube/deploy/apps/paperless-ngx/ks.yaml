@@ -3,63 +3,82 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: paperless-ngx-app
-  namespace: flux-system
+  namespace: &ns paperless-ngx
   labels: &l
     app.kubernetes.io/name: "paperless-ngx"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/paperless-ngx/app
-  targetNamespace: "paperless-ngx"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm/oci/app-template/
   dependsOn:
-    - name: paperless-ngx-db
+    - name: crds
+      namespace: flux-system
     - name: paperless-ngx-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: paperless-ngx-pvc
-  namespace: flux-system
+  namespace: &ns paperless-ngx
   labels: &l
-    app.kubernetes.io/name: "paperless-ngx"
+    app.kubernetes.io/name: paperless-ngx
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "paperless-ngx"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "paperless-ngx-data"
+      PVC: &pvc "paperless-ngx-data"
       SIZE: "100Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_PAPERLESS_NGX}
-      RGID: !!str |
-        ${APP_UID_PAPERLESS_NGX}
-      RFSG: !!str |
-        ${APP_UID_PAPERLESS_NGX}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/paperless-ngx/paperless-ngx:2.19.6@sha256:719a4e4c4314b417646b00e58bfbfbe55e4cb59017a2dec1533e96d8deb66ec1"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "paperless-ngx-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: paperless-ngx-db
+  name: authentik-paperless-ngx
   namespace: flux-system
-  labels:
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-home"
+  labels: &l
+    app.kubernetes.io/name: "paperless-ngx"
 spec:
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
+  targetNamespace: "authentik"
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/authentik/forward-auth
   dependsOn:
-    - name: 1-core-db-pg-clusters-home
-    - name: 1-core-secrets-es-k8s
+    - name: authentik-app
   postBuild:
     substitute:
-      PG_NAME: "home"
-      PG_DB_USER: &app "paperless-ngx"
-      PG_APP_NS: *app
+      AUTHENTIK_PROXY_HOST: "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"

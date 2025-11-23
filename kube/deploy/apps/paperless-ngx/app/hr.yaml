@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -6,40 +7,33 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 2.6.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *app
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            db.home.arpa/pg: "pg-home"
-            ingress.home.arpa/nginx-internal: "allow"
-            authentik.home.arpa/https: "allow"
-            # egress.home.arpa/nginx-external: "allow" # authentik # commented out currently because only OIDC needs this
+            ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/https: allow
         containers:
-          main:
-            image:
-              repository: "ghcr.io/paperless-ngx/paperless-ngx"
-              tag: "2.19.6@sha256:719a4e4c4314b417646b00e58bfbfbe55e4cb59017a2dec1533e96d8deb66ec1"
-            args: ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf", "--user", "paperless", "--logfile", "/tmp/supervisord.log", "--pidfile", "/tmp/supervisord.pid"]
+          app:
+            image: &img
+              repository: ghcr.io/paperless-ngx/paperless-ngx
+              tag: 2.19.6@sha256:719a4e4c4314b417646b00e58bfbfbe55e4cb59017a2dec1533e96d8deb66ec1
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port "8000"
               PAPERLESS_TIME_ZONE: "${CONFIG_TZ}"
-              PAPERLESS_WEBSERVER_WORKERS: "2"
+              PAPERLESS_WEBSERVER_WORKERS: "2" # TODO: use fieldRef for this
               PAPERLESS_TASK_WORKERS: "2"
               PAPERLESS_REDIS: "unix:///sockets/redis.sock"
               PAPERLESS_CONSUMPTION_DIR: &consume "/data/consume"
-              PAPERLESS_DATA_DIR: &pvc "/data/data"
+              PAPERLESS_DATA_DIR: &pvc "/data/data" # including PVC
               PAPERLESS_EXPORT_DIR: &export "/data/export"
               PAPERLESS_MEDIA_ROOT: &media "/data/media"
               PAPERLESS_TRASH_DIR: &trash "/data/trash"
@@ -54,34 +48,8 @@ spec:
               PAPERLESS_TIKA_ENABLED: "true"
               PAPERLESS_TIKA_ENDPOINT: "http://tika.paperless-ngx.svc.cluster.local"
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg.paperless-ngx.svc.cluster.local"
-              PAPERLESS_DBENGINE: "postgresql"
-              # PAPERLESS_DBSSLMODE: "verify-full"
-              # PAPERLESS_DBSSLROOTCERT: &pg-ca "/pg-tls/ca.crt"
-              PAPERLESS_DBHOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: &pguser "pg-home-pguser-paperless-ngx"
-                    key: "pgbouncer-host"
-              PAPERLESS_DBPORT:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pguser
-                    key: "pgbouncer-port"
-              PAPERLESS_DBNAME:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pguser
-                    key: "dbname"
-              PAPERLESS_DBUSER:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pguser
-                    key: "user"
-              PAPERLESS_DBPASS:
-                valueFrom:
-                  secretKeyRef:
-                    name: *pguser
-                    key: "password"
+              USERMAP_UID: &uid 1000
+              USERMAP_GID: *uid
             envFrom:
               - secretRef:
                   name: "paperless-ngx-secrets"
@@ -93,10 +61,14 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "1000Mi"
               limits:
-                cpu: "3000m"
-                memory: "3000Mi"
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
@@ -116,16 +88,21 @@ spec:
         containers:
           main:
             image:
-              repository: "ghcr.io/paperless-ngx/tika"
-              tag: "2.9.1-full@sha256:d59c38244949a418ef16be676eeea770e1616b45986661847d373f4de048a37e"
+              repository: docker.io/apache/tika
+              tag: 3.2.3.0@sha256:c0154cb95587cde64be74f35ada1a2bd7892219f3f0ac3c9dc6cab34046b3573
             securityContext: *sc
             resources: # TODO: adjust (Java app)
               requests:
                 cpu: "10m"
                 memory: "256Mi"
               limits:
-                cpu: "3000m"
-                memory: "6000Mi"
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
       gotenberg:
         type: deployment
         replicas: 1
@@ -141,74 +118,81 @@ spec:
                 cpu: "10m"
                 memory: "64Mi"
               limits:
-                cpu: "3000m"
-                memory: "6000Mi"
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: *port
+            port: 80
+            targetPort: *port
+            protocol: HTTP
+            appProtocol: http
       tika:
-        controller: "tika"
+        controller: tika
         ports:
-          tika:
+          http:
             port: 80
             targetPort: 9998
+            protocol: HTTP
+            appProtocol: http
       gotenberg:
-        controller: "gotenberg"
+        controller: gotenberg
         ports:
-          gotenberg:
+          http:
             port: 80
             targetPort: 3000
+            protocol: HTTP
+            appProtocol: http
     ingress:
-      main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
+      app:
+        className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_PAPERLESS_NGX:=paperless}"
-            paths:
-              - path: "/"
+          - host: &host "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"
+            paths: &paths
+              - path: /
                 pathType: Prefix
                 service:
-                  name: main
+                  identifier: app
                   port: http
         tls:
-          - hosts:
-              - *host
+          - hosts: [*host]
     persistence:
       data:
-        enabled: true
-        existingClaim: "paperless-ngx-data"
+        existingClaim: paperless-ngx-data
         globalMounts:
           - subPath: "consume"
-            path: "/data/consume"
+            path: *consume
           - subPath: "data"
-            path: "/data/data"
+            path: *pvc
           - subPath: "export"
-            path: "/data/export"
+            path: *export
           - subPath: "media"
-            path: "/data/media"
+            path: *media
           - subPath: "trash"
-            path: "/data/trash"
-      nas:
-        enabled: true
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_PERSIST_K8S:=/data}/paperless-ngx"
-        advancedMounts:
-          main:
-            main:
-              - path: "/nas"
+            path: *trash
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: ${PATH_NAS_PERSIST_K8S:=/data}/paperless-ngx
+      #   globalMounts:
+      #     - path: /nfs
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
         advancedMounts:
           main:
             main:
-              - subPath: "paperless"
-                path: "/tmp"
               - subPath: "apt"
                 path: "/var/lib/apt"
               - &sockdir
@@ -216,49 +200,46 @@ spec:
                 path: "/sockets"
             redis:
               - *sockdir
-          tika:
-            main:
-              - subPath: "tika"
-                path: "/tmp"
-          gotenberg:
-            main:
-              - subPath: "gotenberg"
-                path: "/tmp"
-      # pg-tls:
-      #   enabled: true
-      #   type: secret
-      #   name: "pg-paperless-ngx-cluster-cert"
-      #   defaultMode: 0400
-      #   advancedMounts:
-      #     main:
-      #       main:
-      #         - subPath: "ca.crt"
-      #           path: *pg-ca
-      #           readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
-      enableServiceLinks: false # avoid exposing too much info in env vars in case of lateral movement attempt
+      enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      # hostUsers: true
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: &uid ${APP_UID_PAPERLESS-NGX:=1000}
+      hostUsers: false
       securityContext:
-        runAsNonRoot: false
-        runAsUser: &uid 1000 # hardcoded `paperless` user
+        runAsNonRoot: true
+        runAsUser: *uid # hardcoded `paperless` user
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
         - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: *app
+              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/paperless-ngx"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress: [from: [{podSelector: {}}]]
+          egress: [to: [{podSelector: {}}]]
