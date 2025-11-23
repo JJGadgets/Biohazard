@@ -69,6 +69,12 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+              startup: # in case of large DB migrations
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 300
+                  initialDelaySeconds: 10
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
