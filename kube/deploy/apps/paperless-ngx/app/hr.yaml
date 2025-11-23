@@ -166,17 +166,19 @@ spec:
     persistence:
       data:
         existingClaim: paperless-ngx-data
-        globalMounts:
-          - subPath: "consume"
-            path: *consume
-          - subPath: "data"
-            path: *pvc
-          - subPath: "export"
-            path: *export
-          - subPath: "media"
-            path: *media
-          - subPath: "trash"
-            path: *trash
+        advancedMounts:
+          app:
+            app:
+              - subPath: "consume"
+                path: *consume
+              - subPath: "data"
+                path: *pvc
+              - subPath: "export"
+                path: *export
+              - subPath: "media"
+                path: *media
+              - subPath: "trash"
+                path: *trash
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
