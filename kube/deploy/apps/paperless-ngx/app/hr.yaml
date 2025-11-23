@@ -27,7 +27,7 @@ spec:
               tag: 2.19.6@sha256:719a4e4c4314b417646b00e58bfbfbe55e4cb59017a2dec1533e96d8deb66ec1
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
-              PAPERLESS_PORT: &port "8000"
+              PAPERLESS_PORT: &port 8000
               PAPERLESS_TIME_ZONE: "${CONFIG_TZ}"
               PAPERLESS_WEBSERVER_WORKERS: "2" # TODO: use fieldRef for this
               PAPERLESS_TASK_WORKERS: "2"
@@ -191,8 +191,8 @@ spec:
           - subPath: tmp
             path: /tmp
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: "apt"
                 path: "/var/lib/apt"
               - &sockdir
