@@ -13,7 +13,7 @@ spec:
   path: ./kube/deploy/apps/paperless-ngx/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm/oci/app-template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -79,6 +79,7 @@ spec:
   path: ./kube/deploy/apps/authentik/forward-auth
   dependsOn:
     - name: authentik-app
+      namespace: flux-system # TODO: change to authentik
   postBuild:
     substitute:
       AUTHENTIK_PROXY_HOST: "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"

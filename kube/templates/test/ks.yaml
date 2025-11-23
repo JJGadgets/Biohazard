@@ -13,7 +13,7 @@ spec:
   path: ./kube/deploy/apps/${APPNAME}/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm/oci/app-template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
