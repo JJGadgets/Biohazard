@@ -24,7 +24,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: 2.19.6@sha256:719a4e4c4314b417646b00e58bfbfbe55e4cb59017a2dec1533e96d8deb66ec1
+              tag: 2.20.0@sha256:8ffd737c69a569bbdadc118e7f54b0b1050ffac2868fdf9e390a68cb7c82a79d
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port 8000
@@ -78,7 +78,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.2.3-bookworm@sha256:49887660cd57f34b2b3bfb73ae135e2265320c48c3d76a9294e9851265e140d6"
+              tag: "8.4.0-bookworm@sha256:43355efd22490e31ca14b9d569367d05121e2be61fd8e47937563ae2a80952ae"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
