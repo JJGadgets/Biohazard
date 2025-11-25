@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.2.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 4.2.0
+      version: 4.4.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
@@ -27,7 +27,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/vectordotdev/vector
-              tag: 0.51.0-distroless-libc@sha256:d621ac6a93242dc22b74289887da06ede13b543acfcdc8475e425da5bb8676ab
+              tag: 0.51.1-distroless-libc@sha256:af41941c44d69f439fade0cd12540fa3ba8fa9954ad734b315d905c37931bbe4
             args: ["--config", "/config/fortigate.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
