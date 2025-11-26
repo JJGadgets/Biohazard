@@ -162,7 +162,7 @@ spec:
                     operator: DoesNotExist
     networkpolicies:
       app:
-        controller: app
+        controller: plex
         policyTypes: [Ingress, Egress]
         rules:
           ingress:
