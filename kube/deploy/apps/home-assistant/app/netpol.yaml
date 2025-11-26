@@ -43,6 +43,9 @@ spec:
             io.kubernetes.pod.namespace: media
             app.kubernetes.io/name: plex
     - toFQDNs:
+        # Plex
+        - matchName: "plex.tv"
+        - matchPattern: "*.plex.tv"
         # HACS
         - matchPattern: "*.hacs.xyz"
         # Public Data
