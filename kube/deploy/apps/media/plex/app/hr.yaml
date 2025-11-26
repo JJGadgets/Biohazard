@@ -160,3 +160,18 @@ spec:
               - matchExpressions:
                   - key: fuckoff.home.arpa/plex
                     operator: DoesNotExist
+    networkpolicies:
+      app:
+        controller: plex
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: home-assistant
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: home-assistant
+              ports:
+                - port: *port
