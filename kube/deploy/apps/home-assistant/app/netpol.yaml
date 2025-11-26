@@ -38,6 +38,10 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: go2rtc
             app.kubernetes.io/name: go2rtc
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: plex
     - toFQDNs:
         # HACS
         - matchPattern: "*.hacs.xyz"
