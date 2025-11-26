@@ -35,7 +35,7 @@ jobs:
             echo "i = ${i}"
             # sha=$(gh pr view ${i} --json headRefOid --jq '.headRefOid' --repo ${{ github.event.pull_request.base.repo.full_name }})
             # echo "sha = ${sha}"
-            gh pr update-branch ${i} --repo ${{ github.event.pull_request.base.repo.full_name }}
+            until gh pr update-branch ${i} --repo ${{ github.event.pull_request.base.repo.full_name }}; do sleep 1; done
           done
         # gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${i}/update-branch --field expected_head_sha=${sha}
 
@@ -45,5 +45,5 @@ jobs:
           GITHUB_TOKEN: "${{ steps.oauth-token.outputs.token }}"
         shell: bash
         run: |
-          gh pr update-branch ${{ github.event.pull_request.number }} --repo ${{ github.event.pull_request.base.repo.full_name }}
+          until gh pr update-branch ${{ github.event.pull_request.number }} --repo ${{ github.event.pull_request.base.repo.full_name }}; do sleep 1; done
         # gh api --method PUT /repos/${{ github.event.pull_request.base.repo.full_name }}/pulls/${{ github.event.pull_request.number }}/update-branch --field expected_head_sha=${{ github.event.pull_request.head.sha }}
