@@ -103,6 +103,8 @@ spec:
             devicePathFilter: *osd-s3500-1-6tb
           - name: "chise"
             devicePathFilter: *osd-s3500-1-6tb
+          - name: "dorothy"
+            devicePathFilter: "^/dev/disk/by-id/nvme-INTEL_SSDPF2KX038TZ_PHAC22.*P8AGN_1"
       placement:
         all:
           tolerations:
@@ -425,4 +427,6 @@ spec:
       readAffinity:
         enabled: true
       cephfs:
-        kernelMountOptions: "ms_mode=prefer-secure,recover_session=clean" # needed for mounting CephFS on a cluster with network encryption enabled, and recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
+        kernelMountOptions:
+          ms_mode: prefer-secure # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
+          recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
