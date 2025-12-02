@@ -477,6 +477,8 @@ spec:
         className: nginx-external
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10"
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hosts:
           - host: &host "${APP_DNS_AUTHENTIK:=authentik}"
             paths:
@@ -489,18 +491,18 @@ spec:
         tls: &tls
           - hosts: [*host]
             secretName: authentik-tls
-      external:
-        <<: *ingress
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: *host
-            paths:
-              - <<: *path
-                service:
-                  identifier: app
-                  port: anubis
+      # external:
+      #   <<: *ingress
+      #   annotations:
+      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+      #     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      #   hosts:
+      #     - host: *host
+      #       paths:
+      #         - <<: *path
+      #           service:
+      #             identifier: app
+      #             port: anubis
       harden:
         <<: *ingress
         annotations:
