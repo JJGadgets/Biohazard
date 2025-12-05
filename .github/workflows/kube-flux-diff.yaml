@@ -79,7 +79,7 @@ jobs:
         files: ${{ fromJson(needs.flux-diff.outputs.files) }}
     steps:
       - name: "Generate Short Lived OAuth App Token (ghs_*)"
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: oauth-token
         with:
           app-id: "${{ secrets.BOT_APP_ID }}" # $BOT_APP_ID is found in GitHub App main settings page
