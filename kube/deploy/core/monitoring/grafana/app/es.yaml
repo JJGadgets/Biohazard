@@ -4,7 +4,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: &name grafana-secrets
-  namespace: grafana
+  namespace: monitoring
 spec:
   refreshInterval: 1m
   secretStoreRef:
