@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name grafana-secrets
+  namespace: grafana
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Grafana - ${CLUSTER_NAME}"
+    - extract:
+        key: "authentik vars - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ .SECRET_GRAFANA_OIDC_ID }}"
+        GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ .SECRET_GRAFANA_OIDC_SECRET }}"
+        GF_AUTH_GENERIC_OAUTH_AUTH_URL: "{{ .SECRET_AUTHENTIK_OIDC_URL_AUTHZ }}"
+        GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "{{ .SECRET_AUTHENTIK_OIDC_URL_TOKEN }}"
+        GF_AUTH_GENERIC_OAUTH_API_URL: "{{ .SECRET_AUTHENTIK_OIDC_URL_USERINFO }}"
+        GF_AUTH_SIGNOUT_REDIRECT_URL: "{{ .SECRET_GRAFANA_OIDC_URL_SIGNOUT }}"
