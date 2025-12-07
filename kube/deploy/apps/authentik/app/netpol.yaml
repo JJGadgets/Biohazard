@@ -37,6 +37,7 @@ spec:
     - toFQDNs:
         - &duo { matchPattern: "api-*.duosecurity.com" }
         - &plex { matchName: "plex.tv" }
+        - &hibp { matchPattern: "*.pwnedpasswords.com" }
       toPorts:
         - ports:
             - port: "443"
