@@ -191,6 +191,7 @@ spec:
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             authentik.home.arpa/https: allow
             prom.home.arpa/kps: allow
+            egress.home.arpa/discord: allow
             # egress.home.arpa/internet: allow
           topologySpreadConstraints:
             - <<: *tsc
