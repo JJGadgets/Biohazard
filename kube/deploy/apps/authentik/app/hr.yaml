@@ -213,18 +213,25 @@ spec:
               limits:
                 cpu: "1"
                 memory: 750Mi
-            # probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
-            #   liveness: &worker-probe
-            #     enabled: true
-            #     custom: true
-            #     spec: &wps
-            #       exec:
-            #         command: ["ak", "healthcheck"]
+            probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
+              liveness: &worker-probe
+                enabled: true
+                custom: true
+                spec: &wps
+                  exec:
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        ak healthcheck &&
+                        if curl -s localhost:9300/metrics | grep django_db_errors_total;
+                        then false;
+                        fi
             #   readiness: *worker-probe
-            #   startup:
-            #     <<: *worker-probe
-            #     spec:
-            #       <<: [*startup, *wps]
+              startup:
+                <<: *worker-probe
+                spec:
+                  <<: [*startup, *wps]
       ldap:
         type: deployment
         replicas: 2
