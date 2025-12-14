@@ -19,6 +19,8 @@ kind: Kustomization
 metadata:
   name: authentik-db
   namespace: flux-system
+  labels:
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
