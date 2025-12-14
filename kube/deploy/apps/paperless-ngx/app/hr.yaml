@@ -20,6 +20,12 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             authentik.home.arpa/https: allow
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
         containers:
           app:
             image: &img
@@ -58,12 +64,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
@@ -81,13 +81,6 @@ spec:
               tag: "8.4.0-bookworm@sha256:3906b477e4b60250660573105110c28bfce93b01243eab37610a484daebceb04"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-                memory: "32Mi"
-              limits:
-                cpu: "1000m"
-                memory: "512Mi"
       tika:
         type: deployment
         replicas: 1

@@ -148,10 +148,10 @@ spec:
                 type: HTTP
                 port: http
                 path: "/-/health/live/"
+                spec:
+                  timeoutSeconds: 5
               readiness:
-                enabled: true
-                type: HTTP
-                port: http
+                <<: *probe
                 path: "/-/health/ready/"
               startup:
                 <<: *probe
@@ -214,10 +214,11 @@ spec:
                 cpu: "1"
                 memory: 750Mi
             probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
-              liveness: &worker-probe
+              readiness: &worker-probe
                 enabled: true
                 custom: true
                 spec: &wps
+                  timeoutSeconds: 5
                   exec:
                     command:
                       - /bin/sh
@@ -227,7 +228,11 @@ spec:
                         if curl -s localhost:9300/metrics | grep django_db_errors_total;
                         then false;
                         fi
-            #   readiness: *worker-probe
+              liveness:
+                <<: *worker-probe
+                spec:
+                  <<: *wps
+                  failureThreshold: 6
               startup:
                 <<: *worker-probe
                 spec:

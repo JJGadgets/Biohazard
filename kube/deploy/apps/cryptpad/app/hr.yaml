@@ -228,7 +228,7 @@ spec:
             - apiGroups: [""]
               resources: ["pods"]
               verbs: ["get", "list", "patch", "update", "watch"]
-              resourceNames: ["cryptpad-0"] # MutatingAdmissionPolicy will handle this
+              # resourceNames: ["cryptpad-0"] # MutatingAdmissionPolicy will handle this
       bindings:
         app:
           type: RoleBinding
