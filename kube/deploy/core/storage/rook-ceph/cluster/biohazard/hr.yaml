@@ -427,6 +427,5 @@ spec:
       readAffinity:
         enabled: true
       cephfs:
-        kernelMountOptions:
-          ms_mode: prefer-secure # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
-          recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
+        kernelMountOptions: "ms_mode=prefer-secure" # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
+          # recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
