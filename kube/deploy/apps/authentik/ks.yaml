@@ -36,3 +36,17 @@ spec:
       PG_CONFIG_VERSION: "15.2-11"
       PG_CONFIG_SIZE: "20Gi"
       PG_APP_CURRENT_VERSION: ghcr.io/goauthentik/server:2025.10.2@sha256:acde6a1fc963301fe27f7e86facb9aefbc68eb523210bcab5679a899e6bf72d5
+  patches:
+    - patch: |-
+        apiVersion: postgres-operator.crunchydata.com/v1beta1
+        kind: PostgresCluster
+        metadata:
+          name: not-used
+        spec:
+          patroni:
+            dynamicConfiguration:
+              postgresql:
+                max_connections: 500
+      target:
+        group: postgres-operator.crunchydata.com
+        kind: PostgresCluster
