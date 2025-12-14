@@ -91,7 +91,7 @@ spec:
                     key: password
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl verify-ca
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
-              AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG than Redis
+              AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG
               # pgBouncer / Database Connection Health
               AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
@@ -115,8 +115,6 @@ spec:
               AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
               AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
               AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
-              # KV cache
-              AUTHENTIK_REDIS__HOST: authentik-redis.authentik.svc.cluster.local
               # media storage
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
@@ -352,12 +350,6 @@ spec:
           anubis:
             <<: *port
             port: *anubis
-      redis:
-        primary: false
-        controller: redis
-        ports:
-          redis:
-            port: 6379
       expose:
         primary: false
         controller: app
