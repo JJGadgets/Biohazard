@@ -93,9 +93,9 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG than Redis
               # pgBouncer / Database Connection Health
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "null" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
-              AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
+              # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
               AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
               AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
