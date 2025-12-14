@@ -30,7 +30,8 @@ spec:
             egress.home.arpa/appletv: allow
             egress.home.arpa/r2: allow
             egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
-            # egress.home.arpa/github: allow
+            egress.home.arpa/github: allow # TODO: try to harden this eventually, maybe HACS as ImageVolume?
+            authentik.home.arpa/https: allow
             db.home.arpa/mqtt: allow
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
@@ -177,6 +178,9 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/home-assistant"
                     operator: "DoesNotExist"
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
