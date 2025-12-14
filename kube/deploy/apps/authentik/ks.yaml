@@ -48,7 +48,8 @@ spec:
           patroni:
             dynamicConfiguration:
               postgresql:
-                max_connections: 500
+                parameters:
+                  max_connections: 500
       target:
         group: postgres-operator.crunchydata.com
         kind: PostgresCluster
