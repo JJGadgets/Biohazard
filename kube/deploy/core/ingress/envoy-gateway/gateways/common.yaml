@@ -70,8 +70,11 @@ spec:
       kind: Gateway
   clientIPDetection:
     xForwardedFor:
-      numTrustedHops: 1
+      # numTrustedHops: 1
       trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+    # customHeader:
+    #   name: CF-Connecting-IP
+    #   failClosed: false
   http2:
     onInvalidMessage: TerminateStream
   tls:
