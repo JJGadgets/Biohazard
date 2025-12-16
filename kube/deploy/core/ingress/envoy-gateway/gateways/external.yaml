@@ -1,0 +1,181 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/gateway_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-external
+  annotations:
+    gatus.home-operations.com/endpoint: |
+      group: ${CLUSTER_NAME}-external
+      guarded: true
+      ui:
+        hide-hostname: true
+        hide-url: true
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: "${APP_IP_ENVOY_EXTERNAL:=127.0.0.1}"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - &https
+      name: external
+      protocol: HTTPS
+      # hostname: "*.${DNS_SHORT:=internal}"
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: short-domain-tls
+          - kind: Secret
+            name: long-domain-tls
+    - <<: *https
+      name: external-auth # forward auth to authentik via SecurityPolicy in authentik namespace
+    - <<: *https
+      name: public
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: envoy-external
+  namespace: ingress
+  annotations:
+    external-dns.alpha.kubernetes.io/controller: none
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: ingress
+      sectionName: external
+    - name: envoy-external
+      namespace: ingress
+      sectionName: external-auth
+  rules:
+    - filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: X-Robots-Tag
+                value: "noindex, nofollow" # anti search engines
+              - name: Cache-Control
+                value: "no-store" # don't store caches
+              - name: X-Frame-Options
+                value: "DENY"
+              - name: X-Content-Type-Options
+                value: "nosniff"
+              - name: X-XSS-Protection
+                value: "1; mode=block"
+              - name: Referrer-Policy
+                value: "no-referrer"
+              - name: X-DNS-Prefetch-Control
+                value: "off"
+              - name: Permissions-Policy
+                value: "interest-cohort=()" # anti Google FLoC
+              - name: Cross-Origin-Opener-Policy
+                value: "same-origin"
+              - name: Cross-Origin-Resource-Policy
+                value: "same-site"
+              - name: Cross-Origin-Embedder-Policy
+                value: "require-corp"
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: envoy-public
+  namespace: ingress
+  annotations:
+    external-dns.alpha.kubernetes.io/controller: none
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: ingress
+      sectionName: public
+    - name: envoy-external
+      namespace: ingress
+      sectionName: public-auth
+  rules:
+    - filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: X-Frame-Options
+                value: "SAMEORIGIN"
+              - name: X-Content-Type-Options
+                value: "nosniff"
+              - name: X-XSS-Protection
+                value: "1; mode=block"
+              - name: Referrer-Policy
+                value: "strict-origin-when-cross-origin"
+              - name: X-DNS-Prefetch-Control
+                value: "off"
+              - name: Permissions-Policy
+                value: "interest-cohort=()"
+              - name: Cross-Origin-Opener-Policy
+                value: "same-origin"
+              - name: Cross-Origin-Resource-Policy
+                value: "same-site"
+              - name: Cross-Origin-Embedder-Policy
+                value: "require-corp"
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-external
+  namespace: ingress
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+  connection:
+    bufferLimit: 100Ki
+    socketBufferLimit: 1Mi
+  http2:
+    onInvalidMessage: TerminateStream
+  tcpKeepalive:
+    interval: 10s
+    idleTime: 10s
+  timeout:
+    http:
+      requestReceivedTimeout: 10s
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: envoy-external
+  namespace: ingress
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+  connection:
+    bufferLimit: 100Ki
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: "10s"
+  requestBuffer:
+    limit: "100Ki"
+  responseOverride:
+    - match:
+        statusCodes: [ {type: Value, value: 400}, {type: Value, value: 403}, {type: Value, value: 404}, {type: Value, value: 405}, {type: Value, value: 409}, {type: Value, value: 410}, {type: Value, value: 411}, {type: Value, value: 412}, {type: Value, value: 413}, {type: Value, value: 414}, {type: Value, value: 415}, {type: Value, value: 416}, {type: Value, value: 417}, {type: Value, value: 418}, {type: Value, value: 421}, {type: Value, value: 425}, {type: Value, value: 431}, {type: Value, value: 451}, {type: Value, value: 500}, {type: Value, value: 501}, {type: Value, value: 502}, {type: Value, value: 503}, {type: Value, value: 504}, {type: Value, value: 505}, {type: Value, value: 506}, {type: Value, value: 510} ]
+      response:
+        contentType: text/html; charset=utf-8
+        body:
+          type: ValueRef
+          valueRef:
+            group: ""
+            kind: ConfigMap
+            name: "custom-error-page"

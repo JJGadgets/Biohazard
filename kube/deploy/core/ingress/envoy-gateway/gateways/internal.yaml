@@ -1,0 +1,92 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/gateway_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-internal
+  annotations:
+    gatus.home-operations.com/endpoint: |
+      group: ${CLUSTER_NAME}-internal
+      guarded: true
+      ui:
+        hide-hostname: true
+        hide-url: true
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: "${APP_IP_ENVOY_INTERNAL:=127.0.0.1}"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - &https
+      name: internal
+      protocol: HTTPS
+      # hostname: "*.${DNS_SHORT:=internal}"
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: short-domain-tls
+          - kind: Secret
+            name: long-domain-tls
+    - <<: *https
+      name: internal-auth # forward auth to authentik via SecurityPolicy in authentik namespace
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-internal
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-internal
+  connection:
+    bufferLimit: 8Mi
+    maxAcceptPerSocketEvent: 0
+  http2:
+    initialStreamWindowSize: 2Mi
+    initialConnectionWindowSize: 32Mi
+    onInvalidMessage: TerminateStream
+  http3: {}
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestReceivedTimeout: 120s
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: envoy-internal
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-internal
+  connection:
+    bufferLimit: 8Mi
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: "0s"
+  responseOverride:
+    - match:
+        statusCodes: [ {type: Value, value: 403}, {type: Value, value: 404}, {type: Value, value: 405}, {type: Value, value: 500}, {type: Value, value: 501}, {type: Value, value: 502}, {type: Value, value: 503}, {type: Value, value: 504}, {type: Value, value: 505}, {type: Value, value: 506}, {type: Value, value: 510} ]
+      response:
+        contentType: text/html; charset=utf-8
+        body:
+          type: ValueRef
+          valueRef:
+            group: ""
+            kind: ConfigMap
+            name: "custom-error-page"

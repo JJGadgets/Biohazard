@@ -1,0 +1,89 @@
+<head>
+  <style>
+      html, body {
+          font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+          font-size: 1.5vw;
+          background-color: #008aff;
+          color: #e0e0e0;
+      }
+      .green {color: #50fa7b;}
+      .yellow {color: #f1fa8c;}
+      .grey {color: #44475a;}
+      .orange {color: #ffb86c;}
+      .red {color: #ff5555;}
+      .error {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
+      }
+      .image {
+          flex: 0 1 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-width: 2vw;
+          min-height: 2vh;
+      }
+      .image > img {
+          margin: 0 2vw;
+          max-width: 40vw;
+          max-height: 80vh;
+          min-width: 2vw;
+          min-height: 2vh;
+      }
+      .text {
+          margin: auto;
+          flex: 1 0 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+      .cmdline {white-space: nowrap;}
+      @keyframes cursor-blink {0% {opacity: 0;}}
+      .cursor {
+          content: "";
+          width: 0.5vw;
+          height: 2vw;
+          opacity: 100%;
+          background: #50fa7b;
+          display: inline-block;
+          animation: cursor-blink 1s steps(2) infinite;
+      }
+      @media screen and (max-width: 1080px) {
+          html, body {font-size: 2.5vw;}
+          .content {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+          }
+          .error {
+              width: 100%;
+              display: initial;
+          }
+          .image > img {
+              margin: 1.25rem auto;
+              max-width: 80vw;
+              max-height: 40vh;
+          }
+          .text {
+              margin-top: 2.5rem;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+          }
+      }
+  </style>
+</head>
+<body>
+  <div class="content">
+      <div class="error">
+          <div class="image"><img src="https://jjgadgets.tech/images/icon.png"></div>
+          <div class="text">
+              <p id="cmd"></p>
+              <!-- TODO: known issue: if domain too long, will overflow page, needs dynamic font sizing that fits to the allocated flex column while keeping text from wrapping while not needing user to scroll -->
+              <script>document.getElementById("cmd").innerHTML = "<span class=\"cmd\"><span class=\"cmdline\"><span class=\"green\">user</span>@<span class=\"yellow\">" + window.location.hostname + "</span>:<span class=\"red\">~$</span></span> <span class=\"cmdline\"><span class=\"grey\">curl</span> <span class=\"orange\">\"" + window.location.href + "\"</span> <span class=\"cursor\"></span></span></span><br>" + "<span class=\"cmd\">curl: (22) The requested URL returned error: 404 Not Found</span>";</script>
+          </div>
+      </div>
+  </div>
+</body>

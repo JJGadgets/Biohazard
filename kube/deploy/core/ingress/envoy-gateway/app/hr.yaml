@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app envoy-gateway
+  namespace: &ns ingress
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
+  values:
+    global:
+      imageRegistry: mirror.gcr.io
+    config:
+     envoyGateway:
+        extensionApis:
+          enableEnvoyPatchPolicy: true # NOTE: for zstd
+        provider:
+          type: Kubernetes
+          kubernetes:
+            deploy:
+              type: GatewayNamespace # NOTE: for having predictable service names

@@ -1,0 +1,299 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway
+  namespace: ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  ingress:
+    # allow kube-apiserver and remote-node (Cilium) for webhooks
+    - fromEntities:
+        - kube-apiserver
+        - remote-node
+        - host
+    # all ingress-nginx traffic
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+  egress:
+    # allow access to kube-apiserver to get Ingress/etc resources and push updates
+    - toEntities:
+        - kube-apiserver
+        - remote-node
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "6443"
+              protocol: UDP
+    # allow traffic to individual gateways to manage
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+    # allow Let's Encrypt traffic for e.g. OCSP or CRLs
+    - toFQDNs:
+        - matchPattern: "*.lencr.org"
+        - matchPattern: "*.*.lencr.org"
+    # DNS
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns:
+              - matchPattern: "*"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy
+  namespace: ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+  ingress:
+    # allow all ingress traffic outside cluster
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+    # allow traffic from Tailscale within cluster
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: tailscale
+    # allow traffic from CloudFlare's cloudflared tunnel
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: cloudflared
+            app.kubernetes.io/name: cloudflared
+            io.kubernetes.pod.namespace: cloudflare
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+    # allow traffic from gateway operator to manage
+    - fromEndpoints:
+        - matchLabels:
+            control-plane: envoy-gateway
+  egress:
+    # allow access to kube-apiserver to get Ingress/etc resources and push updates
+    - toEntities:
+        - kube-apiserver
+        - remote-node
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "6443"
+              protocol: UDP
+    # allow egress to all owned/controlled resources outside cluster
+    - toFQDNs:
+        - matchPattern: "*.${DNS_MAIN}"
+        - matchPattern: "*.${DNS_SHORT}"
+    # allow Let's Encrypt traffic for e.g. OCSP or CRLs
+    - toFQDNs:
+        - matchPattern: "*.lencr.org"
+        - matchPattern: "*.*.lencr.org"
+    # allow traffic to gateway operator to manage
+    - toEndpoints:
+        - matchLabels:
+            control-plane: envoy-gateway
+    # DNS
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: "ANY"
+          rules:
+            dns:
+              - matchPattern: "*"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-internal
+  namespace: ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+      gateway.networking.k8s.io/gateway-name: envoy-internal
+  ingress:
+    # allow traffic from pods with egress label
+    - fromEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: egress.home.arpa/envoy-internal
+              operator: In
+              values: ["allow"]
+  egress:
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: ingress.home.arpa/envoy-internal
+              operator: In
+              values: [allow]
+    # connect to Rook-Ceph RGW/S3 object store in-cluster
+    - toServices:
+        - k8sServiceSelector:
+            selector:
+              matchLabels:
+                rook_object_store: "${CLUSTER_NAME}"
+            namespace: rook-ceph
+    - toEndpoints:
+        - matchLabels:
+            rook_object_store: "${CLUSTER_NAME}"
+            io.kubernetes.pod.namespace: rook-ceph
+      toPorts:
+        - ports:
+            - port: "6953"
+              protocol: TCP
+            - port: "6953"
+              protocol: UDP
+            - port: "8080"
+              protocol: TCP
+            - port: "8080"
+              protocol: UDP
+    # allow egress to hubble-ui (2023-05-07: no kube-system netpols planned)
+    - toServices:
+        - k8sService:
+            serviceName: hubble-ui
+            namespace: kube-system
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: hubble-ui
+            io.kubernetes.pod.namespace: kube-system
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-external
+  namespace: ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+      gateway.networking.k8s.io/gateway-name: envoy-external
+  ingress:
+    # allow traffic from pods with egress label
+    - fromEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: egress.home.arpa/envoy-external
+              operator: In
+              values: ["allow"]
+  egress:
+    # allow ingress-nginx to egress to pods that require ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: ingress.home.arpa/envoy-external
+              operator: In
+              values: [allow]
+    # allow Flux notification-controller ingress
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: flux-system
+            app: notification-controller
+      toPorts:
+        - ports:
+            - port: "9292"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "ingress-from-envoy-internal"
+spec:
+  description: "Allow pods that require ingress to allow traffic from ingress-envoy, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/envoy-internal: allow
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+            gateway.networking.k8s.io/gateway-name: envoy-internal
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "ingress-from-envoy-external"
+spec:
+  description: "Allow pods that require ingress to allow traffic from ingress-envoy, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      ingress.home.arpa/envoy-external: allow
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+            gateway.networking.k8s.io/gateway-name: envoy-external
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "egress-to-ingress-envoy-internal"
+spec:
+  description: "Allow pods that require egress to ingress-envoy, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/envoy-internal: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+            gateway.networking.k8s.io/gateway-name: envoy-internal
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "egress-to-ingress-envoy-external"
+spec:
+  description: "Allow pods that require egress to ingress-envoy, no port restrictions"
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/envoy-external: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/managed-by: envoy-gateway
+            gateway.networking.k8s.io/gateway-name: envoy-external
