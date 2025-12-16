@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: ingress
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "Envoy Gateway - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        # Core cluster-wide vars
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        IP_POD_CIDR_V4: '{{ .IP_POD_CIDR_V4 }}'
+        DNS_SHORT: '{{ .DNS_SHORT }}'
+        DNS_MAIN: '{{ .DNS_MAIN }}'
+        # App specific
+        APP_IP_ENVOY_INTERNAL: '{{ .APP_IP_ENVOY_INTERNAL }}'
+        APP_IP_ENVOY_EXTERNAL: '{{ .APP_IP_ENVOY_EXTERNAL }}'
