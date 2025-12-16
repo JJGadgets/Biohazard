@@ -9,6 +9,7 @@ K9S_FG_NODE_SHELL = "true"
 #SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
 UV_PYTHON = "3.11"
 CARAPACE_BRIDGES = "zsh,fish,bash,inshellisense"
+# GITHUB_TOKEN = $(gh auth token)
 
 [settings]
 experimental = true # Cargo backend
@@ -21,7 +22,7 @@ pipx_uvx = true
 "aqua:fish-shell/fish-shell" = ["4.2.1"]
 "aqua:neovim" = ["0.11.5"]
 "aqua:starship/starship" = ["1.24.1"]
-"aqua:kubernetes/kubectl" = ["1.30.1"]
+"aqua:kubernetes/kubectl" = ["1.34.0"]
 "aqua:kubecolor/kubecolor" = ["0.5.3"]
 "aqua:kubernetes-sigs/krew" = ["0.4.5"]
 "ubi:brumhard/krewfile" = ["0.6.3"]
@@ -67,14 +68,14 @@ go = ["1.25.5"]
 "go:github.com/gcla/termshark/v2/cmd/termshark" = ["2.4.0"] # PCAP TUI
 # "go:github.com/go-task/task/v3/cmd/task" = ["3.39.2"]
 node = ["24.12.0"]
-# "npm:renovate" = ["40.56.1"]
-# "npm:handlebars" = ["4.7.8"]
+"npm:renovate" = ["42.35.0"]
+"npm:handlebars" = ["4.7.8"]
 # personal
 "cargo:himalaya" = ["1.0.0"] # mail TUI
 "ubi:guyfedwards/nom" = ["2.20.0"] # RSS TUI
 "aqua:bloznelis/typioca" = ["3.1.0"] # typing test
 "go:github.com/digitalghost-dev/poke-cli" = ["1.8.2"] # PokeAPI TUI
-"go:git.sixfoisneuf.fr/termsonic" = ["0.2"]
+# "go:git.sixfoisneuf.fr/termsonic" = ["0.2"]
 "pipx:markitdown" = "latest" # MS Office converter
 "ubi:Velocidex/velociraptor" = ["0.75"]
 
