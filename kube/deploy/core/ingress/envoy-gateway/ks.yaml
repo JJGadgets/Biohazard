@@ -10,9 +10,9 @@ spec:
   targetNamespace: *ns
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/envoy-gateway/app
+  path: ./kube/deploy/core/ingress/envoy-gateway/app
   components:
-    - ../../../core/flux-system/alerts/template/
+    - ../../../flux-system/alerts/template/
   dependsOn:
     - name: crds
       namespace: flux-system
@@ -28,7 +28,7 @@ spec:
   targetNamespace: *ns
   commonMetadata:
     labels: *l
-  path: ./kube/deploy/apps/envoy-gateway/gateways
+  path: ./kube/deploy/core/ingress/envoy-gateway/gateways
   dependsOn:
     - name: crds
       namespace: flux-system
