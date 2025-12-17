@@ -216,15 +216,28 @@ require("lazy").setup({
     { "ray-x/lsp_signature.nvim", event = "LspAttach", opts = {}, },
     --- diagnostics
     { "folke/trouble.nvim", event = "VeryLazy", cmd = "Trouble", opts = {} },
-    { "rachartier/tiny-inline-diagnostic.nvim", event = "LspAttach", opts = {
-      options = {
-        show_source = true,
-        multilines = false, -- Neovim native inline diagnostics virtual text takes care of multilines
-      },
-    } },
+    -- { "rachartier/tiny-inline-diagnostic.nvim", event = "LspAttach", opts = {
+    --   options = {
+    --     show_source = true,
+    --     multilines = false, -- Neovim native inline diagnostics virtual text takes care of multilines
+    --   },
+    -- } },
     --- LSP
-    { "williamboman/mason.nvim", lazy = true },
-    { "williamboman/mason-lspconfig.nvim", lazy = true, opts = { automatic_installation = true } },
+    {
+      "mason-org/mason-lspconfig.nvim",
+      opts = { 
+        automatic_installation = true,
+        automatic_enable = {
+          exclude = {
+            "yamlls"
+          }
+        }
+      },
+      dependencies = {
+        { "mason-org/mason.nvim", opts = {} },
+        "neovim/nvim-lspconfig",
+      },
+    },
     { "b0o/schemastore.nvim", lazy = true },
     { "diogo464/kubernetes.nvim", lazy = true, opts = {}, },
     -- { "someone-stole-my-name/yaml-companion.nvim",
@@ -251,192 +264,6 @@ require("lazy").setup({
     --    })
     --  end
     --},
-    { "neovim/nvim-lspconfig",
-      event = { "FileType" },
-      --- run lspconfig setup outside lazy stuff
-      config = function(_, opts)
-        --- Mason must load first? I know it's not the best way, but it's the simplest config lol
-        require('mason').setup()
-        if vim.fn.isdirectory(vim.fs.normalize('~/.local/share/nvim/mason/registries')) == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this, only run on first init
-        require('mason-lspconfig').setup{ automatic_installation = true }
-        local lsp = require('lspconfig')
-        local caps = function()
-          local default_caps = vim.lsp.protocol.make_client_capabilities()
-          default_caps.textDocument.completion = require('cmp_nvim_lsp').default_capabilities()['textDocument'].completion --- nvim-cmp completion
-          --local default_caps = require('cmp_nvim_lsp').default_capabilities() --- nvim-cmp completion
-          default_caps.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } --- nvim-ufo folding
-          return default_caps
-        end
-        --- lazy load Kubernetes.nvim
-        local kubernetes_nvim_load = function()
-          if vim.bo.filetype == "yaml" then return require('kubernetes').yamlls_schema(); else return ""; end
-        end
-        local yaml_schemas = {
-          {
-            name = 'Kubernetes.nvim',
-            description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
-            --url = vim.fn.stdpath("data") .. "/kubernetes.nvim/schema.json",
-            -- fileMatch = '**.yaml',
-            fileMatch = { '**{kube,k8s,kubernetes}/**/*.yaml', '/tmp/kubectl-edit**.yaml' },
-            url = kubernetes_nvim_load(),
-          },
-          -- {
-          --   name = 'Kubernetes',
-          --   fileMatch = { 'kube/deploy/**/*.yaml', 'kube/clusters/*/flux/*.yaml', 'kube/clusters/*/config/*.yaml', 'k8s/*.yaml', 'kubernetes/*.yaml', '/tmp/kubectl-edit**.yaml', },
-          --   url = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.30.1/all.json",
-          -- },
-          {
-            name = 'Flux Kustomization',
-            --description = 'Kubernetes CRD - Flux Kustomization v1',
-            fileMatch = 'ks.yaml',
-            url = "https://flux.jank.ing/kustomization-kustomize-v1.json",
-          },
-          {
-            name = 'Flux HelmRelease',
-            --description = 'Kubernetes CRD - Flux HelmRelease v2beta2',
-            fileMatch = 'hr.yaml',
-            url = "https://flux.jank.ing/helmrelease-helm-v2beta2.json",
-          },
-          {
-            name = 'Talos Linux MachineConfig',
-            fileMatch = '{**/clusterconfig/,/tmp/MachineConfigs.config.talos.dev-v1alpha1}*.yaml',
-            url = "https://www.talos.dev/v1.9/schemas/v1alpha1_config.schema.json",
-          },
-        }
-        local schemaStoreCatalog = {
-          --- select subset from the JSON schema catalog
-          'Talhelper',
-          'kustomization.yaml',
-          'Taskfile config',
-          'Helm Chart.yaml',
-          'Helm Chart.lock',
-          'docker-compose.yml',
-          'GitHub Workflow',
-          'GitHub automatically generated release notes configuration',
-        }
-        local schemaStoreSelect = function(catalog)
-          local schemaStoreSchemas = {}
-          for k, v in pairs(catalog) do
-            schemaStoreSchemas[k] = v
-          end
-          for _, v in ipairs(yaml_schemas) do
-            table.insert(schemaStoreSchemas, v['name'])
-          end
-          return schemaStoreSchemas
-        end
-        local yamlCompanionSchemas = function()
-          local ycSchemas = {}
-          for _, v in ipairs(yaml_schemas) do
-            table.insert(ycSchemas, {name = v['name'], uri = v['url']})
-          end
-          for _, v in ipairs(schemaStoreCatalog) do -- assumes 1 entry per catalog item
-            local schemaUrl
-            for k, _ in pairs(require('schemastore').yaml.schemas({select={v}})) do
-              schemaUrl = k
-              break
-            end
-            table.insert(ycSchemas, {name = v, uri = schemaUrl})
-          end
-          return ycSchemas
-        end
-        --- LSP servers config
-        local yamlls_config = {
-          capabilities = caps(),
-          settings = {
-            redhat = { telemetry = { enabled = false } },
-            yaml = {
-              format = {
-                enable = true,
-                singleQuote = false,
-              },
-              keyOrdering = false,
-              completion = true,
-              hover = true,
-              validate = true,
-              schemaStore = { enable = false, url = "" }, -- disable and set URL to null value to manually choose which SchemaStore, Kubernetes and custom schemas to use
-              schemas = require('schemastore').yaml.schemas({
-                extra = yaml_schemas,
-                select = schemaStoreSelect(schemaStoreCatalog),
-              }),
-            },
-          },
-        }
-        --- Run LSP server setup
-        --- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
-        if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } ); end
-        --if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("schema-companion").setup_client(yamlls_config) ); end
-        lsp.taplo.setup { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
-          ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
-        }}}}}
-        local jsonls_config = {
-        -- lsp.jsonls.setup {
-          filetypes = {"json", "jsonc", "json5"},
-          capabilities = caps(),
-          settings = {
-            json = {
-              validate = { enable = true },
-              schemas = require('schemastore').json.schemas({
-                select = {
-                  'Renovate',
-                  'GitHub Workflow Template Properties'
-                },
-                extra = {
-                  {
-                    name = 'QMK keyboard.json',
-                    description = 'QMK Keyboard Data Driven Configuration',
-                    fileMatch = 'keyboard.json',
-                    url = 'https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/master/data/schemas/keyboard.jsonschema',
-                  }
-                }
-              }),
-            }
-          }
-        }
-        if vim.bo.filetype == "json" then lsp.jsonls.setup(jsonls_config); end
-        if vim.bo.filetype == "json5" then lsp.jsonls.setup(jsonls_config); end
-        -- lsp.jsonls.setup(jsonls_config)
-        lsp.helm_ls.setup{capabilities = caps(),}
-        lsp.lua_ls.setup{capabilities = caps(),}
-        lsp.dockerls.setup{capabilities = caps(),}
-        lsp.vtsls.setup{capabilities = caps(),}
-        lsp.ruff.setup{capabilities = caps(),}
-        lsp.basedpyright.setup{capabilities = caps(),}
-        if vim.fn.executable('elixir') then lsp.elixirls.setup{capabilities = caps(),} end
-        lsp.clangd.setup({
-          capabilities = caps(),
-          on_attach = function(client, _) client.server_capabilities.semanticTokensProvider = nil; end -- disable syntax highlighting
-          -- init_options = {
-          --   fallbackFlags = { '-I ' .. os.getenv("CLANGD_FALLBACK_INCLUDES") },
-          -- },
-        })
-        -- if vim.fn.executable('ccls') then lsp.ccls.setup{capabilities = caps(),} end
-        if vim.fn.executable('cargo') then lsp.nil_ls.setup{capabilities = caps(),} end
-        if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then lsp.nixd.setup{capabilities = caps(),} end
-        --- show filetype on buffer switch
-        vim.api.nvim_create_autocmd('BufEnter', { pattern = '*', callback = function() vim.notify(vim.bo.filetype); end } )
-        --- golang
-        if vim.fn.executable('go') == 1 then lsp.gopls.setup({capabilities = caps(), settings = { gopls = {
-          staticcheck = true,
-          gofumpt = true,
-          analyses = { unusedparams = true }
-        }}}) end
-        --- golang formatting on save
-        vim.api.nvim_create_autocmd("LspAttach", {
-          pattern = '*.go',
-          group = vim.api.nvim_create_augroup("lsp_format", { clear = true }),
-          callback = function(args)
-            vim.api.nvim_create_autocmd("BufWritePre", {
-              buffer = args.buf,
-              callback = function()
-                vim.lsp.buf.format {async = false, id = args.data.client_id }
-              end,
-            })
-          end
-        })
-        -- keymap to show LSP info
-        --:lua vim.notify(vim.inspect(require('lspconfig').util.get_config_by_ft(vim.bo.filetype)))
-      end
-    },
     --- LSP Context Breadcrumbs
     { "SmiteshP/nvim-navic", lazy = true, opts = { highlight = true, click = true, lsp = { auto_attach = true } } },
     { "utilyre/barbecue.nvim", name = "barbecue", version = "*", event = { "LspAttach" }, dependencies = { "SmiteshP/nvim-navic", }, opts = { theme = "catppuccin", } },
@@ -467,6 +294,8 @@ require("lazy").setup({
 
 -- colorscheme
 vim.cmd.colorscheme "catppuccin"
+-- inline diagnostics (0.11+)
+vim.diagnostic.config({ virtual_text = true })
 -- start rainbow_delimiters
 vim.g.rainbow_delimiters = {}
 -- use nvim-notify for notifications
@@ -480,3 +309,214 @@ vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
 
 -- exrc
 vim.o.exrc = true
+
+-- LSP
+if vim.fn.isdirectory(vim.fs.normalize('~/.local/share/nvim/mason/registries')) == 0 then vim.cmd('MasonUpdate'); end -- lazy.nvim build not working for this, only run on first init
+local caps = function()
+  local default_caps = vim.lsp.protocol.make_client_capabilities()
+  default_caps.textDocument.completion = require('cmp_nvim_lsp').default_capabilities()['textDocument'].completion --- nvim-cmp completion
+  --local default_caps = require('cmp_nvim_lsp').default_capabilities() --- nvim-cmp completion
+  default_caps.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } --- nvim-ufo folding
+  return default_caps
+end
+-- vim.api.nvim_create_autocmd("LspAttach", {
+--   pattern = '*',
+--   group = vim.api.nvim_create_augroup("lsp_conditional_config_init", { clear = false }),
+--   callback = function(args)
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = '*',
+      group = vim.api.nvim_create_augroup("lsp_conditional_config_jj", { clear = false }),
+      callback = function(args)
+	local current_filetype = vim.bo.filetype
+        local lsp_check_ft = function(server)
+          for _, v in ipairs(vim.lsp.config[server]['filetypes']) do
+            -- vim.notify(vim.inspect(vim.lsp.config[server]['filetypes']))
+            if current_filetype == v then return true else return false end
+          end
+        end
+        --- lazy load Kubernetes.nvim
+        local kubernetes_nvim_load = function()
+          if lsp_check_ft('yamlls') then return require('kubernetes').yamlls_schema(); else return ""; end
+        end
+        local yaml_schemas = {
+          {
+            name = 'Kubernetes.nvim',
+            description = 'Kubernetes schemas extracted from cluster by kubernetes.nvim',
+            --url = vim.fn.stdpath("data") .. "/kubernetes.nvim/schema.json",
+            -- fileMatch = '**.yaml',
+            fileMatch = { '**{kube,k8s,kubernetes}/**/{svc,service,deploy,deployment,ns,namespace,autoscaler,vap,validatingadmissionpolicy,map,mutatingadmissionpolicy}.yaml', '/tmp/kubectl-edit**.yaml' },
+            url = kubernetes_nvim_load(),
+          },
+          {
+            name = 'Flux Kustomization',
+            --description = 'Kubernetes CRD - Flux Kustomization v1',
+            fileMatch = { 'ks.yaml' },
+            url = "https://flux.jank.ing/kustomization-kustomize-v1.json",
+          },
+          {
+            name = 'Flux HelmRelease',
+            --description = 'Kubernetes CRD - Flux HelmRelease v2beta2',
+            fileMatch = { 'hr.yaml' },
+            url = "https://flux.jank.ing/helmrelease-helm-v2.json",
+          },
+          {
+            name = 'Talos Linux MachineConfig',
+            fileMatch = { '{**/clusterconfig/,/tmp/MachineConfigs.config.talos.dev-v1alpha1}*.yaml' },
+            url = "https://www.talos.dev/v1.9/schemas/v1alpha1_config.schema.json",
+          },
+          {
+            name = 'External Secrets',
+            fileMatch = { 'es.yaml', 'externalsecre{t,ts}.yaml' },
+            url = "https://crds.jank.ing/external-secrets.io/externalsecret_v1.json"
+          },
+          {
+            name = 'External Secrets',
+            fileMatch = { 'es.yaml', 'externalsecre{t,ts}.yaml' },
+            url = "https://crds.jank.ing/k8s.cni.cncf.io/networkattachmentdefinition_v1.json"
+          },
+          {
+            name = 'Vector Config',
+            fileMatch = { 'vector.yaml', '**/vector/app/config/*.yaml' },
+            url = "https://www.schemastore.org/vector.json",
+          },
+        }
+        local schemaStoreCatalog = {
+          --- select subset from the JSON schema catalog
+          'Talhelper',
+          'kustomization.yaml',
+          'Taskfile config',
+          'Helm Chart.yaml',
+          'Helm Chart.lock',
+          'docker-compose.yml',
+          'GitHub Workflow',
+          'GitHub automatically generated release notes configuration',
+          'Vector'
+        }
+        local schemaStoreSelect = function(catalog)
+          local schemaStoreSchemas = {}
+          for k, v in pairs(catalog) do
+            schemaStoreSchemas[k] = v
+          end
+          for _, v in ipairs(yaml_schemas) do
+            table.insert(schemaStoreSchemas, v['name'])
+          end
+          return schemaStoreSchemas
+        end
+        local yamlCompanionSchemas = function()
+          local ycSchemas = {}
+          for _, v in ipairs(yaml_schemas) do
+            table.insert(ycSchemas, {name = v['name'], uri = v['url']})
+          end
+          for _, v in ipairs(schemaStoreCatalog) do -- assumes 1 entry per catalog item
+            local schemaUrl
+            for k, _ in pairs(require('schemastore').yaml.schemas({select={v}})) do
+              schemaUrl = k
+              break
+            end
+            table.insert(ycSchemas, {name = v, uri = schemaUrl})
+          end
+          -- vim.notify(vim.inspect(ycSchemas))
+          return ycSchemas
+        end
+        --- LSP servers config
+        local yamlls_config = {
+          capabilities = caps(),
+          settings = {
+            redhat = { telemetry = { enabled = false } },
+            yaml = {
+              format = {
+                enable = true,
+                singleQuote = false,
+              },
+              keyOrdering = false,
+              completion = true,
+              hover = true,
+              validate = true,
+              schemaStore = { enable = false, url = "" }, -- disable and set URL to null value to manually choose which SchemaStore, Kubernetes and custom schemas to use
+              schemas = require('schemastore').yaml.schemas({
+                extra = yaml_schemas,
+                select = schemaStoreSelect(schemaStoreCatalog),
+              }),
+            },
+          },
+        }
+        --- Run LSP server setup
+        --- IMPORTANT: if the return of the args passed to setup has a parent {}, use `setup(arg)` where `arg = {...}` so the result is `setup{...}`, rather than `setup{arg}` which becomes `setup{{...}}`
+        if lsp_check_ft('yamlls') then vim.lsp.config('yamlls', ( require("yaml-companion").setup { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } )); vim.lsp.enable('yamlls'); end
+        -- vim.notify(vim.inspect(yamlls_config))
+        -- vim.notify(vim.inspect(require("yaml-companion").setup( { builtin_matchers = { kubernetes = { enabled = true }, }, lspconfig = yamlls_config, schemas = yamlCompanionSchemas() } )));
+        -- vim.lsp.start('yamlls');
+        --if vim.bo.filetype == "yaml" then lsp.yamlls.setup( require("schema-companion").setup_client(yamlls_config) ); end
+        local jsonls_config = {
+        -- lsp.jsonls.setup {
+          filetypes = {"json", "jsonc", "json5"},
+          capabilities = caps(),
+          settings = {
+            json = {
+              validate = { enable = true },
+              schemas = require('schemastore').json.schemas({
+                select = {
+                  'Renovate',
+                  'GitHub Workflow Template Properties'
+                },
+                extra = {
+                  {
+                    name = 'QMK keyboard.json',
+                    description = 'QMK Keyboard Data Driven Configuration',
+                    fileMatch = 'keyboard.json',
+                    url = 'https://raw.githubusercontent.com/qmk/qmk_firmware/refs/heads/master/data/schemas/keyboard.jsonschema',
+                  }
+                }
+              }),
+            }
+          }
+        }
+        if lsp_check_ft('jsonls') then vim.lsp.config('jsonls', jsonls_config); end
+        if vim.bo.filetype == "json5" then vim.lsp.config('jsonls', jsonls_config); end
+      end
+    })
+--   end
+-- })
+vim.lsp.config('taplo',  { capabilities = caps(), settings = { evenBetterToml = { schema = { associations = {
+  ['^\\.mise\\.toml$'] = 'https://mise.jdx.dev/schema/mise.json',
+}}}}})
+vim.lsp.config('helm_ls', {capabilities = caps(),})
+vim.lsp.config('lua_ls', {capabilities = caps(),})
+vim.lsp.config('dockerls', {capabilities = caps(),})
+vim.lsp.config('vtsls', {capabilities = caps(),})
+vim.lsp.config('ruff', {capabilities = caps(),})
+vim.lsp.config('basedpyright', {capabilities = caps(),})
+if vim.fn.executable('elixir') then vim.lsp.config('elixirls', {capabilities = caps(),}) end
+vim.lsp.config('clangd', {
+  capabilities = caps(),
+  on_attach = function(client, _) client.server_capabilities.semanticTokensProvider = nil; end -- disable syntax highlighting
+  -- init_options = {
+  --   fallbackFlags = { '-I ' .. os.getenv("CLANGD_FALLBACK_INCLUDES") },
+  -- },
+})
+-- if vim.fn.executable('ccls') then lsp.ccls.setup{capabilities = caps(),} end
+if vim.fn.executable('cargo') then vim.lsp.config('nil_ls', {capabilities = caps(),}) end
+if vim.fn.executable('nixd') == 1 and vim.fn.executable('nixfmt') then vim.lsp.config('nixd', {capabilities = caps(),}) end
+--- show filetype on buffer switch
+vim.api.nvim_create_autocmd('BufEnter', { pattern = '*', callback = function() vim.notify(vim.bo.filetype); end } )
+--- golang
+if vim.fn.executable('go') == 1 then vim.lsp.config('gopls', {capabilities = caps(), settings = { gopls = {
+  staticcheck = true,
+  gofumpt = true,
+  analyses = { unusedparams = true }
+}}}) end
+--- golang formatting on save
+vim.api.nvim_create_autocmd("LspAttach", {
+  pattern = '*.go',
+  group = vim.api.nvim_create_augroup("lsp_format", { clear = true }),
+  callback = function(args)
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = args.buf,
+      callback = function()
+        vim.lsp.buf.format {async = false, id = args.data.client_id }
+      end,
+    })
+  end
+})
+-- keymap to show LSP info
+--:lua vim.notify(vim.inspect(require('lspconfig').util.get_config_by_ft(vim.bo.filetype)))

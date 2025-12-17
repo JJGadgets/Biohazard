@@ -283,7 +283,6 @@ spec:
                 compression_algorithm: "zstd"
             - name: "replicas-2"
               failureDomain: "host"
-              deviceClass: "ssd"
               replicated:
                 size: 2
               parameters:
@@ -292,7 +291,6 @@ spec:
                 compression_algorithm: "lz4"
             - name: "ec-2-1-min-2"
               failureDomain: "host"
-              deviceClass: "ssd"
               erasureCoded:
                 dataChunks: 2
                 codingChunks: 1
@@ -371,7 +369,6 @@ spec:
               size: 3
           dataPool:
             failureDomain: "host"
-            deviceClass: "ssd"
             replicated:
               size: 3
           healthCheck:
