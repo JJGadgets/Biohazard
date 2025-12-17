@@ -24,7 +24,7 @@ spec:
         namespaces:
           from: Same
     - &https
-      name: internal
+      name: https
       protocol: HTTPS
       # hostname: "*.${DNS_SHORT:=internal}"
       port: 443
@@ -37,8 +37,6 @@ spec:
             name: short-domain-tls
           - kind: Secret
             name: long-domain-tls
-    - <<: *https
-      name: internal-auth # forward auth to authentik via SecurityPolicy in authentik namespace
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1

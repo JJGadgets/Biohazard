@@ -38,9 +38,12 @@ spec:
           - kind: Secret
             name: long-domain-tls
     - <<: *https
-      name: external-auth # forward auth to authentik via SecurityPolicy in authentik namespace
-    - <<: *https
       name: public
+      hostname: "*.jjgadgets.tech"
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: jjgadgets-tech-tls
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -55,9 +58,6 @@ spec:
     - name: envoy-external
       namespace: ingress
       sectionName: external
-    - name: envoy-external
-      namespace: ingress
-      sectionName: external-auth
   rules:
     - filters:
         - type: ResponseHeaderModifier
@@ -99,9 +99,6 @@ spec:
     - name: envoy-external
       namespace: ingress
       sectionName: public
-    - name: envoy-external
-      namespace: ingress
-      sectionName: public-auth
   rules:
     - filters:
         - type: ResponseHeaderModifier
