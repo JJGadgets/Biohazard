@@ -39,8 +39,7 @@ jobs:
             until [[ $try == 5 ]]
             do
               echo "Try ${try} for PR ${i}:"
-              gh pr update-branch ${i} --repo ${{ github.event.pull_request.base.repo.full_name }}
-              ((try++))
+              gh pr update-branch ${i} --repo ${{ github.event.pull_request.base.repo.full_name }} && try=5 || { true; ((try++)) }
               sleep 1
             done
           done
