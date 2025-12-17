@@ -27,7 +27,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/vectordotdev/vector
-              tag: 0.51.1-distroless-libc@sha256:af41941c44d69f439fade0cd12540fa3ba8fa9954ad734b315d905c37931bbe4
+              tag: 0.52.0-distroless-libc@sha256:0ea7e471e2d1a76bd031fed0a0de90dfae5333b030e5794f78cc75a3e251cc23
             args: ["--config", "/config/fortigate.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
