@@ -215,7 +215,7 @@ spec:
                 cpu: 20m
               limits:
                 cpu: "1"
-                memory: 750Mi
+                memory: 1Gi
             probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
               readiness: &worker-probe
                 enabled: true
