@@ -202,7 +202,12 @@ spec:
           app:
             image: *img
             args: [worker]
-            env: *env
+            env:
+              <<: *env
+              AUTHENTIK_WORKER__PROCESSES: "1"
+              AUTHENTIK_WORKER__THREADS:
+                resourceFieldRef:
+                  resource: limits.cpu
             envFrom: *envFrom
             securityContext: *sc
             resources:
