@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yyaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -14,6 +14,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -41,6 +44,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -67,6 +73,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -94,6 +103,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -120,6 +132,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -146,6 +161,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
+  keystores:
+    pkcs12:
+      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
