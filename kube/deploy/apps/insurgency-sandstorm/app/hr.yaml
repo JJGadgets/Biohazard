@@ -133,8 +133,8 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # runtimeClassName: gvisor
-      hostUsers: false
+      runtimeClassName: kata
+      # hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1001 # `steam` user, 1000 is `ubuntu` user

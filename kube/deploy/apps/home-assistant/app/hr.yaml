@@ -162,11 +162,11 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      hostUsers: false
-      # runtimeClassName: gvisor # https://github.com/siderolabs/extensions/issues/417
+      # hostUsers: false
+      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
+        runAsUser: 65534 # image needs this for uv workaround perms
         runAsGroup: &gid 65533
         fsGroup: *gid
         fsGroupChangePolicy: "Always"
