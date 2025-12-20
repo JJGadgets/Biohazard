@@ -2,19 +2,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: k8s-gateway
-  namespace: dns
+  name: &app k8s-gateway
+  namespace: &ns dns
 spec:
-  chart:
-    spec:
-      chart: k8s-gateway
-      version: 2.4.0
-      sourceRef:
-        name: k8s-gateway
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
   values:
     fullnameOverride: k8s-gateway
+    watchedResources: [HTTPRoute, TLSRoute, GRPCRoute, Ingress, Service]
     domain: "${DNS_SHORT:=jjgadgets.tech} ${DNS_MAIN} ${DNS_VPN} ${DNS_STREAM} ${DNS_ME} ${DNS_HOME} ${DNS_INTERNAL} ${DNS_FUNNY}"
     fallthrough:
       enabled: true
