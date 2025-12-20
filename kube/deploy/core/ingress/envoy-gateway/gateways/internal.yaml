@@ -3,7 +3,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: envoy-internal
+  name: &name envoy-internal
   namespace: ingress
   annotations:
     gatus.home-operations.com/endpoint: |
@@ -13,7 +13,7 @@ metadata:
         hide-hostname: true
         hide-url: true
 spec:
-  gatewayClassName: envoy
+  gatewayClassName: *name
   infrastructure:
     annotations:
       lbipam.cilium.io/ips: "${APP_IP_ENVOY_INTERNAL:=127.0.0.1}"
