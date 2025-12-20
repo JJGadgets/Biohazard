@@ -135,16 +135,13 @@ spec:
   parentRefs:
     - name: envoy-internal
       namespace: ingress
-    - name: envoy-internal-auth
-      namespace: ingress
     - name: envoy-external
-      namespace: ingress
-    - name: envoy-external-auth
-      namespace: ingress
-    - name: envoy-public
       namespace: ingress
   rules:
     - filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
         - type: ResponseHeaderModifier
           responseHeaderModifier:
             remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
