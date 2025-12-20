@@ -128,9 +128,6 @@ spec:
         - type: ResponseHeaderModifier
           responseHeaderModifier:
             remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
-        - type: ResponseHeaderModifier
-          responseHeaderModifier:
-            remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
             set:
               - name: Strict-Transport-Security
                 value: max-age=31449600; includeSubDomains; preload
