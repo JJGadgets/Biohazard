@@ -71,11 +71,11 @@ spec:
         - world
       toPorts:
         - ports:
-            - port: "80"
+            - port: "10080"
               protocol: TCP
-            - port: "443"
+            - port: "10443"
               protocol: TCP
-            - port: "443"
+            - port: "10443"
               protocol: UDP
     # allow traffic from Tailscale within cluster
     - fromEndpoints:
@@ -89,9 +89,9 @@ spec:
             io.kubernetes.pod.namespace: cloudflare
       toPorts:
         - ports:
-            - port: "443"
+            - port: "10443"
               protocol: TCP
-            - port: "443"
+            - port: "10443"
               protocol: UDP
     # allow traffic from gateway operator to manage
     - fromEndpoints:
