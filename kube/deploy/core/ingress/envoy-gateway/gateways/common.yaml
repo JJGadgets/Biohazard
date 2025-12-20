@@ -195,7 +195,7 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: HTTPRouteFilter
 metadata:
-  name: direct-response-inline
+  name: custom-error-page
 spec:
   directResponse:
     contentType: text/html; charset=utf-8
