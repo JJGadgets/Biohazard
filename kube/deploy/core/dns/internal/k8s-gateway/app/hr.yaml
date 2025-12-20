@@ -12,8 +12,11 @@ spec:
     namespace: *ns
   values:
     fullnameOverride: k8s-gateway
-    watchedResources: [HTTPRoute, TLSRoute, GRPCRoute, Ingress, Service]
+    replicaCount: 2
     domain: "${DNS_SHORT:=jjgadgets.tech} ${DNS_MAIN} ${DNS_VPN} ${DNS_STREAM} ${DNS_ME} ${DNS_HOME} ${DNS_INTERNAL} ${DNS_FUNNY}"
+    watchedResources: [HTTPRoute, TLSRoute, GRPCRoute, Ingress, Service]
+    filters:
+      gatewayClasses: ["envoy-internal"]
     fallthrough:
       enabled: true
     ttl: 1
