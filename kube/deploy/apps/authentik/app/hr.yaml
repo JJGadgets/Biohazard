@@ -44,21 +44,11 @@ spec:
             limits:
               cpu: "1"
               memory: 2Gi
-          topologySpreadConstraints:
-            - &tsc
-              maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: app
         containers:
           app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2025.10.3@sha256:d2b66e851246e7299219b72a4ed43630a2c2bac3745eb665834b72963d836e64
+              tag: 2025.12.0-rc2@sha256:122f03aff14ea374fc9708fbe711ab8722d54947d908e2d537e151cb6eaf5fe1
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -192,13 +182,6 @@ spec:
             prom.home.arpa/kps: allow
             egress.home.arpa/discord: allow
             # egress.home.arpa/internet: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: worker
         containers:
           app:
             image: *img
@@ -217,7 +200,7 @@ spec:
                 memory: 750Mi
               limits:
                 cpu: "1"
-                memory: 2Gi
+                memory: 2Gi # TODO: workers have been memory leaking since 2025.10 due to outpost update tasks flooding Postgres and being scheduled more than 1 per second despite crontab of 28 */4 * * *
             probes:
               readiness: &worker-probe
                 enabled: true
@@ -251,19 +234,12 @@ spec:
         pod:
           labels:
             authentik.home.arpa/https: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: ldap
         containers:
           app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.10.3@sha256:1c0575c9505cdb696136099e146f6ebe16e4e02ffe745a78dcf735219adadbf8
+              tag: 2025.12.0-rc2@sha256:76fdb1b82f22a1c7d2480572d0b6f3ab4f94c0b0e2c90062363e96994d8a72ff
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -299,19 +275,12 @@ spec:
         pod:
           labels:
             authentik.home.arpa/https: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: radius
         containers:
           app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.10.3@sha256:dcd8cbad7b7008cbf1d33f853afdb81436a36b29475a18757d775c1648a1cce2
+              tag: 2025.12.0-rc2@sha256:7c3c0871902cd90ae1128fb0310de0e5ddc4b7ada82fb79bed060499acf23445
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -336,6 +305,47 @@ spec:
               readiness: *radius-probe
               startup:
                 <<: *radius-probe
+                spec:
+                  <<: [*startup, *rps]
+      rac:
+        type: deployment
+        replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
+        pod:
+          labels:
+            authentik.home.arpa/https: allow
+        containers:
+          app:
+            image:
+              <<: *img
+              repository: ghcr.io/goauthentik/rac
+              tag: 2025.12.0-rc2@sha256:dad603807f0e3c420edf191a525b9350385d87bc4a3756250e9afaf0211ece09
+            env:
+              AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: authentik-tokens
+                    key: AUTHENTIK_TOKEN_RAC
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: "1"
+                memory: "50Mi"
+            probes:
+              liveness: &rac-probe
+                enabled: true
+                custom: true
+                spec: &rps
+                  exec:
+                    command: ["/rac", "healthcheck"]
+              readiness: *radius-probe
+              startup:
+                <<: *rac-probe
                 spec:
                   <<: [*startup, *rps]
     service:
