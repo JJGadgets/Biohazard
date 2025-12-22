@@ -80,7 +80,7 @@ spec:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: password
-              AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl verify-full # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
+              AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG
               # pgBouncer / Database Connection Health
