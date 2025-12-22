@@ -105,6 +105,8 @@ spec:
             devicePathFilter: *osd-s3500-1-6tb
           - name: "dorothy"
             devicePathFilter: "^/dev/disk/by-id/nvme-INTEL_SSDPF2KX038TZ_PHAC22.*P8AGN_1"
+            config:
+              deviceClass: ssd # TODO: override for now before I get to actually put my other U.2s into the M720q's
       placement:
         all:
           tolerations:
@@ -176,7 +178,7 @@ spec:
       - name: "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
           failureDomain: "host"
-          # deviceClass: "ssd"
+          deviceClass: "ssd"
           replicated:
             size: 3
           parameters:
@@ -246,7 +248,7 @@ spec:
         spec:
           name: ".mgr" # https://github.com/rook/rook/blob/bb4528d460db17909b3dec0b2f31374913345cd5/deploy/examples/pool-builtin-mgr.yaml#L11
           failureDomain: "host"
-          # deviceClass: "ssd"
+          deviceClass: "ssd"
           replicated:
             size: 3 # https://github.com/rook/rook/discussions/13178
             requireSafeReplicaSize: true
@@ -267,14 +269,14 @@ spec:
           preserveFilesystemOnDelete: true
           metadataPool:
             failureDomain: "host"
-            # deviceClass: "ssd"
+            deviceClass: "ssd"
             replicated:
               size: 3
           dataPools:
             - &cephfsData
               name: &fsdata0 "${CLUSTER_NAME}-fs-data0"
               failureDomain: "host"
-              # deviceClass: "ssd"
+              deviceClass: "ssd"
               replicated:
                 size: 3
               parameters:
@@ -283,6 +285,7 @@ spec:
                 compression_algorithm: "zstd"
             - name: "replicas-2"
               failureDomain: "host"
+              deviceClass: "ssd"
               replicated:
                 size: 2
               parameters:
@@ -291,6 +294,7 @@ spec:
                 compression_algorithm: "lz4"
             - name: "ec-2-1-min-2"
               failureDomain: "host"
+              deviceClass: "ssd"
               erasureCoded:
                 dataChunks: 2
                 codingChunks: 1
@@ -364,11 +368,12 @@ spec:
           preservePoolsOnDelete: true
           metadataPool:
             failureDomain: "host"
-            # deviceClass: "ssd"
+            deviceClass: "ssd"
             replicated:
               size: 3
           dataPool:
             failureDomain: "host"
+            deviceClass: "ssd"
             replicated:
               size: 3
           healthCheck:
