@@ -19,7 +19,7 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -116,6 +116,10 @@ spec:
               # error reporting
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
+              # tasks
+              AUTHENTIK_WORKER__TASK_MAX_RETRIES: "1"
+              AUTHENTIK_WORKER__TASK_EXPIRATION: hours=1
+              AUTHENTIK_WORKER__SCHEDULER_INTERVAL: hours=1
             envFrom: &envFrom
               - secretRef:
                   name: authentik-secrets
@@ -170,7 +174,8 @@ spec:
                 enabled: true
       worker:
         type: deployment
-        replicas: null # HPA
+        # replicas: null # HPA
+        replicas: 1 # workers freaking out
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
