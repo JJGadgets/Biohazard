@@ -160,6 +160,78 @@ spec:
     http:
       requestReceivedTimeout: 10s
 ---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-external-headers
+  namespace: ingress
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+      sectionName: external
+  headers:
+    lateResponseHeaders:
+      set:
+        - name: X-Robots-Tag
+          value: "noindex, nofollow" # anti search engines
+        - name: Cache-Control
+          value: "no-store" # don't store caches
+        - name: X-Frame-Options
+          value: "DENY"
+        - name: X-Content-Type-Options
+          value: "nosniff"
+        - name: X-XSS-Protection
+          value: "1; mode=block"
+        - name: Referrer-Policy
+          value: "no-referrer"
+        - name: X-DNS-Prefetch-Control
+          value: "off"
+        - name: Permissions-Policy
+          value: "interest-cohort=()" # anti Google FLoC
+        - name: Cross-Origin-Opener-Policy
+          value: "same-origin"
+        - name: Cross-Origin-Resource-Policy
+          value: "same-site"
+        - name: Cross-Origin-Embedder-Policy
+          value: "require-corp"
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-public-headers
+  namespace: ingress
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+      sectionName: public
+  headers:
+    lateResponseHeaders:
+      set:
+        - name: X-Frame-Options
+          value: "SAMEORIGIN"
+        - name: X-Content-Type-Options
+          value: "nosniff"
+        - name: X-XSS-Protection
+          value: "1; mode=block"
+        - name: Referrer-Policy
+          value: "strict-origin-when-cross-origin"
+        - name: X-DNS-Prefetch-Control
+          value: "off"
+        - name: Permissions-Policy
+          value: "interest-cohort=()"
+        - name: Cross-Origin-Opener-Policy
+          value: "same-origin"
+        - name: Cross-Origin-Resource-Policy
+          value: "same-site"
+        - name: Cross-Origin-Embedder-Policy
+          value: "require-corp"
+---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
