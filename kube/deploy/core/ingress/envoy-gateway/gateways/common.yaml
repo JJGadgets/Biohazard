@@ -85,6 +85,11 @@ spec:
     enableEnvoyHeaders: false
     disableRateLimitHeaders: true
     requestID: Disable
+    lateResponseHeaders:
+      remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
+      set:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains; preload
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -189,3 +194,22 @@ spec:
         group: ""
         kind: ConfigMap
         name: "custom-error-page"
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ip-all-private-allow
+  namespace: ingress
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        ip.envoy.internal/all-private: allow
+  authorization:
+    defaultAction: Deny
+    rules:
+      - action: Allow
+        principal:
+          clientCIDRs: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"]

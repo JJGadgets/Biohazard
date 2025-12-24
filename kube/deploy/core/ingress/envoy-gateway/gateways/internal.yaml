@@ -98,29 +98,10 @@ spec:
     - match:
         statusCodes: [ {type: Value, value: 403}, {type: Value, value: 404}, {type: Value, value: 405}, {type: Value, value: 500}, {type: Value, value: 501}, {type: Value, value: 502}, {type: Value, value: 503}, {type: Value, value: 504}, {type: Value, value: 505}, {type: Value, value: 506}, {type: Value, value: 510} ]
       response:
-        contentType: text/html; charset=utf-8
+        contentType: text/html
         body:
           type: ValueRef
           valueRef:
             group: ""
             kind: ConfigMap
             name: "custom-error-page"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: ip-all-private-allow
-  namespace: ingress
-spec:
-  targetSelectors:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      matchLabels:
-        ip.envoy.internal/all-private: allow
-  authorization:
-    defaultAction: Deny
-    rules:
-      - action: Allow
-        principal:
-          clientCIDRs: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"]
