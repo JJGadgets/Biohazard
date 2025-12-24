@@ -61,6 +61,9 @@ spec:
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hostnames: ["${APP_DNS_LIBRESPEED:=librespeed}"]
         parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
           - name: envoy-external
             namespace: ingress
             sectionName: external
