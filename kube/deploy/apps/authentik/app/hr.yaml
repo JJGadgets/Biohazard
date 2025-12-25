@@ -174,7 +174,7 @@ spec:
                 enabled: true
       worker:
         type: deployment
-        replicas: null # HPA
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -224,7 +224,7 @@ spec:
                 <<: *worker-probe
                 spec:
                   <<: *wps
-                  failureThreshold: 6
+                  failureThreshold: 15
               startup:
                 <<: *worker-probe
                 spec:
