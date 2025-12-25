@@ -21,6 +21,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
+          runtimeClassName: kata
           labels:
             ingress.home.arpa/world: allow
             dns.home.arpa/l7: "true"
@@ -36,7 +37,7 @@ spec:
               HOSTNAME: "${CONFIG_SANDSTORM_NAME}"
               PORT: &port 27102
               QUERYPORT: &query 27131
-              MODS: "93636,98145,100175,132183,101966,98373,98685,1161703,164061,156146,125754,4437188,3904299,2862675,3493292"
+              MODS: "93636,98145,100175,132183,101966,98373,98685,1161703,164061,156146,125754,4437188,2862675"
               MUTATORS: "NoRestrictedArea,MoreAmmo,JumpShoot,RemoveSmoke,FastFunX,RoundProgress,WelcomeMessage,JoinLeaveMessage,Humvee,FFReflectFix,Healthy,FPLegsRevived,ImprovedAI"
               INIT_MAP: "Prison"
               INIT_SCENARIO: "Checkpoint_Security"
@@ -133,7 +134,6 @@ spec:
         options:
           - name: ndots
             value: "1"
-      runtimeClassName: kata
       # hostUsers: false
       securityContext:
         runAsNonRoot: true
