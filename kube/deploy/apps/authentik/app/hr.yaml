@@ -19,7 +19,7 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -47,13 +47,13 @@ spec:
         containers:
           app:
             image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2025.12.0-rc2@sha256:122f03aff14ea374fc9708fbe711ab8722d54947d908e2d537e151cb6eaf5fe1
+              repository: ghcr.io/goauthentik/dev-server
+              tag: gh-version-2025.12@sha256:822594213a80ef0a334a1ba13489579fc1114092390b1e19f9d2b778b70d1604
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
               # PostgreSQL
-              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-primary.authentik.svc.cluster.local"
+              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-ha.authentik.svc.cluster.local"
                 # valueFrom:
                 #   secretKeyRef:
                 #     name: pg-authentik-pguser-authentik
@@ -174,8 +174,7 @@ spec:
                 enabled: true
       worker:
         type: deployment
-        # replicas: null # HPA
-        replicas: 1 # workers freaking out
+        replicas: null # HPA
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -202,10 +201,10 @@ spec:
             resources:
               requests:
                 cpu: 20m
-                memory: 750Mi
+                # memory: 750Mi
               limits:
                 cpu: "1"
-                memory: 2Gi # TODO: workers have been memory leaking since 2025.10 due to outpost update tasks flooding Postgres and being scheduled more than 1 per second despite crontab of 28 */4 * * *
+                memory: 1Gi # TODO: workers have been memory leaking since 2025.10 due to outpost update tasks flooding Postgres and being scheduled more than 1 per second despite crontab of 28 */4 * * *
             probes:
               readiness: &worker-probe
                 enabled: true
