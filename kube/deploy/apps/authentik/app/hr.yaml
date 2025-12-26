@@ -37,13 +37,14 @@ spec:
             # for OIDC sources
             egress.home.arpa/discord: allow
             egress.home.arpa/github: allow
+            # files
+            egress.home.arpa/r2: allow
           resources:
             requests:
               cpu: 30m
-              memory: 1Gi
             limits:
               cpu: "1"
-              memory: 2Gi
+              memory: 1Gi
         containers:
           app:
             image: &img
@@ -116,10 +117,6 @@ spec:
               # error reporting
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
-              # tasks
-              AUTHENTIK_WORKER__TASK_MAX_RETRIES: "1"
-              AUTHENTIK_WORKER__TASK_EXPIRATION: hours=1
-              AUTHENTIK_WORKER__SCHEDULER_INTERVAL: hours=1
             envFrom: &envFrom
               - secretRef:
                   name: authentik-secrets
