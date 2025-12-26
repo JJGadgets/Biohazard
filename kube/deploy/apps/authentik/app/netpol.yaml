@@ -28,6 +28,25 @@ spec:
       toPorts:
         - ports:
             - port: "9443"
+    - fromEndpoints:
+        - matchLabels:
+            authentik.home.arpa/oidc: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+          rules:
+            http:
+              - path: "/application/o/.*"
+          terminatingTLS:
+            secret:
+              name: authentik-tls
+          originatingTLS:
+            secret:
+              name: authentik-tls
   egress:
     # same namespace
     - toEndpoints:
