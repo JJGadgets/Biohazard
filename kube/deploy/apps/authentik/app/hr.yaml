@@ -377,6 +377,7 @@ spec:
         primary: false
         controller: app
         type: LoadBalancer
+        sessionAffinity: ClientIP
         annotations:
           io.cilium/internal: "true"
           io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK:=127.0.0.1}"
@@ -425,52 +426,75 @@ spec:
           radius-udp:
             <<: *radius
             protocol: UDP
-    ingress:
-      app: &ingress
-        className: nginx-external
+    route:
+      app:
+        hostnames: &host ["${APP_DNS_AUTHENTIK:=authentik}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *http
+      external:
         annotations:
-          # nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10"
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: &host "${APP_DNS_AUTHENTIK:=authentik}"
-            paths:
-              - &path
-                path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls: &tls
-          - hosts: [*host]
-            secretName: authentik-tls
-      # external:
-      #   <<: *ingress
-      #   annotations:
-      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-      #     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-      #   hosts:
-      #     - host: *host
-      #       paths:
-      #         - <<: *path
-      #           service:
-      #             identifier: app
-      #             port: anubis
+        hostnames: *host
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *anubis
       harden:
-        <<: *ingress
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
-        hosts:
-          - host: *host
-            paths:
-              - <<: *path
-                path: /api/v3/policies/expression
-              - <<: *path
-                path: /api/v3/propertymappings
-              - <<: *path
-                path: /api/v3/managed/blueprints
-              - <<: *path
-                path: /if/admin
+        hostnames: *host
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /if/admin
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/policies/expression
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/propertymappings
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/managed/blueprints
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  statusCode: 301
+                  hostname: www.google.com
+                  port: 443
+                  path:
+                    type: ReplaceFullPath
+                    replaceFullPath: "/"
+      forward-auth:
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /outpost.goauthentik.io
+            backendRefs:
+              - identifier: app
+                port: *http
     persistence:
       pg-ca:
         type: secret
