@@ -31,6 +31,10 @@ spec:
             egress.home.arpa/nginx-external: allow
             egress.home.arpa/nginx-internal: allow
             egress.home.arpa/nginx-public: allow
+            ingress.home.arpa/envoy-external: allow
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/envoy-external: allow
+            egress.home.arpa/envoy-internal: allow
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
