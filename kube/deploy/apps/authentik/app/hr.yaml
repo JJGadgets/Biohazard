@@ -111,6 +111,7 @@ spec:
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
               AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
+              AUTHENTIK_STORAGE__MEDIA__S3__ADDRESSING_STYLE: path
               # misc
               AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               AUTHENTIK_OUTPOSTS__DISCOVER: "false"
@@ -317,6 +318,8 @@ spec:
         pod:
           labels:
             authentik.home.arpa/https: allow
+            egress.home.arpa/ad: allow
+            egress.home.arpa/lan: allow
         containers:
           app:
             image:
@@ -520,11 +523,6 @@ spec:
         rules:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
-      vm-ad:
-        controller: worker
-        policyTypes: [Egress]
-        rules:
-          egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR:=127.0.0.1/32}"}}]]
     serviceMonitor:
       authentik:
         service:
