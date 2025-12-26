@@ -38,6 +38,7 @@ spec:
         - &duo { matchPattern: "api-*.duosecurity.com" }
         - &plex { matchName: "plex.tv" }
         - &hibp { matchPattern: "*.pwnedpasswords.com" }
+        - &s3 { matchPattern: "*.${APP_DNS_AUTHENTIK}" }
       toPorts:
         - ports:
             - port: "443"
@@ -65,6 +66,7 @@ spec:
               - *smtp
               - *plex
               - *hibp
+              - *s3
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2

@@ -255,6 +255,7 @@ spec:
   egress:
     - toFQDNs: &dns
         - matchPattern: "*.r2.cloudflarestorage.com"
+        - matchPattern: "*.eu.r2.cloudflarestorage.com"
       toPorts:
         - ports:
             - port: "443"
