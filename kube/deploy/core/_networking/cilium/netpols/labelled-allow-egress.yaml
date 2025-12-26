@@ -583,3 +583,16 @@ spec:
   egress:
     - toCIDRSet:
         - cidr: "${IP_WG_GUEST_V4}"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: labelled-allow-egress-ad
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/ad: "allow"
+  egress:
+    - toCIDRSet:
+        - cidr: "${IP_AD_CIDR:=127.0.0.1/32}"
