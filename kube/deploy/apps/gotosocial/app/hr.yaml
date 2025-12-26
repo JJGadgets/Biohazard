@@ -120,34 +120,19 @@ spec:
             port: *prom
             protocol: HTTP
             appProtocol: http
-    ingress:
+    route:
       app:
-        className: nginx-public
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: *host
-            paths:
-              - &path
-                path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls: &tls
-          - hosts: [*host]
-            secretName: gotosocial-tls
-      media:
-        className: nginx-public
-        annotations:
-          nginx.ingress.kubernetes.io/proxy-body-size: "10M"
-        hosts:
-          - host: *host
-            paths:
-              - <<: *path
-                path: /api/v1/media
-        tls: *tls
+        hostnames: [*host]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: public
     persistence:
       data:
         existingClaim: gotosocial-data
