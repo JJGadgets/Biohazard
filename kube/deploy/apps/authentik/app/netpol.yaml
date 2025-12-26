@@ -129,7 +129,7 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: &app authentik-https-in-cluster
+  name: &app authentik-oidc-in-cluster
 spec:
   endpointSelector:
     matchLabels:
