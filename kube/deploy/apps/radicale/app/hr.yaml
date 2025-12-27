@@ -47,7 +47,8 @@ spec:
         controller: app
         ports:
           http:
-            port: 8080
+            port: &http 80
+            targetPort: 8080
             protocol: HTTP
             appProtocol: http
     route:
@@ -67,6 +68,9 @@ spec:
               - path:
                   type: PathPrefix
                   value: /.well-known
+            backendRefs:
+              - identifier: app
+                port: *http
     persistence:
       config:
         type: secret
