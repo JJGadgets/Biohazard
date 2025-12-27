@@ -44,9 +44,11 @@ spec:
           terminatingTLS:
             secret:
               name: authentik-tls
+              namespace: *app
           originatingTLS:
             secret:
-              name: authentik-tls
+              name: public-ca
+              namespace: *app
   egress:
     # same namespace
     - toEndpoints:
