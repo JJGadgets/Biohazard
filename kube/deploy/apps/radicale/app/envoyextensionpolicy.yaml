@@ -25,6 +25,5 @@ spec:
             response_handle:headers():replace("www-authenticate", "Basic realm=\"fuck off\"")
             response_handle:headers():replace(":status", "401")
             response_handle:headers():remove("location")
-            response_handle:body():setBytes("fuck off")
           end
         end
