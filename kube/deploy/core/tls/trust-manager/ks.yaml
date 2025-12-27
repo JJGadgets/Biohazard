@@ -6,6 +6,7 @@ metadata:
   namespace: &ns trust-manager
   labels: &l
     app.kubernetes.io/name: "trust-manager"
+    substitution.flux.home.arpa/disabled: "true"
 spec:
   targetNamespace: *ns
   commonMetadata:
