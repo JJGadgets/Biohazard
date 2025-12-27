@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cert-manager/trust-manager/v0.20.3/deploy/charts/trust-manager
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -14,3 +14,5 @@ spec:
   values:
     crds:
       enabled: true
+    commonLabels:
+      egress.home.arpa/apiserver: allow
