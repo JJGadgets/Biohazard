@@ -4,6 +4,7 @@ apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
   name: radicale-ios-dav
+  namespace: radicale
 spec:
   targetRefs:
   - group: gateway.networking.k8s.io
@@ -14,6 +15,13 @@ spec:
       inline: |
         function envoy_on_request(request_handle)
           if not request_handle:headers():get("authorization") then
-            request_handle:response():headers():add("www-authenticate", "Basic realm=\"fuck off\"")
+            request_handle:streamInfo():dynamicMetadata():set("envoy.filters.http.lua", "authorization", "n")
+          else
+            request_handle:streamInfo():dynamicMetadata():set("envoy.filters.http.lua", "authorization", "y")
+          end
+        end
+        function envoy_on_response(response_handle)
+          if response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.lua")["authorization"] == "n" then
+            response_handle:headers():add("www-authenticate", "Basic realm=\"fuck off\"")
           end
         end

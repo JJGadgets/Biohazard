@@ -40,10 +40,6 @@ spec:
   targetSelectors:
     - group: gateway.networking.k8s.io
       kind: Gateway
-  compression:
-    - type: Brotli
-    - type: Gzip
-    - type: Zstd
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -126,8 +122,13 @@ spec:
   parentRefs:
     - name: envoy-internal
       namespace: ingress
+      sectionName: internal
     - name: envoy-external
       namespace: ingress
+      sectionName: external
+    - name: envoy-external
+      namespace: ingress
+      sectionName: public
   rules:
     - filters:
         - type: ResponseHeaderModifier

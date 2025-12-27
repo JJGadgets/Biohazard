@@ -243,6 +243,10 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-external
+  compression:
+    - type: Brotli
+    - type: Gzip
+    - type: Zstd
   connection:
     bufferLimit: 100Ki
   tcpKeepalive: {}
