@@ -16,7 +16,7 @@ spec:
     http:
       backendRefs:
         - kind: Service
-          name: authentik-app
+          name: authentik
           namespace: authentik
           port: 9000
       path: /outpost.goauthentik.io/auth/envoy
