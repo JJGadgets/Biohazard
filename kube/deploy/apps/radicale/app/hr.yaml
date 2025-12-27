@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.4.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -22,11 +18,11 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
         containers:
           app:
             image: &img
-              repository: jank.ing/jjgadgets/radicale
+              repository: ghcr.io/jjgadgets/radicale
               tag: 3.5.8@sha256:2f550fc808d1a16c0d55f55a1e692bcd4326fc73e5f10f03fcb0718ed5300316
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -54,43 +50,23 @@ spec:
             port: 8080
             protocol: HTTP
             appProtocol: http
-    ingress:
-      app:
-        className: nginx-internal
-        annotations:
-          # nginx.ingress.kubernetes.io/auth-signin annotation not needed since we're only using the "Receiving HTTP basic auth" part of the authentik Proxy Provider which handles forward auth
-          nginx.ingress.kubernetes.io/auth-url: |-
-              http://authentik.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
-          nginx.ingress.kubernetes.io/auth-response-headers: |-
-              Set-Cookie,X-Remote-User,WWW-Authenticate
-          nginx.ingress.kubernetes.io/auth-snippet: |
-              proxy_set_header X-Forwarded-Host $http_host;
-          nginx.ingress.kubernetes.io/configuration-snippet: | # authentik's 401 doesn't have this header, needed for at least iOS
-            if ($http_authorization = "") {
-                add_header 'WWW-Authenticate' 'Basic realm="fuck off"' always;
-            }
-        hosts:
-          - host: &host "${APP_DNS_RADICALE:=radicale}"
-            paths:
-              - &path
-                path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app: &route
+        hostnames: ["${APP_DNS_RADICALE:=radicale}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
       unauth:
-        className: nginx-internal
-        hosts:
-          - host: *host
-            paths:
-              - <<: *path
-                path: /.web
-              - <<: *path
-                path: /.well-known
-        tls:
-          - hosts: [*host]
+        <<: *route
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /.web
+              - path:
+                  type: PathPrefix
+                  value: /.well-known
     persistence:
       config:
         type: secret
@@ -125,13 +101,6 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

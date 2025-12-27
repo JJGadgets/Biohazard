@@ -112,7 +112,7 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
-            statusCode: 308
+            statusCode: 301 # TODO: https://github.com/envoyproxy/gateway/issues/7380
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -186,7 +186,7 @@ metadata:
   name: custom-error-page
 spec:
   directResponse:
-    contentType: text/html; charset=utf-8
+    contentType: text/html
     statusCode: 404
     body:
       type: ValueRef

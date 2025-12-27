@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: "${AUTH_ROUTE}-forward-auth"
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: "${AUTH_ROUTE}"
+  extAuth:
+    failOpen: false
+    recomputeRoute: true
+    headersToExtAuth: ["Cookie"]
+    http:
+      backendRefs:
+        - kind: Service
+          name: authentik-app
+          namespace: authentik
+          port: 9000
+      path: /outpost.goauthentik.io/auth/envoy
+      headersToBackend: ["Set-Cookie", "${AUTH_HEADER:=X-authentik-uid}", "X-authentik-username", "X-authentik-name", "X-authentik-email", "X-authentik-groups", "X-authentik-entitlements"]

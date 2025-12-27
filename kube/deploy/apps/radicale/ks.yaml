@@ -3,43 +3,68 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: radicale-app
-  namespace: flux-system
+  namespace: &ns radicale
   labels: &l
     app.kubernetes.io/name: "radicale"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/radicale/app
-  #targetNamespace: "radicale" # authentik forward-auth
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+    - ../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: radicale-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
+      AUTH_ROUTE: radicale-app
+      AUTH_HEADER: X-Remote-User
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: radicale-pvc
-  namespace: flux-system
+  namespace: &ns radicale
   labels: &l
-    app.kubernetes.io/name: "radicale"
+    app.kubernetes.io/name: radicale
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "radicale"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "radicale-data"
+      PVC: &pvc "radicale-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_RADICALE:=1000}
-      RGID: !!str |
-        ${APP_UID_RADICALE:=1000}
-      RFSG: !!str |
-        ${APP_UID_RADICALE:=1000}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "jank.ing/jjgadgets/radicale:3.5.8@sha256:2f550fc808d1a16c0d55f55a1e692bcd4326fc73e5f10f03fcb0718ed5300316"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "radicale-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: radicale-ios-dav
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: radicale-app
+  lua:
+    - type: Inline
+      inline: |
+        function envoy_on_request(request_handle)
+          if not request_handle:headers():get("authorization") then
+            request_handle:response():headers():add("www-authenticate", "Basic realm=\"fuck off\"")
+          end
+        end
