@@ -30,6 +30,9 @@ spec:
       prometheus:
         compression:
           type: Gzip
+  filterOrder:
+    - name: envoy.filters.http.lua
+      after: envoy.filters.http.ext_authz
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
