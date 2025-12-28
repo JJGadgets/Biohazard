@@ -6,9 +6,10 @@ metadata:
   name: "${PVC}-bootstrap"
   labels:
     kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
+    kustomize.toolkit.fluxcd.io/prune: "disabled"
 spec:
   trigger:
-    manual: "restore-once-bootstrap"
+    manual: "${TRIGGER:=restore-once-bootstrap}"
   restic:
     repository: "vs-${PVC}-${RESTORE:=r2}-restic"
     copyMethod: "Snapshot"

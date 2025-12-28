@@ -9,7 +9,7 @@ spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: *app
+    name: app-template
     namespace: *app
   values:
     controllers:
@@ -19,10 +19,10 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             db.home.arpa/pg: pg-default
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            # authentik.home.arpa/https: allow
+            # authentik.home.arpa/oidc: allow
             # prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
         containers:
@@ -134,31 +134,27 @@ spec:
             port: 636
             targetPort: 3636
             protocol: UDP
-    ingress:
+    route:
       app:
-        className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-          # https://github.com/kubernetes/ingress-nginx/issues/6728
-          nginx.ingress.kubernetes.io/server-snippet: |
-            proxy_ssl_name ${APP_DNS_APPNAME};
-            proxy_ssl_server_name on;
-          # without header buffer size, will get following errors due to hardening ingress-nginx number of header buffers to 2 and header buffer size to 1k:
-          # HTTP1.1 /v1/auth/valid: 400 Request Header Or Cookie Too Large
-          # HTTP2 /v1/auth/valid: HTTP/2 stream was not closed cleanly before end of the underlying stream
-        hosts:
-          - host: &host "${APP_DNS_APPNAME:=${APPNAME}}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+        # annotations:
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["${APP_DNS_APPNAME:=${APPNAME}}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /test
+            backendRefs:
+              - identifier: app
+                port: 80
+          - backendRefs:
+              - identifier: app
+                port: 80
     persistence:
       config:
         type: configMap
@@ -170,7 +166,6 @@ spec:
                 path: /data/server.toml
       data:
         existingClaim: ${APPNAME}-data
-        globalMounts:
         advancedMounts:
           app:
             app:
