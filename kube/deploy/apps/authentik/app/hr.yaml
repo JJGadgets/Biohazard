@@ -386,7 +386,7 @@ spec:
           io.cilium/internal: "true"
           io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK:=127.0.0.1}"
         ports:
-          http:
+          https:
             port: 443
             targetPort: *https
             protocol: HTTPS
