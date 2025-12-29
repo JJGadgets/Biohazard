@@ -6,9 +6,11 @@ metadata:
   namespace: authentik
 spec:
   from:
-    - group: gateway.envoyproxy.io
+    - &sp group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: radicale
+    - <<: *sp
+      namespace: firefly
   to:
     - group: ""
       kind: Service
