@@ -29,6 +29,9 @@ spec:
               FLATNOTES_PORT: &http 8080
               FLATNOTES_PATH: &pvc /data
               FLATNOTES_AUTH_TYPE: totp
+            envFrom: &envFrom
+              - secretRef:
+                  name: flatnotes-secrets
             securityContext: &sc
               # readOnlyRootFilesystem: true # init changes href in index.html
               allowPrivilegeEscalation: false
