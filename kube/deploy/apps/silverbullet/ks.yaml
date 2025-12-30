@@ -3,31 +3,36 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: silverbullet-app
-  namespace: flux-system
+  namespace: &ns silverbullet
   labels: &l
     app.kubernetes.io/name: "silverbullet"
 spec:
-  targetNamespace: "silverbullet"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/silverbullet/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
+    # - name: silverbullet-db
     - name: silverbullet-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: silverbullet-pvc
-  namespace: flux-system
+  namespace: &ns silverbullet
   labels: &l
     app.kubernetes.io/name: silverbullet
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: silverbullet
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -36,13 +41,28 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "silverbullet-data"
+      PVC: &pvc "silverbullet-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/silverbulletmd/silverbullet:2.3.0@sha256:69e37ce27c693fe6640d2c792c5161413d0b715195660df9fea024fd42a7162b"
+      VS_APP_CURRENT_VERSION: "ghcr.io/silverbulletmd/silverbullet:2.3.0@sha256:a4b60f3adf29e65b207310c3db9864c76974d667a72b8131680dd487f6a9c148"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "silverbullet-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
