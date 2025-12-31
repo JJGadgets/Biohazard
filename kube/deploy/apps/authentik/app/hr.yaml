@@ -519,7 +519,13 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/media/public"
+          - subPath: media
+            path: "/media/public"
+        advancedMounts:
+          rac:
+            app:
+              - subPath: freerdp
+                path: /home/guacd/.config/freerdp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
