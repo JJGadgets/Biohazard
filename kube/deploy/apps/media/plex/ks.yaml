@@ -3,7 +3,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: plex-app
-  namespace: &ns plex
+  namespace: &ns media
   labels: &l
     app.kubernetes.io/name: "plex"
 spec:
@@ -26,7 +26,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: plex-pvc
-  namespace: &ns plex
+  namespace: &ns media
   labels: &l
     app.kubernetes.io/name: plex
     pvc.home.arpa/volsync: "true"
