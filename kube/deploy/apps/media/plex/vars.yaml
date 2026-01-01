@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: plex
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "authentik vars - ${CLUSTER_NAME}"
+    - extract:
+        key: "Plex - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        # Core cluster-wide vars
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # App specific
+        APP_DNS_PLEX: '{{ .APP_DNS_PLEX }}'
+        APP_IP_PLEX: '{{ .APP_IP_PLEX }}'
+        # Other cluster-wide vars
+        DNS_CF: '{{ .DNS_CF }}'
+        IP_TRUENAS: '{{ .IP_TRUENAS }}'
+        PATH_NAS_MEDIA: '{{ .PATH_NAS_MEDIA }}'
+---
+${CLUSTER_NAME:=biohazard}
+${CONFIG_TZ}
+${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}
+${APP_IP_PLEX:=127.0.0.1}
+${DNS_CF:=cf}
+${APP_DNS_PLEX:=plex}
+${IP_TRUENAS:=127.0.0.1}
+${PATH_NAS_MEDIA:=/media}
+${APP_IP_AUTHENTIK:=127.0.0.1}
+${APP_DNS_AUTHENTIK:=authentik}
+
