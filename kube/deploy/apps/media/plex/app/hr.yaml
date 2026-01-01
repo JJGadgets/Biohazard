@@ -1,23 +1,19 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app plex
-  namespace: media
+  namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      plex:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -28,14 +24,13 @@ spec:
             ingress.home.arpa/nginx-external: allow
             egress.home.arpa/internet: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/home-operations/plex
               tag: 1.42.2.10156@sha256:9ad8a3506e1d8ebda873a668603c1a2c10e6887969564561be669efd65ae8871
             env: &env
               TZ: "${CONFIG_TZ}"
-              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443,http://${APP_IP_PLEX}:32400"
-              # PLEX_NO_AUTH_NETWORKS: "${IP_JJ_V4:=127.0.0.1}"
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400"
               # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
             securityContext: &sc
               readOnlyRootFilesystem: true
@@ -45,11 +40,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "2Gi"
               limits:
                 cpu: "1"
-                memory: "10Gi"
-                gpu.intel.com/i915: "1"
+                memory: "2Gi"
             probes:
               liveness: &probes
                 enabled: true
@@ -69,33 +62,45 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
     service:
-      plex:
-        controller: plex
+      app:
+        controller: app
         type: LoadBalancer
         annotations:
           "io.cilium/lb-ipam-ips": "${APP_IP_PLEX:=127.0.0.1}"
         ports:
           http:
-            port: *port
+            port: 80
+            targetPort: *port
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-external
+    route:
+      app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-        hosts:
-          - host: &host "${APP_DNS_PLEX:=plex}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: plex
-                  port: http
-        tls:
-          - hosts: [*host]
+        hostnames: ["${APP_DNS_PLEX:=plex}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /library/streams
+            filters:
+              - type: RequestHeaderModifier
+                requestHeaderModifier:
+                  remove: [Range]
+            backendRefs:
+              - identifier: app
+                port: 80
+          - backendRefs:
+              - identifier: app
+                port: 80
     persistence:
       data:
         existingClaim: plex-data
@@ -139,9 +144,6 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       runtimeClassName: gvisor
-      hostAliases:
-        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
@@ -159,7 +161,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/plex
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     networkpolicies:
       app:
