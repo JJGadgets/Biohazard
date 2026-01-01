@@ -47,10 +47,9 @@ spec:
         resources:
           requests:
             cpu: "5m"
-            memory: "144Mi"
           limits:
             cpu: "100m"
-            memory: "256Mi"
+            memory: "512Mi"
       podMonitor:
         enabled: true
         namespace: "{{ .Release.Namespace }}"
