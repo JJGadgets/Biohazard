@@ -3,27 +3,66 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: jellyfin-app
-  namespace: flux-system
+  namespace: &ns media
   labels: &l
-    app.kubernetes.io/name: "jellyfin"
+    app.kubernetes.io/name: &app "jellyfin"
 spec:
-  targetNamespace: "media"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/media/jellyfin/app
   components:
-    - ../../../../core/storage/volsync/component/
+    - ../../../../core/flux-system/alerts/template/
+    - ../../../../../repos/flux/helm-oci/app-template/
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+    - name: jellyfin-pvc
   postBuild:
     substitute:
-      PVC: "jellyfin-data"
+      APP_TEMPLATE: 4.4.0
+      CHART_NAME: *app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: jellyfin-pvc
+  namespace: &ns media
+  labels: &l
+    app.kubernetes.io/name: jellyfin
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "jellyfin-data"
       SIZE: "50Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      RUID: &uid "1000"
+      VS_APP_CURRENT_VERSION: "ghcr.io/jellyfin/jellyfin:10.11.5@sha256:cd7e4cb71812dd76988a725da615e37c6d0d24c200be904ad5d183e51f1dc6ed"
+      RUID: &uid "6969"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "jellyfin-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

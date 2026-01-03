@@ -17,9 +17,3 @@ spec:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
-    template:
-      type: Opaque
-      data:
-        ND_PASSWORDENCRYPTIONKEY: '{{ .ND_PASSWORDENCRYPTIONKEY }}'
-        ND_DEVAUTOCREATEADMINPASSWORD: '{{ .password }}'
-        # ADMIN_PASSWORD: '{{ .password }}'

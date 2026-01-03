@@ -3,30 +3,38 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: navidrome-app
-  namespace: flux-system
+  namespace: &ns media
   labels: &l
-    app.kubernetes.io/name: "navidrome"
+    app.kubernetes.io/name: &app "navidrome"
 spec:
-  targetNamespace: "media"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/media/navidrome/app
   components:
     - ../../../../core/flux-system/alerts/template/
+    - ../../../../../repos/flux/helm-oci/app-template/
+    - ../../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
     - name: crds
       namespace: flux-system
+    - name: navidrome-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
+      CHART_NAME: *app
+      AUTH_ROUTE: navidrome-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: navidrome-pvc
-  namespace: flux-system
+  namespace: &ns media
   labels: &l
-    app.kubernetes.io/name: navidrome
+    app.kubernetes.io/name: &app navidrome
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: media
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -35,7 +43,7 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "navidrome-data"
+      PVC: &pvc "navidrome-data"
       SIZE: "20Gi"
       SC: &sc "file"
       SNAP: *sc
@@ -45,50 +53,17 @@ spec:
       RUID: &uid "6969"
       RGID: *uid
       RFSG: *uid
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: beets-pvc
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: beets
-    pvc.home.arpa/volsync: "true"
-spec:
-  targetNamespace: media
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/storage/volsync/template
-  dependsOn:
-    - name: crds
-      namespace: flux-system
-  postBuild:
-    substitute:
-      PVC: "beets-data"
-      SIZE: "2Gi"
-      SC: &sc "file"
-      SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "docker.io/sentriz/betanin:v0.5.6@sha256:880d57edb58044ac9ef6e816a84380f3b92edec3d48714f50743765920835849"
-      RUID: &uid "1000"
-      RGID: *uid
-      RFSG: *uid
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: authentik-navidrome
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "navidrome"
-spec:
-  targetNamespace: "authentik"
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/apps/authentik/forward-auth
-  dependsOn:
-    - name: authentik-app
-  postBuild:
-    substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_NAVIDROME:=navidrome}"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "navidrome-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

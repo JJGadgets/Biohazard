@@ -21,6 +21,7 @@ spec:
   postBuild:
     substitute:
       APP_TEMPLATE: 4.4.0
+      CHART_NAME: plex
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
