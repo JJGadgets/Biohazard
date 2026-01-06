@@ -21,7 +21,8 @@ spec:
           labels:
             ingress.home.arpa/jjgadgets: allow
             ingress.home.arpa/appletv: allow
-            ingress.home.arpa/nginx-external: allow
+            ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
             egress.home.arpa/internet: allow
         containers:
           app:
@@ -41,8 +42,9 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "2"
                 memory: "2Gi"
+                gpu.intel.com/i915: "1"
             probes:
               liveness: &probes
                 enabled: true
