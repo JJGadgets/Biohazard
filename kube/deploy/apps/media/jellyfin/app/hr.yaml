@@ -1,42 +1,38 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app jellyfin
-  namespace: media
+  namespace: &ns media
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
   values:
     controllers:
-      jellyfin:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            ingress.home.arpa/nginx-external: "allow"
+            ingress.home.arpa/envoy-internal: "allow"
+            ingress.home.arpa/envoy-external: "allow"
             egress.home.arpa/internet: "allow"
             egress.home.arpa/dlna: "allow"
             authentik.home.arpa/ldap: "allow"
-            egress.home.arpa/r2: "allow"
-            tailscale.com/expose: "true"
+            # egress.home.arpa/r2: "allow"
+            # tailscale.com/expose: "true"
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/jellyfin/jellyfin
               tag: 10.11.5@sha256:cd7e4cb71812dd76988a725da615e37c6d0d24c200be904ad5d183e51f1dc6ed
-            env:
+            env: &env
               TZ: "${CONFIG_TZ}"
-            securityContext:
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
@@ -44,45 +40,42 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "2Gi"
               limits:
                 cpu: "1"
-                memory: "6Gi"
-                gpu.intel.com/i915: "1"
-            # probes: # TODO: disabled for 10.11.0 migration
-            #   liveness:
-            #     enabled: true
-            #   readiness:
-            #     enabled: true
-            #   startup:
-            #     enabled: true
-            #     spec:
-            #       periodSeconds: 1
-            #       failureThreshold: 3600
+                memory: "2Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 3600
+                  initialDelaySeconds: 5
     service:
-      jellyfin:
-        controller: jellyfin
+      app:
+        controller: app
         ports:
           http:
-            port: 8096
+            port: 80
+            targetPort: 8096
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-external
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: &host "${APP_DNS_JELLYFIN:=jellyfin}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: jellyfin
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        # annotations:
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["${APP_DNS_JELLYFIN:=jellyfin}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
     persistence:
       config:
         existingClaim: jellyfin-data
@@ -91,7 +84,7 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 3Gi
+        sizeLimit: 1Gi
       media:
         existingClaim: "media-data" # VolSync
         globalMounts:
@@ -119,7 +112,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: true # NFS doesn't support idmap?
+      hostUsers: true
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 6969
@@ -128,17 +121,10 @@ spec:
         fsGroupChangePolicy: Always
         supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/jellyfin
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: media
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "authentik vars - ${CLUSTER_NAME}"
+    - extract:
+        key: "Jellyfin - ${CLUSTER_NAME}"
+    - extract:
+        key: "Kavita - ${CLUSTER_NAME}"
+    - extract:
+        key: "Navidrome - ${CLUSTER_NAME}"
+    - extract:
+        key: "Plex - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        # Core cluster-wide vars
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # authentik hostAliases
+        APP_DNS_AUTHENTIK: '{{ .APP_DNS_AUTHENTIK }}'
+        APP_IP_AUTHENTIK: '{{ .APP_IP_AUTHENTIK }}'
+        # Other cluster-wide vars
+        IP_JJ_V4: '{{ .IP_JJ_V4 }}'
+        DNS_CF: '{{ .DNS_CF }}'
+        IP_TRUENAS: '{{ .IP_TRUENAS }}'
+        PATH_NAS_MEDIA: '{{ .PATH_NAS_MEDIA }}'
+        PATH_NAS_PERSIST_K8S: '{{ .PATH_NAS_PERSIST_K8S }}'
+        # Jellyfin
+        APP_DNS_JELLYFIN: '{{ .APP_DNS_JELLYFIN }}'
+        # Kavita
+        APP_DNS_KAVITA: '{{ .APP_DNS_KAVITA }}'
+        APP_UID_KAVITA: '{{ .APP_UID_KAVITA }}'
+        APP_IP_KAVITA: '{{ .APP_IP_KAVITA }}'
+        # Navidrome
+        APP_DNS_NAVIDROME: '{{ .APP_DNS_NAVIDROME }}'
+        APP_UID_NAVIDROME: '{{ .APP_UID_NAVIDROME }}'
+        APP_IP_NAVIDROME: '{{ .APP_IP_NAVIDROME }}'
+        # Plex
+        APP_DNS_PLEX: '{{ .APP_DNS_PLEX }}'
+        APP_IP_PLEX: '{{ .APP_IP_PLEX }}'

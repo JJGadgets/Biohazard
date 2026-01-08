@@ -31,38 +31,34 @@ spec:
             egress.home.arpa/nginx-external: allow
             egress.home.arpa/nginx-internal: allow
             egress.home.arpa/nginx-public: allow
+            ingress.home.arpa/envoy-external: allow
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/envoy-external: allow
+            egress.home.arpa/envoy-internal: allow
             db.home.arpa/pg: pg-authentik
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             prom.home.arpa/kps: allow
             # for OIDC sources
             egress.home.arpa/discord: allow
             egress.home.arpa/github: allow
+            # files
+            egress.home.arpa/r2: allow
           resources:
             requests:
               cpu: 30m
             limits:
               cpu: "1"
-              memory: 2000Mi
-          topologySpreadConstraints:
-            - &tsc
-              maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: app
+              memory: 1Gi
         containers:
           app:
             image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2025.10.3@sha256:d2b66e851246e7299219b72a4ed43630a2c2bac3745eb665834b72963d836e64
+              repository: ghcr.io/goauthentik/dev-server
+              tag: gh-version-2025.12@sha256:822594213a80ef0a334a1ba13489579fc1114092390b1e19f9d2b778b70d1604
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
               # PostgreSQL
-              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-primary.authentik.svc.cluster.local"
+              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-ha.authentik.svc.cluster.local"
                 # valueFrom:
                 #   secretKeyRef:
                 #     name: pg-authentik-pguser-authentik
@@ -89,9 +85,8 @@ spec:
                   secretKeyRef:
                     name: pg-authentik-pguser-authentik
                     key: password
-              AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl verify-ca
+              AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
-              AUTHENTIK_SESSION_STORAGE: "db" # store sessions in PG
               # pgBouncer / Database Connection Health
               AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
@@ -119,12 +114,15 @@ spec:
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
               AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
+              AUTHENTIK_STORAGE__MEDIA__S3__ADDRESSING_STYLE: path
               # misc
               AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               AUTHENTIK_OUTPOSTS__DISCOVER: "false"
               # error reporting
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
               AUTHENTIK_ERROR_REPORTING__SEND_PII: "false"
+              # disable update checking
+              AUTHENTIK_DISABLE_UPDATE_CHECK: "true"
             envFrom: &envFrom
               - secretRef:
                   name: authentik-secrets
@@ -179,7 +177,7 @@ spec:
                 enabled: true
       worker:
         type: deployment
-        replicas: null # HPA
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -190,14 +188,8 @@ spec:
             authentik.home.arpa/https: allow
             prom.home.arpa/kps: allow
             egress.home.arpa/discord: allow
+            egress.home.arpa/ad: allow
             # egress.home.arpa/internet: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: worker
         containers:
           app:
             image: *img
@@ -213,10 +205,11 @@ spec:
             resources:
               requests:
                 cpu: 20m
+                # memory: 750Mi
               limits:
                 cpu: "1"
-                memory: 1Gi
-            probes: # TODO: 2025.10.1 broke healthchecks as HTTP health endpoint is not listening on port 9000 https://github.com/goauthentik/authentik/issues/17923
+                memory: 1Gi # TODO: workers have been memory leaking since 2025.10 due to outpost update tasks flooding Postgres and being scheduled more than 1 per second despite crontab of 28 */4 * * *
+            probes:
               readiness: &worker-probe
                 enabled: true
                 custom: true
@@ -235,7 +228,7 @@ spec:
                 <<: *worker-probe
                 spec:
                   <<: *wps
-                  failureThreshold: 6
+                  failureThreshold: 15
               startup:
                 <<: *worker-probe
                 spec:
@@ -249,19 +242,12 @@ spec:
         pod:
           labels:
             authentik.home.arpa/https: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: ldap
         containers:
           app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.10.3@sha256:1c0575c9505cdb696136099e146f6ebe16e4e02ffe745a78dcf735219adadbf8
+              tag: 2025.12.0-rc2@sha256:76fdb1b82f22a1c7d2480572d0b6f3ab4f94c0b0e2c90062363e96994d8a72ff
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -297,19 +283,12 @@ spec:
         pod:
           labels:
             authentik.home.arpa/https: allow
-          topologySpreadConstraints:
-            - <<: *tsc
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: radius
         containers:
           app:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.10.3@sha256:dcd8cbad7b7008cbf1d33f853afdb81436a36b29475a18757d775c1648a1cce2
+              tag: 2025.12.0-rc2@sha256:7c3c0871902cd90ae1128fb0310de0e5ddc4b7ada82fb79bed060499acf23445
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -336,6 +315,49 @@ spec:
                 <<: *radius-probe
                 spec:
                   <<: [*startup, *rps]
+      rac:
+        type: deployment
+        replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
+        pod:
+          labels:
+            authentik.home.arpa/https: allow
+            egress.home.arpa/ad: allow
+            egress.home.arpa/lan: allow
+        containers:
+          app:
+            image:
+              <<: *img
+              repository: ghcr.io/goauthentik/rac
+              tag: 2025.12.0-rc2@sha256:dad603807f0e3c420edf191a525b9350385d87bc4a3756250e9afaf0211ece09
+            env:
+              AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
+              AUTHENTIK_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: authentik-tokens
+                    key: AUTHENTIK_TOKEN_RAC
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: "1"
+                memory: "50Mi"
+            probes:
+              liveness: &rac-probe
+                enabled: true
+                custom: true
+                spec: &rps
+                  exec:
+                    command: ["/rac", "healthcheck"]
+              readiness: *rac-probe
+              startup:
+                <<: *rac-probe
+                spec:
+                  <<: [*startup, *rps]
     service:
       app:
         controller: app
@@ -359,11 +381,12 @@ spec:
         primary: false
         controller: app
         type: LoadBalancer
+        sessionAffinity: ClientIP
         annotations:
           io.cilium/internal: "true"
           io.cilium/lb-ipam-ips: "${APP_IP_AUTHENTIK:=127.0.0.1}"
         ports:
-          http:
+          https:
             port: 443
             targetPort: *https
             protocol: HTTPS
@@ -407,52 +430,75 @@ spec:
           radius-udp:
             <<: *radius
             protocol: UDP
-    ingress:
-      app: &ingress
-        className: nginx-external
+    route:
+      app:
+        hostnames: &host ["${APP_DNS_AUTHENTIK:=authentik}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *http
+      external:
         annotations:
-          # nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10"
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: &host "${APP_DNS_AUTHENTIK:=authentik}"
-            paths:
-              - &path
-                path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls: &tls
-          - hosts: [*host]
-            secretName: authentik-tls
-      # external:
-      #   <<: *ingress
-      #   annotations:
-      #     external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-      #     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-      #   hosts:
-      #     - host: *host
-      #       paths:
-      #         - <<: *path
-      #           service:
-      #             identifier: app
-      #             port: anubis
+        hostnames: *host
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *anubis
       harden:
-        <<: *ingress
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
-        hosts:
-          - host: *host
-            paths:
-              - <<: *path
-                path: /api/v3/policies/expression
-              - <<: *path
-                path: /api/v3/propertymappings
-              - <<: *path
-                path: /api/v3/managed/blueprints
-              - <<: *path
-                path: /if/admin
+        hostnames: *host
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /if/admin
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/policies/expression
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/propertymappings
+              - path:
+                  type: PathPrefix
+                  value: /api/v3/managed/blueprints
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  statusCode: 301
+                  hostname: www.google.com
+                  port: 443
+                  path:
+                    type: ReplaceFullPath
+                    replaceFullPath: "/"
+      forward-auth:
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /outpost.goauthentik.io
+            backendRefs:
+              - identifier: app
+                port: *http
     persistence:
       pg-ca:
         type: secret
@@ -473,7 +519,13 @@ spec:
         type: emptyDir
         medium: Memory
         globalMounts:
-          - path: "/media/public"
+          - subPath: media
+            path: "/media/public"
+        advancedMounts:
+          rac:
+            app:
+              - subPath: freerdp
+                path: /home/guacd/.config/freerdp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -507,11 +559,6 @@ spec:
         rules:
           ingress: [from: [{podSelector: {}}]]
           egress: [to: [{podSelector: {}}]]
-      vm-ad:
-        controller: worker
-        policyTypes: [Egress]
-        rules:
-          egress: [to: [{ipBlock: {cidr: "${IP_AD_CIDR:=127.0.0.1/32}"}}]]
     serviceMonitor:
       authentik:
         service:

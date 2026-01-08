@@ -3,45 +3,67 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: firefly-app
-  namespace: flux-system
+  namespace: &ns firefly
   labels: &l
     app.kubernetes.io/name: "firefly"
 spec:
-  targetNamespace: "firefly"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/firefly/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+    - ../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+    - name: firefly-pvc
   postBuild:
     substitute:
-      PVC: "firefly-data"
+      APP_TEMPLATE: 4.4.0
+      AUTH_ROUTE: firefly-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: firefly-pvc
+  namespace: &ns firefly
+  labels: &l
+    app.kubernetes.io/name: firefly
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "firefly-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "p.jank.me/fireflyiii/core:version-6.2.7@sha256:dc78dac2d3db78665e17c89f5075602ec8f7c84d10610a7888e633b83334a340"
       RUID: &uid "33"
       RGID: *uid
       RFSG: *uid
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: authentik-firefly
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "firefly"
-spec:
-  targetNamespace: "authentik"
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/apps/authentik/forward-auth
-  dependsOn: []
-  postBuild:
-    substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_FIREFLY:=firefly}"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "firefly-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

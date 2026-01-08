@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: "ghcr.io/searxng/searxng"
-              tag: "latest@sha256:a83787d330db8df1fac61d7425e897122f6a41e3d65c9e9521a54ab92f726d11"
+              tag: "latest@sha256:472dd0c84b8e2a05bca773b4a430b9fc9e4e92cd4fa0afaa223efab925ab752a"
             command: ["/usr/local/searxng/.venv/bin/granian", "searx.webapp:app"]
             env:
               TZ: "${CONFIG_TZ}"
@@ -55,7 +55,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.4.0-bookworm@sha256:3906b477e4b60250660573105110c28bfce93b01243eab37610a484daebceb04"
+              tag: "8.4.0-bookworm@sha256:47200b04138293fae39737e50878a238b13ec0781083126b1b0c63cf5d992e8d"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:

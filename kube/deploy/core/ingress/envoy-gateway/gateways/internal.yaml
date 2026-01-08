@@ -3,7 +3,8 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: envoy-internal
+  name: &name envoy-internal
+  namespace: ingress
   annotations:
     gatus.home-operations.com/endpoint: |
       group: ${CLUSTER_NAME}-internal
@@ -12,7 +13,7 @@ metadata:
         hide-hostname: true
         hide-url: true
 spec:
-  gatewayClassName: envoy
+  gatewayClassName: *name
   infrastructure:
     annotations:
       lbipam.cilium.io/ips: "${APP_IP_ENVOY_INTERNAL:=127.0.0.1}"
@@ -24,7 +25,7 @@ spec:
         namespaces:
           from: Same
     - &https
-      name: https
+      name: internal
       protocol: HTTPS
       # hostname: "*.${DNS_SHORT:=internal}"
       port: 443
@@ -38,11 +39,26 @@ spec:
           - kind: Secret
             name: long-domain-tls
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.networking.k8s.io/gatewayclass_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy-internal
+  namespace: ingress
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: envoy
+    namespace: ingress
+---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
   name: envoy-internal
+  namespace: ingress
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
@@ -66,11 +82,16 @@ apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
   name: envoy-internal
+  namespace: ingress
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-internal
+  compression:
+    - type: Brotli
+    - type: Gzip
+    - type: Zstd
   connection:
     bufferLimit: 8Mi
   tcpKeepalive: {}
@@ -81,7 +102,7 @@ spec:
     - match:
         statusCodes: [ {type: Value, value: 403}, {type: Value, value: 404}, {type: Value, value: 405}, {type: Value, value: 500}, {type: Value, value: 501}, {type: Value, value: 502}, {type: Value, value: 503}, {type: Value, value: 504}, {type: Value, value: 505}, {type: Value, value: 506}, {type: Value, value: 510} ]
       response:
-        contentType: text/html; charset=utf-8
+        contentType: text/html
         body:
           type: ValueRef
           valueRef:

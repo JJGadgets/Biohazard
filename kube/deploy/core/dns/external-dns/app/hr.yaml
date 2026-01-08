@@ -33,6 +33,7 @@ spec:
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
       - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
       - --crd-source-kind=DNSEndpoint
+      - --gateway-name=envoy-external
       #- --label-filter=ingress.home.arpa/type in (external, auth-external-only)
     rbac:
       additionalPermissions:
@@ -46,6 +47,8 @@ spec:
     sources:
       - ingress
       - service
+      - crd
+      - gateway-httproute
     txtPrefix: "k8s-${CLUSTER_NAME}."
     txtOwnerId: default
     # domainFilters:

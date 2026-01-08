@@ -1,34 +1,31 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app kavita
-  namespace: media
+  namespace: &ns media
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: "2.6.0"
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *ns
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            egress.home.arpa/internet: "allow" # metadata fetching
+            ingress.home.arpa/envoy-internal: allow
+            # egress.home.arpa/internet: allow
         containers:
-          main:
+          app:
             image: &img
-              repository: "ghcr.io/kareadita/kavita"
-              tag: "0.8.8@sha256:22c42f3cc83fb98b98a6d6336200b615faf2cfd2db22dab363136744efda1bb0"
-            env:
+              repository: ghcr.io/kareadita/kavita
+              tag: 0.8.8@sha256:22c42f3cc83fb98b98a6d6336200b615faf2cfd2db22dab363136744efda1bb0
+            env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
               readOnlyRootFilesystem: true
@@ -38,58 +35,55 @@ spec:
             resources:
               requests:
                 cpu: "20m"
-                memory: "250Mi"
               limits:
-                cpu: "3000m"
-                memory: "1Gi"
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: 5000
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_KAVITA:=kavita}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts: [*host]
+            port: 80
+            targetPort: 5000
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_KAVITA:=kavita}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
-      config:
-        enabled: true
-        existingClaim: "kavita-config"
-        globalMounts:
-          - path: "/kavita/config"
-      nas:
-        enabled: true
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/kavita}"
-        globalMounts:
-          - path: "/nas"
-            readOnly: true
+      data:
+        existingClaim: kavita-data
+        advancedMounts:
+          app:
+            app:
+              - path: /kavita/config
       media:
-        enabled: true
         existingClaim: "media-data" # VolSync
         globalMounts:
           - path: "/media"
             readOnly: true
       bulk:
-        enabled: true
         existingClaim: "media-bulk" # no backups
         globalMounts:
           - path: "/bulk"
             readOnly: true
+      nas:
+        type: nfs
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/kavita}"
+        globalMounts:
+          - path: /nas
+            readOnly: true
       backups:
-        enabled: true
         type: nfs
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_BACKUPS_K8S:=/backups}"
@@ -97,34 +91,34 @@ spec:
           - subPath: "kavita"
             path: "/kavita/config/backups"
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-            readOnly: false
+          - subPath: tmp
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: true
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/kavita"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

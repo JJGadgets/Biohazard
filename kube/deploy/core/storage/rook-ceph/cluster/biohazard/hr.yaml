@@ -105,6 +105,8 @@ spec:
             devicePathFilter: *osd-s3500-1-6tb
           - name: "dorothy"
             devicePathFilter: "^/dev/disk/by-id/nvme-INTEL_SSDPF2KX038TZ_PHAC22.*P8AGN_1"
+            config:
+              deviceClass: ssd # TODO: override for now before I get to actually put my other U.2s into the M720q's
       placement:
         all:
           tolerations:
@@ -283,6 +285,7 @@ spec:
                 compression_algorithm: "zstd"
             - name: "replicas-2"
               failureDomain: "host"
+              deviceClass: "ssd"
               replicated:
                 size: 2
               parameters:
@@ -291,6 +294,7 @@ spec:
                 compression_algorithm: "lz4"
             - name: "ec-2-1-min-2"
               failureDomain: "host"
+              deviceClass: "ssd"
               erasureCoded:
                 dataChunks: 2
                 codingChunks: 1
@@ -369,6 +373,7 @@ spec:
               size: 3
           dataPool:
             failureDomain: "host"
+            deviceClass: "ssd"
             replicated:
               size: 3
           healthCheck:

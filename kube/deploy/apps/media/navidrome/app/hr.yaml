@@ -4,19 +4,13 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app navidrome
-  namespace: media
-  labels:
-    nginx.ingress.home.arpa/type: auth
+  namespace: &ns media
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.4.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
   values:
     controllers:
       app:
@@ -49,7 +43,7 @@ spec:
               ND_SEARCHFULLSTRING: "true"
               ND_SUBSONICARTISTPARTICIPATIONS: "true"
               ND_ENABLETRANSCODINGCONFIG: "${CONFIG_NAVIDROME_TRANSCODE_UI:=false}"
-              ND_UILOGINBACKGROUNDURL: https://raw.githubusercontent.com/JJGadgets/images/main/cover.png
+              ND_UILOGINBACKGROUNDURL: https://jjgadgets.tech/images/cover.png
               ND_UIWELCOMEMESSAGE: "Welcome to JJGadgets Music."
               ND_PROMETHEUS_ENABLED: "true"
               ND_PROMETHEUS_METRICSPATH: &metrics /metrics
@@ -80,47 +74,29 @@ spec:
     service:
       app:
         controller: app
-        type: LoadBalancer # TODO: tmp to test Amperfy song restart bug https://github.com/BLeeEZ/amperfy/issues/305
-        annotations:
-          coredns.io/hostname: "svc-${APP_DNS_NAVIDROME:=${APPNAME}}"
-          "io.cilium/lb-ipam-ips": "${APP_IP_NAVIDROME:=127.0.0.1}"
         ports:
           http:
             port: 80
             targetPort: *http
             protocol: HTTP
             appProtocol: http
-    ingress:
-      app:
-        className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/auth-signin: |-
-            https://${APP_DNS_NAVIDROME}/outpost.goauthentik.io/start?rd=$escaped_request_uri
-        hosts:
-          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths:
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app: &route
+        hostnames: ["${APP_DNS_NAVIDROME:=navidrome}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
       subsonic: # bypass forward auth
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_NAVIDROME:=navidrome}"
-            paths:
-              - &path
-                path: /rest
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-              - <<: *path
-                path: /auth
-        tls:
-          - hosts: [*host]
+        <<: *route
+        rules:
+          - matches:
+              - path:
+                  value: /rest
+                  type: PathPrefix
+            backendRefs:
+              - identifier: app
+                port: 80
     persistence:
       data:
         existingClaim: navidrome-data
@@ -133,13 +109,17 @@ spec:
         existingClaim: media-data
         advancedMounts:
           app:
-            edit:
-              - &mount
-                subPath: Music
-                path: /media/ceph
             app:
-              - <<: *mount
+              - subPath: Music
+                path: /media/ceph
                 readOnly: true
+            # edit:
+            #   - &mount
+            #     subPath: Music
+            #     path: /media/ceph
+            # app:
+            #   - <<: *mount
+            #     readOnly: true
       bulk:
         existingClaim: media-bulk
         advancedMounts:
@@ -153,13 +133,17 @@ spec:
         path: "${PATH_NAS_MEDIA:=/media}"
         advancedMounts:
           app:
-            edit:
-              - &mount
-                subPath: Music
-                path: /media/nfs
             app:
-              - <<: *mount
+              - subPath: Music
+                path: /media/nfs
                 readOnly: true
+            # edit:
+            #   - &mount
+            #     subPath: Music
+            #     path: /media/nfs
+            # app:
+            #   - <<: *mount
+            #     readOnly: true
       tmp:
         type: emptyDir
       ffmpeg:

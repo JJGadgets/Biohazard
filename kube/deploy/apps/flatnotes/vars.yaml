@@ -1,0 +1,31 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: flatnotes
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "Flatnotes - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        # Core cluster-wide vars
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # App specific
+        APP_DNS_FLATNOTES: '{{ .APP_DNS_FLATNOTES }}'
+        # Other cluster-wide vars
+        IP_JJ_V4: '{{ .IP_JJ_V4 }}'

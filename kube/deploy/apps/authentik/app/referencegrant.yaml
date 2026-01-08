@@ -1,0 +1,17 @@
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  from:
+    - &sp
+      group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: radicale
+    - <<: *sp
+      namespace: firefly
+  to:
+    - group: ""
+      kind: Service

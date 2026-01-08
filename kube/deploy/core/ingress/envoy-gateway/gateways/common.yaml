@@ -30,20 +30,9 @@ spec:
       prometheus:
         compression:
           type: Gzip
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.networking.k8s.io/gatewayclass_v1.json
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: envoy
-  namespace: ingress
-spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
-  parametersRef:
-    group: gateway.envoyproxy.io
-    kind: EnvoyProxy
-    name: envoy
-    namespace: ingress
+  filterOrder:
+    - name: envoy.filters.http.lua
+      after: envoy.filters.http.ext_authz
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -54,10 +43,6 @@ spec:
   targetSelectors:
     - group: gateway.networking.k8s.io
       kind: Gateway
-  compression:
-    - type: Brotli
-    - type: Gzip
-    - type: Zstd
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -99,6 +84,11 @@ spec:
     enableEnvoyHeaders: false
     disableRateLimitHeaders: true
     requestID: Disable
+    lateResponseHeaders:
+      remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
+      set:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains; preload
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -121,7 +111,7 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
-            statusCode: 308
+            statusCode: 301 # TODO: https://github.com/envoyproxy/gateway/issues/7380
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -135,14 +125,13 @@ spec:
   parentRefs:
     - name: envoy-internal
       namespace: ingress
-    - name: envoy-internal-auth
-      namespace: ingress
+      sectionName: internal
     - name: envoy-external
       namespace: ingress
-    - name: envoy-external-auth
+      sectionName: external
+    - name: envoy-external
       namespace: ingress
-    - name: envoy-public
-      namespace: ingress
+      sectionName: public
   rules:
     - filters:
         - type: ResponseHeaderModifier
@@ -198,10 +187,10 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: HTTPRouteFilter
 metadata:
-  name: direct-response-inline
+  name: custom-error-page
 spec:
   directResponse:
-    contentType: text/html; charset=utf-8
+    contentType: text/html
     statusCode: 404
     body:
       type: ValueRef
@@ -209,3 +198,22 @@ spec:
         group: ""
         kind: ConfigMap
         name: "custom-error-page"
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ip-all-private-allow
+  namespace: ingress
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        ip.envoy.internal/all-private: allow
+  authorization:
+    defaultAction: Deny
+    rules:
+      - action: Allow
+        principal:
+          clientCIDRs: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"]

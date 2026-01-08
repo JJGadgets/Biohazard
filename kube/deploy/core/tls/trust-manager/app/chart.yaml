@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/ocirepository-source-v1.json?test
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: trust-manager
+  namespace: trust-manager
+spec:
+  interval: 1h
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  url: oci://quay.io/jetstack/charts/trust-manager
+  ref:
+    tag: 0.20.3

@@ -28,6 +28,27 @@ spec:
       toPorts:
         - ports:
             - port: "9443"
+    - fromEndpoints:
+        - matchLabels:
+            authentik.home.arpa/oidc: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+          rules:
+            http:
+              - path: "/application/o/.*"
+          terminatingTLS:
+            secret:
+              name: authentik-tls
+              namespace: *app
+          originatingTLS:
+            secret:
+              name: public-ca
+              namespace: *app
   egress:
     # same namespace
     - toEndpoints:
@@ -38,6 +59,7 @@ spec:
         - &duo { matchPattern: "api-*.duosecurity.com" }
         - &plex { matchName: "plex.tv" }
         - &hibp { matchPattern: "*.pwnedpasswords.com" }
+        - &s3 { matchPattern: "*.${APP_DNS_AUTHENTIK}" }
       toPorts:
         - ports:
             - port: "443"
@@ -64,6 +86,8 @@ spec:
               - *duo
               - *smtp
               - *plex
+              - *hibp
+              - *s3
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -93,6 +117,25 @@ spec:
   endpointSelector:
     matchLabels:
       authentik.home.arpa/https: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: authentik
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/controller: app
+      toPorts:
+        - ports:
+            - port: "9443"
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &app authentik-oidc-in-cluster
+spec:
+  endpointSelector:
+    matchLabels:
+      authentik.home.arpa/oidc: allow
   egress:
     - toEndpoints:
         - matchLabels:

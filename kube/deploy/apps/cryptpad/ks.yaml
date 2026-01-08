@@ -3,41 +3,65 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cryptpad-app
-  namespace: flux-system
+  namespace: &ns cryptpad
   labels: &l
     app.kubernetes.io/name: "cryptpad"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/cryptpad/app
-  targetNamespace: "cryptpad"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: cryptpad-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.4.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cryptpad-pvc
-  namespace: flux-system
+  namespace: &ns cryptpad
   labels: &l
-    app.kubernetes.io/name: "cryptpad"
+    app.kubernetes.io/name: cryptpad
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "cryptpad"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "cryptpad-data"
+      PVC: &pvc "cryptpad-data"
       SIZE: "50Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: docker.io/cryptpad/cryptpad:version-2025.9.0@sha256:353d98ac893158b699dcf345b6c8271dea9200d1015a9d367441625c046486e4
       RUID: &uid "4001"
       RGID: *uid
       RFSG: *uid
-      VS_APP_CURRENT_VERSION: docker.io/cryptpad/cryptpad:version-2025.9.0@sha256:353d98ac893158b699dcf345b6c8271dea9200d1015a9d367441625c046486e4
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "cryptpad-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/cert-manager/trust-manager/v0.20.3/deploy/charts/trust-manager
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app trust-manager
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *app
+  values:
+    crds:
+      enabled: true
+    commonLabels:
+      egress.home.arpa/apiserver: allow
+    secretTargets:
+      enabled: true
+      authorizedSecretsAll: false
+      authorizedSecrets: ["public-ca"]

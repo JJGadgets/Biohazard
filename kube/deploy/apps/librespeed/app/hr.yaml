@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.5.0/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,21 +10,21 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.7.3
+      version: 4.5.0
       sourceRef:
         name: bjw-s
         kind: HelmRepository
         namespace: flux-system
   values:
     controllers:
-      librespeed:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-external: allow
+            ingress.home.arpa/envoy-internal: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/librespeed/speedtest-rust
               tag: v1.4.0@sha256:8094b51e5b08964591ee844ebbd6cd301ae8a9b82f4f1918fae6f6dff22089e4
@@ -47,41 +47,37 @@ spec:
               readiness:
                 enabled: true
     service:
-      librespeed:
-        controller: librespeed
+      app:
+        controller: app
         ports:
           http:
             port: 8080
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
+    route:
+      app:
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - host: &host "${APP_DNS_LIBRESPEED:=librespeed}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: librespeed
-                  port: http
-        tls:
-          - hosts: [*host]
+        hostnames: ["${APP_DNS_LIBRESPEED:=librespeed}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
     persistence:
       config:
         type: configMap
         name: librespeed-config
         advancedMounts:
-          librespeed:
-            main:
+          app:
+            app:
               - subPath: configs.toml
                 path: /usr/local/bin/configs.toml
     configMaps:
       config:
-        enabled: true
         data:
           configs.toml: |-
             bind_address="0.0.0.0"
