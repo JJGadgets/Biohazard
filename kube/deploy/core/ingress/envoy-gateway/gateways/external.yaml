@@ -5,6 +5,7 @@ kind: Gateway
 metadata:
   name: &name envoy-external
   annotations:
+    external-dns.alpha.kubernetes.io/target: "${DNS_MAIN_CF}"
     gatus.home-operations.com/endpoint: |
       group: ${CLUSTER_NAME}-external
       guarded: true
