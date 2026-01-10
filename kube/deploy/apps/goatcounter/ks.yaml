@@ -3,42 +3,64 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: goatcounter-app
-  namespace: flux-system
+  namespace: &ns goatcounter
   labels: &l
     app.kubernetes.io/name: "goatcounter"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/goatcounter/app
-  targetNamespace: "goatcounter"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: goatcounter-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: goatcounter-pvc
-  namespace: flux-system
+  namespace: &ns goatcounter
   labels: &l
-    app.kubernetes.io/name: "goatcounter"
+    app.kubernetes.io/name: goatcounter
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "goatcounter"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "goatcounter-data"
+      PVC: &pvc "goatcounter-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_GOATCOUNTER}
-      RGID: !!str |
-        ${APP_UID_GOATCOUNTER}
-      RFSG: !!str |
-        ${APP_UID_GOATCOUNTER}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/jjgadgets/goatcounter:2.6.0@sha256:79bc2927454ed10f8d14f7333a6aa5f251c2a271e9cf08f0469a7b709313dd54"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "goatcounter-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

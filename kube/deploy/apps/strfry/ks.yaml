@@ -13,10 +13,14 @@ spec:
   path: ./kube/deploy/apps/strfry/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: strfry-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -27,7 +31,7 @@ metadata:
     app.kubernetes.io/name: strfry
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: &ns strfry
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template

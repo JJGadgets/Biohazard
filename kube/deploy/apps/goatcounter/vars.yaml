@@ -4,7 +4,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: &name "${CLUSTER_NAME:=biohazard}-vars"
-  namespace: strfry
+  namespace: goatcounter
 spec:
   refreshInterval: 1m
   secretStoreRef:
@@ -13,6 +13,8 @@ spec:
   dataFrom:
     - extract:
         key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "goatcounter - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -23,5 +25,8 @@ spec:
         # Core cluster-wide vars
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # App specific
+        APP_DNS_GOATCOUNTER: '{{ .APP_DNS_GOATCOUNTER }}'
+        # APP_UID_GOATCOUNTER: '{{ .APP_UID_GOATCOUNTER }}'
         # Other cluster-wide vars
         DNS_CF: '{{ .DNS_CF }}'

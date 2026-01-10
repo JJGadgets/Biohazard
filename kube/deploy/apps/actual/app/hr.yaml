@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,30 +7,25 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      actual:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
-            authentik.home.arpa/https: allow
+            ingress.home.arpa/envoy-internal: allow
+            authentik.home.arpa/oidc: allow
             # egress.home.arpa/internet: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/actualbudget/actual-server
               tag: 25.12.0@sha256:7f38b450cc3b7523dd5377792895e58b9cf333769e5a27f89e643b6f5fc60565
-              # tag: sha-4bb59fd@sha256:48978b9941b8d51fc09e9211e1e07bb1c253cf9efdb79b2cf43ef66fe362bd7f
             env: &env
               TZ: "${CONFIG_TZ}"
               ACTUAL_PORT: &http 5006
@@ -70,35 +65,29 @@ spec:
             command: ["tini", "-g", "--", "/bin/sh", "-c"]
             args: ["npm run enable-openid --prefix /app || true"]
     service:
-      actual:
-        controller: actual
+      app:
+        controller: app
         ports:
           http:
-            port: *http
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/configuration-snippet: |
-            proxy_set_header X-Forwarded-For "";
-        hosts:
-          - host: &host "${APP_DNS_ACTUAL:=actual}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: actual
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_ACTUAL:=actual}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       data:
         existingClaim: actual-data
-        globalMounts:
-          - subPath: data
-            path: *pvc
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -109,7 +98,8 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      # hostUsers: false
+      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000
@@ -117,17 +107,10 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/actual
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

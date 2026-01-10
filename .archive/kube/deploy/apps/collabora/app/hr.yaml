@@ -44,7 +44,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["CHOWN", "FOWNER", "SYS_ADMIN", "SYS_CHROOT"] # still not enough
             resources:
               requests:
                 cpu: "10m"
@@ -100,8 +99,8 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 100
-        runAsGroup: 101
+        runAsUser: &uid 0
+        runAsGroup: 0
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
