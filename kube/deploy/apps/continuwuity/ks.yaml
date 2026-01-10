@@ -17,8 +17,8 @@ spec:
   dependsOn:
     - name: crds
       namespace: flux-system
-    - name: continuwuity-pvc
-    - name: continuwuity-pvc-mass
+    - name: continuwuity-data
+    - name: continuwuity-mass
   postBuild:
     substitute:
       APP_TEMPLATE: 4.6.0
