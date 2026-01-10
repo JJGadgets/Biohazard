@@ -1,0 +1,110 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: continuwuity-app
+  namespace: &ns continuwuity
+  labels: &l
+    app.kubernetes.io/name: "continuwuity"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/continuwuity/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: continuwuity-pvc
+    - name: continuwuity-pvc-mass
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.0
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &pvc continuwuity-pvc
+  namespace: &ns continuwuity
+  labels: &l
+    app.kubernetes.io/name: continuwuity
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: *pvc
+      SIZE: "5Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.1-maxperf@sha256:cd052fbd73d9a706ea8691b89c1181105cfbb042fba9f56f057a092b71e0ad21"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "continuwuity-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &pvc continuwuity-mass
+  namespace: &ns continuwuity
+  labels: &l
+    app.kubernetes.io/name: continuwuity
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: *pvc
+      SIZE: "50Gi"
+      SC: &sc "file-ec-2-1"
+      SNAP: "file"
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.1-maxperf@sha256:cd052fbd73d9a706ea8691b89c1181105cfbb042fba9f56f057a092b71e0ad21"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "continuwuity-mass-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

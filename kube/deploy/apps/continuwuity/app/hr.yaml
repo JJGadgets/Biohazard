@@ -1,0 +1,168 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app continuwuity
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
+            # authentik.home.arpa/oidc: allow
+            # prom.home.arpa/kps: allow
+            # egress.home.arpa/internet: allow
+            egress.home.arpa/mullvad: allow
+        containers:
+          app:
+            image: &img
+              repository: forgejo.ellis.link/continuwuation/continuwuity
+              tag: v0.5.1-maxperf@sha256:cd052fbd73d9a706ea8691b89c1181105cfbb042fba9f56f057a092b71e0ad21
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              CONDUWUIT_SERVER_NAME: jjgadgets.tech
+              CONDUWUIT_ADDRESS:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+              CONDUWUIT_PORT: &http 8080
+              CONDUWUIT_DATABASE_PATH: &data /data
+              CONDUWUIT_DATABASE_BACKUP_PATH: &backup /backups
+              CONDUWUIT_DATABASE_BACKUPS_TO_KEEP: 2
+              CONDUWUIT_NEW_USER_DISPLAYNAME_SUFFIX: ""
+              CONDUWUIT_ALLOW_ANNOUNCEMENTS_CHECK: false
+              CONDUWUIT_ALLOW_REGISTRATION: true
+              CONDUWUIT_SUSPEND_ON_REGISTER: true
+              CONDUWUIT_ALLOW_ENCRYPTION: true
+              CONDUWUIT_ALLOW_FEDERATION: true
+              CONDUWUIT_FORGET_FORCED_UPON_LEAVE: true
+              CONDUWUIT_REQUIRE_AUTH_FOR_PROFILE_REQUESTS: true
+              CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_WITHOUT_AUTH: false
+              CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_OVER_FEDERATION: false
+              CONDUWUIT_LOCKDOWN_PUBLIC_ROOM_DIRECTORY: true
+              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false
+              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
+              CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
+              CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
+              CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: "matrix.org"
+              CONDUWUIT_FORBIDDEN_REMOTE_ROOM_DIRECTORY_SERVER_NAMES: "matrix.org"
+              CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: "matrix.org"
+              CONDUWUIT_CONFIG_RELOAD_SIGNAL: true
+              CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080
+              CONDUWUIT_WELL_KNOWN__CLIENT: "https://${APP_DNS_CONTINUWUITY}"
+              CONDUWUIT_WELL_KNOWN__SERVER: "${APP_DNS_CONTINUWUITY_SERVER}:443"
+              CONDUWUIT_LDAP__ENABLE: true
+              CONDUWUIT_LDAP__LDAP_ONLY: true
+              CONDUWUIT_LDAP__URI: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
+              CONDUWUIT_LDAP__BIND_DN: CN=continuwuity-ldap,OU=service-accounts,OU=goauthentik.io,DC=ldap,DC=goauthentik,DC=io
+              CONDUWUIT_LDAP__BIND_PASSOWRD_FILE: &ldap-secret /secrets/ldap-bind-password
+              CONDUWUIT_LDAP__BASE_DN: DC=ldap,DC=goauthentik,DC=io
+              CONDUWUIT_LDAP__FILTER: "(memberOf=CN=Role-Continuwuity-User,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
+              CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
+              CONDUWUIT_LDAP__UID_ATTRIBUTE: "cn" # authentik users can't change usernames by themselves, UID usernames is weird
+              CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
+            envFrom: &envFrom
+              - secretRef:
+                  name: continuwuity-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: public
+    persistence:
+      data:
+        existingClaim: continuwuity-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: *data
+      mass:
+        existingClaim: continuwuity-mass
+        advancedMounts:
+          app:
+            app:
+              - subPath: media
+                path: /data/media
+              - subPath: backups
+                path: *backup
+      secrets:
+        type: secret
+        name: continuwuity-secrets
+        defaultMode: 0400
+        advancedMounts:
+          app:
+            app:
+              - subPath: CONDUWUIT_LDAP__BIND_PASSOWRD
+                path: *ldap-secret
+                readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      runtimeClassName: kata
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      # hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
