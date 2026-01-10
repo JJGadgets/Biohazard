@@ -21,6 +21,7 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
             # authentik.home.arpa/oidc: allow
+            authentik.home.arpa/ldap: allow
             # prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
             egress.home.arpa/mullvad: allow
@@ -74,7 +75,7 @@ spec:
               CONDUWUIT_LDAP__BASE_DN: DC=ldap,DC=goauthentik,DC=io
               CONDUWUIT_LDAP__FILTER: "(memberOf=CN=Role-Continuwuity-User,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
               CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
-              CONDUWUIT_LDAP__UID_ATTRIBUTE: "cn" # authentik users can't change usernames by themselves, UID usernames is weird
+              CONDUWUIT_LDAP__UID_ATTRIBUTE: "continuwuityUsername" # authentik users can't change usernames by themselves, UID usernames is weird
               CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
             envFrom: &envFrom
               - secretRef:
