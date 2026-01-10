@@ -56,9 +56,12 @@ spec:
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
               CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
               CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
-              CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: "matrix.org"
-              CONDUWUIT_FORBIDDEN_REMOTE_ROOM_DIRECTORY_SERVER_NAMES: "matrix.org"
-              CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: "matrix.org"
+              CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: |
+                ["matrix.org"]
+              CONDUWUIT_FORBIDDEN_REMOTE_ROOM_DIRECTORY_SERVER_NAMES: |
+                ["matrix.org"]
+              CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: |
+                ["matrix.org"]
               CONDUWUIT_CONFIG_RELOAD_SIGNAL: true
               CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080
               CONDUWUIT_WELL_KNOWN__CLIENT: "https://${APP_DNS_CONTINUWUITY}"
@@ -104,6 +107,7 @@ spec:
     route:
       app:
         annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"]
         parentRefs:
