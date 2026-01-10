@@ -70,7 +70,7 @@ spec:
               CONDUWUIT_LDAP__LDAP_ONLY: true
               CONDUWUIT_LDAP__URI: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
               CONDUWUIT_LDAP__BIND_DN: CN=continuwuity-ldap,OU=service-accounts,OU=goauthentik.io,DC=ldap,DC=goauthentik,DC=io
-              CONDUWUIT_LDAP__BIND_PASSOWRD_FILE: &ldap-secret /secrets/ldap-bind-password
+              CONDUWUIT_LDAP__BIND_PASSWORD_FILE: &ldap-secret /secrets/ldap-bind-password
               CONDUWUIT_LDAP__BASE_DN: DC=ldap,DC=goauthentik,DC=io
               CONDUWUIT_LDAP__FILTER: "(memberOf=CN=Role-Continuwuity-User,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
               CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
@@ -141,7 +141,7 @@ spec:
         advancedMounts:
           app:
             app:
-              - subPath: CONDUWUIT_LDAP__BIND_PASSOWRD
+              - subPath: CONDUWUIT_LDAP__BIND_PASSWORD
                 path: *ldap-secret
                 readOnly: true
     defaultPodOptions:
