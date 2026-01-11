@@ -18,7 +18,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
           annotations:
