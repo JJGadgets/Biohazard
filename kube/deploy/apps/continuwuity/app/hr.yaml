@@ -31,6 +31,7 @@ spec:
               repository: forgejo.ellis.link/continuwuation/continuwuity
               tag: v0.5.2-maxperf@sha256:aa3525ee7c06846705ff935e23720a86b0b7957f2be36d089eaef6dcd05141aa
             env: &env
+              # core settings
               TZ: "${CONFIG_TZ}"
               CONDUWUIT_SERVER_NAME: jjgadgets.tech
               CONDUWUIT_ADDRESS:
@@ -43,11 +44,27 @@ spec:
               CONDUWUIT_DATABASE_BACKUP_PATH: &backup /backups
               CONDUWUIT_DATABASE_BACKUPS_TO_KEEP: 2
               CONDUWUIT_NEW_USER_DISPLAYNAME_SUFFIX: ""
-              CONDUWUIT_ALLOW_ANNOUNCEMENTS_CHECK: false
-              CONDUWUIT_ALLOW_REGISTRATION: true
-              CONDUWUIT_SUSPEND_ON_REGISTER: true
+              CONDUWUIT_WELL_KNOWN__CLIENT: "https://${APP_DNS_CONTINUWUITY}"
+              CONDUWUIT_WELL_KNOWN__SERVER: "${APP_DNS_CONTINUWUITY_SERVER}:443"
               CONDUWUIT_ALLOW_ENCRYPTION: true
               CONDUWUIT_ALLOW_FEDERATION: true
+              CONDUWUIT_CONFIG_RELOAD_SIGNAL: true # idk if we can have Reloader hit this endpoint instead or something?
+              CONDUWUIT_ALLOW_REGISTRATION: true
+              CONDUWUIT_REGISTRATION_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: continuwuity-secrets
+                    key: CONDUWUIT_REGISTRATION_TOKEN
+              CONDUWUIT_EMERGENCY_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: continuwuity-secrets
+                    key: CONDUWUIT_EMERGENCY_PASSWORD
+              # tinfoil & personal preferences
+              CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080
+              CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
+              CONDUWUIT_ALLOW_ANNOUNCEMENTS_CHECK: false
+              CONDUWUIT_SUSPEND_ON_REGISTER: true
               CONDUWUIT_FORGET_FORCED_UPON_LEAVE: true
               CONDUWUIT_REQUIRE_AUTH_FOR_PROFILE_REQUESTS: true
               CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_WITHOUT_AUTH: false
@@ -55,7 +72,6 @@ spec:
               CONDUWUIT_LOCKDOWN_PUBLIC_ROOM_DIRECTORY: true
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
-              CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
               CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
               CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: |
                 ["matrix.org"]
@@ -63,10 +79,7 @@ spec:
                 ["matrix.org"]
               CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: |
                 ["matrix.org"]
-              CONDUWUIT_CONFIG_RELOAD_SIGNAL: true
-              CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080
-              CONDUWUIT_WELL_KNOWN__CLIENT: "https://${APP_DNS_CONTINUWUITY}"
-              CONDUWUIT_WELL_KNOWN__SERVER: "${APP_DNS_CONTINUWUITY_SERVER}:443"
+              # external auth (wen eta OIDC/SAML)
               CONDUWUIT_LDAP__ENABLE: true
               CONDUWUIT_LDAP__LDAP_ONLY: true
               CONDUWUIT_LDAP__URI: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
@@ -106,12 +119,12 @@ spec:
             protocol: HTTP
             appProtocol: http
     route:
-      app:
+      app: # to use an account domain that differs from your Matrix server domain, add a 301 from https://domain.tld/.well-known/matrix/* to https://continuwuity.domain.tld/.well-known/matrix/* and preserve path suffix (the wildcard part), e.g. https://github.com/JJGadgets/jjgadgets.tech/blob/dcbaa6d9e884953fe8e97505cce2b8bfce53a312/static/_redirects#L2
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"]
-        parentRefs:
+        hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"] # no harm separating client facing and server-to-server hostnames, maybe allows for some flexibility to move things around in the future? idk, same hostnames also seems fine, monoxane uses single
+        parentRefs: # k8s-gateway DNS only serves internal gateway class
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
@@ -119,14 +132,14 @@ spec:
             namespace: ingress
             sectionName: public
     persistence:
-      data:
+      data: # Ceph 3 replicas, a normal pool size
         existingClaim: continuwuity-data
         advancedMounts:
           app:
             app:
               - subPath: data
                 path: *data
-      mass:
+      mass: # Ceph EC 2-1 for bigger and less critical data
         existingClaim: continuwuity-mass
         advancedMounts:
           app:
@@ -142,13 +155,12 @@ spec:
         advancedMounts:
           app:
             app:
-              - subPath: CONDUWUIT_LDAP__BIND_PASSWORD
+              - subPath: CONDUWUIT_LDAP__BIND_PASSWORD # continuwuity doesn't allow env var for this
                 path: *ldap-secret
                 readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      runtimeClassName: kata
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
@@ -157,6 +169,7 @@ spec:
           - name: ndots
             value: "1"
       # hostUsers: false
+      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 65534
