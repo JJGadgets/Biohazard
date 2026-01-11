@@ -100,7 +100,7 @@ spec:
                   originServerName: "${APP_DNS_AUTHENTIK}"
 
               - hostname: "*.${DNS_MAIN}"
-                service: https://nginx-public-controller.ingress.svc.cluster.local:443
+                service: https://envoy-external.ingress.svc.cluster.local:443
                 originRequest:
                   originServerName: "ingress.${DNS_MAIN}"
 
