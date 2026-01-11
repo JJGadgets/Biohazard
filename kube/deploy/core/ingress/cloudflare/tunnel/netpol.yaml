@@ -26,6 +26,10 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: UDP
+            - port: "10443"
+              protocol: TCP
+            - port: "10443"
+              protocol: UDP
     # allow cloudflared to egress to pods that require ingress
     - toEndpoints:
         - matchExpressions:
