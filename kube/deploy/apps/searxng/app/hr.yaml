@@ -55,7 +55,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.4.0-bookworm@sha256:350e485f00477588a01de022e00a83735f9a81a30129ace85f73808a57b4a655"
+              tag: "8.4.0-bookworm@sha256:eab64db310e251b0e8baa2418891094954aed5021ca790edc2842f74b1d8c9e1"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
