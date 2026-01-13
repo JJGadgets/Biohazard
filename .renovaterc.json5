@@ -2,6 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended", // config:base predates config:recommended
+    "abandonments:recommended",
     "docker:enableMajor",
     "docker:pinDigests",
     "group:kubernetes",
