@@ -48,7 +48,6 @@ spec:
               CONDUWUIT_WELL_KNOWN__SERVER: "${APP_DNS_CONTINUWUITY_SERVER}:443"
               CONDUWUIT_ALLOW_ENCRYPTION: true
               CONDUWUIT_ALLOW_FEDERATION: true
-              CONDUWUIT_CONFIG_RELOAD_SIGNAL: true # idk if we can have Reloader hit this endpoint instead or something?
               CONDUWUIT_ALLOW_REGISTRATION: true
               CONDUWUIT_REGISTRATION_TOKEN:
                 valueFrom:
@@ -60,7 +59,22 @@ spec:
                   secretKeyRef:
                     name: continuwuity-secrets
                     key: CONDUWUIT_EMERGENCY_PASSWORD
-              # NOT REQUIRED FOR YOINKERS! but nice to have tinfoil & personal preferences
+              # anti Matrix Synapse, we're only interested in Matrix the protocol amongst our community
+              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false # NOTE: this is because continuwuity only supports Synapse as trusted key servers
+              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
+              CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: |
+                ["matrix.org"]
+              CONDUWUIT_FORBIDDEN_REMOTE_ROOM_DIRECTORY_SERVER_NAMES: |
+                ["matrix.org"]
+              CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: |
+                ["matrix.org"]
+              # ======================================================================
+              # BELOW IS NOT REQUIRED FOR ANYBODY YOINKING MY CONFIG
+              # these are settings specific to my environment and risk appetite
+              # you may change these however you like according to your preferences
+              # refer to upstream docs before including any of these
+              # ======================================================================
+              # NOT REQUIRED FOR YOINKERS! but nice to have, tinfoil & personal preferences
               CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080 # VPN
               CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
               CONDUWUIT_ALLOW_ANNOUNCEMENTS_CHECK: false
@@ -70,16 +84,9 @@ spec:
               CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_WITHOUT_AUTH: false
               CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_OVER_FEDERATION: false
               CONDUWUIT_LOCKDOWN_PUBLIC_ROOM_DIRECTORY: true
-              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false
-              CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
               CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
-              CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: |
-                ["matrix.org"]
-              CONDUWUIT_FORBIDDEN_REMOTE_ROOM_DIRECTORY_SERVER_NAMES: |
-                ["matrix.org"]
-              CONDUWUIT_URL_PREVIEW_DOMAIN_EXPLICIT_DENYLIST: |
-                ["matrix.org"]
-              # external auth (wen eta OIDC/SAML)
+              CONDUWUIT_CONFIG_RELOAD_SIGNAL: true # idk if we can have Reloader hit this endpoint instead or something?
+              # NOT REQUIRED FOR YOINKERS! external auth (wen eta OIDC/SAML)
               CONDUWUIT_LDAP__ENABLE: true
               CONDUWUIT_LDAP__LDAP_ONLY: true
               CONDUWUIT_LDAP__URI: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
