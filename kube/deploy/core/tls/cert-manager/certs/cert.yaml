@@ -14,9 +14,10 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
+  #     password: ""
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production-shortlived
@@ -45,9 +46,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -74,9 +75,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production-shortlived
@@ -105,9 +106,6 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -134,9 +132,6 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -163,9 +158,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
