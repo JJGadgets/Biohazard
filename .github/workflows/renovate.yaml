@@ -41,7 +41,7 @@ on:
       - .github/workflows/renovate.yaml
 
 concurrency:
-  group: "${{ github.ref }}"
+  group: "renovate/${{ github.ref }}"
   cancel-in-progress: true
 
 env:
