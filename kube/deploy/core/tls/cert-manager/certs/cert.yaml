@@ -1,5 +1,5 @@
 ---
-# yyaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -14,22 +14,24 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
+  #     password: ""
   issuerRef:
-    name: letsencrypt-production
     kind: ClusterIssuer
+    name: letsencrypt-production-shortlived
   privateKey:
     algorithm: ECDSA
     size: 384
     rotationPolicy: Always
+  duration: 160h
+  usages: ["digital signature"] # anything other than `classic` LE ACME profile disables client cert auth and key encipherment usages
   dnsNames:
     - "${DNS_SHORT}"
     - "*.${DNS_SHORT}"
-    - "*.oopsies4.${DNS_SHORT}"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -44,9 +46,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -58,7 +60,7 @@ spec:
     - "*.${DNS_MAIN}"
     - "*.oopsies4.${DNS_MAIN}"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -73,22 +75,23 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
-    name: letsencrypt-production
     kind: ClusterIssuer
+    name: letsencrypt-production-shortlived
   privateKey:
     algorithm: ECDSA
     size: 256
     rotationPolicy: Always
+  duration: 160h
+  usages: ["digital signature"]
   dnsNames:
     - "jjgadgets.tech"
     - "*.jjgadgets.tech"
-    - "*.oopsies.jjgadgets.tech"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -103,9 +106,6 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -117,7 +117,7 @@ spec:
     - "${DNS_VPN}"
     - "*.${DNS_VPN}"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -132,9 +132,6 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
@@ -146,7 +143,7 @@ spec:
     - "${DNS_STREAM}"
     - "*.${DNS_STREAM}"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -161,9 +158,9 @@ spec:
   additionalOutputFormats:
     - type: CombinedPEM
     - type: DER
-  keystores:
-    pkcs12:
-      create: true
+  # keystores:
+  #   pkcs12:
+  #     create: true
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer

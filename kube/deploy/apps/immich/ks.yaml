@@ -3,64 +3,78 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: immich-app
-  namespace: flux-system
+  namespace: &ns immich
   labels: &l
     app.kubernetes.io/name: "immich"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/immich/app
-  targetNamespace: "immich"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: immich-db
     - name: immich-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.2
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: immich-pvc
-  namespace: flux-system
+  namespace: &ns immich
   labels: &l
-    app.kubernetes.io/name: "immich"
+    app.kubernetes.io/name: immich
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "immich"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "immich-data"
-      SIZE: "450Gi"
+      PVC: &pvc "immich-data"
+      SIZE: "500Gi"
       CACHESIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.4.1@sha256:e6a6298e67ae077808fdb7d8d5565955f60b0708191576143fc02d30ab1389d1"
       RUID: !!str &uid |
         ${APP_UID_IMMICH}
       RGID: !!str |
         ${APP_UID_IMMICH}
       RFSG: !!str |
         ${APP_UID_IMMICH}
-  patches:
-    - patch: | # too big for this luxury
-        $patch: delete
-        apiVersion: volsync.backube/v1alpha1
-        kind: ReplicationSource
-        metadata:
-          name: not-used
-      target:
-        kind: ReplicationSource
-        labelSelector: volsync.home.arpa/repo=rgw
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "immich-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: immich-db
-  namespace: flux-system
+  namespace: &ns pg
   labels: &l
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-home"
@@ -69,7 +83,7 @@ spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
+  targetNamespace: *ns
   dependsOn:
     - name: 1-core-db-pg-clusters-home
     - name: 1-core-secrets-es-k8s
@@ -78,3 +92,4 @@ spec:
       PG_NAME: "home"
       PG_DB_USER: &app "immich"
       PG_APP_NS: *app
+      PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.4.1@sha256:e6a6298e67ae077808fdb7d8d5565955f60b0708191576143fc02d30ab1389d1"

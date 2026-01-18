@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.1.2
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -23,12 +19,12 @@ spec:
         strategy: RollingUpdate
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
-            authentik.home.arpa/https: allow
+            authentik.home.arpa/oidc: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/immich-app/immich-server
               tag: v2.4.1@sha256:e6a6298e67ae077808fdb7d8d5565955f60b0708191576143fc02d30ab1389d1
@@ -37,17 +33,18 @@ spec:
               TZ: "${CONFIG_TZ}"
               NODE_ENV: production
               LOG_LEVEL: verbose
+              IMMICH_PORT: &http 8080
               IMMICH_TRUSTED_PROXIES: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
               IMMICH_WORKERS_INCLUDE: "api"
               IMMICH_MEDIA_LOCATION: &pvc /data
               IMMICH_TELEMETRY_INCLUDE: "all"
               IMMICH_API_METRICS_PORT: &metrics-api 8081
               IMMICH_MICROSERVICES_METRICS_PORT: &metrics-ms 8081
-              IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local:3001
+              IMMICH_SERVER_URL: http://immich.immich.svc.cluster.local
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
               DB_VECTOR_EXTENSION: pgvector # I couldn't really care less for worser machine learning, over half my library is screenshots
-              IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local:3003
+              IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local
               MACHINE_LEARNING_HTTP_KEEPALIVE_TIMEOUT_S: "0" # avoid keep-alive to better load balance requests across replicas
               MACHINE_LEARNING_MODEL_TTL: "0" # keep models loaded, for predictable resource requests
               # default models as of v1.112.1
@@ -92,18 +89,9 @@ spec:
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
           securityContext:
-            supplementalGroups: [44, 104, 109, 128, 226] # GPU
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: microservices
+            supplementalGroups: [44] # GPU
         containers:
-          main:
+          app:
             image: *img
             env:
               <<: *env
@@ -132,24 +120,18 @@ spec:
         pod:
           labels:
             db.home.arpa/pg: pg-home
+          runtimeClassName: ""
+          hostUsers: false
           securityContext:
-            supplementalGroups: [44, 104, 109, 128, 226] # GPU
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
-                  app.kubernetes.io/instance: *app
-                  app.kubernetes.io/controller: ml
+            supplementalGroups: [44] # GPU
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
               tag: v2.4.1@sha256:b3deefd1826f113824e9d7bc30d905e7f823535887d03f869330946b6db3b44a
             env:
               <<: *env
+              IMMICH_PORT: &ml-port 8080
               MACHINE_LEARNING_REQUEST_THREADS:
                 resourceFieldRef:
                   resource: limits.cpu
@@ -176,7 +158,7 @@ spec:
           labels:
             egress.home.arpa/internet: allow
         containers:
-          main: &ml-model-pull-ct
+          app: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
               tag: v2.4.1@sha256:b3deefd1826f113824e9d7bc30d905e7f823535887d03f869330946b6db3b44a
@@ -195,22 +177,19 @@ spec:
                 memory: "2Gi"
       ml-model-pull-facial:
         <<: *ml-model-pull
-        cronjob:
-          schedule: "@yearly"
-          concurrencyPolicy: "Replace"
         containers:
-          main:
+          app:
             <<: *ml-model-pull-ct
             args: ["/cache/facial-recognition/buffalo_l", "immich-app/buffalo_l"]
       redis:
         type: deployment
         replicas: 1
         containers:
-          redis:
+          app:
             image:
               repository: "public.ecr.aws/docker/library/redis"
               tag: "8.4.0@sha256:73dad4271642c5966db88db7a7585fae7cf10b685d1e48006f31e0294c29fdd7"
-            command: ["redis-server", "--save", "300 1", "--appendonly", "yes"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
               requests:
@@ -218,7 +197,7 @@ spec:
                 memory: "32Mi"
               limits:
                 cpu: "1"
-                memory: "512Mi"
+                memory: "128Mi"
             probes:
               liveness:
                 enabled: true
@@ -228,10 +207,12 @@ spec:
       app:
         controller: app
         primary: true
-        forceRename: *app
         ports:
           http:
-            port: 2283
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
             primary: true
           metrics:
             port: *metrics-api
@@ -244,31 +225,28 @@ spec:
         controller: ml
         ports:
           http:
-            port: 3003
+            port: 80
+            targetPort: *ml-port
+            protocol: HTTP
+            appProtocol: http
       redis:
         controller: redis
         ports:
           http:
             port: 6379
-    ingress:
-      main:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_IMMICH:=immich}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_IMMICH:=immich}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       data:
         existingClaim: immich-data
         advancedMounts:
           app: &mount
-            main:
+            app:
               - subPath: data
                 path: *pvc
           microservices: *mount
@@ -280,14 +258,14 @@ spec:
         existingClaim: immich-misc
         advancedMounts:
           app: &misc
-            main:
+            app:
               - subPath: encodedvideo
                 path: /data/encoded-video
               - subPath: thumbs
                 path: /data/thumbs
           microservices: *misc
           ml: &mlpvc # buffalo needs to write to model file to add batch axis
-            main:
+            app:
               - subPath: ml-models-cache
                 path: /cache
               - subPath: matplotlib-config
@@ -323,6 +301,11 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      # dnsConfig:
+      #   options:
+      #     - name: ndots
+      #       value: "1"
+      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_IMMICH:=1000}
@@ -335,7 +318,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/immich
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     networkpolicies:
       immich:
