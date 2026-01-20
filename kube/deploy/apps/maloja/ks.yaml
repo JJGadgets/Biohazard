@@ -3,28 +3,64 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: maloja-app
-  namespace: flux-system
+  namespace: &ns maloja
   labels: &l
     app.kubernetes.io/name: "maloja"
 spec:
-  targetNamespace: "maloja"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/maloja/app
   components:
-    - ../../../core/storage/volsync/component/
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: maloja-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.2
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: maloja-pvc
+  namespace: &ns maloja
+  labels: &l
+    app.kubernetes.io/name: maloja
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "maloja-data"
+      PVC: &pvc "maloja-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "p.jank.me/krateng/maloja:3.2.4@sha256:4ecea26058d2ca5168a8d53820279942d28f0606664cea6425f42371d5d88f95"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "maloja-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
