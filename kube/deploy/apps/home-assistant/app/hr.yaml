@@ -122,6 +122,10 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 80
     persistence:
       data:
         existingClaim: home-assistant-data
