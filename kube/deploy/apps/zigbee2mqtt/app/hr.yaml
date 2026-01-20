@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,26 +7,22 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      zigbee2mqtt:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/iot: allow
             db.home.arpa/mqtt: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/koenkk/zigbee2mqtt
               tag: 2.7.2@sha256:60a295b40f4e7fb7ab4d995932369e50f2529837272fa4979e986ec1ffdb7fce
@@ -42,7 +38,7 @@ spec:
               ZIGBEE2MQTT_CONFIG_AVAILABILITY_PASSIVE_TIMEOUT: 2000
               ZIGBEE2MQTT_CONFIG_DEVICE_OPTIONS_RETAIN: true
               ZIGBEE2MQTT_CONFIG_EXPERIMENTAL_NEW_API: true
-              ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: &port 80
+              ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: &http 80
               ZIGBEE2MQTT_CONFIG_FRONTEND_URL: https://${APP_DNS_ZIGBEE2MQTT}
               ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_ENABLED: true
               ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_DISCOVERY_TOPIC: homeassistant
@@ -50,7 +46,7 @@ spec:
               ZIGBEE2MQTT_CONFIG_MQTT_INCLUDE_DEVICE_INFORMATION: true
               ZIGBEE2MQTT_CONFIG_MQTT_KEEPALIVE: 60
               ZIGBEE2MQTT_CONFIG_MQTT_REJECT_UNAUTHORIZED: true
-              ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtts://${APP_DNS_EMQX}:8883
+              ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtts://${APP_DNS_MOSQUITTO}:8883
               ZIGBEE2MQTT_CONFIG_MQTT_VERSION: 5
               ZIGBEE2MQTT_CONFIG_PERMIT_JOIN: false
               ZIGBEE2MQTT_CONFIG_SERIAL_BAUDRATE: 115200
@@ -65,7 +61,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_BIND_SERVICE"]
             resources:
               requests:
                 cpu: "10m"
@@ -84,34 +79,29 @@ spec:
                   periodSeconds: 1
                   initialDelaySeconds: 10
     service:
-      zigbee2mqtt:
-        controller: zigbee2mqtt
+      app:
+        controller: app
         ports:
           http:
-            port: *port
+            port: 80
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
-        annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
-        hosts:
-          - host: &host "${APP_DNS_ZIGBEE2MQTT:=zigbee2mqtt}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: zigbee2mqtt
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_ZIGBEE2MQTT:=zigbee2mqtt}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       data:
         existingClaim: zigbee2mqtt-data
-        globalMounts:
-          - subPath: data
-            path: /config
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /config
       tmp:
         type: emptyDir
         medium: Memory
@@ -126,8 +116,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # runtimeClassName: gvisor
-      hostUsers: false # gvisor doesn't support K8s userns, it does its own thing
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000
@@ -140,5 +129,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/zigbee2mqtt
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.1.2
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -23,15 +19,14 @@ spec:
         pod:
           hostname: "home-assistant"
           labels:
-            ingress.home.arpa/nginx-internal: allow
-            ingress.home.arpa/world: allow
+            ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/iot: allow
             egress.home.arpa/esp: allow
             egress.home.arpa/appletv: allow
             egress.home.arpa/r2: allow
             egress.home.arpa/pypi: allow # entrypoint does a `uv pip install uv` in the venv
             egress.home.arpa/github: allow # TODO: try to harden this eventually, maybe HACS as ImageVolume?
-            authentik.home.arpa/https: allow
+            authentik.home.arpa/oidc: allow
             db.home.arpa/mqtt: allow
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
@@ -55,14 +50,14 @@ spec:
               memory: 1Gi
         containers:
           app:
-            image:
+            image: &img
               repository: ghcr.io/home-operations/home-assistant
               tag: 2026.1.2@sha256:9587276dcc680f8210115015508cd02d19f6921cdbff6bf119453fc4a8e10969
-            env:
+            env: &env
               TZ: "${CONFIG_TZ}"
-            #envFrom:
-            #  - secretRef:
-            #      name: "home-assistant-secrets"
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: home-assistant-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -80,16 +75,21 @@ spec:
         forceRename: *app
         ports:
           http:
-            port: 8123
-            protocol: TCP
+            port: 80
+            targetPort: 8123
+            protocol: HTTP
             appProtocol: http
             primary: true
+          hass:
+            port: 8123
+            protocol: HTTP
+            appProtocol: http
       expose:
         primary: false
         controller: app
         type: LoadBalancer
         annotations:
-          "io.cilium/lb-ipam-ips": "${APP_IP_HOME_ASSISTANT:=127.0.0.1}"
+          lbipam.cilium.io/ips: "${APP_IP_HOME_ASSISTANT:=127.0.0.1}"
         ports:
           homekit:
             port: 21061
@@ -115,69 +115,48 @@ spec:
             port: 21066
             protocol: TCP
             primary: false
-    ingress:
-      main:
-        className: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_HOME_ASSISTANT:=home-assistant}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls: &tls
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_HOME_ASSISTANT:=home-assistant}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
-      config:
-        existingClaim: "home-assistant-data"
+      data:
+        existingClaim: home-assistant-data
         advancedMounts:
           app:
-            app: &pvc
-              - subPath: "config"
-                path: "/config"
-            litestream: *pvc
-            01-litestream-restore: *pvc
+            app:
+              - subPath: config
+                path: /config
       tmp:
         type: emptyDir
         medium: Memory
         sizeLimit: 50Mi
         globalMounts:
-          - subPath: "tmp"
-            path: "/tmp"
-            readOnly: false
+          - subPath: tmp
+            path: /tmp
           - subPath: logs
             path: /config/logs
-            readOnly: false
-      litestream:
-        type: secret
-        name: "litestream-secrets"
-        advancedMounts:
-          app:
-            litestream: &lsmnt
-              - subPath: "litestream.yml"
-                path: "/etc/litestream.yml"
-                readOnly: true
-            01-litestream-restore: *lsmnt
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      # hostUsers: false
       runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534 # image needs this for uv workaround perms
+        runAsUser: &uid 65534 # image needs this for uv workaround perms
         runAsGroup: &gid 65533
         fsGroup: *gid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/home-assistant"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
@@ -193,3 +172,18 @@ spec:
           - port: http
             scheme: http
             path: /api/prometheus
+    # networkpolicies:
+    #   app:
+    #     controller: app
+    #     policyTypes: [Ingress, Egress]
+    #     rules:
+    #       ingress:
+    #         - from:
+    #             - podSelector:
+    #                 matchLabels:
+    #                   app.kubernetes.io/name: home-assistant
+    #               namespaceSelector:
+    #                 matchLabels:
+    #                   kubernetes.io/metadata.name: home-assistant
+    #           ports:
+    #             - port: *port

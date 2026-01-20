@@ -3,30 +3,64 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: home-assistant-app
-  namespace: flux-system
+  namespace: &ns home-assistant
   labels: &l
     app.kubernetes.io/name: "home-assistant"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
-  targetNamespace: "home-assistant"
   path: ./kube/deploy/apps/home-assistant/app
   components:
-    - ../../../core/db/litestream/template/
-    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
-    - name: 1-core-1-networking-multus-app
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+    - name: home-assistant-pvc
   postBuild:
     substitute:
-      PVC: "home-assistant-data"
+      APP_TEMPLATE: 4.6.2
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: home-assistant-pvc
+  namespace: &ns home-assistant
+  labels: &l
+    app.kubernetes.io/name: home-assistant
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "home-assistant-data"
       SIZE: "10Gi"
-      SC: "file"
-      SNAP: "file"
+      SC: &sc "file"
+      SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      RUID: "65534"
+      VS_APP_CURRENT_VERSION: "ghcr.io/home-operations/home-assistant:2026.1.2@sha256:9587276dcc680f8210115015508cd02d19f6921cdbff6bf119453fc4a8e10969"
+      RUID: &uid "65534"
       RGID: &gid "65533"
       RFSG: *gid
-      LS_AGE_ES: "Home Assistant"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "home-assistant-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

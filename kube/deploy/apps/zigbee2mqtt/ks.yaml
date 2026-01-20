@@ -3,28 +3,64 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: zigbee2mqtt-app
-  namespace: flux-system
+  namespace: &ns zigbee2mqtt
   labels: &l
     app.kubernetes.io/name: "zigbee2mqtt"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
-  targetNamespace: "zigbee2mqtt"
   path: ./kube/deploy/apps/zigbee2mqtt/app
   components:
-    - ../../../core/storage/volsync/component/
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+    - name: zigbee2mqtt-pvc
   postBuild:
     substitute:
-      PVC: "zigbee2mqtt-data"
+      APP_TEMPLATE: 4.6.0
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zigbee2mqtt-pvc
+  namespace: &ns zigbee2mqtt
+  labels: &l
+    app.kubernetes.io/name: zigbee2mqtt
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "zigbee2mqtt-data"
       SIZE: "1Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/koenkk/zigbee2mqtt:2.7.2@sha256:60a295b40f4e7fb7ab4d995932369e50f2529837272fa4979e986ec1ffdb7fce"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "zigbee2mqtt-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
