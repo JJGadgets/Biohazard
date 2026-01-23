@@ -18,11 +18,15 @@
       "customType": "regex",
       "managerFilePatterns": ["/^kube/.+/ks\\.ya?ml$/"],
       "matchStrings": [
-        "APP_TEMPLATE: \\\"+(?<currentValue>[\\d\\.]+)\\\"+"
+        "APP_TEMPLATE: \"+(?<currentValue>[\\d\\.]+)\"+"
       ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker",
-      "depNameTemplate": "ghcr.io/bjw-s-labs/helm/app-template"
+      // "datasourceTemplate": "docker",
+      // "versioningTemplate": "docker",
+      // "depNameTemplate": "ghcr.io/bjw-s-labs/helm/app-template"
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "depNameTemplate": "app-template",
+      "registryUrlTemplate": "https://bjw-s-labs.github.io/helm-charts"
     }
   ]
 }
