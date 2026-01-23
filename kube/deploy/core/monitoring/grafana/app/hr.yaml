@@ -89,7 +89,7 @@ spec:
           - name: VictoriaMetrics
             type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
             uid: victoriametrics
-            isDefault: true
+            isDefault: false
             access: proxy
             url: http://vmsingle-victoria.monitoring.svc.cluster.local:8429
             #url: http://kps-prometheus.monitoring.svc.cluster.local:9090
