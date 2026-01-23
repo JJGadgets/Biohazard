@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -29,9 +29,9 @@ spec:
               SB_PORT: &http 8080
               SB_NAME: JJGadgets Notes
               SB_DESCRIPTION: Silverbullet note taking app, hosted by and for JJGadgets.
-            envFrom: &envFrom
-              - secretRef:
-                  name: silverbullet-secrets
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: silverbullet-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -42,7 +42,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "1"
-                memory: "512Mi"
+                memory: "100Mi"
             probes:
               liveness:
                 enabled: true
@@ -58,12 +58,25 @@ spec:
             protocol: HTTP
             appProtocol: http
     route:
-      app:
+      app: &route
         hostnames: ["${APP_DNS_SILVERBULLET:=silverbullet}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+      unauth:
+        <<: *route
+        rules:
+          - matches:
+              - path:
+                  type: Exact
+                  value: "/service_worker.js"
+              - path:
+                  type: PathPrefix
+                  value: "/.client/*"
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: silverbullet-data
