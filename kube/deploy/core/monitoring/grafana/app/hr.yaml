@@ -86,6 +86,15 @@ spec:
             #url: http://kps-prometheus.monitoring.svc.cluster.local:9090
             jsonData:
               prometheusType: Prometheus
+          - name: vmsingle-alerts
+            type: prometheus # VictoriaMetrics datasource is wonky and doesn't work, this at least works
+            uid: vmsingle-alerts
+            isDefault: true
+            access: proxy
+            url: http://vmsingle-alerts.monitoring.svc.cluster.local:8429
+            #url: http://kps-prometheus.monitoring.svc.cluster.local:9090
+            jsonData:
+              prometheusType: Prometheus
           - name: AlertManager
             type: alertmanager
             uid: alertmanager
