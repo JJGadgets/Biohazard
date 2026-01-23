@@ -10,7 +10,7 @@ spec:
     labels:
       ingress.home.arpa/nginx-internal: allow
   useStrictSecurity: true
-  retentionPeriod: "6" # months if no unit specified
+  retentionPeriod: "2" # months if no unit specified
   extraArgs:
     dedup.minScrapeInterval: 60s
     maxLabelsPerTimeseries: "60"
