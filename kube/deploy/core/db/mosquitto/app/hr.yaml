@@ -72,16 +72,17 @@ spec:
           coredns.io/hostname: "${APP_DNS_MOSQUITTO:=mosquitto}"
           lbipam.cilium.io/ips: "${APP_IP_MOSQUITTO:=127.0.0.1}"
         ports:
-          # mqtt:
-          #   port: 1883
-          #   protocol: TCP
-          #   appProtocol: mqtt
+          mqtt:
+            port: 1883
+            protocol: TCP
+            appProtocol: mqtt
+            primary: true # reduce openssl error logs by probing this port instead
           tls:
             port: 8883
             protocol: TCP
             appProtocol: secure-mqtt
       bridge:
-        primary: false
+        primary: true
         controller: app
         # jank since https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#discovery-for-specific-pods-in-a-statefulset somehow isn't working for me?
         publishNotReadyAddresses: true
@@ -126,6 +127,7 @@ spec:
           common.conf: |
             log_type error
             log_type warning
+            log_type notice
 
             allow_anonymous false
             per_listener_settings false
@@ -134,11 +136,9 @@ spec:
 
             listener 1883
             protocol mqtt
-            # use_username_as_clientid true
 
             listener 8883
             protocol mqtt
-            # use_username_as_clientid true
             certfile /tls/tls.crt
             keyfile /tls/tls.key
 
