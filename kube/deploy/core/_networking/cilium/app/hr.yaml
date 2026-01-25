@@ -71,7 +71,7 @@ spec:
             enabled: true
       metrics:
         enabled:
-          - dns:query;sourceContext=reserved-identity|workload|app|pod|ip;destinationContext=reserved-identity|workload|app|pod|ip;labelsContext=source_pod,source_workload,source_namespace,destination_pod,destination_workload,destination_namespace,traffic_direction
+          - dns:query;sourceContext=reserved-identity|workload|app|pod|ip;labelsContext=source_pod,source_workload,source_namespace,destination_pod,destination_workload,destination_namespace,traffic_direction # TODO: somehow `destinationContext=reserved-identity|workload|app|pod|ip;` adds a duplicate `query` context option on runtime causing a panic?
           - drop:sourceContext=reserved-identity|workload|app|pod|ip;destinationContext=reserved-identity|workload|app|pod|dns|ip;labelsContext=source_pod,source_workload,source_namespace,destination_pod,destination_workload,destination_namespace,traffic_direction
           # - tcp:sourceContext=reserved-identity|workload|app|pod|ip;destinationContext=reserved-identity|workload|app|pod|ip;labelsContext=source_pod,source_workload,source_namespace,destination_pod,destination_workload,destination_namespace,traffic_direction
           - flow:sourceContext=reserved-identity|workload|app|pod|ip;destinationContext=reserved-identity|workload|app|pod|ip;labelsContext=source_pod,source_workload,source_namespace,destination_pod,destination_workload,destination_namespace,traffic_direction
