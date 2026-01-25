@@ -3,31 +3,35 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: trilium-app
-  namespace: flux-system
+  namespace: &ns trilium
   labels: &l
     app.kubernetes.io/name: "trilium"
 spec:
-  targetNamespace: "trilium"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/trilium/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: trilium-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 4.6.2
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: trilium-pvc
-  namespace: flux-system
+  namespace: &ns trilium
   labels: &l
     app.kubernetes.io/name: trilium
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: trilium
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -36,13 +40,27 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "trilium-data"
+      PVC: &pvc "trilium-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
       VS_APP_CURRENT_VERSION: "ghcr.io/triliumnext/trilium:v0.101.3@sha256:f9c978d08f24af19e58c7e3230218a5a6a0ab889ac261e25edb847ebd3762ff4"
-      RUID: &uid "1001"
+      RUID: &uid "1001" # upstream trilium user
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "trilium-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions

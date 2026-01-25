@@ -41,7 +41,22 @@ transforms:
       del(.sentpkt)
       del(.rcvdbyte)
       del(.rcvdpkt)
+      del(.duration)
+      del(.durationdelta)
+      del(.rcvddelta)
+      del(.rcvdpktdelta)
+      del(.sentdelta)
+      del(.sentpktdelta)
       del(.cookies)
+      del(.signal)
+      del(.snr)
+      del(.live)
+      del(.srcport)
+      del(.transport)
+      del(.incidentserialno)
+      del(.remotewtptime)
+      del(.msg)
+      del(.xid)
   fortigate-route-logs-for-metrics:
     inputs: [fortigate-del-msg-metrics]
     type: route
@@ -103,7 +118,9 @@ sinks:
     healthcheck:
       enabled: false
   prometheus:
-    inputs: [fortigate-convert-metrics, fortigate-perf-metrics]
+    inputs:
+      - fortigate-convert-metrics
+      - fortigate-perf-metrics
     type: prometheus_exporter
     address: "[::]:$${PROM_HTTP}"
   # stdout:
