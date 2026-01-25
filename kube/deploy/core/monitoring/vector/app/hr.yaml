@@ -20,6 +20,9 @@ spec:
       fortigate:
         type: deployment
         replicas: 2
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "90%"
         pod:
           labels:
             prom.home.arpa/kps: allow

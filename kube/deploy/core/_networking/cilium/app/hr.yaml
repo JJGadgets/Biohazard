@@ -121,12 +121,9 @@ spec:
                   - verdict: [DROPPED]
                     # traffic_direction: [EGRESS]
                 excludeFilters:
-                  - IP:
-                      - destination: 224.0.0.0/4
-                  # - l4:
-                  #     - udp:
-                  #         - destination_port: "1900"
-                  #         - destination_port: "5353"
+                  - destination_ip: ["224.0.0.0/4"]
+                  - protocol: ["udp"]
+                    destination_port: ["1900", "5353"]
     operator:
       prometheus:
         enabled: true
