@@ -21,22 +21,16 @@ transforms:
       del(.source_type)
       del(.version)
       .fortigate = del(.host)
-      parsed = parse_key_value!(.message)
+      parsed, err = parse_key_value(.message) ?? null
       . = merge(., parsed)
+      if (parsed != null && err != null) {
+        del(.message)
+      }
       .vdom = del(.vd)
-  fortigate-del-msg-metrics:
-    inputs: [fortigate-parse-message]
-    type: remap
-    source: |
-      del(.message)
-      del(.timestamp)
-      del(.eventtime)
-      del(.tz)
       del(.facility)
       del(.dstuuid)
       del(.poluuid)
       del(.srcuuid)
-      del(.sessionid)
       del(.sentbyte)
       del(.sentpkt)
       del(.rcvdbyte)
@@ -47,7 +41,6 @@ transforms:
       del(.rcvdpktdelta)
       del(.sentdelta)
       del(.sentpktdelta)
-      del(.cookies)
       del(.signal)
       del(.snr)
       del(.live)
@@ -55,8 +48,18 @@ transforms:
       del(.transport)
       del(.incidentserialno)
       del(.remotewtptime)
-      del(.msg)
       del(.xid)
+  fortigate-del-msg-metrics:
+    inputs: [fortigate-parse-message]
+    type: remap
+    source: |
+      del(.message)
+      del(.timestamp)
+      del(.eventtime)
+      del(.tz)
+      del(.sessionid)
+      del(.cookies)
+      del(.msg)
   fortigate-route-logs-for-metrics:
     inputs: [fortigate-del-msg-metrics]
     type: route
