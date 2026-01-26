@@ -64,6 +64,7 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-internal
+      sectionName: internal
   connection:
     bufferLimit: 8Mi
     maxAcceptPerSocketEvent: 0

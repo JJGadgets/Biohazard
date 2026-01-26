@@ -149,6 +149,7 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: envoy-external
+      sectionName: external
   connection:
     bufferLimit: 100Ki
     socketBufferLimit: 1Mi
@@ -160,19 +161,6 @@ spec:
   timeout:
     http:
       requestReceivedTimeout: 10s
----
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: ClientTrafficPolicy
-metadata:
-  name: envoy-external-headers
-  namespace: ingress
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: envoy-external
-      sectionName: external
   headers:
     lateResponseHeaders:
       set:
@@ -203,7 +191,7 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
-  name: envoy-public-headers
+  name: envoy-public
   namespace: ingress
 spec:
   targetRefs:
@@ -211,6 +199,17 @@ spec:
       kind: Gateway
       name: envoy-external
       sectionName: public
+  connection:
+    bufferLimit: 100Ki
+    socketBufferLimit: 1Mi
+  http2:
+    onInvalidMessage: TerminateStream
+  tcpKeepalive:
+    interval: 10s
+    idleTime: 10s
+  timeout:
+    http:
+      requestReceivedTimeout: 10s
   headers:
     lateResponseHeaders:
       set:

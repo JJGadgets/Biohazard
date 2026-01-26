@@ -34,16 +34,6 @@ spec:
     - name: envoy.filters.http.lua
       after: envoy.filters.http.ext_authz
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: BackendTrafficPolicy
-metadata:
-  name: envoy
-spec:
-  targetSelectors:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
----
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
@@ -73,6 +63,7 @@ spec:
       - ECDHE-ECDSA-AES256-GCM-SHA384
       - ECDHE-ECDSA-CHACHA20-POLY1305
     ecdhCurves:
+      - X25519MLKEM768
       - X25519
       - P-256
     signatureAlgorithms:
@@ -80,6 +71,8 @@ spec:
       - ecdsa_secp384r1_sha384
       - ecdsa_secp521r1_sha512
       - ed25519
+    clientValidation:
+      optional: true
   headers:
     enableEnvoyHeaders: false
     disableRateLimitHeaders: true
