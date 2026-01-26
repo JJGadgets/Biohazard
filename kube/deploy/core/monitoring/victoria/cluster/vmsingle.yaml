@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmsingle_v1beta1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/operator.victoriametrics.com/vmsingle_v1beta1.json
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMSingle
 metadata:
@@ -23,18 +23,18 @@ spec:
     resources:
       requests:
         storage: 100Gi
-    dataSourceRef:
-      apiGroup: volsync.backube
-      kind: ReplicationDestination
-      name: victoria-vmsingle-bootstrap
+    # dataSourceRef:
+    #   apiGroup: volsync.backube
+    #   kind: ReplicationDestination
+    #   name: victoria-vmsingle-bootstrap
   resources:
     requests:
       cpu: 200m
     limits:
-      cpu: 1
-      memory: 2Gi
+      cpu: 2
+      memory: 3Gi
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/operator.victoriametrics.com/vmsingle_v1beta1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/operator.victoriametrics.com/vmsingle_v1beta1.json
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMSingle
 metadata:
@@ -65,5 +65,5 @@ spec:
     requests:
       cpu: 200m
     limits:
-      cpu: 1
+      cpu: 2
       memory: 2Gi
