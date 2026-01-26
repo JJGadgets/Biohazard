@@ -118,7 +118,7 @@ spec:
         runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: Always
+        fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       affinity:

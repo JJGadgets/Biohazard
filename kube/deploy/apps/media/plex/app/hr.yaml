@@ -42,7 +42,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "2"
+                cpu: "2" # 1 core causes significant throttling for H265 transcoding with subtitle burn-in on 8th gen Intel despite the QuickSync
                 memory: "2Gi"
                 gpu.intel.com/i915: "1"
             probes:
@@ -145,7 +145,6 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      runtimeClassName: gvisor
       dnsConfig:
         options:
           - name: ndots
@@ -155,7 +154,7 @@ spec:
         runAsUser: &uid 6969
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: Always
+        fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
