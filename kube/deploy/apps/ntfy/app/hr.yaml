@@ -59,7 +59,7 @@ spec:
             imagePullPolicy: "IfNotPresent"
             image:
               repository: "docker.io/litestream/litestream"
-              tag: "0.3.13"
+              tag: "0.5.6@sha256:871d0c5f28b52b0a0a29614728d6e9e5cbdaaab36d8af177010de2c63d9da9a5"
             args: ["replicate"]
             envFrom:
               - secretRef:
