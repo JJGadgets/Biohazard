@@ -164,6 +164,25 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 25
+              preference:
+                matchExpressions:
+                  - key: gpu.intel.com/device-id.0300-46a6.present # MS01 12600H
+                    operator: In
+                    values: ["true"]
+            - weight: 15
+              preference:
+                matchExpressions:
+                  - key: gpu.intel.com/device-id.0300-3e92.present # i5-8500T
+                    operator: In
+                    values: ["true"]
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: gpu.intel.com/device-id.0300-3e91.present # i3-8100T
+                    operator: In
+                    values: ["true"]
     networkpolicies:
       app:
         controller: plex
