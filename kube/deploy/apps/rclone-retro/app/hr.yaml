@@ -30,7 +30,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/rclone/rclone
-              tag: 1.72.1@sha256:21c136749a6594cbfb30c3229b42bb95092997b9e93563d59a9ac953d9464366
+              tag: 1.73.0@sha256:9f59fda717a48aced38d7f27e9ec8fd9992b5651e7a03897bebf204d3a9197d6
             args: ["serve", "ftp", "/data", "--addr=:$(FTP_PORT)", "--log-level=DEBUG", "--use-json-log", "--rc", "--rc-addr=:$(HTTP_PORT)", "--rc-serve", "--rc-serve-no-modtime", "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-enable-metrics", "--metrics-addr=:$(METRICS_PORT)", "--exclude", "**/／*", "--exclude", "**/／**", "--exclude", "Nintendo 3DS/title/*/*/content/*.app", "--exclude", "**.cia", "--exclude", "**.fbi", "--exclude", "**.nds", "--exclude", "**.mp3", "--exclude", "**.m4a", "--exclude", "**.aac", "--exclude", "**.wav", "--exclude", "**.flac"]
             env: &env
               TZ: "${CONFIG_TZ}"
