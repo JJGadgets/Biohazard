@@ -532,6 +532,7 @@ spec:
           sourceRef:
             kind: GitRepository
             name: soft-serve
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -546,6 +547,7 @@ spec:
           sourceRef:
             kind: GitRepository
             name: flux-system
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
