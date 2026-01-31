@@ -50,11 +50,16 @@ spec:
               limits:
                 cpu: "1"
                 memory: "200Mi"
+            ports:
+              - name: http
+                containerPort: *http
             probes:
-              liveness:
+              liveness: &probe
                 enabled: true
-              readiness:
-                enabled: true
+                type: HTTP
+                port: http
+                path: /api/health-check
+              readiness: *probe
     service:
       app:
         controller: app
