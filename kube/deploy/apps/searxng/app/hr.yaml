@@ -81,8 +81,7 @@ spec:
         advancedMounts:
           app:
             app:
-              - subPath: "settings.yml"
-                path: "/etc/searxng/settings.yml"
+              - path: /etc/searxng
       tmp:
         type: emptyDir
         medium: Memory
@@ -92,6 +91,8 @@ spec:
             path: /tmp
           - subPath: redis
             path: /redis
+          - subPath: cache
+            path: /var/cache/searxng
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
