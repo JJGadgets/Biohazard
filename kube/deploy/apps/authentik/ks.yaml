@@ -37,8 +37,11 @@ spec:
   path: ./kube/deploy/core/db/pg/clusters/template
   dependsOn:
     - name: 1-core-db-pg-app
+      namespace: flux-system
     - name: 1-core-storage-democratic-csi-local-hostpath
+      namespace: flux-system
     - name: 1-core-secrets-es-k8s
+      namespace: flux-system
   postBuild:
     substitute:
       PG_APP_NAME: &app "authentik"
