@@ -17,6 +17,8 @@ spec:
         key: "authentik - ${CLUSTER_NAME}"
     - extract:
         key: "Ceph RGW - ${CLUSTER_NAME}"
+    - extract:
+        key: "pgBackRest - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
