@@ -48,7 +48,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.5.3@sha256:9b2e5525c411b7b2d0b74267e71321692c856b32db1429a1b40440184460b402"
+      VS_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.5.5@sha256:161b1ec8af9e0478797cfd75ea857c7e55af271fa7cea103cb30ab1ba5b418d8"
       RUID: !!str &uid |
         ${APP_UID_IMMICH}
       RGID: !!str |
@@ -92,4 +92,4 @@ spec:
       PG_NAME: "home"
       PG_DB_USER: &app "immich"
       PG_APP_NS: *app
-      PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.5.3@sha256:9b2e5525c411b7b2d0b74267e71321692c856b32db1429a1b40440184460b402"
+      PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.5.5@sha256:161b1ec8af9e0478797cfd75ea857c7e55af271fa7cea103cb30ab1ba5b418d8"
