@@ -18,7 +18,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/https: allow
           resources:
             requests:
@@ -149,19 +149,13 @@ spec:
             targetPort: 3000
             protocol: HTTP
             appProtocol: http
-    ingress:
+    route:
       app:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+        hostnames: ["${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       data:
         existingClaim: paperless-ngx-data

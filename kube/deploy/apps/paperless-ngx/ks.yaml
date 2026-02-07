@@ -64,22 +64,3 @@ spec:
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: authentik-paperless-ngx
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "paperless-ngx"
-spec:
-  targetNamespace: "authentik"
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/apps/authentik/forward-auth
-  dependsOn:
-    - name: authentik-app
-      namespace: flux-system # TODO: change to authentik
-  postBuild:
-    substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"
