@@ -15,6 +15,8 @@ spec:
         key: ".${CLUSTER_NAME}-vars"
     - extract:
         key: "authentik - ${CLUSTER_NAME}"
+    - extract:
+        key: "Ceph RGW - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
