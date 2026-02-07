@@ -49,7 +49,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/dev-server
-              tag: gh-version-2025.12@sha256:822594213a80ef0a334a1ba13489579fc1114092390b1e19f9d2b778b70d1604
+              tag: gh-version-2025.12@sha256:b2e195cced9fe9a464380bf945cc175e3d5e8006d76cf735a80f15b617ffd83d
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
