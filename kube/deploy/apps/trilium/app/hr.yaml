@@ -25,6 +25,7 @@ spec:
             image: &img
               repository: ghcr.io/triliumnext/trilium
               tag: v0.101.3@sha256:f9c978d08f24af19e58c7e3230218a5a6a0ab889ac261e25edb847ebd3762ff4
+            command: ["node", "./main.cjs"]
             env: &env
               TZ: "${CONFIG_TZ}"
               TRILIUM_GENERAL_INSTANCE_NAME: "${CLUSTER_NAME:=k8s}"
@@ -49,11 +50,16 @@ spec:
               limits:
                 cpu: "1"
                 memory: "200Mi"
+            ports:
+              - name: http
+                containerPort: *http
             probes:
-              liveness:
+              liveness: &probe
                 enabled: true
-              readiness:
-                enabled: true
+                type: HTTP
+                port: http
+                path: /api/health-check
+              readiness: *probe
     service:
       app:
         controller: app

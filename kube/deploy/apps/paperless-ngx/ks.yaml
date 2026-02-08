@@ -46,7 +46,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/paperless-ngx/paperless-ngx:2.20.5@sha256:665f2f5cc5482ea2e44f90a7fa170908aaeb95d8d3c70e17f746de8fcb81f644"
+      VS_APP_CURRENT_VERSION: "ghcr.io/paperless-ngx/paperless-ngx:2.20.6@sha256:a28330462994b937938e02aaa5632a1effcc7f9acfba96c1bef9c50e1167a027"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
@@ -64,22 +64,3 @@ spec:
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: authentik-paperless-ngx
-  namespace: flux-system
-  labels: &l
-    app.kubernetes.io/name: "paperless-ngx"
-spec:
-  targetNamespace: "authentik"
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/apps/authentik/forward-auth
-  dependsOn:
-    - name: authentik-app
-      namespace: flux-system # TODO: change to authentik
-  postBuild:
-    substitute:
-      AUTHENTIK_PROXY_HOST: "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"

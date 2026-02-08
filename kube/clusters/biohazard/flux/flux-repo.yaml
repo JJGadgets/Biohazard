@@ -523,6 +523,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         version: v1
         kind: Kustomization
+        namespace: flux-system
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -532,6 +533,7 @@ spec:
           sourceRef:
             kind: GitRepository
             name: soft-serve
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -546,6 +548,7 @@ spec:
           sourceRef:
             kind: GitRepository
             name: flux-system
+            namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1
@@ -599,7 +602,7 @@ spec:
                 optional: false
               - kind: Secret
                 name: biohazard-secrets
-                optional: false
+                optional: true
       target:
         group: kustomize.toolkit.fluxcd.io
         version: v1

@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -6,289 +7,111 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: "2.6.0"
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            egress.home.arpa/mullvad: "allow"
-            # egress.home.arpa/internet-https: "allow"
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/mullvad: allow
+          resources:
+            requests:
+              cpu: "50m"
+            limits:
+              cpu: "2"
+              memory: "1Gi"
         containers:
-          main:
+          app:
             image: &img
-              repository: "ghcr.io/searxng/searxng"
-              tag: "latest@sha256:4a60859bc9c3b47ad5ceed998f847c5192f16ce26fbc01a1975628e19b6040df"
-            command: ["/usr/local/searxng/.venv/bin/granian", "searx.webapp:app"]
-            env:
+              repository: ghcr.io/searxng/searxng
+              tag: latest@sha256:670bd1076097640fc25221bf92a8af7d344503ce17ba3305abedf28e3634e807
+            env: &env
               TZ: "${CONFIG_TZ}"
               GRANIAN_PORT: &http 8080
-              GRANIAN_BLOCKING_THREADS:
-                valueFrom:
-                  resourceFieldRef:
-                    containerName: main
-                    resource: limits.cpu # not defined, so will use node allocatable
-            envFrom:
+              # GRANIAN_BLOCKING_THREADS:
+              #   valueFrom:
+              #     resourceFieldRef:
+              #       containerName: app
+              #       resource: limits.cpu
+            envFrom: &envFrom
               - secretRef:
-                  name: "searxng-secrets"
+                  name: searxng-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "50m"
-                memory: "1Gi"
-              limits:
-                memory: "2Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.4.0-bookworm@sha256:73dad4271642c5966db88db7a7585fae7cf10b685d1e48006f31e0294c29fdd7"
+              tag: "8.4.0-bookworm@sha256:c22af04bb576503bf16b3e34a1fd2fd82de0f765afd866d2e380145e0af30d78"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/redis/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "32Mi"
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: 8080
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_SEARXNG:=searxng}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts: [*host]
-    dnsConfig:
-      options:
-        - name: ndots
-          value: "1"
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_SEARXNG:=searxng}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       config:
-        enabled: true
         type: configMap
         name: "searxng-config"
         advancedMounts:
-          main:
-            main:
-              - subPath: "settings.yml"
-                path: "/etc/searxng/settings.yml"
+          app:
+            app:
+              - path: /etc/searxng
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
-          - subPath: "redis"
-            path: "/redis"
-          - subPath: "tmp"
-            path: "/tmp"
-    configMaps:
-      config:
-        enabled: true
-        data:
-          settings.yml: |-
-            use_default_settings:
-              engines:
-                keep_only:
-                  - arch linux wiki
-                  - google
-                  - google images
-                  - google news
-                  - google videos
-                  - google scholar
-                  - google play apps
-                  - duckduckgo
-                  - brave
-                  - startpage
-                  - gitlab
-                  - github
-                  - codeberg
-                  - sourcehut
-                  - bitbucket
-                  - apple app store
-                  - wikipedia
-                  - currency
-                  - docker hub
-                  - ddg definitions
-                  - duckduckgo images
-                  - bandcamp
-                  - deviantart
-                  - tineye
-                  - apple maps
-                  - fdroid
-                  - flickr
-                  - free software directory
-                  - z-library
-                  - lobste.rs
-                  - azlyrics
-                  - openstreetmap
-                  - npm
-                  - pypi
-                  - lib.rs
-                  - nyaa
-                  - reddit
-                  - sepiasearch
-                  - soundcloud
-                  - stackoverflow
-                  - askubuntu
-                  - superuser
-                  - searchcode code
-                  - unsplash
-                  - youtube
-                  - wolframalpha
-                  - mojeek
-            engines:
-              - name: brave
-                disabled: false
-              - name: startpage
-                disabled: false
-              - name: apple app store
-                disabled: false
-              - name: ddg definitions
-                disabled: false
-              - name: tineye
-                disabled: false
-              - name: apple maps
-                disabled: false
-              - name: duckduckgo images
-                disabled: false
-              - name: fdroid
-                disabled: false
-              - name: free software directory
-                disabled: false
-              - name: bitbucket
-                disabled: false
-              - name: gitlab
-                disabled: false
-              - name: codeberg
-                disabled: false
-              - name: google play apps
-                disabled: false
-              - name: lobste.rs
-                disabled: false
-              - name: azlyrics
-                disabled: false
-              - name: npm
-                disabled: false
-              - name: nyaa
-                disabled: false
-                categories: videos
-              - name: searchcode code
-                disabled: false
-              - name: mojeek
-                disabled: false
-              - name: lib.rs
-                disabled: false
-              - name: sourcehut
-                disabled: false
-            general:
-              instance_name: "JJGadgets Search"
-              enable_metrics: false
-            brand:
-              new_issue_url: ""
-              docs_url: ""
-              public_instances: ""
-              wiki_url: ""
-              issue_url: ""
-            search:
-              safe_search: 0
-              default_lang: "en"
-              max_page: 0
-            server:
-              bind_address: "0.0.0.0"
-              port: 8080
-              base_url: "https://${APP_DNS_SEARXNG}/"
-              image_proxy: true
-              http_protocol_version: "1.1"
-              method: "GET"
-            outgoing:
-              extra_proxy_timeout: 30
-              proxies:
-                all://:
-                  - socks5://10.64.0.1:1080
-            ui:
-              static_use_hash: true
-              infinite_scroll: true
-              default_theme: "simple"
-              theme_args:
-                simple_style: "dark"
-            enabled_plugins:
-              - 'Basic Calculator'
-              - 'Unit converter plugin'
-              - 'Hash plugin'
-              - 'Search on category select'
-              - 'Self Information'
-              - 'Self Informations'
-              - 'Tracker URL remover'
-              - 'Open Access DOI rewrite'
-              - 'Vim-like hotkeys'
-              - 'Hostnames plugin'
-            plugins:
-              searx.plugins.hostnames.SXNGPlugin:
-                active: true
-              searx.plugins.tracker_url_remover.SXNGPlugin:
-                active: true
-            hostnames:
-              replace:
-                '(.*\.)?youtube\.com$': '${APP_DNS_PIPED_FRONTEND}'
-                '(.*\.)?youtu\.be$': '${APP_DNS_PIPED_FRONTEND}'
-                '(.*\.)?reddit\.com$': '${APP_DNS_LIBREDDIT}'
-                '(.*\.)?redd\.it$': '${APP_DNS_LIBREDDIT}'
-                '(.*\.)?medium\.com$': 'scribe.rip'
-            redis:
-              url: "unix:///redis/redis.sock?db=0"
-    # NOTE: Search engines disabled:
-    # - archive.is (too many requests)
+          - subPath: tmp
+            path: /tmp
+          - subPath: redis
+            path: /redis
+          - subPath: cache
+            path: /var/cache/searxng
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 977 # upstream `searxng` user
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: "Always"
+        fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      dnsConfig: # avoid flooding Cilium dnsproxy
-        options:
-          - name: ndots
-            value: "1"
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/searxng"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

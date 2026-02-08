@@ -41,7 +41,7 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: &pvc "kavita-data"
+      PVC: &pvc "kavita-config"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc

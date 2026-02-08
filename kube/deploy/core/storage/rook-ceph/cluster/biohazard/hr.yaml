@@ -119,25 +119,21 @@ spec:
       resources: # defaults are very aggressive
         mgr:
           requests:
-            cpu: "100m"
-            memory: "512Mi"
+            cpu: "50m"
+            memory: "2Gi"
           limits:
-            cpu: "2000m"
             memory: "4Gi"
         mon:
           requests:
-            cpu: "100m"
-            memory: "500Mi"
+            cpu: "50m"
+            memory: "1Gi"
           limits:
-            cpu: "2000m"
             memory: "4Gi"
         osd:
           requests:
-            cpu: "500m"
-            memory: "3Gi"
+            cpu: "300m"
+            memory: "4Gi"
           limits:
-            # cpu: "999999m"
-            cpu: "2000m" # 2023-12-22: re-enabled CPU limits becaues 3 8th gen Intel CPUs aren't enough for the rest of my workloads apparently
             memory: "10Gi"
         mgr-sidecar:
           requests:
@@ -145,7 +141,7 @@ spec:
             memory: "100Mi"
           limits:
             cpu: "1000m"
-            memory: "500Mi"
+            memory: "200Mi"
         crashcollector:
           requests:
             cpu: "15m"
@@ -168,9 +164,8 @@ spec:
         exporter:
           requests:
             cpu: "10m"
-            memory: "50Mi"
           limits:
-            cpu: "1" # fucking alerts keep triggering at 250m
+            cpu: "3" # fucking alerts keep triggering at 250m
             memory: "128Mi"
       logCollector:
         enabled: false
@@ -317,10 +312,9 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 2Gi
               limits:
-                cpu: 2000m # 2 cores
-                memory: 2Gi
+                cpu: 3 # 3 cores
+                memory: 3Gi
         storageClass: &cephfsSC
           enabled: true
           isDefault: false
