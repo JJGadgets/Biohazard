@@ -18,7 +18,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/https: allow
           resources:
             requests:
@@ -78,7 +78,7 @@ spec:
           redis:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.4.0-bookworm@sha256:73dad4271642c5966db88db7a7585fae7cf10b685d1e48006f31e0294c29fdd7"
+              tag: "8.4.0-bookworm@sha256:c22af04bb576503bf16b3e34a1fd2fd82de0f765afd866d2e380145e0af30d78"
             command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
       tika:
@@ -149,19 +149,13 @@ spec:
             targetPort: 3000
             protocol: HTTP
             appProtocol: http
-    ingress:
+    route:
       app:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+        hostnames: ["${APP_DNS_PAPERLESS_NGX:=paperless-ngx}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       data:
         existingClaim: paperless-ngx-data
