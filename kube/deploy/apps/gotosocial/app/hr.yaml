@@ -78,6 +78,14 @@ spec:
                   secretKeyRef:
                     name: "gotosocial-media-s3"
                     key: "AWS_SECRET_ACCESS_KEY"
+              GOGC: off
+              GOMEMLIMIT:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: "0.9"
+              GOMAXPROCS:
+                resourceFieldRef:
+                  resource: limits.cpu
             envFrom: &envFrom
               - secretRef:
                   name: gotosocial-secrets
@@ -90,11 +98,10 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
-                memory: 512Mi
+                cpu: 20m
               limits:
-                cpu: "1"
-                memory: 1536Mi
+                cpu: "3"
+                memory: 1Gi
             probes:
               liveness:
                 enabled: true
@@ -160,6 +167,7 @@ spec:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       hostUsers: false
+      # runtimeClassName: kata
       securityContext:
         runAsNonRoot: true # TODO: tmp migrate
         runAsUser: &uid 65534
@@ -171,13 +179,6 @@ spec:
         options:
           - name: ndots
             value: "1"
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
