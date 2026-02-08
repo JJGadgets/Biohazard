@@ -81,8 +81,7 @@ spec:
               GOGC: off
               GOMEMLIMIT:
                 resourceFieldRef:
-                  resource: limits.memory
-                  divisor: "0.9"
+                  resource: requests.memory
               GOMAXPROCS:
                 resourceFieldRef:
                   resource: limits.cpu
@@ -99,9 +98,10 @@ spec:
             resources:
               requests:
                 cpu: 20m
+                memory: 1Gi
               limits:
                 cpu: "3"
-                memory: 1Gi
+                memory: 1536Mi
             probes:
               liveness:
                 enabled: true
