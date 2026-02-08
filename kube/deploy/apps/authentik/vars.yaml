@@ -15,6 +15,10 @@ spec:
         key: ".${CLUSTER_NAME}-vars"
     - extract:
         key: "authentik - ${CLUSTER_NAME}"
+    - extract:
+        key: "Ceph RGW - ${CLUSTER_NAME}"
+    - extract:
+        key: "pgBackRest - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -37,3 +41,16 @@ spec:
         IP_ROUTER_VLAN_K8S: '{{ .IP_ROUTER_VLAN_K8S }}'
         DNS_CF: '{{ .DNS_CF }}'
         DNS_MAIN: '{{ .DNS_MAIN }}'
+        IP_TRUENAS: '{{ .IP_TRUENAS }}'
+        PATH_NAS_BACKUPS_K8S: '{{ .PATH_NAS_BACKUPS_K8S }}'
+        PATH_NAS_BACKUPS_PGBACKREST: '{{ .PATH_NAS_BACKUPS_PGBACKREST }}'
+        # Postgres
+        APP_DNS_RGW_HTTPS: '{{ .APP_DNS_RGW_HTTPS }}'
+        SECRET_PGBACKREST_WAL_ENCRYPT: '{{ .SECRET_PGBACKREST_WAL_ENCRYPT }}'
+        SECRET_PGBACKREST_WAL_MINIO_BUCKET: '{{ .SECRET_PGBACKREST_WAL_MINIO_BUCKET }}'
+        SECRET_PGBACKREST_WAL_MINIO_ID: '{{ .SECRET_PGBACKREST_WAL_MINIO_ID }}'
+        SECRET_PGBACKREST_WAL_MINIO_KEY: '{{ .SECRET_PGBACKREST_WAL_MINIO_KEY }}'
+        SECRET_PGBACKREST_WAL_R2_BUCKET: '{{ .SECRET_PGBACKREST_WAL_R2_BUCKET }}'
+        SECRET_PGBACKREST_WAL_R2_ENDPOINT: '{{ .SECRET_PGBACKREST_WAL_R2_ENDPOINT }}'
+        SECRET_PGBACKREST_WAL_R2_ID: '{{ .SECRET_PGBACKREST_WAL_R2_ID }}'
+        SECRET_PGBACKREST_WAL_R2_KEY: '{{ .SECRET_PGBACKREST_WAL_R2_KEY }}'
