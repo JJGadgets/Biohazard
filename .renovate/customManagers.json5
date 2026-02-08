@@ -16,10 +16,10 @@
     {
       "description": ["app-template OCI versions"],
       "customType": "regex",
-      // "managerFilePatterns": ["/^kube/.+/ks\\.ya?ml$/"],
-      "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"],
+      "managerFilePatterns": ["/^kube/.+/ks\\.ya?ml$/"],
+      // "managerFilePatterns": ["/^kube/.+\\.ya?ml$/"],
       "matchStrings": [
-        "APP_TEMPLATE: \"+(?<currentValue>[\\d\\.]+)\"+"
+        " *APP_TEMPLATE: \"?(?<currentValue>[\\d\\.]+)\"?"
       ],
       // "datasourceTemplate": "docker",
       // "versioningTemplate": "docker",
