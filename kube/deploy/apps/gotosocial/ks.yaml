@@ -41,7 +41,8 @@ spec:
       SIZE: "50Gi"
       SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteOnce"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       RUID: "65534"
       RGID: "65534"
       RFSG: "65534"
