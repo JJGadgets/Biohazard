@@ -59,7 +59,10 @@ spec:
                   secretKeyRef:
                     name: continuwuity-secrets
                     key: CONDUWUIT_EMERGENCY_PASSWORD
+              # HIGHLY RECOMMENDED but OPTIONAL
               # anti Matrix Synapse, we're only interested in Matrix the protocol amongst our community
+              # NOTE: this will block joining *spaces* from homeservers that have matrix.org users federated
+              # BUT you CAN join *ROOMS* from these servers, and get the parts of the room that are NOT from matrix.org
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false # NOTE: this is because continuwuity only supports Synapse as trusted key servers
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
               CONDUWUIT_FORBIDDEN_REMOTE_SERVER_NAMES: |
@@ -97,6 +100,9 @@ spec:
               CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
               CONDUWUIT_LDAP__UID_ATTRIBUTE: "continuwuityUsername" # authentik users can't change usernames by themselves, UID usernames is weird
               CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
+              # =============================
+              # END OF DO NOT YOINK SECTION
+              # =============================
             envFrom: &envFrom
               - secretRef:
                   name: continuwuity-secrets
