@@ -331,12 +331,43 @@ au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g
 " Always show the status line
 set laststatus=2
 
+" Default statusline
+set statusline=""
+
 " Format the status line
 ""if !has('nvim')
-if ! empty(globpath(&rtp, 'lazy/lualine.nvim/lua/lualine.lua'))
-  set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ L:%l,C:%c
-endif
+"if ! empty(globpath(&rtp, 'lazy/lualine.nvim/lua/lualine.lua'))
+  set statusline+=%<\ 
+  set statusline+=%{&paste?'PASTE\ ':''}
+  set statusline+=%{mode()}\ \|\ 
+  set statusline+=%F
+  set statusline+=%m%r
+  set statusline+=%h%w
+  set statusline+=\ %y
+  set statusline+=\ \%{StatuslineGit()}
+  "set statusline+=\ \|\ CWD:\ %r%{getcwd()}%h
+  set statusline+=%=
+  " end of left items
+  set statusline+=\ \ \ Cur:%l,%c%V
+  set statusline+=\ \|\ W:%{wordcount().words}\ \|\ C:%o/%{line2byte(line('$')+1)-1}
+  set statusline+=\ \|\ %P
+  "set statusline=%<%f\ %h%w%m%r%=%-14.(%l,%c%V%)\ %P
+"endif
 
+"
+"set statusline=
+"set statusline+=%#PmenuSel#
+"set statusline+=%#LineNr#
+"set statusline+=\ %f
+"set statusline+=%m\
+"set statusline+=%=
+"set statusline+=%#CursorColumn#
+"set statusline+=\ %y
+"set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+"set statusline+=\[%{&fileformat}\]
+"set statusline+=\ %p%%
+"set statusline+=\ %l:%c
+"set statusline+=\
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Editing mappings
@@ -391,6 +422,16 @@ function! HasPaste()
         return 'PASTE MODE  '
     endif
     return ''
+endfunction
+
+" Git branch
+function! GitBranch()
+  return system("git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n'")
+endfunction
+
+function! StatuslineGit()
+  let l:branchname = GitBranch()
+  return strlen(l:branchname) > 0?'['.l:branchname.']':''
 endfunction
 
 " Don't close window, when deleting a buffer
