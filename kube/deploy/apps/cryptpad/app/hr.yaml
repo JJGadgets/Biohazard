@@ -159,10 +159,9 @@ spec:
         type: image
         image:
           repository: jank.ing/jjgadgets/cryptpad-sso
-          tag: 0.4.0@sha256:1974fc6c27cc632aedcaac6efb9a0a415fd34777319c65a7e2644f76d894d1f7
+          tag: 0.4.0@sha256:5865a32cca8bca20277e6799f7c1c183d4c371dc8a4995d799cf517edf85bf58
         globalMounts:
-          - subPath: cryptpad/lib/plugins/sso
-            path: /cryptpad/lib/plugins/sso
+          - path: /cryptpad/lib/plugins/sso
       tmp:
         type: emptyDir
         medium: Memory
