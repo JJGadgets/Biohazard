@@ -337,19 +337,20 @@ set statusline=""
 " Format the status line
 ""if !has('nvim')
 "if ! empty(globpath(&rtp, 'lazy/lualine.nvim/lua/lualine.lua'))
-  set statusline+=%<\ 
+  set statusline+=\ 
   set statusline+=%{&paste?'PASTE\ ':''}
   set statusline+=%{mode()}\ \|\ 
-  set statusline+=%F
+  set statusline+=%f
   set statusline+=%m%r
   set statusline+=%h%w
-  set statusline+=\ %y
-  set statusline+=\ \%{StatuslineGit()}
-  "set statusline+=\ \|\ CWD:\ %r%{getcwd()}%h
+  set statusline+=\ \%{StatuslineGit()}\ 
+  set statusline+=%<
+  set statusline+=\ \|\ CWD:\ %r%{getcwd()}%h
   set statusline+=%=
   " end of left items
-  set statusline+=\ \ \ Cur:%l,%c%V
-  set statusline+=\ \|\ W:%{wordcount().words}\ \|\ C:%o/%{line2byte(line('$')+1)-1}
+  set statusline+=\ \|\ %Y
+  set statusline+=\ \|\ W:%{wordcount().words}\ \|\ C:%{line2byte(line('$')+1)-1}
+  set statusline+=\ \|\ %l,%c%V
   set statusline+=\ \|\ %P
   "set statusline=%<%f\ %h%w%m%r%=%-14.(%l,%c%V%)\ %P
 "endif
