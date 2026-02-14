@@ -13,15 +13,11 @@ spec:
   path: ./kube/deploy/apps/continuwuity/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: continuwuity-data
     - name: continuwuity-mass
-  postBuild:
-    substitute:
-      APP_TEMPLATE: 4.6.2
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

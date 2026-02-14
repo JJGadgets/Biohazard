@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/ocirepository-source-v1.json?test
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: app-template
+  namespace: continuwuity
+spec:
+  url: oci://ghcr.io/bjw-s-labs/helm/app-template
+  ref:
+    tag: 4.6.2
+

@@ -215,6 +215,20 @@ spec:
         spec:
           patches:
             - patch: |-
+                apiVersion: source.toolkit.fluxcd.io/v1
+                kind: OCIRepository
+                metadata:
+                  name: not-used
+                spec:
+                  interval: 1h
+                  layerSelector:
+                    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+                    operation: copy
+              target:
+                group: source.toolkit.fluxcd.io
+                kind: OCIRepository
+                labelSelector: oci.flux.home.arpa/default notin (false)
+            - patch: |-
                 apiVersion: helm.toolkit.fluxcd.io/v2beta1
                 kind: HelmRelease
                 metadata:
@@ -244,23 +258,6 @@ spec:
                 version: v2beta1
                 kind: HelmRelease
                 labelSelector: helm.flux.home.arpa/default notin (false)
-            - patch: |-
-                apiVersion: helm.toolkit.fluxcd.io/v2beta1
-                kind: HelmRelease
-                metadata:
-                  name: not-used
-                spec:
-                  chart:
-                    spec:
-                      chart: app-template
-                      version: 1.2.1
-                      sourceRef:
-                        name: bjw-s
-              target:
-                group: helm.toolkit.fluxcd.io
-                version: v2beta1
-                kind: HelmRelease
-                labelSelector: helm.flux.home.arpa/app-template=true
             - patch: |-
                 apiVersion: helm.toolkit.fluxcd.io/v2beta1
                 kind: HelmRelease
