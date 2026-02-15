@@ -1,7 +1,7 @@
 ---
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: ClientTrafficPolicy
+kind: BackendTrafficPolicy
 metadata:
   name: envoy-internal
   namespace: ingress
@@ -12,11 +12,7 @@ spec:
       name: continuwuity
   connection:
     bufferLimit: 8Mi
-  http2:
-    initialStreamWindowSize: 2Mi
-    initialConnectionWindowSize: 32Mi
-    onInvalidMessage: TerminateStream
   tcpKeepalive: {}
   timeout:
     http:
-      requestReceivedTimeout: 120s
+      requestTimeout: "120s"
