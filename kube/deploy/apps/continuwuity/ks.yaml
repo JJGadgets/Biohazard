@@ -39,10 +39,10 @@ spec:
     substitute:
       PVC: *pvc
       SIZE: "5Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.4-maxperf@sha256:71874923ccfd0095fb007c9d915d500453cfa4096cf8c75efb7f95c9939b2655"
       RUID: &uid "65534"
       RGID: *uid
