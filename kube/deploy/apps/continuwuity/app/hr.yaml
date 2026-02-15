@@ -20,6 +20,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
+            ingress.home.arpa/cloudflare: allow
             # authentik.home.arpa/oidc: allow
             authentik.home.arpa/ldap: allow
             # prom.home.arpa/kps: allow
@@ -115,7 +116,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "3"
                 memory: "512Mi"
             probes:
               liveness:
