@@ -86,7 +86,9 @@ spec:
   targetNamespace: *ns
   dependsOn:
     - name: 1-core-db-pg-clusters-home
+      namespace: flux-system
     - name: 1-core-secrets-es-k8s
+      namespace: flux-system
   postBuild:
     substitute:
       PG_NAME: "home"
