@@ -5,6 +5,6 @@ configMapGenerator:
   - name: custom-error-page
     namespace: ingress
     files:
-      - response.body=error-minify.html
+      - response.body=error-minify.html # to get this: run HTML through CyberChef HTML minify, then replace all single % with double to escape Envoy local_reply 'commands', then optionally replace error code in HTML with `%RESPONSE_CODE%`
 generatorOptions:
   disableNameSuffixHash: true
