@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: bluesky-app
+  namespace: &ns bluesky
+  labels: &l
+    app.kubernetes.io/name: "bluesky"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/bluesky/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: bluesky-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: bluesky-pvc
+  namespace: &ns bluesky
+  labels: &l
+    app.kubernetes.io/name: bluesky
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "bluesky-data"
+      SIZE: "10Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "ghcr.io/bluesky-social/pds:0.4.208@sha256:637083d9369dff85946fbcc12ae5fcce482322ff315d70c4b6004a0be9654bc8"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "bluesky-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

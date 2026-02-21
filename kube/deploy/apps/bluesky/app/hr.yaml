@@ -1,0 +1,106 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app bluesky
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/bluesky-social/pds
+              tag: 0.4.208@sha256:637083d9369dff85946fbcc12ae5fcce482322ff315d70c4b6004a0be9654bc8
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              PDS_PORT: &http 8080
+              PDS_HOSTNAME: &host bluesky.jjgadgets.tech
+              PDS_DATA_DIRECTORY: &pvc /pds # apparently this is still hardcoded...? let's explicitly define it anyway (https://github.com/bluesky-social/pds/blob/660b235498bbf668ec29fe4de6d0083fb3dc91d4/installer.sh#L121)
+              PDS_BLOBSTORE_DISK_LOCATION: /pds/blocks
+              PDS_RATE_LIMITS_ENABLED: "true"
+              PDS_INVITE_REQUIRED: "true"
+            envFrom: &envFrom
+              - secretRef:
+                  name: bluesky-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "2"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: [*host]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: public
+    persistence:
+      data:
+        existingClaim: bluesky-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: *pvc
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: kata
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
