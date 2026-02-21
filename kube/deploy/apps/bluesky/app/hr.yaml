@@ -20,6 +20,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
+            dns.home.arpa/l7: "true"
           annotations:
             k8s.v1.cni.cncf.io/networks: |
               [{
