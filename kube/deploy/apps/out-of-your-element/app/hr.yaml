@@ -1,0 +1,125 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app out-of-your-element
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: git.shork.ch/docker-images/out-of-your-element
+              tag: v3.4@sha256:27fd92f4449e1b849bc79cc57fcd3ab7572186106124653877be147c5d36fef3
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "2"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+        initContainers:
+          01-create-db:
+            image: *img
+            command: ["sh", "-c", "ls /data/ooye.db || touch /data/ooye.db; ls /data/registration.yaml || touch /data/registration.yaml"]
+            env: *env
+            securityContext: *sc
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 6693
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["${APP_DNS_OUT_OF_YOUR_ELEMENT:=out-of-your-element}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: public
+    persistence:
+      data:
+        existingClaim: out-of-your-element-data
+        advancedMounts:
+          app:
+            01-create-db:
+              - subPath: data
+                path: /data
+            app:
+              - subPath: data/ooye.db
+                path: /usr/src/app/ooye.db
+              - subPath: data/registration.yaml
+                path: /usr/src/app/registration.yaml
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: kata
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65534
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      app:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - &netpol-uwu
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: continuwuity
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: continuwuity
+          egress:
+            - to: [*netpol-uwu]

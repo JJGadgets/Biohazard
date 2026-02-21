@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: out-of-your-element-app
+  namespace: &ns out-of-your-element
+  labels: &l
+    app.kubernetes.io/name: "out-of-your-element"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/out-of-your-element/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: out-of-your-element-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: out-of-your-element-pvc
+  namespace: &ns out-of-your-element
+  labels: &l
+    app.kubernetes.io/name: out-of-your-element
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "out-of-your-element-data"
+      SIZE: "10Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "git.shork.ch/docker-images/out-of-your-element:v3.4@sha256:27fd92f4449e1b849bc79cc57fcd3ab7572186106124653877be147c5d36fef3"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "out-of-your-element-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
