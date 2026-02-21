@@ -13,6 +13,8 @@ spec:
   dataFrom:
     - extract:
         key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "BlueSky - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -24,3 +26,5 @@ spec:
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
         DNS_CF: '{{ .DNS_CF }}'
+        APP_IP_BLUESKY_VPN: '{{ .APP_IP_BLUESKY_VPN }}'
+        APP_MAC_BLUESKY_VPN: '{{ .APP_MAC_BLUESKY_VPN }}'
