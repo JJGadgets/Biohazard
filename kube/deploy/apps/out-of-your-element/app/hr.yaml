@@ -21,6 +21,12 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
             egress.home.arpa/internet: allow
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "2"
+              memory: "512Mi"
         containers:
           app:
             image: &img
@@ -33,12 +39,6 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "2"
-                memory: "512Mi"
             probes:
               liveness:
                 enabled: true
@@ -47,12 +47,12 @@ spec:
         initContainers:
           01-create-db:
             image: *img
-            command: ["sh", "-c", "ls /data/ooye.db || touch /data/ooye.db; ls /data/registration.yaml || touch /data/registration.yaml"]
+            command: ["sh", "-c", "find /data/ooye.db -type f | grep . || { find /data/ooye.db -type d -maxdepth 1 && { rm -rf /data/ooye.db; touch /data/ooye.db; }; || exit 1; }; find /data/registration.yaml -type f | grep . || { find /data/registration.yaml -type d -maxdepth 1 && { rm -rf /data/registration.yaml; touch /data/registration.yaml; }; || exit 1; };"] # `grep .` to make find exit non-0 (https://serverfault.com/a/225827)
             env: *env
             securityContext: *sc
           02-setup:
             image: *img
-            command: ["npm", "run", "setup"]
+            command: ["sh", "-c", "while [[ ! -s /usr/src/app/registration.yaml ]]; do echo 'out-of-your-element has not been setup, please exec to this container and run `npm run setup` for the app to startup!'; sleep 60; done"]
             env: *env
             securityContext: *sc
     service:
