@@ -17,7 +17,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
-          labels:
+          labels: # netpols
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
             # authentik.home.arpa/oidc: allow
@@ -25,6 +25,14 @@ spec:
             # prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
             egress.home.arpa/mullvad: allow
+          annotations:
+            k8s.v1.cni.cncf.io/networks: | # VPN
+              [{
+                "name":"vpn-vlan",
+                "namespace": "multus",
+                "ips": ["${APP_IP_CONTINUWUITY_VPN}"],
+                "mac": "${APP_MAC_CONTINUWUITY_VPN}"
+              }]
         containers:
           app:
             image: &img
@@ -78,7 +86,6 @@ spec:
               # refer to upstream docs before including any of these
               # ======================================================================
               # NOT REQUIRED FOR YOINKERS! but nice to have, tinfoil & personal preferences
-              CONDUWUIT_PROXY__GLOBAL__URL: socks5h://10.124.0.102:1080 # VPN
               CONDUWUIT_ALLOW_OUTGOING_READ_RECEIPTS: false
               CONDUWUIT_ALLOW_ANNOUNCEMENTS_CHECK: false
               CONDUWUIT_SUSPEND_ON_REGISTER: true
