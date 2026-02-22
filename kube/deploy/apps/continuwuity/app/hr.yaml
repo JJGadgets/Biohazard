@@ -95,7 +95,7 @@ spec:
               CONDUWUIT_ALLOW_PUBLIC_ROOM_DIRECTORY_OVER_FEDERATION: false
               CONDUWUIT_LOCKDOWN_PUBLIC_ROOM_DIRECTORY: true
               CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
-              CONDUWUIT_DEFAULT_ROOM_VERSION: "12" # more secure, room/space creator has highest power
+              CONDUWUIT_DEFAULT_ROOM_VERSION: '"12"' # more secure, room/space creator has highest power
               CONDUWUIT_CONFIG_RELOAD_SIGNAL: true # idk if we can have Reloader hit this endpoint instead or something?
               # NOT REQUIRED FOR YOINKERS! external auth (wen eta OIDC/SAML)
               CONDUWUIT_LDAP__ENABLE: true
