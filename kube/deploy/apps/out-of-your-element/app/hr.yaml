@@ -47,12 +47,12 @@ spec:
         initContainers:
           01-create-db:
             image: *img
-            command: ["sh", "-c", "find /data/ooye.db -type f | grep . || { find /data/ooye.db -type d -maxdepth 1 && { rm -rf /data/ooye.db; touch /data/ooye.db; }; || exit 1; }; find /data/registration.yaml -type f | grep . || { find /data/registration.yaml -type d -maxdepth 1 && { rm -rf /data/registration.yaml; touch /data/registration.yaml; }; || exit 1; };"] # `grep .` to make find exit non-0 (https://serverfault.com/a/225827)
+            command: ["sh", "-c", "find /data/ooye.db -type f | grep . || { find /data/ooye.db -type d -maxdepth 1 && { rm -rf /data/ooye.db; touch /data/ooye.db; } || exit 1; }; find /data/registration.yaml -type f | grep . || { find /data/registration.yaml -type d -maxdepth 1 && { rm -rf /data/registration.yaml; touch /data/registration.yaml; } || exit 1; };"] # `grep .` to make find exit non-0 (https://serverfault.com/a/225827)
             env: *env
             securityContext: *sc
           02-setup:
             image: *img
-            command: ["sh", "-c", "while [[ ! -s /usr/src/app/registration.yaml ]]; do echo 'out-of-your-element has not been setup, please exec to this container and run `npm run setup` for the app to startup!'; sleep 60; done"]
+            command: ["sh", "-c", "while [[ ! -s /usr/src/app/registration.yaml && ! -s /usr/src/app/ooye.db ]]; do echo 'out-of-your-element has not been setup, please exec to this container and run `npm run setup` for the app to startup!'; sleep 60; done; cat /usr/src/app/registration.yaml"]
             env: *env
             securityContext: *sc
     service:
