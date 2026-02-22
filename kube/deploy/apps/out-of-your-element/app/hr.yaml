@@ -106,7 +106,7 @@ spec:
       runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 65534
+        runAsUser: &uid 1000 # upstream `node` user, needed for /usr/src/app rootfs file creates during `npm run setup` to work
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
