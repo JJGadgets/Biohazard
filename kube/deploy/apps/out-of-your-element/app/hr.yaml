@@ -50,6 +50,11 @@ spec:
             command: ["sh", "-c", "ls /data/ooye.db || touch /data/ooye.db; ls /data/registration.yaml || touch /data/registration.yaml"]
             env: *env
             securityContext: *sc
+          02-setup:
+            image: *img
+            command: ["npm", "run", "setup"]
+            env: *env
+            securityContext: *sc
     service:
       app:
         controller: app
@@ -80,11 +85,12 @@ spec:
             01-create-db:
               - subPath: data
                 path: /data
-            app:
+            02-setup: &mounts
               - subPath: data/ooye.db
                 path: /usr/src/app/ooye.db
               - subPath: data/registration.yaml
                 path: /usr/src/app/registration.yaml
+            app: *mounts
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
