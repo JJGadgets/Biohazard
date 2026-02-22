@@ -52,10 +52,11 @@ spec:
               - "-c"
               - |
                 while [[ ! -z "$(pgrep npm)" ]] || [[ ! -s /data/registration.yaml && ! -s /data/ooye.db ]]; do
-                  echo 'out-of-your-element has not been setup, please exec to this container and run `npm run setup` for the app to startup!'; sleep 60;
+                  echo 'out-of-your-element has not been setup, please exec to this container and run `npm run setup` for the app to startup!';
+                  sleep 60;
+                  [[ -s /usr/src/app/registration.yaml ]] && { cat /usr/src/app/registration.yaml; find /data/registration.yaml -maxdepth 1 -type f || { find /data/registration.yaml -maxdepth 1 -type d && rmdir /data/registration.yaml || true; cp /usr/src/app/registration.yaml /data/registration.yaml; }; } || true;
+                  [[ -s /usr/src/app/ooye.db ]] && { find /data/ooye.db -maxdepth 1 -type f || { find /data/ooye.db -maxdepth 1 -type d && rmdir /data/ooye.db || true; cp /usr/src/app/ooye.db /data/ooye.db; }; } || true;
                 done;
-                [[ -s /usr/src/app/registration.yaml ]] && { cat /usr/src/app/registration.yaml; find /data/registration.yaml -maxdepth 1 -type f || { find /data/registration.yaml -maxdepth 1 -type d && rmdir /data/registration.yaml || true; cp /usr/src/app/registration.yaml /data/registration.yaml; }; } || true;
-                [[ -s /usr/src/app/ooye.db ]] && { find /data/ooye.db -maxdepth 1 -type f || { find /data/ooye.db -maxdepth 1 -type d && rmdir /data/ooye.db || true; cp /usr/src/app/ooye.db /data/ooye.db; }; } || true;
             env: *env
             securityContext:
               <<: *sc
@@ -63,8 +64,8 @@ spec:
     service:
       app:
         controller: app
-        clusterIP: "None" # ClusterIP gets fucky, somehow causes the ClusterIP to send an ICMP back to continuwuity?
-        publishNotReadyAddresses: true # needed for the setup process
+        # clusterIP: "None" # ClusterIP gets fucky, somehow causes the ClusterIP to send an ICMP back to continuwuity?
+        # publishNotReadyAddresses: true # needed for the setup process
         ports:
           http:
             port: 6693
