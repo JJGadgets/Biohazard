@@ -35,7 +35,7 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false # SQLite DB can't open without this because its rootfs is a dir in the image
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
@@ -58,9 +58,7 @@ spec:
                   [[ -s /usr/src/app/ooye.db ]] && { find /data/ooye.db -maxdepth 1 -type f || { find /data/ooye.db -maxdepth 1 -type d && rmdir /data/ooye.db || true; cp /usr/src/app/ooye.db /data/ooye.db; }; } || true;
                 done;
             env: *env
-            securityContext:
-              <<: *sc
-              readOnlyRootFilesystem: false
+            securityContext: *sc
     service:
       app:
         controller: app
