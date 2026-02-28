@@ -152,25 +152,25 @@ spec:
                   periodSeconds: 1
                   failureThreshold: 300
                   initialDelaySeconds: 15
-          anubis:
-            image:
-              repository: ghcr.io/xe/x/anubis
-              tag: latest
-            env:
-              TZ: "${CONFIG_TZ}"
-              BIND: ":8923"
-              DIFFICULTY: "5"
-              SERVE_ROBOTS_TXT: "true"
-              TARGET: "http://127.0.0.1:9000"
-            securityContext: *sc
-            ports:
-              - name: anubis
-                containerPort: &anubis 8923
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+          # anubis:
+          #   image:
+          #     repository: ghcr.io/xe/x/anubis
+          #     tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
+          #   env:
+          #     TZ: "${CONFIG_TZ}"
+          #     BIND: "[::]:8923"
+          #     DIFFICULTY: "5"
+          #     SERVE_ROBOTS_TXT: "true"
+          #     TARGET: "http://127.0.0.1:9000"
+          #   securityContext: *sc
+          #   ports:
+          #     - name: anubis
+          #       containerPort: &anubis 8923
+          #   probes:
+          #     liveness:
+          #       enabled: true
+          #     readiness:
+          #       enabled: true
       worker:
         type: deployment
         replicas: 2
@@ -370,9 +370,9 @@ spec:
           metrics:
             <<: *port
             port: *metrics
-          anubis:
-            <<: *port
-            port: *anubis
+          # anubis:
+          #   <<: *port
+          #   port: *anubis
       expose:
         primary: false
         controller: app
@@ -449,7 +449,8 @@ spec:
         rules:
           - backendRefs:
               - identifier: app
-                port: *anubis
+                # port: *anubis
+                port: *http
       harden:
         hostnames: *host
         parentRefs:
