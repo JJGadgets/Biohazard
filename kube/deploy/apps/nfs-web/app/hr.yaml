@@ -25,7 +25,7 @@ spec:
           main:
             image:
               repository: "public.ecr.aws/docker/library/caddy"
-              tag: "latest"
+              tag: "latest@sha256:9068f76202c0a03545036d32bf2d424d3b46c1174f254070f605002a2dbc9657"
             command: ["caddy", "file-server", "--browse", "--access-log", "--listen", ":8080", "--root", "/config"]
             env:
               TZ: "${CONFIG_TZ}"
