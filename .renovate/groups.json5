@@ -58,7 +58,7 @@
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch",
       "matchFileNames": ["kube/deploy/apps/**"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
       "matchCurrentVersion": "!/^0\\./" // avoid breaking changes in 0.x SemVer releases
     },
     {
