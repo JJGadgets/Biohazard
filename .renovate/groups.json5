@@ -43,13 +43,22 @@
       "rebaseWhen": "behind-base-branch"
     },
     {
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "additionalBranchPrefix": "pin-dig-{{ newDigestShort }}"
+    },
+    {
+      "matchManagers": ["argocd", "devcontainer", "helmv3", "pyenv"],
+      "pinDigests": false
+    },
+    {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
       // "matchDatasources": ["docker"],
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch",
       "matchFileNames": ["kube/deploy/apps/**"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
       "matchCurrentVersion": "!/^0\\./" // avoid breaking changes in 0.x SemVer releases
     },
     {

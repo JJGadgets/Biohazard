@@ -114,6 +114,7 @@ spec:
     - name: envoy-external
       namespace: ingress
       sectionName: public
+  # hostnames: ["*.jjgadgets.tech"]
   rules:
     - filters:
         - type: ResponseHeaderModifier
@@ -150,11 +151,39 @@ spec:
       kind: Gateway
       name: envoy-external
       sectionName: external
+  clientIPDetection:
+    xForwardedFor:
+      # numTrustedHops: 1
+      trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+    # customHeader:
+    #   name: CF-Connecting-IP
+    #   failClosed: false
+  http2:
+    onInvalidMessage: TerminateStream
+  tls:
+    alpnProtocols:
+      - http/1.1
+      - h2
+    minVersion: "1.2"
+    maxVersion: "1.3"
+    ciphers:
+      - ECDHE-ECDSA-AES128-GCM-SHA256
+      - ECDHE-ECDSA-AES256-GCM-SHA384
+      - ECDHE-ECDSA-CHACHA20-POLY1305
+    ecdhCurves:
+      - X25519MLKEM768
+      - X25519
+      - P-256
+    signatureAlgorithms:
+      - ecdsa_secp256r1_sha256
+      - ecdsa_secp384r1_sha384
+      - ecdsa_secp521r1_sha512
+      - ed25519
+    clientValidation:
+      optional: true
   connection:
     bufferLimit: 100Ki
     socketBufferLimit: 1Mi
-  http2:
-    onInvalidMessage: TerminateStream
   tcpKeepalive:
     interval: 10s
     idleTime: 10s
@@ -162,8 +191,14 @@ spec:
     http:
       requestReceivedTimeout: 10s
   headers:
+    enableEnvoyHeaders: false
+    disableRateLimitHeaders: true
+    requestID: Disable
     lateResponseHeaders:
+      remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
       set:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains; preload
         - name: X-Robots-Tag
           value: "noindex, nofollow" # anti search engines
         - name: Cache-Control
@@ -199,11 +234,39 @@ spec:
       kind: Gateway
       name: envoy-external
       sectionName: public
+  clientIPDetection:
+    xForwardedFor:
+      # numTrustedHops: 1
+      trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+    # customHeader:
+    #   name: CF-Connecting-IP
+    #   failClosed: false
+  http2:
+    onInvalidMessage: TerminateStream
+  tls:
+    alpnProtocols:
+      - http/1.1
+      - h2
+    minVersion: "1.2"
+    maxVersion: "1.3"
+    ciphers:
+      - ECDHE-ECDSA-AES128-GCM-SHA256
+      - ECDHE-ECDSA-AES256-GCM-SHA384
+      - ECDHE-ECDSA-CHACHA20-POLY1305
+    ecdhCurves:
+      - X25519MLKEM768
+      - X25519
+      - P-256
+    signatureAlgorithms:
+      - ecdsa_secp256r1_sha256
+      - ecdsa_secp384r1_sha384
+      - ecdsa_secp521r1_sha512
+      - ed25519
+    clientValidation:
+      optional: true
   connection:
     bufferLimit: 100Ki
     socketBufferLimit: 1Mi
-  http2:
-    onInvalidMessage: TerminateStream
   tcpKeepalive:
     interval: 10s
     idleTime: 10s
@@ -211,8 +274,14 @@ spec:
     http:
       requestReceivedTimeout: 10s
   headers:
+    enableEnvoyHeaders: false
+    disableRateLimitHeaders: true
+    requestID: Disable
     lateResponseHeaders:
+      remove: ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
       set:
+        - name: Strict-Transport-Security
+          value: max-age=31449600; includeSubDomains; preload
         - name: X-Frame-Options
           value: "SAMEORIGIN"
         - name: X-Content-Type-Options
