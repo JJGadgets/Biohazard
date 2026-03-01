@@ -62,9 +62,9 @@ spec:
         connections:
           requireMsgr2: true
           encryption:
-            enabled: false # TODO: 2023-11-23 disabled to test speeds with compression without encryption
-          compression:
             enabled: false
+          compression:
+            enabled: true
       crashCollector:
         disable: true
       dashboard:
