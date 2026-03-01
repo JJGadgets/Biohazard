@@ -9,6 +9,10 @@
       "automerge": false
     },
     {
+      "matchUpdateTypes": ["pinDigest"],
+      "additionalBranchPrefix": "pin-dig-{{ newDigestShort }}-"
+    },
+    {
       "description": "Only create GHA PRs after a week",
       "matchManagers": ["github-actions"],
       "matchPackageNames": ["!actions/**", "!**renovate**"],
@@ -41,15 +45,6 @@
       "automerge": true,
       "automergeType": "pr",
       "rebaseWhen": "behind-base-branch"
-    },
-    {
-      "matchDatasources": ["docker"],
-      "pinDigests": true,
-      "additionalBranchPrefix": "pin-dig-{{ newDigestShort }}"
-    },
-    {
-      "matchManagers": ["argocd", "devcontainer", "helmv3", "pyenv"],
-      "pinDigests": false
     },
     {
       "description": "Auto merge apps in path ./kube/deploy/apps (these apps don't affect the entire Kubernetes cluster)",
