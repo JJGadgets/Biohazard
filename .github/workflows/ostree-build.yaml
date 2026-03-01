@@ -17,7 +17,7 @@ jobs:
       packages: write
     timeout-minutes: 40
     container:
-      image: public.ecr.aws/docker/library/fedora:44@sha256:8a396124f358d2922f1b1c40aee2e7f1dd016b26b3d525d4338e7da12c1cd9a5
+      image: public.ecr.aws/docker/library/fedora:44@sha256:b3242de4d1022bf74f207f9b8462daa183c24b85c5997a97cd1d7dd6e6359a9b
       # Fix SELinux for the built OSTree: https://github.com/coreos/rpm-ostree/issues/1943
       options: --privileged --security-opt label:disable
     strategy:
