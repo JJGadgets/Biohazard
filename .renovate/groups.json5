@@ -9,6 +9,12 @@
       "automerge": false
     },
     {
+      "description": "Don't pin digests for Flux OCIRepository yet (https://github.com/renovatebot/renovate/issues/29768)",
+      "matchFileNames": ["chart.yaml", "ocirepo.yaml", "ocirepository.yaml", "**/chart.yaml", "**/ocirepo.yaml", "**/ocirepository.yaml"],
+      "matchDatasources": ["docker"],
+      "pinDigests": false
+    },
+    {
       "matchUpdateTypes": ["pinDigest"],
       "groupName": "",
       "additionalBranchPrefix": "pin-dig-{{ newDigestShort }}-"
