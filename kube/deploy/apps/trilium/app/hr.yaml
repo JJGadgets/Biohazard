@@ -24,7 +24,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/triliumnext/trilium
-              tag: v0.102.0@sha256:58f76a39e28f5663247f30050984de248569b27ca91758ba51b0b63d7b5deeec
+              tag: v0.102.0@sha256:34b135b2c83500b2eeefb1dd7effa074eb6b8ca67297451e4fad38dba22abbf6
             command: ["node", "./main.cjs"]
             env: &env
               TZ: "${CONFIG_TZ}"
