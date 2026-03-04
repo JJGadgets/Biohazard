@@ -82,9 +82,7 @@ spec:
             sectionName: internal
           - name: envoy-external
             namespace: ingress
-            sectionName: public
-      lol:
-        <<: *route
+            sectionName: publi
         rules:
           - matches:
               - path:
@@ -103,6 +101,13 @@ spec:
                   group: gateway.envoyproxy.io
                   kind: HTTPRouteFilter
                   name: lol1
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: "/"
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: bluesky-data
