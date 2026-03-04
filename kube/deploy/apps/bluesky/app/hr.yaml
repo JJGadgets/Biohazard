@@ -36,7 +36,7 @@ spec:
               tag: 0.4.208@sha256:637083d9369dff85946fbcc12ae5fcce482322ff315d70c4b6004a0be9654bc8
             env: &env
               TZ: "${CONFIG_TZ}"
-              PDS_PORT: &http 8080
+              PDS_PORT: &http 3000
               PDS_HOSTNAME: &host bluesky.jjgadgets.tech
               PDS_DATA_DIRECTORY: &pvc /pds # apparently this is still hardcoded...? let's explicitly define it anyway (https://github.com/bluesky-social/pds/blob/660b235498bbf668ec29fe4de6d0083fb3dc91d4/installer.sh#L121)
               PDS_BLOBSTORE_DISK_LOCATION: /pds/blocks
