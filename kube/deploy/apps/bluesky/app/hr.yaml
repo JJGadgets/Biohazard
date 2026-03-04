@@ -71,7 +71,7 @@ spec:
             protocol: HTTP
             appProtocol: http
     route:
-      app:
+      app: &route
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -83,6 +83,26 @@ spec:
           - name: envoy-external
             namespace: ingress
             sectionName: public
+      lol:
+        <<: *route
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: "${APP_BLUESKY_LOL1}"
+            filters:
+              - type: ResponseHeaderModifier
+                responseHeaderModifier:
+                  set:
+                    - name: access-control-allow-headers
+                      value: authorization,dpop,atproto-accept-labelers,atproto-proxy
+                    - name: access-control-allow-origin
+                      value: "*"
+              - type: ExtensionRef
+                extensionRef:
+                  group: gateway.envoyproxy.io
+                  kind: HTTPRouteFilter
+                  name: lol1
     persistence:
       data:
         existingClaim: bluesky-data
