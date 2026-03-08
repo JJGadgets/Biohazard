@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,17 +7,13 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      insurgency-sandstorm:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -26,9 +22,9 @@ spec:
             ingress.home.arpa/world: allow
             dns.home.arpa/l7: "true"
         containers:
-          main:
+          app:
             image: &img
-              repository: docker.io/andrewmhub/insurgency-sandstorm
+              repository: p.jank.me/andrewmhub/insurgency-sandstorm
               tag: lite@sha256:61b39d42819f5aecc97a211fceeac3f03be37f8a0e2ccb68056a7e468aeb2640
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="$(MODS)"', "-mutators=$(MUTATORS)", "-ModDownloadTravelTo=$(INIT_MAP)?Scenario=Scenario_$(INIT_MAP)_$(INIT_SCENARIO)?Password=$(PASSWORD)"]
@@ -57,7 +53,7 @@ spec:
               limits:
                 cpu: "2"
                 memory: "2Gi"
-            # probes: # TODO
+            # probes: # TODO: figure out UDP probes
             #   liveness:
             #     enabled: true
             #   readiness:
@@ -73,7 +69,7 @@ spec:
           labels:
             egress.home.arpa/internet: allow
         containers:
-          main:
+          app:
             image: *img
             command: ["/home/steam/steamcmd/steamcmd.sh"] # script contains a ulimit command that won't run on Talos 1.9+
             # command: ["/bin/sh", "-c", "LD_LIBRARY_PATH=/home/steam/steamcmd/linux32:$(LD_LIBRARY_PATH) /home/steam/steamcmd/linux32/steamcmd"]
@@ -88,8 +84,8 @@ spec:
                 cpu: "1"
                 memory: "512Mi"
     service:
-      insurgency-sandstorm:
-        controller: insurgency-sandstorm
+      app:
+        controller: app
         type: LoadBalancer
         annotations:
           coredns.io/hostname: "${APP_DNS_SANDSTORM:=insurgency-sandstorm}"
@@ -147,7 +143,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/insurgency-sandstorm
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 25
@@ -156,12 +152,6 @@ spec:
                   - key: "kubernetes.io/hostname"
                     operator: In
                     values: ["dorothy"] # MS01
-            - weight: 20
-              preference:
-                matchExpressions:
-                  - key: "kubernetes.io/hostname"
-                    operator: In
-                    values: ["thunderscreech"] # R730xd VM, because it can't run VMs so let others run VMs
             - weight: 15
               preference:
                 matchExpressions:
@@ -174,3 +164,9 @@ spec:
                   - key: "kubernetes.io/hostname"
                     operator: In
                     values: ["chise"] # i3-8100
+            # - weight: 20
+            #   preference:
+            #     matchExpressions:
+            #       - key: "kubernetes.io/hostname"
+            #         operator: In
+            #         values: ["thunderscreech"] # R730xd VM, because it can't run VMs so let others run VMs
