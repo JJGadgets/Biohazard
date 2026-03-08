@@ -3,17 +3,21 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: code-server-app
-  namespace: flux-system
+  namespace: &ns code-server
   labels: &l
     app.kubernetes.io/name: "code-server"
     wait.flux.home.arpa/disabled: "true"
     wait.flux.home.arpa/enabled: "false"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/code-server/app
-  targetNamespace: "code-server"
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: code-server-pvc
   wait: false
 ---
@@ -21,20 +25,21 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: code-server-pvc
-  namespace: flux-system
+  namespace: &ns code-server
   labels: &l
-    app.kubernetes.io/name: "code-server"
+    app.kubernetes.io/name: code-server
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "code-server"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "code-server-data"
+      PVC: &pvc "code-server-data"
       SIZE: "50Gi"
       CACHESIZE: "15Gi"
       RGW_CRON: "0 */12 * * *"
@@ -42,7 +47,22 @@ spec:
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
       SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "ghcr.io/coder/code-server:4.109.5@sha256:f9ccfeb5a3de80d16342a6a842519c481522d80aafe65fb24a16393235a34f71"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
       LMEM: "3Gi"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "code-server-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
