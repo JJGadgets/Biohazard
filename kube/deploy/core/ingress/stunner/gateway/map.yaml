@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/admissionregistration.k8s.io/mutatingadmissionpolicybinding_v1alpha1.json
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: stunner-cds-url
+spec:
+  policyName: stunner-cds-url
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: stunner
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/admissionregistration.k8s.io/mutatingadmissionpolicy_v1alpha1.json
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: stunner-cds-url
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - apps
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - deployments
+  matchConditions:
+    - name: has-stunner-owned-by-labels
+      expression: >-
+        object.metadata.labels["stunner.l7mp.io/owned-by"] == "stunner"
+  failurePolicy: Ignore
+  reinvocationPolicy: IfNeeded
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "replace",
+              path: "/spec/template/spec/containers/0/env/0",
+              value: {
+                "name": "STUNNER_ADDR",
+                "value": "${APP_IP_STUNNER}"
+              }
+            }
+          ]

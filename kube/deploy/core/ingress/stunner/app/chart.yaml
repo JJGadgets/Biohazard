@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/ocirepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: app-template
+  namespace: continuwuity
+spec:
+  url: oci://ghcr.io/m00nwtchr/charts/stunner
+  ref:
+    tag: 1.1.0

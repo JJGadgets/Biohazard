@@ -1,0 +1,61 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app stunner
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    stunnerGatewayOperator:
+      deployment:
+        securityContext: &psc
+          runAsNonRoot: true
+          runAsUser: &uid ${APP_UID_STUNNER}
+          runAsGroup: *uid
+          fsGroup: *uid
+          fsGroupChangePolicy: Always
+          seccompProfile: { type: "RuntimeDefault" }
+        container:
+          manager:
+            securityContext: &csc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: "1"
+                memory: 256Mi
+      dataplane:
+        spec:
+          enableMetricsEndpoint: true
+          hostNetwork: false
+          securityContext: *psc
+          containerSecurityContext: *csc
+          resources:
+            requests:
+              cpu: 10m
+            limits:
+              cpu: "1"
+              memory: 300Mi
+    stunnerAuthService:
+      deployment:
+        container:
+          authService:
+            securityContext:
+              <<: *csc
+              runAsUser: *uid
+              runAsGroup: *uid
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: "1"
+                memory: 150Mi

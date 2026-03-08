@@ -1,0 +1,33 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: stunner-app
+  namespace: &ns stunner
+  labels: &l
+    app.kubernetes.io/name: "stunner"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/ingress/stunner/app
+  components:
+    - ../../../flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: stunner-gateway
+  namespace: &ns stunner
+  labels: &l
+    app.kubernetes.io/name: "stunner"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/ingress/stunner/gateway
+  dependsOn:
+    - name: stunner-app
