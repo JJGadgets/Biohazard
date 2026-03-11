@@ -23,7 +23,7 @@ spec:
           app:
             image: &img
               repository: jank.ing/jjgadgets/cinny
-              tag: 4.10.5@sha256:b80b80b2c70f62ce77e8b80f55e2a5b3136bfcba857b9ec08c0ec30e6efd5b8e
+              tag: 4.10.5@sha256:ec808b1ae33f8d410d766a18057a0bdf50e02d0d7fc153c7e4f0da724b10b6a6
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -64,7 +64,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 65534
