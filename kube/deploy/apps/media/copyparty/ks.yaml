@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: copyparty-app
+  namespace: &ns media
+  labels: &l
+    app.kubernetes.io/name: "copyparty"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/media/copyparty/app
+  components:
+    - ../../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: copyparty-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: copyparty-pvc
+  namespace: &ns media
+  labels: &l
+    app.kubernetes.io/name: copyparty
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "copyparty-data"
+      SIZE: "5Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "ghcr.io/9001/copyparty-dj:1.20.1@sha256:dff94a8350510cd30e0dc52d75a2780286c9c011183a39c054881bd544023b13"
+      RUID: &uid "6969"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "copyparty-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

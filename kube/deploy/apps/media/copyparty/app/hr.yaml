@@ -1,0 +1,136 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app copyparty
+  namespace: &ns media
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *ns
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/9001/copyparty-dj
+              tag: 1.20.1@sha256:dff94a8350510cd30e0dc52d75a2780286c9c011183a39c054881bd544023b13
+            args: ["--xff-src=${IP_POD_CIDR_V4}", "--no-robots", "--hist=/cfg/hists"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              LD_PRELOAD: "/usr/lib/libmimalloc-secure.so.2"
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: copyparty-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        type: LoadBalancer
+        annotations:
+          # coredns.io/hostname: "${APP_DNS_COPYPARTY:=copyparty}"
+          lbipam.cilium.io/ips: "${APP_IP_COPYPARTY:=127.0.0.1}"
+        ports:
+          http:
+            port: 80
+            targetPort: 3923
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_COPYPARTY:=copyparty}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      data:
+        existingClaim: copyparty-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /cfg
+      ceph-media-data:
+        existingClaim: "media-data" # VolSync
+        globalMounts:
+          - path: "/w/ceph/media-data"
+      bulk:
+        existingClaim: "media-bulk"
+        globalMounts:
+          - path: "/w/ceph/media-bulk"
+      nfs:
+        type: nfs
+        server: "${IP_TRUENAS:=127.0.0.1}"
+        path: "${PATH_NAS_MEDIA:=/media}"
+        globalMounts:
+          - path: /w/nas/media
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+      # tls:
+      #   type: secret
+      #   name: copyparty-tls
+      #   defaultMode: 0400
+      #   advancedMounts:
+      #     app:
+      #       app:
+      #         - subPath: tls.crt
+      #           path: /tls/fullchain.pem
+      #           readOnly: true
+      #         - subPath: tls.key
+      #           path: /tls/privkey.pem
+      #           readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 6969
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: [44] # iGPU
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

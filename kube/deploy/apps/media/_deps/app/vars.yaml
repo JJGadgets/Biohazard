@@ -23,6 +23,8 @@ spec:
         key: "Navidrome - ${CLUSTER_NAME}"
     - extract:
         key: "Plex - ${CLUSTER_NAME}"
+    - extract:
+        key: "copyparty media - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -53,3 +55,6 @@ spec:
         # Plex
         APP_DNS_PLEX: '{{ .APP_DNS_PLEX }}'
         APP_IP_PLEX: '{{ .APP_IP_PLEX }}'
+        # Copyparty
+        APP_DNS_COPYPARTY: '{{ .APP_DNS_COPYPARTY }}'
+        APP_IP_COPYPARTY: '{{ .APP_IP_COPYPARTY }}'
