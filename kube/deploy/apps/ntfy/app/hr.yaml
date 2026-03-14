@@ -60,10 +60,10 @@ spec:
                 enabled: true
         initContainers:
           02-init-unifiedpush:
-            imagePullPolicy: "IfNotPresent"
             image: *img
             command: ["ntfy", "access", "*", "up*", "write-only"]
             env: *env
+            securityContext: *sc
     service:
       app:
         controller: app
