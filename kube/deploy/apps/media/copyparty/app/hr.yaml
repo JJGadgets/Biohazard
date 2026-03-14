@@ -19,12 +19,13 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/jjgadgets: allow
         containers:
           app:
             image: &img
               repository: ghcr.io/9001/copyparty-dj
               tag: 1.20.1@sha256:dff94a8350510cd30e0dc52d75a2780286c9c011183a39c054881bd544023b13
-            args: ["--rproxy=1", "--xff-src=${IP_POD_CIDR_V4}", "--no-robots", "--hist=/cfg/hists"]
+            args: ["--rproxy=1", "--xff-src=${IP_POD_CIDR_V4}", "--no-robots", "--hist=/cfg/hists", "-v=/w::rw"]
             env: &env
               TZ: "${CONFIG_TZ}"
               LD_PRELOAD: "/usr/lib/libmimalloc-secure.so.2"
