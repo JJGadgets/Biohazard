@@ -61,7 +61,7 @@ spec:
         initContainers:
           02-init-unifiedpush:
             image: *img
-            command: ["ntfy", "access", "*", "up*", "write-only"]
+            command: ["/bin/sh", "-c", "find /data/authfile.db && ntfy access '*' 'up*' write-only || true"]
             env: *env
             securityContext: *sc
     service:
