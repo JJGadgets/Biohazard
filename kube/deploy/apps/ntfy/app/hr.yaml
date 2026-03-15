@@ -108,9 +108,10 @@ spec:
         existingClaim: ntfy-data
         advancedMounts:
           app:
-            app:
+            app: &pvc
               - subPath: data
                 path: /data
+            02-init-unifiedpush: *pvc
       # tls:
       #   type: secret
       #   name: short-domain-tls
