@@ -32,7 +32,7 @@ spec:
           main:
             image:
               repository: "ghcr.io/jjgadgets/reactive-resume"
-              tag: "server-3.7.5"
+              tag: "server-3.7.5@sha256:f1a0e8578589f8dcb417b692d967799bce6c9b516f515b2f26459f083d7c683e"
             env: &env
               TZ: "${CONFIG_TZ}"
               PUBLIC_URL: "http://${APP_IP_REACTIVE_RESUME}:3000"
@@ -91,7 +91,7 @@ spec:
           frontend:
             image:
               repository: "ghcr.io/jjgadgets/reactive-resume"
-              tag: "client-3.7.5"
+              tag: "client-3.7.5@sha256:8786b3c377dfe00fb39ab3ca3aa5dc4a983dab27116293f31ba3d6268ba0e33f"
             env: *env
             resources:
               requests:
