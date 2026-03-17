@@ -48,8 +48,8 @@ spec:
         containers:
           app:
             image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2026.2.1@sha256:46a71d75dfd3eec9bd0fb42e5e13a245394e1be2d0828eebfbb2662421e66a35
+              repository: ghcr.io/goauthentik/dev-server
+              tag: gh-f2afa3cbc6f74fb75227eb1f3e17a734423bc1c7@sha256:5f5582f1adbb466928c3ba8f66f42c13169e1ada5b9369e20e29313c8a3ced74
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -84,7 +84,7 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               # pgBouncer / Database Connection Health
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              # AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
               # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
