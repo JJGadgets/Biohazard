@@ -15,7 +15,7 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -48,8 +48,8 @@ spec:
         containers:
           app:
             image: &img
-              repository: ghcr.io/goauthentik/server
-              tag: 2026.2.1@sha256:46a71d75dfd3eec9bd0fb42e5e13a245394e1be2d0828eebfbb2662421e66a35
+              repository: ghcr.io/goauthentik/dev-server
+              tag: gh-version-2026.2@sha256:221dae144b3456b898a49ddccc073d8ee33765ab1be1cf74320d3b6fda57bb14
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -84,28 +84,29 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               # pgBouncer / Database Connection Health
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              # AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
               # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
+              # 2026-03-18: disabled as of version 2026.2.1 due to replication lag casuing reads before writes are replicated, causing logins to fail (possibly due to policy execution not passing cuz of all this)
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
               # media storage
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
@@ -173,7 +174,7 @@ spec:
           #       enabled: true
       worker:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -231,7 +232,7 @@ spec:
                   <<: [*startup, *wps]
       ldap:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -272,7 +273,7 @@ spec:
                   <<: [*startup, *lps]
       radius:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -313,7 +314,7 @@ spec:
                   <<: [*startup, *rps]
       rac:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
