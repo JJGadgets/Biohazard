@@ -15,7 +15,7 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -49,7 +49,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/dev-server
-              tag: gh-f2afa3cbc6f74fb75227eb1f3e17a734423bc1c7@sha256:5f5582f1adbb466928c3ba8f66f42c13169e1ada5b9369e20e29313c8a3ced74
+              tag: gh-version-2026.2@sha256:221dae144b3456b898a49ddccc073d8ee33765ab1be1cf74320d3b6fda57bb14
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -173,7 +173,7 @@ spec:
           #       enabled: true
       worker:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -231,7 +231,7 @@ spec:
                   <<: [*startup, *wps]
       ldap:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -272,7 +272,7 @@ spec:
                   <<: [*startup, *lps]
       radius:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -313,7 +313,7 @@ spec:
                   <<: [*startup, *rps]
       rac:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
