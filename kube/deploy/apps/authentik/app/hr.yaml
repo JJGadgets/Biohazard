@@ -88,24 +88,25 @@ spec:
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
               # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
-              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
-              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
+              # 2026-03-18: disabled as of version 2026.2.1 due to replication lag casuing reads before writes are replicated, causing logins to fail (possibly due to policy execution not passing cuz of all this)
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
               # media storage
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
