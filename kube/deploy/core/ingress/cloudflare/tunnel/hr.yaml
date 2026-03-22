@@ -70,11 +70,6 @@ spec:
               - hostname: "${APP_DNS_FLUX_WEBHOOK}"
                 service: "http://webhook-receiver.flux-system.svc.cluster.local:80"
 
-              - hostname: "social.jjgadgets.tech"
-                service: http://gotosocial.gotosocial.svc.cluster.local:80
-                #originRequest:
-                #  originServerName: "social.jjgadgets.tech"
-
               - hostname: "${APP_DNS_PIPED_BACKEND}"
                 path: "^/webhooks"
                 service: http://piped-backend.piped.svc.cluster.local:8080
