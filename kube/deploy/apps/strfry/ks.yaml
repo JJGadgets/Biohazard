@@ -20,7 +20,7 @@ spec:
     - name: strfry-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.6.0
+      APP_TEMPLATE: 4.6.2
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -46,7 +46,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/hoytech/strfry:latest@sha256:03e9572b264bb6c136339c1c169af8c4c6f92febc35506e60a8aa7ff4e6281b5"
+      VS_APP_CURRENT_VERSION: "ghcr.io/hoytech/strfry:latest@sha256:e944ae0356757462c73561ba1ce097a078dc3931062a4e50871119e4288c7557"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid

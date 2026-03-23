@@ -13,15 +13,11 @@ spec:
   path: ./kube/deploy/apps/continuwuity/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: continuwuity-data
     - name: continuwuity-mass
-  postBuild:
-    substitute:
-      APP_TEMPLATE: 4.6.0
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -43,11 +39,11 @@ spec:
     substitute:
       PVC: *pvc
       SIZE: "5Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.3-maxperf@sha256:30b6873828afab9929edd7f577bc5990fa88ba867eb4b469d708923982f7fbe4"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.6-maxperf@sha256:cfc4417a7ace9ad683e21926f3f9eaf056102b1d19c59b489df52e656d423dcf"
       RUID: &uid "65534"
       RGID: *uid
       RFSG: *uid
@@ -90,7 +86,7 @@ spec:
       SNAP: "file"
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.3-maxperf@sha256:30b6873828afab9929edd7f577bc5990fa88ba867eb4b469d708923982f7fbe4"
+      VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.6-maxperf@sha256:cfc4417a7ace9ad683e21926f3f9eaf056102b1d19c59b489df52e656d423dcf"
       RUID: &uid "65534"
       RGID: *uid
       RFSG: *uid

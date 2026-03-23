@@ -21,12 +21,12 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production-shortlived
+  duration: 160h
+  usages: ["digital signature"] # anything other than `classic` LE ACME profile disables client cert auth and key encipherment usages
   privateKey:
     algorithm: ECDSA
     size: 384
     rotationPolicy: Always
-  duration: 160h
-  usages: ["digital signature"] # anything other than `classic` LE ACME profile disables client cert auth and key encipherment usages
   dnsNames:
     - "${DNS_SHORT}"
     - "*.${DNS_SHORT}"
@@ -50,8 +50,10 @@ spec:
   #   pkcs12:
   #     create: true
   issuerRef:
-    name: letsencrypt-production
     kind: ClusterIssuer
+    name: letsencrypt-production-shortlived
+  duration: 160h
+  usages: ["digital signature"]
   privateKey:
     algorithm: ECDSA
     size: 384
@@ -81,12 +83,12 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production-shortlived
+  duration: 160h
+  usages: ["digital signature"]
   privateKey:
     algorithm: ECDSA
     size: 256
     rotationPolicy: Always
-  duration: 160h
-  usages: ["digital signature"]
   dnsNames:
     - "jjgadgets.tech"
     - "*.jjgadgets.tech"

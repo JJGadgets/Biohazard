@@ -3,45 +3,60 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: gotosocial-app
-  namespace: flux-system
+  namespace: &ns gotosocial
   labels: &l
     app.kubernetes.io/name: "gotosocial"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/gotosocial/app
-  targetNamespace: "gotosocial"
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: gotosocial-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: gotosocial-pvc
-  namespace: flux-system
+  namespace: &ns gotosocial
   labels: &l
-    app.kubernetes.io/name: "gotosocial"
+    app.kubernetes.io/name: gotosocial
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "gotosocial"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "gotosocial-data"
+      SIZE: "50Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
+      VS_APP_CURRENT_VERSION: "docker.io/superseriousbusiness/gotosocial:0.20.2@sha256:3a195bde145798ff7a18609a06c1b3aa0e42d4c66f2e8708d9901a91d9a667cb"
+      RUID: &uid "65534"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "gotosocial-data-r2-updates-restic"
+      namespace: *ns
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
-  postBuild:
-    substitute:
-      PVC: "gotosocial-data"
-      SIZE: "50Gi"
-      SC: &sc "file"
-      SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      RUID: "65534"
-      RGID: "65534"
-      RFSG: "65534"
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

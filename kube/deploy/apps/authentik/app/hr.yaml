@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,19 +7,15 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.1.2
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -53,7 +49,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/dev-server
-              tag: gh-version-2025.12@sha256:822594213a80ef0a334a1ba13489579fc1114092390b1e19f9d2b778b70d1604
+              tag: gh-version-2026.2@sha256:221dae144b3456b898a49ddccc073d8ee33765ab1be1cf74320d3b6fda57bb14
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -88,28 +84,29 @@ spec:
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
               # pgBouncer / Database Connection Health
-              AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
+              # AUTHENTIK_POSTGRESQL__CONN_MAX_AGE: &pgage "600" # if not using pgBouncer, maybe setting this to null for unlimited persistent connections is a good idea: connection slots limit can be reached with authentik
               AUTHENTIK_POSTGRESQL__CONN_HEALTH_CHECKS: &pgcheck "true"
               # AUTHENTIK_POSTGRESQL__DISABLE_SERVER_SIDE_CURSORS: "true"
               # Read Replicas
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
-              AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
+              # 2026-03-18: disabled as of version 2026.2.1 due to replication lag casuing reads before writes are replicated, causing logins to fail (possibly due to policy execution not passing cuz of all this)
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST: *pghost
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__CONN_HEALTH_CHECKS: *pgcheck
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__HOST: "pg-authentik-replicas.authentik.svc.cluster.local"
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PORT: *pgport
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__NAME: *pgname
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__USER: *pguser
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__PASSWORD: *pgpass
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLMODE: *pgssl
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__SSLROOTCERT: *pgca
+              # # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_MAX_AGE: *pgage
+              # AUTHENTIK_POSTGRESQL__READ_REPLICAS__1__CONN_HEALTH_CHECKS: *pgcheck
               # media storage
               AUTHENTIK_STORAGE__MEDIA__BACKEND: "s3"
               AUTHENTIK_STORAGE__MEDIA__S3__USE_SSL: "true"
@@ -156,28 +153,28 @@ spec:
                   periodSeconds: 1
                   failureThreshold: 300
                   initialDelaySeconds: 15
-          anubis:
-            image:
-              repository: ghcr.io/xe/x/anubis
-              tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
-            env:
-              TZ: "${CONFIG_TZ}"
-              BIND: ":8923"
-              DIFFICULTY: "5"
-              SERVE_ROBOTS_TXT: "true"
-              TARGET: "http://127.0.0.1:9000"
-            securityContext: *sc
-            ports:
-              - name: anubis
-                containerPort: &anubis 8923
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+          # anubis:
+          #   image:
+          #     repository: ghcr.io/xe/x/anubis
+          #     tag: latest@sha256:a7b24490df79512a18a198dc44cd3d8a4ac3389ec91866ec9720d6293c2bdde7
+          #   env:
+          #     TZ: "${CONFIG_TZ}"
+          #     BIND: "[::]:8923"
+          #     DIFFICULTY: "5"
+          #     SERVE_ROBOTS_TXT: "true"
+          #     TARGET: "http://127.0.0.1:9000"
+          #   securityContext: *sc
+          #   ports:
+          #     - name: anubis
+          #       containerPort: &anubis 8923
+          #   probes:
+          #     liveness:
+          #       enabled: true
+          #     readiness:
+          #       enabled: true
       worker:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -235,7 +232,7 @@ spec:
                   <<: [*startup, *wps]
       ldap:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -247,7 +244,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2025.12.0-rc2@sha256:76fdb1b82f22a1c7d2480572d0b6f3ab4f94c0b0e2c90062363e96994d8a72ff
+              tag: 2026.2.1@sha256:f0282528a40998a40500692f7649fb2829ef5a85145daaa2f91a30f2b867fe17
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -276,7 +273,7 @@ spec:
                   <<: [*startup, *lps]
       radius:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -288,7 +285,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2025.12.0-rc2@sha256:7c3c0871902cd90ae1128fb0310de0e5ddc4b7ada82fb79bed060499acf23445
+              tag: 2026.2.1@sha256:6a0e7efcd219bd2d59a121fb03e38ae56d6ae74b69022f2a92578947889ed6da
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -317,7 +314,7 @@ spec:
                   <<: [*startup, *rps]
       rac:
         type: deployment
-        replicas: 2
+        replicas: 1
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -331,7 +328,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/rac
-              tag: 2025.12.0-rc2@sha256:dad603807f0e3c420edf191a525b9350385d87bc4a3756250e9afaf0211ece09
+              tag: 2026.2.1@sha256:f9b2d61cca8f986e7b30e5f9544fc4fdf93a6a77dbee7dae30a3cb06954a055d
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -374,9 +371,9 @@ spec:
           metrics:
             <<: *port
             port: *metrics
-          anubis:
-            <<: *port
-            port: *anubis
+          # anubis:
+          #   <<: *port
+          #   port: *anubis
       expose:
         primary: false
         controller: app
@@ -453,7 +450,8 @@ spec:
         rules:
           - backendRefs:
               - identifier: app
-                port: *anubis
+                # port: *anubis
+                port: *http
       harden:
         hostnames: *host
         parentRefs:
@@ -550,7 +548,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/authentik
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     networkpolicies:
       same-ns:

@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name bluesky-secrets
+  namespace: bluesky
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "BlueSky - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        PDS_JWT_SECRET: '{{ .PDS_JWT_SECRET }}' # `openssl rand --hex 16`
+        PDS_ADMIN_PASSWORD: '{{ .password }}'
+        PDS_EMAIL_SMTP_URL: 'smtps://{{ .SMTP_USERNAME }}:{{ .SMTP_PASSWORD_URL_ENCODED }}@{{ .SMTP_HOST }}:465/'
+        PDS_EMAIL_FROM_ADDRESS: '{{ .PDS_EMAIL_FROM_ADDRESS }}'
+        PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX: '{{ .PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX }}' # `openssl ecparam --name secp256k1 --genkey --noout --outform DER | tail --bytes=+8 | head --bytes=32 | xxd --plain --cols 32`

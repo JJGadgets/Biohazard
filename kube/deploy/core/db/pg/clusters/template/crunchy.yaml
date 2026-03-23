@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/postgres-operator.crunchydata.com/postgrescluster_v1beta1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/postgres-operator.crunchydata.com/postgrescluster_v1beta1.json
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
@@ -169,6 +169,8 @@ spec:
       repo:
         name: "repo3"
         s3: *rgw
+      affinity:
+        nodeAffinity: *nodeAffinity
   proxy:
     pgBouncer:
       port: 5432

@@ -27,7 +27,7 @@ spec:
           main:
             image: &image
               repository: "ghcr.io/jjgadgets/minecraft-server"
-              tag: "java17-graalvm"
+              tag: "java17-graalvm@sha256:b795d8025a15d5a788580ab57ff3cb3d69a313ef4b1d50f4fbaaa8c39e1ebd0e"
             env:
               TZ: "${CONFIG_TZ}"
               MEMORY: "4096M"

@@ -23,6 +23,8 @@ spec:
         key: "Navidrome - ${CLUSTER_NAME}"
     - extract:
         key: "Plex - ${CLUSTER_NAME}"
+    - extract:
+        key: "copyparty media - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -38,10 +40,12 @@ spec:
         APP_IP_AUTHENTIK: '{{ .APP_IP_AUTHENTIK }}'
         # Other cluster-wide vars
         IP_JJ_V4: '{{ .IP_JJ_V4 }}'
+        IP_POD_CIDR_V4: '{{ .IP_POD_CIDR_V4 }}'
         DNS_CF: '{{ .DNS_CF }}'
         IP_TRUENAS: '{{ .IP_TRUENAS }}'
         PATH_NAS_MEDIA: '{{ .PATH_NAS_MEDIA }}'
         PATH_NAS_PERSIST_K8S: '{{ .PATH_NAS_PERSIST_K8S }}'
+        PATH_NAS_BACKUPS_K8S: '{{ .PATH_NAS_BACKUPS_K8S }}'
         # Jellyfin
         APP_DNS_JELLYFIN: '{{ .APP_DNS_JELLYFIN }}'
         # Kavita
@@ -51,3 +55,6 @@ spec:
         # Plex
         APP_DNS_PLEX: '{{ .APP_DNS_PLEX }}'
         APP_IP_PLEX: '{{ .APP_IP_PLEX }}'
+        # Copyparty
+        APP_DNS_COPYPARTY: '{{ .APP_DNS_COPYPARTY }}'
+        APP_IP_COPYPARTY: '{{ .APP_IP_COPYPARTY }}'

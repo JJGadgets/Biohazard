@@ -9,7 +9,7 @@ spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: app-template
+    name: *app
     namespace: *ns
   values:
     controllers:
@@ -61,7 +61,7 @@ spec:
             sectionName: internal
     persistence:
       data:
-        existingClaim: kavita-data
+        existingClaim: kavita-config
         advancedMounts:
           app:
             app:

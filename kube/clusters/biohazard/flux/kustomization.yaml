@@ -30,7 +30,7 @@ resources:
   - ../../../deploy/core/storage/rook-ceph/cluster/
   - ../../../deploy/core/storage/democratic-csi/_deps/
   - ../../../deploy/core/storage/democratic-csi/local-hostpath/
-  - ../../../deploy/core/storage/democratic-csi/manual/
+  # - ../../../deploy/core/storage/democratic-csi/manual/
   # - ../../../deploy/core/storage/csi-driver-nfs/
   - ../../../deploy/core/storage/snapscheduler/
   - ../../../deploy/core/storage/volsync/
@@ -44,6 +44,7 @@ resources:
   - ../../../deploy/core/ingress/ingress-nginx/
   - ../../../deploy/core/ingress/envoy-gateway/
   - ../../../deploy/core/ingress/cloudflare/
+  - ../../../deploy/core/ingress/stunner/
   - ../../../deploy/core/ingress/external-proxy-x/
   - ../../../deploy/core/db/pg/
   - ../../../deploy/core/db/pg/clusters/default/
@@ -84,11 +85,12 @@ resources:
   - ../../../deploy/apps/minecraft2/
   - ../../../deploy/apps/insurgency-sandstorm/
   - ../../../deploy/apps/media/_deps/
+  - ../../../deploy/apps/media/copyparty/
   - ../../../deploy/apps/media/jellyfin/
   - ../../../deploy/apps/media/plex/
+  - ../../../deploy/apps/media/navidrome/
   - ../../../deploy/apps/media/kavita/
   # - ../../../deploy/apps/media/komga/
-  - ../../../deploy/apps/media/navidrome/
   # - ../../../deploy/apps/kanidm/
   #- ../../../deploy/apps/syncthing/ # TODO: re-add once fixed up
   - ../../../deploy/apps/excalidraw/
@@ -143,7 +145,7 @@ resources:
   - ../../../deploy/apps/kromgo/
   # - ../../../deploy/apps/blocky/
   - ../../../deploy/apps/cryptpad/
-  - ../../../deploy/apps/languagetool/
+  # - ../../../deploy/apps/languagetool/
   # - ../../../deploy/apps/mlc-llm/
   # - ../../../deploy/apps/open-webui/
   # - ../../../deploy/apps/sillytavern/
@@ -166,6 +168,9 @@ resources:
   # - ../../../deploy/apps/etherpad/
   - ../../../deploy/apps/strfry/
   - ../../../deploy/apps/continuwuity/
+  - ../../../deploy/apps/out-of-your-element/
+  - ../../../deploy/apps/cinny/
+  - ../../../deploy/apps/bluesky/
   - ../../../deploy/vm/_kubevirt/
   #- ../../../deploy/vm/_base/
   - ../../../deploy/vm/ad/

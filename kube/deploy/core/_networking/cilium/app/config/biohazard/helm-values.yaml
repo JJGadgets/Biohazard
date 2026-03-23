@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.18.2/install/kubernetes/cilium/values.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cilium/cilium/refs/tags/v1.19.0-rc.1/install/kubernetes/cilium/values.schema.json
 
 # image:
 #   override: "quay.io/cilium/cilium-ci:v1.18@sha256:ca7d1b4f23674837b22a1b16b832835b2e5076d6fbe9e2898ae5263112ed2eb1"
@@ -58,6 +58,7 @@ socketLB:
   hostNamespaceOnly: true # KubeVirt, gvisor and Kata compatibility with k8s services
 enableIPv4BIGTCP: true
 enableIPv6BIGTCP: true
+enableTunnelBIGTCP: true # must be true for Geneve DSR dispatch
 bandwidthManager:
   enabled: true
   bbr: true
