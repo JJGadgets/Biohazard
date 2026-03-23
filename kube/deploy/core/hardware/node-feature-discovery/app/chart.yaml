@@ -3,13 +3,13 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: k8s-gateway
-  namespace: dns
+  name: node-feature-discovery
+  namespace: kube-system
 spec:
   interval: 1h
   layerSelector:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
-  url: oci://ghcr.io/k8s-gateway/charts/k8s-gateway
+  url: oci://registry.k8s.io/nfd/charts/node-feature-discovery
   ref:
-    tag: "3.4.2"
+    tag: 0.18.3
