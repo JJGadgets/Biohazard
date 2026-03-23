@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/ocirepository-source-v1.json?test
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: node-feature-discovery
+  namespace: kube-system
+spec:
+  interval: 1h
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  url: oci://registry.k8s.io/nfd/charts/node-feature-discovery
+  ref:
+    tag: 0.18.3
