@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.4.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -24,16 +20,13 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: "allow"
             ingress.home.arpa/envoy-external: "allow"
-            ingress.home.arpa/cloudflare: "allow"
-            db.home.arpa/pg: "pg-gotosocial"
-            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            authentik.home.arpa/https: "allow"
+            authentik.home.arpa/oidc: "allow"
             egress.home.arpa/internet: "allow"
             prom.home.arpa/kps: "allow"
         containers:
           app:
             image: &img
-              repository: "docker.io/superseriousbusiness/gotosocial"
+              repository: docker.io/superseriousbusiness/gotosocial
               tag: 0.20.2@sha256:3a195bde145798ff7a18609a06c1b3aa0e42d4c66f2e8708d9901a91d9a667cb
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -62,22 +55,7 @@ spec:
               # OIDC secrets in ExternalSecret envFrom
               GTS_DB_TYPE: "sqlite"
               GTS_DB_ADDRESS: "/gotosocial/storage/db/gotosocial.db"
-              #GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage/media"
-              GTS_STORAGE_BACKEND: "s3"
-              GTS_STORAGE_S3_PROXY: "true"
-              GTS_STORAGE_S3_USE_SSL: "false"
-              GTS_STORAGE_S3_ENDPOINT: "rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953"
-              GTS_STORAGE_S3_BUCKET: "gotosocial-media"
-              GTS_STORAGE_S3_ACCESS_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: "gotosocial-media-s3"
-                    key: "AWS_ACCESS_KEY_ID"
-              GTS_STORAGE_S3_SECRET_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: "gotosocial-media-s3"
-                    key: "AWS_SECRET_ACCESS_KEY"
+              GTS_STORAGE_LOCAL_BASE_PATH: &media "/gotosocial/storage/media"
               GOGC: off
               GOMEMLIMIT: "800MiB"
                 # resourceFieldRef:
@@ -88,8 +66,6 @@ spec:
             envFrom: &envFrom
               - secretRef:
                   name: gotosocial-secrets
-              - secretRef:
-                  name: gotosocial-media-s3
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -147,43 +123,32 @@ spec:
             app:
               - subPath: data
                 path: /gotosocial/storage
-      tmp:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 128Mi
-      # pg-ca:
-      #   type: secret
-      #   #name: pg-authentik-pgbouncer
-      #   name: pg-gotosocial-cluster-cert
-      #   defaultMode: 0400
-      #   globalMounts:
-      #     - subPath: ca.crt
-      #       path: *pgca
+              - subPath: tmp
+                path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig: # avoid flooding Cilium dnsproxy
+        options:
+          - name: ndots
+            value: "1"
       hostUsers: false
-      # runtimeClassName: kata
       securityContext:
-        runAsNonRoot: true # TODO: tmp migrate
+        runAsNonRoot: true
         runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      dnsConfig: # avoid flooding Cilium dnsproxy
-        options:
-          - name: ndots
-            value: "1"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/gotosocial
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     networkpolicies:
       same-ns:
