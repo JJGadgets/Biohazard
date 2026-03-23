@@ -3,12 +3,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: insurgency-sandstorm-app
-  namespace: flux-system
+  namespace: &ns insurgency-sandstorm
   labels: &l
     app.kubernetes.io/name: "insurgency-sandstorm"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/insurgency-sandstorm/app
-  targetNamespace: "insurgency-sandstorm"
-  dependsOn: []
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system

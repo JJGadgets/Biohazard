@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.1.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.1.2
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -22,11 +18,11 @@ spec:
         replicas: 2
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
         containers:
           app:
             image: &img
-              repository: docker.io/mpepping/cyberchef
+              repository: p.jank.me/mpepping/cyberchef
               tag: v10.22.1@sha256:547e6af4bd3037b8bbea1c4823631c49a4381d4fe813c45bb26f1c649a9558a0
             securityContext: &sc
               readOnlyRootFilesystem: false # TODO: caddy-fy CyberChef
@@ -53,19 +49,13 @@ spec:
             targetPort: 8000
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_CYBERCHEF:=cyberchef}"
-            paths:
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: app
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_CYBERCHEF:=cyberchef}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       tmp:
         type: emptyDir
@@ -83,6 +73,10 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       hostUsers: false
       securityContext:
         runAsNonRoot: true

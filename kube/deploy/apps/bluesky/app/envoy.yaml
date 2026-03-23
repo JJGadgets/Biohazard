@@ -1,0 +1,33 @@
+# ---
+# # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+# apiVersion: gateway.envoyproxy.io/v1alpha1
+# kind: BackendTrafficPolicy
+# metadata:
+#   name: &app bluesky
+#   namespace: *app
+# spec:
+#   targetRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: HTTPRoute
+#       name: *app
+#   connection:
+#     bufferLimit: 8Mi
+#   tcpKeepalive: {}
+#   timeout:
+#     http:
+#       requestTimeout: "120s"
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/httproutefilter_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: lol1
+  namespace: bluesky
+spec:
+  directResponse:
+    contentType: "application/json"
+    statusCode: 200
+    body:
+      type: Inline
+      inline: |
+        ${APP_BLUESKY_LOL1_RESPONSE}

@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/kiwix/kiwix-tools
-              tag: 3.8.1@sha256:3732be54181600ff4acb641939aeb389f323eabf4bd651a65b86dba6fe0de750
+              tag: 3.8.2@sha256:fc9b69b1649b23612bac61e3d2caf43bef284fb56c444f927ccf936fa6f721bd
             command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases $(find /data -type f -iname '*.zim')"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -65,7 +65,7 @@ spec:
           download: &dl-ct
             image:
               repository: nixery.dev/wget
-              tag: latest
+              tag: latest@sha256:8cedeba774143b7e3e135828199226c002e824464b8b79ac81c20877029734cc
               pullPolicy: Always
             # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
             command: ["wget", "--output-document=/data/$(ZIM).zim", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]

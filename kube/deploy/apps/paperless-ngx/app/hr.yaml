@@ -30,7 +30,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: 2.20.9@sha256:1d99ede700ffdf7aa44899b5fee29c8c279f175769b6cb295e91e9f15772728e
+              tag: 2.20.13@sha256:4b05bcd28e6923768000b5d247cbf2c66fd49bdc3f3b05955bd4f6790a638b01
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port 8000
@@ -109,7 +109,7 @@ spec:
           main:
             image:
               repository: "docker.io/gotenberg/gotenberg"
-              tag: "8.27.0@sha256:d71ab8c13b6bd47c7bc81195082005dfb17eaa75e8b1fadd347a64ee66ed98d5"
+              tag: "8.28.0@sha256:f172b1ce5ec7516ab9452d33bfe3f198d778d3de39655825aa550f4a33946666"
             command: ["gotenberg", "--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
             securityContext: *sc
             resources: # TODO: adjust (Go app)

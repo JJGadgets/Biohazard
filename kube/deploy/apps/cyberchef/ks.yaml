@@ -3,11 +3,11 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cyberchef-app
-  namespace: flux-system
+  namespace: &ns cyberchef
   labels: &l
     app.kubernetes.io/name: "cyberchef"
 spec:
-  targetNamespace: "cyberchef"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/cyberchef/app

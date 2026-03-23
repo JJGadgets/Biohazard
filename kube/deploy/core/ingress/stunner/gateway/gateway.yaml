@@ -1,0 +1,92 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/gateway.networking.k8s.io/gateway_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: stunner
+  annotations:
+    stunner.l7mp.io/enable-mixed-protocol-lb: "true"
+    stunner.l7mp.io/service-type: ClusterIP
+spec:
+  gatewayClassName: stunner
+  listeners:
+    - name: udp
+      port: 3478
+      protocol: TURN-UDP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: tls
+      port: 5349
+      protocol: TURN-TLS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: long-domain-tls
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/stunner.l7mp.io/gatewayconfig_v1.json
+apiVersion: stunner.l7mp.io/v1
+kind: GatewayConfig
+metadata:
+  name: stunner
+spec:
+  logLevel: "all:DEBUG,turn:INFO"
+  realm: stunner.l7mp.io
+  authRef:
+    name: stunner-auth
+    namespace: stunner
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/gateway.networking.k8s.io/gatewayclass_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: stunner
+spec:
+  controllerName: "stunner.l7mp.io/gateway-operator"
+  parametersRef:
+    group: "stunner.l7mp.io"
+    kind: GatewayConfig
+    name: stunner
+    namespace: stunner
+  description: "STUNner is a WebRTC ingress gateway for Kubernetes"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${APP_DNS_STUNNER_EXTERNAL_CNAME}"
+    external-dns.alpha.kubernetes.io/hostname: "${APP_DNS_STUNNER}"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    lbipam.cilium.io/ips: "${APP_IP_STUNNER}"
+    lbipam.cilium.io/sharing-key: internal
+  labels:
+    stunner.l7mp.io/owned-by: stunner
+    stunner.l7mp.io/related-gateway-name: stunner
+    stunner.l7mp.io/related-gateway-namespace: stunner
+  name: stunner-lb-internal
+spec:
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies: [IPv4]
+  ports:
+    - name: udp
+      port: 3478
+      protocol: UDP
+      targetPort: 3478
+    - name: tls
+      port: 5349
+      protocol: TCP
+      targetPort: 5349
+  selector:
+    app: stunner
+    stunner.l7mp.io/related-gateway-name: stunner
+    stunner.l7mp.io/related-gateway-namespace: stunner
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: LoadBalancer

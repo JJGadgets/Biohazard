@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: &app copyparty
+  namespace: media
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        app.kubernetes.io/name: *app
+  connection:
+    bufferLimit: 8Mi
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: "0s"
+---
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: &app copyparty
+  namespace: media
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      matchLabels:
+        app.kubernetes.io/name: *app
+  authorization:
+    defaultAction: Deny
+    rules:
+      - action: Allow
+        principal:
+          clientCIDRs: ["${IP_JJ_V4:=127.0.0.1/32}"]
