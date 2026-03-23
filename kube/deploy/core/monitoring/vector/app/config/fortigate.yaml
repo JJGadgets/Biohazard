@@ -21,7 +21,7 @@ transforms:
       del(.source_type)
       del(.version)
       .fortigate = del(.host)
-      parsed, err = parse_key_value(.message) ?? null
+      parsed, err = parse_key_value(.message)
       . = merge(., parsed)
       if (parsed != null && err != null) {
         del(.message)
