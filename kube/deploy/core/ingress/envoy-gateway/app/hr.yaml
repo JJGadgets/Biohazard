@@ -23,3 +23,12 @@ spec:
           kubernetes:
             deploy:
               type: GatewayNamespace # NOTE: for having predictable service names
+    deployment:
+      pod:
+        labels:
+          egress.home.arpa/apiserver: allow
+    certgen:
+      job:
+        pod:
+          labels:
+            egress.home.arpa/apiserver: allow
