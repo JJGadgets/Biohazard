@@ -42,6 +42,9 @@ spec:
               NTFY_SMTP_SERVER_LISTEN: ":$(AAA_SMTP)"
               NTFY_SMTP_SERVER_DOMAIN: "${APP_DNS_NTFY_MX}"
               NTFY_SMTP_SERVER_ADDR_PREFIX: "pushme-"
+            envFrom: &envFrom
+              - secretRef:
+                  name: ntfy-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -58,12 +61,12 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-        initContainers:
-          02-init-unifiedpush:
-            image: *img
-            command: ["/bin/sh", "-c", "find /data/authfile.db && ntfy access '*' 'up*' write-only || true"]
-            env: *env
-            securityContext: *sc
+        # initContainers:
+        #   02-init-unifiedpush:
+        #     image: *img
+        #     command: ["/bin/sh", "-c", "find /data/authfile.db && ntfy access '*' 'up*' write-only || true"]
+        #     env: *env
+        #     securityContext: *sc
     service:
       app:
         controller: app
