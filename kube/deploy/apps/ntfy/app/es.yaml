@@ -1,0 +1,28 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name ntfy-secrets
+  namespace: ntfy
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "ntfy - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        NTFY_AUTH_USERS: >-
+          {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:{{ .X_NTFY_USERS_GOSHAWK_BCRYPT }}:user,
+          {{ .X_NTFY_USERS_BLACKHAWK_USERNAME }}:{{ .X_NTFY_USERS_BLACKHAWK_BCRYPT }}:user
+        NTFY_AUTH_ACCESS: >-
+          {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:up*:read-only,
+          everyone:up*:write-only
