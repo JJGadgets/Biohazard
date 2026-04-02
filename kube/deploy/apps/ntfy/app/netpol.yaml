@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: &app ntfy
+  namespace: *app
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            egress.home.arpa/ntfy: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          # rules:
+          #   http:
+          #     - path: "/application/o/.*"
+          terminatingTLS:
+            secret:
+              name: short-domain-tls
+              namespace: cert-manager
+          originatingTLS:
+            secret:
+              name: public-ca
+              namespace: *app
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &app ntfy-egress-in-cluster
+spec:
+  endpointSelector:
+    matchLabels:
+      egress.home.arpa/ntfy: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ntfy
+            app.kubernetes.io/name: ntfy
+            app.kubernetes.io/controller: app
+      toPorts:
+        - ports:
+            - port: "8080"
