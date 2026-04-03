@@ -30,6 +30,7 @@ metadata:
   labels: &l
     app.kubernetes.io/name: home-assistant
     pvc.home.arpa/volsync: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   targetNamespace: *ns
   commonMetadata:
