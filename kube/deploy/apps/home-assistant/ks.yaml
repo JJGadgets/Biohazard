@@ -64,3 +64,15 @@ spec:
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+  patches:
+    - patch: |-
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationDestination
+        metadata:
+          name: not-used
+        spec:
+          restic:
+            restoreAsOf: "2026-04-02T22:00:00+08:00"
+      target:
+        group: volsync.backube
+        kind: ReplicationDestination
