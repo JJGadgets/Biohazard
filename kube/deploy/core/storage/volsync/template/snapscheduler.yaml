@@ -1,0 +1,15 @@
+---
+apiVersion: snapscheduler.backube/v1
+kind: SnapshotSchedule
+metadata:
+  name: "${PVC}"
+spec:
+  claimSelector:
+    matchLabels:
+      app.kubernetes.io/pvc-name: "${PVC}"
+  disabled: false
+  retention:
+    expires: "168h"
+  schedule: "@hourly"
+  snapshotTemplate:
+    snapshotClassName: "${SNAP:=file}"

@@ -6,6 +6,7 @@ metadata:
   labels:
     snapshot.home.arpa/enabled: "true"
     kustomize.toolkit.fluxcd.io/prune: "Disabled"
+    app.kubernetes.io/pvc-name: "${PVC}"
 spec:
   storageClassName: "${SC:=file}"
   accessModes: ["${ACCESSMODE:=ReadWriteMany}"]

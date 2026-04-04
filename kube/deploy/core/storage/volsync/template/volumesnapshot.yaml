@@ -1,0 +1,9 @@
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: "${PVC:0:50}-${IMAGETAG:-64:12}"
+spec:
+  volumeSnapshotClassName: "${SNAP:=file}"
+  source:
+    persistentVolumeClaimName: "${PVC}"
