@@ -9,7 +9,7 @@ spec:
   interval: 10m
   url: oci://ghcr.io/fluxcd/flux-manifests
   ref:
-    tag: "${FLUXCD_VERSION:=v2.2.3}"
+    tag: "${FLUXCD_VERSION:=v2.8.5}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -172,6 +172,16 @@ spec:
     - patch: |
         - op: add
           path: /spec/template/spec/containers/0/args/-
+          value: --watch-configs-label-selector=owner!=helm
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
+          value: --feature-gates=CancelHealthCheckOnNewRevision=true
+      target:
+        kind: Deployment
+        name: "(kustomize-controller|helm-controller)"
+    - patch: |
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
           value: --events-addr=127.0.0.1:9690
         - op: add
           path: /spec/template/spec/containers/0/args/-
@@ -186,6 +196,9 @@ spec:
           value:
             name: HEALTH_PORT
             value: "9799"
+        - op: add
+          path: /spec/template/spec/containers/0/args/-
+          value: --watch-configs-label-selector=owner!=helm
       target:
         kind: Deployment
         name: notification-controller
