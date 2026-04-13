@@ -31,7 +31,13 @@ spec:
               AAA_HTTP: &http 8080
               NTFY_LISTEN_HTTP: ":$(AAA_HTTP)"
               NTFY_BEHIND_PROXY: "true"
-              NTFY_UPSTREAM_BASE_URL: "https://ntfy.sh" # for iOS
+              NTFY_PROXY_TRUSTED_HOSTS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+              AAA_HTTPS: &https 8443
+              NTFY_LISTEN_HTTPS: ":$(AAA_HTTPS)"
+              AAA_TLS_PATH: &tls "/tls"
+              NTFY_CERT_FILE: "$(AAA_TLS_PATH)/tls.crt"
+              NTFY_KEY_FILE: "$(AAA_TLS_PATH)/tls.key"
+              # NTFY_UPSTREAM_BASE_URL: "https://ntfy.sh" # for iOS
               NTFY_CACHE_DURATION: "24h"
               NTFY_CACHE_FILE: "/data/cache.db"
               NTFY_AUTH_FILE: "/data/authfile.db"
@@ -71,7 +77,7 @@ spec:
       app:
         controller: app
         ports:
-          http:
+          http: &port-http
             port: 80
             targetPort: *http
             protocol: HTTP
@@ -84,6 +90,11 @@ spec:
           coredns.io/hostname: "${APP_DNS_NTFY_MX:=ntfy}"
           lbipam.cilium.io/ips: "${APP_IP_NTFY_MX:=127.0.0.1}"
         ports:
+          https:
+            port: 443
+            targetPort: *https
+            protocol: HTTPS
+            appProtocol: https
           smtp-tcp: &smtp-svc
             port: 25
             targetPort: *smtp
@@ -94,9 +105,9 @@ spec:
             protocol: UDP
     route:
       app:
-        # annotations:
-        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hostnames: ["${APP_DNS_NTFY:=ntfy}"]
         parentRefs:
           - name: envoy-internal
@@ -115,19 +126,14 @@ spec:
               - subPath: data
                 path: /data
             02-init-unifiedpush: *pvc
-      # tls:
-      #   type: secret
-      #   name: short-domain-tls
-      #   defaultMode: 0400
-      #   advancedMounts:
-      #     app:
-      #       app:
-      #         - subPath: tls.crt
-      #           path: /tls/fullchain.pem
-      #           readOnly: true
-      #         - subPath: tls.key
-      #           path: /tls/privkey.pem
-      #           readOnly: true
+      tls:
+        type: secret
+        name: short-domain-tls
+        defaultMode: 0400
+        advancedMounts:
+          app:
+            app:
+              - path: *tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

@@ -16,19 +16,19 @@ spec:
               operator: Exists
       toPorts:
         - ports:
-            - port: "8080"
-              protocol: TCP
-          # rules:
-          #   http:
-          #     - path: "/application/o/.*"
-          terminatingTLS:
-            secret:
-              name: short-domain-tls
-              namespace: cert-manager
-          originatingTLS:
-            secret:
-              name: public-ca
-              namespace: *app
+            - port: "8443"
+          #     protocol: TCP
+          # # rules:
+          # #   http:
+          # #     - path: "/application/o/.*"
+          # terminatingTLS:
+          #   secret:
+          #     name: short-domain-tls
+          #     namespace: cert-manager
+          # originatingTLS:
+          #   secret:
+          #     name: public-ca
+          #     namespace: *app
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -47,4 +47,4 @@ spec:
             app.kubernetes.io/controller: app
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "8443"
