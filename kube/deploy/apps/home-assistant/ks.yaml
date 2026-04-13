@@ -30,6 +30,7 @@ metadata:
   labels: &l
     app.kubernetes.io/name: home-assistant
     pvc.home.arpa/volsync: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   targetNamespace: *ns
   commonMetadata:
@@ -46,7 +47,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/home-operations/home-assistant:2026.3.3@sha256:16c50c92379b507ef0de98ea5371f2a0cabf917991d9f7d1c52f612c5557388a"
+      VS_APP_CURRENT_VERSION: "ghcr.io/home-operations/home-assistant:2026.4.1@sha256:1000851ce4d5bf2f6790bfc8b9052daa2c33a84f92e0bad7d60e0a9333ff4dc2"
       RUID: &uid "65534"
       RGID: &gid "65533"
       RFSG: *gid
@@ -64,3 +65,15 @@ spec:
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+  patches:
+    - patch: |-
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationDestination
+        metadata:
+          name: not-used
+        spec:
+          restic:
+            restoreAsOf: "2026-04-02T22:00:00+08:00"
+      target:
+        group: volsync.backube
+        kind: ReplicationDestination
