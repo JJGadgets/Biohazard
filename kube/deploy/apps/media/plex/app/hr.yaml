@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/home-operations/plex
-              tag: 1.43.0.10492@sha256:8cb062f2b0660bd7811387e6c799da0ce5f18112078fe21485c11adcc83a9c1c
+              tag: 1.43.1.10611@sha256:a9c3723cb31cc9621df27cf5801184c290293adf1df2bfaea4b8b6fc01dbfd96
             env: &env
               TZ: "${CONFIG_TZ}"
               PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400"

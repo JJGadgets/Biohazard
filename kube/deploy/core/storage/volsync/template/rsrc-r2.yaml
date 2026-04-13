@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/volsync.backube/replicationsource_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
@@ -34,7 +34,7 @@ spec:
     moverResources:
       limits:
         cpu: 500m
-        memory: 2Gi
+        memory: "${LMEM:=2Gi}"
     moverAffinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -51,7 +51,7 @@ spec:
               matchLabels:
                 batch.kubernetes.io/job-name: "volsync-src-${PVC}-r2-updates-restic"
 ---
-# yaml-language-server: $schema=https://crds.jank.ing/volsync.backube/replicationsource_v1alpha1.json
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/volsync.backube/replicationsource_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
@@ -86,7 +86,7 @@ spec:
     moverResources:
       limits:
         cpu: 500m
-        memory: 2Gi
+        memory: "${LMEM:=2Gi}"
     moverAffinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
