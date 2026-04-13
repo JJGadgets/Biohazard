@@ -31,7 +31,7 @@ spec:
   chart:
     spec:
       chart: rook-ceph-cluster
-      version: "v1.18.7"
+      version: "v1.18.10"
       sourceRef:
         name: rook-ceph
         kind: HelmRepository
@@ -44,6 +44,7 @@ spec:
     operatorNamespace: "rook-ceph"
     configOverride: |
       [global]
+      debug ms = 0/0
       bdev_enable_discard = true
       bdev_async_discard = true
       osd_class_update_on_start = false
@@ -73,6 +74,7 @@ spec:
         ssl: false
         prometheusEndpoint: "http://vmsingle-victoria.monitoring.svc.cluster.local:8429"
       labels:
+        all:
         mgr:
           ingress.home.arpa/nginx-internal: "allow"
           prom.home.arpa/kps: "allow"
@@ -422,6 +424,7 @@ spec:
     csi:
       readAffinity:
         enabled: true
+        crushLocationLabels: ["kubernetes.io/hostname"]
       cephfs:
         kernelMountOptions: "ms_mode=prefer-secure" # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
           # recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
