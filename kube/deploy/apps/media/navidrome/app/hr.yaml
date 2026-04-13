@@ -27,7 +27,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/navidrome/navidrome
-              tag: 0.60.3@sha256:a5dce8f33304714dd138e870cca0dcab3d937ca236be1a9f2b97da009d1a0048
+              tag: 0.61.1@sha256:1e1660054a856cc09f227d6929252e45a519fdb16004b464dd637f7294ca3ec1
             env:
               TZ: "${CONFIG_TZ}"
               ND_BASEURL: "https://${APP_DNS_NAVIDROME}"
@@ -150,7 +150,7 @@ spec:
         type: image
         image:
           repository: ghcr.io/jellyfin/jellyfin
-          tag: 10.11.6@sha256:25db4eb10143c1c12adb79ed978e31d94fc98dc499fbae2d38b2c935089ced3e
+          tag: 10.11.8@sha256:93227545077893cc9516f28b3adb733b67bc4691f41b6167428a2a0e3220b81c
         globalMounts:
           - subPath: usr/lib/jellyfin-ffmpeg
             path: /usr/lib/jellyfin-ffmpeg
