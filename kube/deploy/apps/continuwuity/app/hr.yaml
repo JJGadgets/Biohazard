@@ -24,6 +24,7 @@ spec:
             authentik.home.arpa/ldap: allow
             # prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
+            egress.home.arpa/ntfy: allow
             egress.home.arpa/mullvad: allow
           annotations:
             k8s.v1.cni.cncf.io/networks: | # VPN
@@ -187,6 +188,8 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
       dnsConfig:
         options:
           - name: ndots
