@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/trust.cert-manager.io/bundle_v1alpha1.json
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: public-ca
+spec:
+  sources:
+  - useDefaultCAs: true
+  target:
+    secret:
+      key: "ca.crt"
