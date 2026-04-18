@@ -94,7 +94,7 @@ spec:
               APP_ENV: "production"
               APP_DEBUG: "false"
               LOG_CHANNEL: "stdout"
-              FIREFLY_III_URL: http://firefly.firefly.svc.cluster.local:8080
+              FIREFLY_III_URL: http://firefly-app.firefly.svc.cluster.local
               VANITY_URL: "https://${APP_DNS_FIREFLY}"
               FIREFLY_III_ACCESS_TOKEN:
                 valueFrom:
