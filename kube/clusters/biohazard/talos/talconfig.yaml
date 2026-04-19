@@ -1,8 +1,8 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
-talosVersion: v1.11.0
-kubernetesVersion: v1.34.0
+talosVersion: v1.12.6
+kubernetesVersion: v1.35.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -102,12 +102,11 @@ nodes:
             content: |
               configure lldpd portidsubtype ifname
               configure system description "Talos Node"
-    extraManifests:
-      - ./watchdog.yaml
-    # patches:
-      # - |
-      #   machine:
-      #     sysfs:
+    patches:
+      - |
+        machine:
+          sysfs:
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "35000000"
       #       devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
       #       devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
@@ -190,8 +189,6 @@ nodes:
             - siderolabs/thunderbolt
     extensionServices:
       - *lldpd
-    extraManifests:
-      - ./watchdog.yaml
 
   - hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
@@ -251,6 +248,11 @@ patches:
       sysfs:
         kernel.mm.hugepages.hugepages-1048576kB.nr_hugepages: 4
         kernel.mm.hugepages.hugepages-2048kB.nr_hugepages: 1024
+
+  - &cpu-tuning |-
+    machine:
+      sysfs:
+        devices.system.cpu.all.cpufreq.energy_performance_preference: balance_power
 
   - &machinePatch |-
     machine:
@@ -484,6 +486,11 @@ patches:
                   type: Directory
                   path: /proc
                   readOnly: true
+  - &watchdog |
+    apiVersion: v1alpha1
+    kind: WatchdogTimerConfig
+    device: /dev/watchdog0
+    timeout: 5m
 
 controlPlane:
   patches:
@@ -509,10 +516,10 @@ controlPlane:
               - level: None
 
     - &nodeCidrSize |-
-      - op: add
-        path: /cluster/controllerManager/extraArgs
-        value:
-          node-cidr-mask-size: 23
+      cluster:
+        controllerManager:
+          extraArgs:
+            node-cidr-mask-size: 23
 
     - &etcdSubnet |-
       cluster:
