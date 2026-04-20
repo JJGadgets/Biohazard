@@ -25,7 +25,7 @@ spec:
           app:
             image: &img
               repository: p.jank.me/andrewmhub/insurgency-sandstorm
-              tag: lite@sha256:c68d5eded38bcc8bb4a7263afa29fca213cd0ca4c9b3898a4cee6f8b90db5c04
+              tag: lite@sha256:4023299e0455288d1d378e99b6164020770cb27451b4b3ec5da598326d475b9e
             command: ["/home/steam/steamcmd/sandstorm/Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping"]
             args: ['-hostname="$(HOSTNAME)"', "-Log", "-Port=$(PORT)", "-QueryPort=$(QUERYPORT)", "-MapCycle=MapCycle", "-NoEAC", "-EnableCheats", "-Mods", '-CmdModList="$(MODS)"', "-mutators=$(MUTATORS)", "-ModDownloadTravelTo=$(INIT_MAP)?Scenario=Scenario_$(INIT_MAP)_$(INIT_SCENARIO)?Password=$(PASSWORD)"]
             env: &env
