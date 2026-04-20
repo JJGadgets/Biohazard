@@ -6,7 +6,6 @@ metadata:
   name: &name authentik-secrets
   namespace: authentik
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p
@@ -42,7 +41,6 @@ metadata:
   name: &name authentik-tokens
   namespace: authentik
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p

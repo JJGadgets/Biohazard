@@ -57,7 +57,6 @@ metadata:
   name: &name piped-secrets
   namespace: piped
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: "SecretStore"
     name: "kubernetes-piped"

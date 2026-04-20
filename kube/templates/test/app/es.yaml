@@ -6,7 +6,6 @@ metadata:
   name: &name ${APPNAME}-secrets
   namespace: ${APPNAME}
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p

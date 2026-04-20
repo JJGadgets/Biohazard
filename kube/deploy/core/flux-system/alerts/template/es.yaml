@@ -5,7 +5,6 @@ kind: ExternalSecret
 metadata:
   name: &name flux-alerts-discord
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p

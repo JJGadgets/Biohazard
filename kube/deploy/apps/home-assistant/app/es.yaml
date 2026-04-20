@@ -6,7 +6,6 @@ metadata:
   name: &name home-assistant-secrets
   namespace: home-assistant
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p

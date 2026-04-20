@@ -6,7 +6,6 @@ metadata:
   name: &name immich-secrets
   namespace: immich
 spec:
-  refreshInterval: 1m
   secretStoreRef:
     kind: ClusterSecretStore
     name: 1p
@@ -76,7 +75,6 @@ metadata:
   name: &name "pg-home-pguser-immich"
   namespace: "immich"
 spec:
-  refreshInterval: "1m"
   secretStoreRef:
     kind: "SecretStore"
     name: "kubernetes-immich"
