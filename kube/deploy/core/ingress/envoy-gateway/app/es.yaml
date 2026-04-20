@@ -6,7 +6,7 @@
 #   name: &name envoy-gateway-secrets
 #   namespace: envoy-gateway
 # spec:
-# #   secretStoreRef:
+#   secretStoreRef:
 #     kind: ClusterSecretStore
 #     name: 1p
 #   dataFrom:
@@ -20,3 +20,25 @@
 #     #   type: Opaque
 #     #   data:
 #     #     age.agekey: '{{ .agekey }}'
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name ad-cs
+  namespace: ingress
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "AD CS - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    # template:
+    #   type: Opaque
+    #   data:
+    #     age.agekey: '{{ .agekey }}'
