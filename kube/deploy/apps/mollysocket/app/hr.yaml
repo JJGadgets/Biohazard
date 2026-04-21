@@ -1,0 +1,116 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app mollysocket
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/ntfy: allow
+          annotations:
+            k8s.v1.cni.cncf.io/networks: | # VPN
+              [{
+                "name":"vpn-vlan",
+                "namespace": "multus",
+                "ips": ["${APP_IP_MOLLYSOCKET_VPN}"],
+                "mac": "${APP_MAC_MOLLYSOCKET_VPN}"
+              }]
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/mollyim/mollysocket
+              tag: 1.7.1-alpine@sha256:b9d6b5bda6ad667e5330d91d52e18f875aff3baef8f66d0941a09a33dbb8567e
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              MOLLY_HOST:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+              MOLLY_PORT: &http 8080
+              MOLLY_ALLOWED_ENDPOINTS: '["http://${APP_DNS_NTFY}", "https://${APP_DNS_NTFY}", "http://ntfy.ntfy.svc.cluster.local"]'
+              AAA_PVC: &pvc /data
+              MOLLY_DB: "$(AAA_PVC)/data.sqlite"
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: mollysocket-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "1"
+                memory: "150Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_MOLLYSOCKET:=mollysocket}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      data:
+        existingClaim: mollysocket-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: *pvc
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
