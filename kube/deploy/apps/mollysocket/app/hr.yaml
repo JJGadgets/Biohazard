@@ -45,9 +45,9 @@ spec:
               MOLLY_ALLOWED_ENDPOINTS: '["http://${APP_DNS_NTFY}", "https://${APP_DNS_NTFY}", "http://ntfy.ntfy.svc.cluster.local"]'
               AAA_PVC: &pvc /data
               MOLLY_DB: "$(AAA_PVC)/data.sqlite"
-            # envFrom: &envFrom
-            #   - secretRef:
-            #       name: mollysocket-secrets
+            envFrom: &envFrom
+              - secretRef:
+                  name: mollysocket-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
