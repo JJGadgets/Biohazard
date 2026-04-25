@@ -120,8 +120,6 @@ spec:
         pod:
           labels:
             db.home.arpa/pg: pg-home
-          runtimeClassName: ""
-          hostUsers: false
           securityContext:
             supplementalGroups: [44] # GPU
         containers:
