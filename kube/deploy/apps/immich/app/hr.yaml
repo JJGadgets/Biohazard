@@ -309,7 +309,6 @@ spec:
       #   options:
       #     - name: ndots
       #       value: "1"
-      runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_IMMICH:=1000}
