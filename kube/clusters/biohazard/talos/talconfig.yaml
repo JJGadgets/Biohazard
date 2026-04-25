@@ -2,7 +2,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
 talosVersion: v1.12.6
-kubernetesVersion: v1.35.2
+kubernetesVersion: v1.34.0
+# kubernetesVersion: v1.35.2
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -163,13 +164,23 @@ nodes:
           miimon: 100
           # primary: eno1
           primaryReselect: better
-          deviceSelectors:
+          deviceSelectors: # TODO: Talos 1.12 doesn't allow >1 link matched per LinkAliasConfig, wait for Talos 1.13 to have %d template support, and for talhelper to support it
             # Onboard Intel i226-{LM|V} 2.5GbE
             - driver: igc
               physical: true
+              permanentAddr: "*:9d"
+            # Onboard Intel i226-{LM|V} 2.5GbE
+            - driver: igc
+              physical: true
+              permanentAddr: "*:9c"
             # Intel X710 10Gbe
             - driver: i40e
               physical: true
+              permanentAddr: "*:9b"
+            # Intel X710 10Gbe
+            - driver: i40e
+              physical: true
+              permanentAddr: "*:9a"
     machineSpec:
       secureboot: true
     schematic:
@@ -189,6 +200,13 @@ nodes:
             - siderolabs/thunderbolt
     extensionServices:
       - *lldpd
+    patches:
+      - |
+        machine:
+          sysfs:
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_0_power_limit_uw: "45000000"
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "65000000"
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_2_power_limit_uw: "65000000"
 
   - hostname: "thunderscreech.${DNS_CLUSTER}" # R730xd Proxmox VM
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}4"
