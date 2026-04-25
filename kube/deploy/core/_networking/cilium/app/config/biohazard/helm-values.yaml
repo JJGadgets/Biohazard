@@ -77,9 +77,9 @@ operator:
 
 ## NOTE: Cilium L2 LoadBalancer service IP announcements # disabled since it seems to cause noticeable apiserver usage increase to the point of causing stuck endpoint creation
 externalIPs:
-  enabled: true
+  enabled: false
 l2announcements:
-  enabled: true
+  enabled: false
 
 ## NOTE: Cilium additional features and/or CRDs
 
