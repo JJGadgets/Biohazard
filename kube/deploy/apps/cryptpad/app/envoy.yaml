@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: cryptpad-rm-x-frame-options
+  namespace: cryptpad
+spec:
+  targetSelectors:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+  lua:
+    - type: Inline
+      inline: |
+        function envoy_on_response(response_handle)
+          response_handle:headers():remove("X-Frame-Options")
+        end
