@@ -518,9 +518,7 @@ spec:
               name: agekey
       target:
         group: kustomize.toolkit.fluxcd.io
-        version: v1
         kind: Kustomization
-        namespace: flux-system
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -533,7 +531,6 @@ spec:
             namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
-        version: v1
         kind: Kustomization
         labelSelector: kustomization.flux.home.arpa/default notin (false)
     - patch: |-
@@ -548,7 +545,6 @@ spec:
             namespace: flux-system
       target:
         group: kustomize.toolkit.fluxcd.io
-        version: v1
         kind: Kustomization
         labelSelector: pvc.home.arpa/volsync=true
     - patch: &dependsOn |
