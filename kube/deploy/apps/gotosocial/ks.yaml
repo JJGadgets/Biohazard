@@ -38,6 +38,7 @@ spec:
     substitute:
       PVC: &pvc "gotosocial-data"
       SIZE: "50Gi"
+      CACHESIZE: "5Gi"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
