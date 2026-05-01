@@ -60,85 +60,6 @@ spec:
     name: envoy
     namespace: ingress
 ---
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: envoy-external
-  namespace: ingress
-  annotations:
-    external-dns.alpha.kubernetes.io/controller: none
-spec:
-  parentRefs:
-    - name: envoy-external
-      namespace: ingress
-      sectionName: external
-  rules:
-    - filters:
-        - type: ResponseHeaderModifier
-          responseHeaderModifier:
-            set:
-              - name: X-Robots-Tag
-                value: "noindex, nofollow" # anti search engines
-              - name: Cache-Control
-                value: "no-store" # don't store caches
-              - name: X-Frame-Options
-                value: "DENY"
-              - name: X-Content-Type-Options
-                value: "nosniff"
-              - name: X-XSS-Protection
-                value: "1; mode=block"
-              - name: Referrer-Policy
-                value: "no-referrer"
-              - name: X-DNS-Prefetch-Control
-                value: "off"
-              - name: Permissions-Policy
-                value: "interest-cohort=()" # anti Google FLoC
-              - name: Cross-Origin-Opener-Policy
-                value: "same-origin"
-              - name: Cross-Origin-Resource-Policy
-                value: "same-site"
-              - name: Cross-Origin-Embedder-Policy
-                value: "require-corp"
----
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.networking.k8s.io/httproute_v1.json
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: envoy-public
-  namespace: ingress
-  annotations:
-    external-dns.alpha.kubernetes.io/controller: none
-spec:
-  parentRefs:
-    - name: envoy-external
-      namespace: ingress
-      sectionName: public
-  # hostnames: ["*.jjgadgets.tech"]
-  rules:
-    - filters:
-        - type: ResponseHeaderModifier
-          responseHeaderModifier:
-            set:
-              - name: X-Frame-Options
-                value: "SAMEORIGIN"
-              - name: X-Content-Type-Options
-                value: "nosniff"
-              - name: X-XSS-Protection
-                value: "1; mode=block"
-              - name: Referrer-Policy
-                value: "strict-origin-when-cross-origin"
-              - name: X-DNS-Prefetch-Control
-                value: "off"
-              - name: Permissions-Policy
-                value: "interest-cohort=()"
-              - name: Cross-Origin-Opener-Policy
-                value: "same-origin"
-              - name: Cross-Origin-Resource-Policy
-                value: "same-site"
-              - name: Cross-Origin-Embedder-Policy
-                value: "require-corp"
----
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
@@ -203,17 +124,18 @@ spec:
         - name: Cache-Control
           value: "no-store" # don't store caches
         - name: X-Frame-Options
-          value: "DENY"
+          value: "SAMEORIGIN"
         - name: X-Content-Type-Options
           value: "nosniff"
         - name: X-XSS-Protection
           value: "1; mode=block"
-        - name: Referrer-Policy
-          value: "no-referrer"
         - name: X-DNS-Prefetch-Control
           value: "off"
         - name: Permissions-Policy
           value: "interest-cohort=()" # anti Google FLoC
+      addIfAbsent:
+        - name: Referrer-Policy
+          value: "no-referrer"
         - name: Cross-Origin-Opener-Policy
           value: "same-origin"
         - name: Cross-Origin-Resource-Policy
@@ -291,6 +213,7 @@ spec:
           value: "off"
         - name: Permissions-Policy
           value: "interest-cohort=()"
+      addIfAbsent:
         - name: Referrer-Policy
           value: "strict-origin-when-cross-origin"
         - name: Cross-Origin-Opener-Policy
