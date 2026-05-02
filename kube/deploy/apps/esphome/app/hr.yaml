@@ -78,8 +78,6 @@ spec:
         globalMounts:
           - subPath: data
             path: /config
-      cache:
-        type: emptyDir
       config:
         type: configMap
         name: esphome-config
@@ -110,6 +108,10 @@ spec:
         globalMounts:
           - subPath: secrets.yaml
             path: /config/secrets.yaml
+      cache:
+        type: emptyDir
+      tmp:
+        type: emptyDir
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
