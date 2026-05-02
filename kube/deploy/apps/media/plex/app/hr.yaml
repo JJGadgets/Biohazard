@@ -43,7 +43,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "2" # 1 core causes significant throttling for H265 transcoding with subtitle burn-in on 8th gen Intel despite the QuickSync
-                memory: "2Gi"
+                memory: "3Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness: &probes

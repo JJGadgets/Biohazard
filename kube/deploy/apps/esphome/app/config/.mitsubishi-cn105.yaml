@@ -12,6 +12,7 @@ packages:
     file: ./.common.yaml
     vars:
       board: "$${board | default('lolin_s3_mini')}"
+      version: "5.4.1"
   wifi: !include
     file: ./.wifi.yaml
     vars:

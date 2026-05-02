@@ -1,0 +1,57 @@
+---
+.substitutions: &subs !include
+  file: "./.metadata.yaml"
+  vars:
+    area: &area "Master Bedroom"
+    name: &name "Presence"
+substitutions:
+  <<: *subs
+  area: *area
+  name: *name
+  # presence_id: "aircon_$${area_id}"
+  wifi_ip: !secret master_bedroom_presence_ip
+  # wifi_jj_room: 2
+  # wifi_living_room: 1
+  description: "XIAO 60GHz mmWave Presence Sensor with Fall Detection for $${area}"
+packages:
+  common: !include
+    file: ./.common.yaml
+    vars:
+      board: "$${board | default('seeed_xiao_esp32c6')}"
+  wifi: !include
+    file: ./.wifi.yaml
+    vars:
+      wifi_ip: "$${wifi_ip}"
+  bluetooth-proxy: !include
+    file: ./.bluetooth-proxy.yaml
+#   mqtt: !include
+#     file: ./.mqtt.yaml
+#     vars:
+#       mqtt_username: !secret mqtt_cn105_username
+#       mqtt_password: !secret mqtt_cn105_password
+#       mqtt_prefix: "cn105/$${area_dns}"
+
+# Seeed Studio Xiao ESP32-C6 + MR60FDA2 60GHz mmWave Fall Detection Sensor Kit
+seeed_mr60fda2:
+# Presence Sensor
+binary_sensor:
+  - platform: seeed_mr60fda2
+    people_exist:
+      name: "Presence"
+    fall_detected:
+      name: "Fall Detected"
+button:
+  - platform: seeed_mr60fda2
+    get_radar_parameters:
+      name: "Get Radar Parameters"
+select:
+  - platform: seeed_mr60fda2
+    install_height:
+      name: "Fall Detection - Install Height"
+    height_threshold:
+      name: "Fall Detection - Height Threshold"
+    sensitivity:
+      name: "Fall Detection - Sensitivity"
+# logger:
+#   logs:
+#     CYCLE: WARN
