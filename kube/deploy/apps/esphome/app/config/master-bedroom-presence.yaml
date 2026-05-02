@@ -17,7 +17,7 @@ packages:
   common: !include
     file: ./.common.yaml
     vars:
-      board: "$${board | default('seeed_xiao_esp32c6')}"
+      board: "seeed_xiao_esp32c6"
   wifi: !include
     file: ./.wifi.yaml
     vars:
