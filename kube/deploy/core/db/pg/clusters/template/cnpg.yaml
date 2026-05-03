@@ -66,6 +66,8 @@ spec:
       memory: "${PG_MEM_LIMIT:=2Gi}"
       # "hugepages-${PG_HUGEPAGES_SIZE:=1Gi}": "${PG_HUGEPAGES_REQ:=1Gi}" # TODO: re-activate once Crunchy-PGO is decommissioned
   affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
     nodeAffinity: &nodeAffinity
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
