@@ -1,0 +1,131 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/postgresql.cnpg.io/cluster_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: &name "pg-${PG_APP_NAME}"
+  namespace: "${PG_APP_NS}"
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: enabled # to avoid needing to rotate serverName with v1, v2 etc
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  inheritedMetadata:
+    labels:
+      egress.home.arpa/apiserver: allow
+      s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+      db.home.arpa/pg: *name
+      prom.home.arpa/kps: "allow"
+  instances: ${PG_REPLICAS:=2}
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:01182316b7e3b75799a390a064a78f52109f8671b51999d5701fba37cb2fdd8a
+  primaryUpdateStrategy: unsupervised # let k8s handle upgrades
+  # primaryUpdateMethod: restart # prefer downtime of image download from registry instead of switching primary instance (promote a standby instance to primary) when current primary pod is updated
+  storage:
+    size: "${PG_CONFIG_SIZE:=10Gi}"
+    storageClass: "${PG_SC:=local}"
+  walStorage:
+    size: "${PG_CONFIG_SIZE_WAL:=20Gi}"
+    storageClass: "${PG_SC:=local}"
+  # superuserSecret:
+  #   name: pg-default-superuser
+  postgresql:
+    parameters:
+      max_connections: "500"
+    #   shared_buffers: 512MB # amount of RAM to use for data caching, https://postgresqlco.nf/doc/en/param/shared_buffers/
+    synchronous:
+      method: any
+      number: 1
+      failoverQuorum: true
+      dataDurability: required
+  monitoring:
+    enablePodMonitor: true
+  # BACKUP
+  plugins:
+    - name: &plugin barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: *name
+  # RECOVERY
+  bootstrap:
+    recovery:
+      source: *name
+      # recoveryTarget:
+      #   targetTLI: "1"
+  ## Note: externalClusters is needed when recovering from an existing cnpg cluster
+  externalClusters:
+    - name: *name
+      plugin:
+        name: *plugin
+        parameters:
+          barmanObjectName: *name
+          serverName: *name
+  resources:
+    requests:
+      cpu: "${PG_CPU_REQ:=50m}"
+      memory: "${PG_MEM_REQ:=512M}"
+    limits:
+      cpu: "${PG_CPU_LIMIT:=2}"
+      memory: "${PG_MEM_LIMIT:=2Gi}"
+      "hugepages-${PG_HUGEPAGES_SIZE:=1Gi}": "${PG_HUGEPAGES_REQ:=1Gi}"
+  affinity:
+    nodeAffinity: &nodeAffinity
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/barmancloud.cnpg.io/objectstore_v1.json
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: &name "pg-${PG_APP_NAME}"
+  namespace: "${PG_APP_NS}"
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: enabled # to avoid needing to rotate serverName with v1, v2 etc
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  retentionPolicy: "30d"
+  configuration:
+    serverName: *name
+    endpointURL: http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953
+    destinationPath: "s3://pg-${PG_APP_NAME}/cnpg/"
+    s3Credentials:
+      accessKeyId:
+        name: "pg-${PG_APP_NAME}-s3"
+        key: AWS_ACCESS_KEY_ID
+      secretAccessKey:
+        name: "pg-${PG_APP_NAME}-s3"
+        key: AWS_SECRET_ACCESS_KEY
+    wal:
+      compression: lz4
+      maxParallel: 3
+    data:
+      compression: bzip2
+  instanceSidecarConfiguration:
+    logLevel: info
+    resources:
+      requests:
+        cpu: 10m
+        memory: 256Mi
+      limits:
+        cpu: 1500m
+        memory: 1Gi
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/postgresql.cnpg.io/scheduledbackup_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: &name "pg-${PG_APP_NAME}"
+  namespace: "${PG_APP_NS}"
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: enabled # to avoid needing to rotate serverName with v1, v2 etc
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  schedule: "0 0 0 * * *" # At midnight every day
+  backupOwnerReference: cluster
+  cluster:
+    name: *name
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  target: prefer-standby

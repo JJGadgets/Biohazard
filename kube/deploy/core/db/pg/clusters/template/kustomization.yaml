@@ -1,9 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- s3.yaml
-- nfs.yaml
-- netpol.yaml
-- crunchy.yaml
-- dump-local.yaml
-- podmonitor.yaml
+  - s3.yaml
+  - nfs.yaml
+  - netpol.yaml
+  - crunchy.yaml
+  - cnpg.yaml
+  - dump-local.yaml
+  - podmonitor.yaml

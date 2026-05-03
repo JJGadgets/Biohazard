@@ -85,3 +85,46 @@ spec:
         - matchLabels:
             rgw: "${CLUSTER_NAME}"
             io.kubernetes.pod.namespace: rook-ceph
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: "pg-${PG_APP_NAME}-cnpg"
+  namespace: &app "${PG_APP_NS}"
+spec:
+  endpointSelector: &cnpg
+    matchLabels:
+      cnpg.io/cluster: &name "pg-${PG_APP_NAME}"
+  ingress:
+    # allow Postgres pods to talk to each other
+    - fromEndpoints: [*cnpg]
+    # allow operator to connect
+    - fromEndpoints:
+        - matchLabels: &operator
+            io.kubernetes.pod.namespace: cnpg
+            app.kubernetes.io/name: cloudnative-pg
+    # allow labelled pods to connect to Postgres only and ping with pg_health
+    - fromEndpoints: &pg
+        - matchLabels:
+            db.home.arpa/pg: "pg-${PG_APP_NAME}"
+          matchExpressions:
+            - &ns
+              key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "5432"
+    - fromEndpoints: *pg
+      icmps: [{}]
+  egress:
+    # allow Postgres pods to talk to each other
+    - toEndpoints: [*cnpg]
+    # connect to operator
+    - toEndpoints:
+        - matchLabels: *operator
+    # CNPG webhook
+    - toServices:
+        - k8sService:
+            serviceName: cnpg-webhook-service
+            namespace: cnpg

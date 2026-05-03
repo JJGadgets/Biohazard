@@ -10,6 +10,9 @@ spec:
   bucketName: "pg-${PG_APP_NAME}"
   storageClassName: "rgw-${CLUSTER_NAME}"
 ---
+# NOTE: below is only applicable for CrunchyData Postgres, CNPG can consume secret keys directly for S3
+
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
