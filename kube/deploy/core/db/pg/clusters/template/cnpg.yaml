@@ -42,8 +42,9 @@ spec:
   plugins:
     - name: &plugin barman-cloud.cloudnative-pg.io
       isWALArchiver: true
-      parameters:
+      parameters: &barman
         barmanObjectName: *name
+        serverName: *name
   # RECOVERY
   bootstrap:
     recovery:
@@ -55,9 +56,7 @@ spec:
     - name: *name
       plugin:
         name: *plugin
-        parameters:
-          barmanObjectName: *name
-          serverName: *name
+        parameters: *barman
   resources:
     requests:
       cpu: "${PG_CPU_REQ:=50m}"
@@ -86,7 +85,6 @@ metadata:
 spec:
   retentionPolicy: "30d"
   configuration:
-    serverName: *name
     endpointURL: http://rook-ceph-rgw-${CLUSTER_NAME}.rook-ceph.svc.cluster.local:6953
     destinationPath: "s3://pg-${PG_APP_NAME}/cnpg/"
     s3Credentials:
