@@ -65,3 +65,18 @@ spec:
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+  patches:
+    - patch: |-
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationDestination
+        metadata:
+          name: "cryptpad-data-bootstrap"
+          namespace: cryptpad
+        spec:
+          restic:
+            restoreAsOf: 2026-05-03T14:00:00+00:00
+      target:
+        group: volsync.backube
+        kind: ReplicationDestination
+        name: cryptpad-data-bootstrap
+        namespace: cryptpad
