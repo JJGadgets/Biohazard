@@ -67,3 +67,20 @@ spec:
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+  patches:
+    - patch: |-
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationDestination
+        metadata:
+          name: "navidrome-data-bootstrap"
+          namespace: navidrome
+        spec:
+          trigger:
+            manual: "2026-05-03 Ceph PVC data corruption after talosctl upgrade-k8s --to 1.35.4 from 1.34.0 on Talos 1.13.0, might be because of bad kubelet mounts/unmounts"
+          restic:
+            restoreAsOf: 2026-05-03T14:00:00+00:00
+      target:
+        group: volsync.backube
+        kind: ReplicationDestination
+        name: navidrome-data-bootstrap
+        namespace: navidrome
