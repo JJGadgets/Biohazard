@@ -5,7 +5,7 @@ kind: ReplicationDestination
 metadata:
   name: "${PVC}-bootstrap"
   labels:
-    kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
+    # kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
     kustomize.toolkit.fluxcd.io/prune: "disabled"
 spec:
   trigger:
