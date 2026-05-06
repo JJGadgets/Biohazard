@@ -73,7 +73,7 @@ spec:
         kind: ReplicationDestination
         metadata:
           name: "navidrome-data-bootstrap"
-          namespace: navidrome
+          namespace: media
         spec:
           trigger:
             manual: "2026-05-03 Ceph PVC data corruption after talosctl upgrade-k8s --to 1.35.4 from 1.34.0 on Talos 1.13.0, might be because of bad kubelet mounts/unmounts"
