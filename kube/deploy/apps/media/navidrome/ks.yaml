@@ -44,15 +44,16 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "navidrome-data"
-      SIZE: "20Gi"
-      SC: &sc "file"
+      SIZE: "5Gi"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       VS_APP_CURRENT_VERSION: "ghcr.io/navidrome/navidrome:0.61.2@sha256:9fa40b3d8dec43ceb2213d1fa551da3dcfef6ac6d19c2e534efb92527c2bafd2"
       RUID: &uid "6969"
       RGID: *uid
       RFSG: *uid
+      TRIGGER: "2026-05-03"
   healthChecks:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -75,8 +76,6 @@ spec:
           name: "navidrome-data-bootstrap"
           namespace: media
         spec:
-          trigger:
-            manual: "2026-05-03 Ceph PVC data corruption after talosctl upgrade-k8s --to 1.35.4 from 1.34.0 on Talos 1.13.0, might be because of bad kubelet mounts/unmounts"
           restic:
             restoreAsOf: 2026-05-03T14:00:00+00:00
       target:
