@@ -33,6 +33,7 @@ metadata:
   labels: &l
     app.kubernetes.io/name: &app navidrome
     pvc.home.arpa/volsync: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   targetNamespace: *ns
   commonMetadata:
@@ -74,7 +75,6 @@ spec:
         kind: ReplicationDestination
         metadata:
           name: "navidrome-data-bootstrap"
-          namespace: media
         spec:
           restic:
             restoreAsOf: 2026-05-03T14:00:00+00:00
@@ -82,4 +82,3 @@ spec:
         group: volsync.backube
         kind: ReplicationDestination
         name: navidrome-data-bootstrap
-        namespace: media
