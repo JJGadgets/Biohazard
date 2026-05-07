@@ -3,10 +3,11 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationDestination
 metadata:
-  name: "${PVC}-bootstrap"
+  name: &name "${PVC}-bootstrap"
   labels:
     # kustomize.toolkit.fluxcd.io/ssa: "IfNotPresent"
     kustomize.toolkit.fluxcd.io/prune: "disabled"
+    pvc.home.arpa/rdst: *name
 spec:
   trigger:
     manual: "${TRIGGER:=restore-once-bootstrap}"

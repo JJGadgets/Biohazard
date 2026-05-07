@@ -70,15 +70,15 @@ spec:
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
   patches:
-    - patch: |-
+    - patch: |
         apiVersion: volsync.backube/v1alpha1
         kind: ReplicationDestination
         metadata:
-          name: "navidrome-data-bootstrap"
+          name: not-used
         spec:
           restic:
-            restoreAsOf: 2026-05-03T14:00:00+00:00
+            restoreAsOf: "2026-05-03T14:00:00+00:00"
       target:
         group: volsync.backube
         kind: ReplicationDestination
-        name: navidrome-data-bootstrap
+        # labelSelector: pvc.home.arpa/rdst=navidrome-data-bootstrap
