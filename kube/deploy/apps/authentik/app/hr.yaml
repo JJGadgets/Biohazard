@@ -48,8 +48,8 @@ spec:
         containers:
           app:
             image: &img
-              repository: ghcr.io/goauthentik/dev-server
-              tag: gh-version-2026.2@sha256:221dae144b3456b898a49ddccc073d8ee33765ab1be1cf74320d3b6fda57bb14
+              repository: ghcr.io/goauthentik/server
+              tag: 2026.2.3@sha256:7806ae1ae3423624fe90331e8b3dcca0afc155fac890c696dd92ddac6dc3a384
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
