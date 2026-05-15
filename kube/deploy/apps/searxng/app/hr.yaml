@@ -30,7 +30,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/searxng/searxng
-              tag: latest@sha256:fa38490da93e1441c4501e9cc3435439ccbab6a68e400a5277d5bea5b6224b48
+              tag: latest@sha256:3eb2fcb2153e0b1f8e9f3457695ed3db1b1443d1dbc2b6d23121835d33fd50aa
             env: &env
               TZ: "${CONFIG_TZ}"
               GRANIAN_PORT: &http 8080
