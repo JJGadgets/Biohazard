@@ -65,7 +65,7 @@ spec:
           download: &dl-ct
             image:
               repository: nixery.dev/wget
-              tag: latest@sha256:9a22e714f2839e1d94bb935dea35104000f207a96828a2404b62d88038a2ad98
+              tag: latest@sha256:53cc0c35ce001da444dc4543b99ebc72813410bc9182d3ec1ee81e41a1228b5b
               pullPolicy: Always
             # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
             command: ["wget", "--output-document=/data/$(ZIM).zim", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
