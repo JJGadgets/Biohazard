@@ -254,6 +254,9 @@ patches:
       kernel:
         modules:
           - name: nbd # Ceph RBD CSI gets noisy without this, probably fine without though?
+          - name: dm_multipath
+          - name: dm_round-robin
+          - name: dm-queue-length
 #          - name: nct6683
 #            parameters: ["force=on"]
 #          - name: e1000e
@@ -432,7 +435,7 @@ patches:
                 name: e1000e-fix
                 args:
                   - |
-                    find /sys/class/net/*/device/driver/module/drivers -maxdepth 1 -path "*e1000e*" | awk -F'/' '{print $$5}' | xargs -I% nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c "
+                    find /sys/class/net/*/device/driver/module/drivers -maxdepth 1 -path "*e1000e*" | awk -F'/' '{print $$5}' | xargs -I% sh -c "
                     echo '% - BEFORE' &&
                     echo '==========' &&
                     ethtool -k % &&
