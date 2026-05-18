@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: cilium
-      version: "1.19.4"
+      version: "1.19.2"
       sourceRef:
         name: cilium-charts
         kind: HelmRepository
@@ -40,6 +40,12 @@ spec:
     ## Note: dedicated Envoy, easier resource requests
     envoy:
       enabled: true
+      resources:
+        requests:
+          cpu: 30m
+          memory: 150Mi
+        limits:
+          memory: 2Gi
     ## Note: Cilium ingress controller
     ingressController:
       enabled: false
@@ -53,8 +59,6 @@ spec:
       #    "io.cilium/lb-ipam-ips": "${APP_IP_CILIUM_INGRESS}"
     ## NOTE: Observability with Hubble & Prometheus
     hubble:
-      networkPolicyCorrelation:
-        enabled: false # 1.18.0 bug https://github.com/cilium/cilium/issues/40804
       ui:
         ingress:
           enabled: true
