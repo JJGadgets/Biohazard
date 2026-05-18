@@ -29,7 +29,7 @@ spec:
           app:
             image: &img
               repository: docker.io/cryptpad/cryptpad
-              tag: version-2026.2.2@sha256:34bb676e358ce6609602aad8a7362b435f2bb349221057c0160c94a0aa54bcc7
+              tag: version-2026.5.0@sha256:d605f55243aa9dc2851393c06ed44ace25f61cd7f3236de25dfa4aba1cc886b4
             command: ["npm", "start"]
             env: &env
               TZ: "${CONFIG_TZ}"
