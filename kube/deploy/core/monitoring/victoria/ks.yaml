@@ -51,6 +51,8 @@ spec:
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: "ReadWriteOnce"
+      SNAP_ACCESSMODE: "ReadWriteOnce"
+      RDST_PAUSED: "true"
       RUID: "1000"
       RGID: "1000"
       RFSG: "1000"
@@ -94,7 +96,9 @@ spec:
       SIZE: "25Gi"
       SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
+      ACCESSMODE: "ReadWriteOnce"
+      SNAP_ACCESSMODE: "ReadWriteOnce"
+      RDST_PAUSED: "true"
       RUID: !!str &uid |
         ${APP_UID_VICTORIA_LOGS}
       RGID: !!str |
