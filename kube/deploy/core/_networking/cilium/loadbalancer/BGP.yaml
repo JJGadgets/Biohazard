@@ -65,6 +65,10 @@ metadata:
 spec:
   advertisements:
     - advertisementType: PodCIDR # no masquerade
+    - advertisementType: CiliumPodIPPool
+      selector:
+        matchExpressions:
+          - {key: io.cilium/internal, operator: NotIn, values: ["true"]}
     - advertisementType: Service
       service:
         addresses: [LoadBalancerIP]

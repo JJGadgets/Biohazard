@@ -9,6 +9,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: "disabled"
     pvc.home.arpa/rdst: *name
 spec:
+  paused: ${RDST_PAUSED:false}
   trigger:
     manual: "${TRIGGER:=restore-once-bootstrap}"
   restic:

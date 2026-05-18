@@ -13,28 +13,28 @@ CARAPACE_BRIDGES = "zsh,fish,bash,inshellisense"
 
 [settings]
 experimental = true # Cargo backend
-python_venv_auto_create = true
-python_default_packages_file = "{{config_root}}/.venv/.mise-py-pkg"
-pipx_uvx = true
+# python_venv_auto_create = true
+# python_default_packages_file = "{{config_root}}/.venv/.mise-py-pkg"
+# pipx_uvx = true
 
 [tools]
-"aqua:jdx/mise" = ["2026.5.9"]
+"aqua:jdx/mise" = ["2026.5.11"]
 "aqua:fish-shell/fish-shell" = ["4.7.1"]
 "aqua:neovim" = ["0.12.2"]
 "aqua:starship/starship" = ["1.25.1"]
-"aqua:kubernetes/kubectl" = ["1.34.0"]
+"aqua:kubernetes/kubectl" = ["1.35.4"]
 "aqua:kubecolor/kubecolor" = ["0.6.0"]
 "aqua:kubernetes-sigs/krew" = ["0.5.0"]
-"ubi:brumhard/krewfile" = ["0.7.0"]
+"github:brumhard/krewfile" = ["0.7.0"]
 "aqua:ahmetb/kubectx" = ["0.11.0"]
 "aqua:junegunn/fzf" = ["0.72.0"] # used by kubectx interactive mode
 "aqua:BurntSushi/ripgrep" = ["15.1.0"]
 "aqua:kubernetes-sigs/kustomize" = ["5.3.0"]
 "aqua:helm" = ["4.2.0"]
 "aqua:fluxcd/flux2" = ["2.8.7"]
-"aqua:siderolabs/talos" = ["1.12.6"]
+"aqua:siderolabs/talos" = ["1.13.0"]
 "aqua:budimanjojo/talhelper" = ["3.1.10"]
-"aqua:go-task/task" = ["3.50.0"]
+"aqua:go-task/task" = ["3.51.1"]
 "aqua:stern" = ["1.34.0"]
 "aqua:cilium/cilium-cli"= ["0.19.3"]
 "aqua:1password/cli" = "latest"
@@ -46,11 +46,12 @@ soft-serve = ["0.11.6"]
 "aqua:jq" = ["1.8.1"]
 "aqua:cli/cli" = ["2.92.0"] # GitHub CLI
 "aqua:termkit/gama" = ["1.2.1"] # GHA TUI
-"ubi:CrunchyData/postgres-operator-client" = { version = "0.5.3" }
-"ubi:jkulzer/kubefetch" = ["0.8.1"]
-"ubi:wagoodman/dive" = ["0.13.1"]
-"ubi:theimpostor/osc" = ["0.4.8"]
-"ubi:crazy-max/undock" = ["0.13.0"]
+"github:CrunchyData/postgres-operator-client" = { version = "0.5.3" }
+"github:cert-manager/cmctl" = ["2.5.0"]
+"github:jkulzer/kubefetch" = ["0.8.1"]
+"github:wagoodman/dive" = ["0.13.1"]
+"github:theimpostor/osc" = ["0.4.8"]
+"github:crazy-max/undock" = ["0.13.0"]
 # experimental backends, use `mise up` to install because `mise install` is currently broken for these https://github.com/jdx/mise/issues/2458
 python = ["3.14.5"]
 "aqua:astral-sh/uv" = ["0.11.14"] # faster than pipx, and can be installed with mise directly
@@ -74,12 +75,12 @@ node = ["24.15.0"]
 "npm:yaml-language-server" = ["1.23.0"]
 # personal
 "cargo:himalaya" = ["1.0.0"] # mail TUI
-"ubi:guyfedwards/nom" = ["3.3.0"] # RSS TUI
+"github:guyfedwards/nom" = ["3.3.0"] # RSS TUI
 "aqua:bloznelis/typioca" = ["3.1.0"] # typing test
-"go:github.com/digitalghost-dev/poke-cli" = ["1.10.1"] # PokeAPI TUI
+"go:github.com/digitalghost-dev/poke-cli" = ["1.10.2"] # PokeAPI TUI
 # "go:git.sixfoisneuf.fr/termsonic" = ["0.2"]
 "pipx:markitdown" = "latest" # MS Office converter
-"ubi:Velocidex/velociraptor" = ["0.76"]
+"github:Velocidex/velociraptor" = ["0.76"]
 
 [hooks]
 postinstall = [

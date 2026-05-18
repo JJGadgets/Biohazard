@@ -2,8 +2,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
 clusterName: biohazard
 talosVersion: v1.13.0
-kubernetesVersion: v1.34.0
-# kubernetesVersion: v1.35.2
+kubernetesVersion: v1.35.4
 endpoint: "https://c.${DNS_CLUSTER}:6443"
 allowSchedulingOnMasters: true
 allowSchedulingOnControlPlanes: true
@@ -28,15 +27,35 @@ additionalMachineCertSans: *san
 
 nodes:
 
+  - hostname: "iso"
+    ipAddress: "127.0.0.1"
+    installDiskSelector:
+      size: "<= 10GB"
+      type: "nvme"
+    machineSpec:
+      secureboot: true
+    schematic:
+      customization:
+        extraKernelArgs: &kernelArgs
+          # PCIe passthrough
+          - intel_iommu=on
+          - iommu=pt
+          - initcall_blacklist=algif_aead_init,esp4,esp6,rxrpc # https://copy.fail & Dirty Frag
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/i915
+            - siderolabs/mei # Intel 12 gen & newer
+
   - &m720q
-    hostname: "ange.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe
+    hostname: "ange.${DNS_CLUSTER}" # HP Pro Mini 400 G9, i5-12500T 6C12T P, 64GB RAM, 256GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
     controlPlane: true
     installDiskSelector:
       size: "<= 600GB"
       type: "nvme"
-    nodeLabels:
-      cpu-scaler.internal/multiplier: "1"
+    # nodeLabels:
+    #   cpu-scaler.internal/multiplier: "1"
     nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
     networkInterfaces:
@@ -80,18 +99,21 @@ nodes:
           - intel_iommu=on
           - iommu=pt
           # allow long iGPU compute processes for headless stuff like LLMs
-          - i915.enable_hangcheck=0
-          - i915.request_timeout_ms=600000
-          - initcall_blacklist=algif_aead_init # https://copy.fail
+          # - i915.enable_hangcheck=0
+          # - i915.request_timeout_ms=600000
+          - initcall_blacklist=algif_aead_init,esp4,esp6,rxrpc # https://copy.fail
         systemExtensions:
           officialExtensions:
+            - siderolabs/iscsi-tools
+            - siderolabs/multipath-tools
+            - siderolabs/nfsrahead
+            - siderolabs/lldpd
+            - siderolabs/kata-containers
             - siderolabs/gvisor
             - siderolabs/gvisor-debug
-            - siderolabs/i915
             - siderolabs/intel-ucode
-            - siderolabs/iscsi-tools
-            - siderolabs/kata-containers
-            - siderolabs/lldpd
+            - siderolabs/i915
+            - siderolabs/mei # Intel 12 gen & newer
     extensionServices:
       - &lldpd
         name: lldpd
@@ -100,16 +122,16 @@ nodes:
             content: |
               configure lldpd portidsubtype ifname
               configure system description "Talos Node"
-    patches:
-      - |
-        machine:
-          sysfs:
-            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "35000000"
+    # patches:
+    #   - |
+    #     machine:
+    #       sysfs:
+    #         devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "35000000"
       #       devices.system.cpu.intel_pstate.max_perf_pct: "80" # limit max frequency to 2.8GHz
       #       devices.system.cpu.intel_pstate.hwp_dynamic_boost: "1"
 
   - <<: *m720q
-    hostname: "charlotte.${DNS_CLUSTER}" # M720q, i5-8500T 6C6T, 64GB RAM, 256GB OS NVMe, WiFi M.2 screw stuck LOL
+    hostname: "charlotte.${DNS_CLUSTER}" # HP Pro Mini 400 G9, i5-12500T 6C12T P, 64GB RAM, 256GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}2"
     networkInterfaces:
       - <<: *m720q-net
@@ -117,7 +139,7 @@ nodes:
       - *m720q-bond0
 
   - <<: *m720q
-    hostname: "chise.${DNS_CLUSTER}" # M720q, i3-8100T 4C4T, 32GB RAM, 512GB OS NVMe
+    hostname: "chise.${DNS_CLUSTER}" # HP Pro Mini 400 G9, i5-12500T 6C12T P, 64GB RAM, 256GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}3"
     networkInterfaces:
       - <<: *m720q-net
@@ -135,10 +157,10 @@ nodes:
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}5"
     controlPlane: false
     installDiskSelector:
-      # size: "<= 600GB"
+      size: "<= 2100GB"
       type: "nvme"
-    nodeLabels:
-      cpu-scaler.internal/multiplier: "0.5"
+    # nodeLabels:
+    #   cpu-scaler.internal/multiplier: "0.5"
     nameservers: ["${IP_ROUTER_VLAN_K8S}"]
     disableSearchDomain: true
     networkInterfaces:
@@ -252,6 +274,8 @@ patches:
       kernel:
         modules:
           - name: nbd # Ceph RBD CSI gets noisy without this, probably fine without though?
+          - name: dm_multipath
+          - name: dm_round-robin
 #          - name: nct6683
 #            parameters: ["force=on"]
 #          - name: e1000e
@@ -316,7 +340,6 @@ patches:
         extraConfig:
           featureGates:
             UserNamespacesSupport: true
-            UserNamespacesPodSecurityStandards: true
 
   - &PodLevelResources |-
     machine:
@@ -404,7 +427,7 @@ patches:
             containers:
               - &ct
                 name: bridge-mac-set
-                image: "public.ecr.aws/docker/library/alpine:latest@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659"
+                image: nixery.dev/shell/gnugrep/gawk/findutils/iproute2/bridge-utils/ethtool:latest
                 command: ["/bin/sh", "-c"]
                 args:
                   - |
@@ -431,7 +454,7 @@ patches:
                 name: e1000e-fix
                 args:
                   - |
-                    find /sys/class/net/*/device/driver/module/drivers -maxdepth 1 -path "*e1000e*" | awk -F'/' '{print $$5}' | xargs -I% nsenter --mount=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/mnt --net=/host/proc/$(pidof /usr/local/bin/kubelet)/ns/net -- sh -c "
+                    find /sys/class/net/*/device/driver/module/drivers -maxdepth 1 -path "*e1000e*" | awk -F'/' '{print $$5}' | xargs -I% sh -c "
                     echo '% - BEFORE' &&
                     echo '==========' &&
                     ethtool -k % &&
@@ -494,7 +517,7 @@ controlPlane:
       cluster:
         controllerManager:
           extraArgs:
-            node-cidr-mask-size: 23
+            node-cidr-mask-size: 24
 
     - &etcdSubnet |-
       cluster:
@@ -564,7 +587,7 @@ controlPlane:
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: ImageVolume=true,UserNamespacesSupport=true,UserNamespacesPodSecurityStandards=true,PodLevelResources=true,MutatingAdmissionPolicy=true,ResourceHealthStatus=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
+            feature-gates: ImageVolume=true,UserNamespacesSupport=true,PodLevelResources=true,MutatingAdmissionPolicy=true,ResourceHealthStatus=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
             feature-gates: PodLevelResources=true
