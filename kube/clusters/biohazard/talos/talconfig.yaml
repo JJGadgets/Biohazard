@@ -27,6 +27,26 @@ additionalMachineCertSans: *san
 
 nodes:
 
+  - hostname: "iso"
+    ipAddress: "127.0.0.1"
+    installDiskSelector:
+      size: "<= 10GB"
+      type: "nvme"
+    machineSpec:
+      secureboot: true
+    schematic:
+      customization:
+        extraKernelArgs: &kernelArgs
+          # PCIe passthrough
+          - intel_iommu=on
+          - iommu=pt
+          - initcall_blacklist=algif_aead_init,esp4,esp6,rxrpc # https://copy.fail & Dirty Frag
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/intel-ucode
+            - siderolabs/i915
+            - siderolabs/mei # Intel 12 gen & newer
+
   - &m720q
     hostname: "ange.${DNS_CLUSTER}" # HP Pro Mini 400 G9, i5-12500T 6C12T P, 64GB RAM, 256GB OS NVMe
     ipAddress: "${IP_ROUTER_VLAN_K8S_PREFIX}1"
