@@ -1,0 +1,193 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app llama-cpp
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+      # gemma4-26b-a4b:
+        # type: statefulset
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            # prom.home.arpa/kps: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/ggml-org/llama.cpp
+              tag: server-intel@sha256:aeaa8c530f5fe638dc590ee1a453c09ad7e88936af9d8dc0df9a75028119b659
+            args:
+            - --model
+            - "/models/$(HF_MODEL)/$(HF_FILE)"
+            # - --mmproj
+            # - /models/gemma4-26b/mmproj-F16.gguf
+            - --ctx-size
+            - "131072"
+            - --n-gpu-layers
+            - "all"
+            - --flash-attn
+            - "on"
+            - --parallel
+            - "2"
+            - --cont-batching
+            - -sps
+            - "0.90"
+            - --no-context-shift
+            - --cache-prompt
+            - --kv-unified
+            - --ctx-checkpoints
+            - "4"
+            - --checkpoint-every-n-tokens
+            - "16384"
+            - --image-min-tokens
+            - "1120"
+            - --image-max-tokens
+            - "1120"
+            - --metrics
+            - --temp
+            - "0.4"
+            - --top-p
+            - "0.92"
+            - --top-k
+            - "40"
+            - --min-p
+            - "0"
+            - --batch-size
+            - "4096"
+            - --ubatch-size
+            - "2048"
+            - --threads
+            - "3"
+            - --threads-batch
+            - "6"
+            - --cache-type-k
+            - "q8_0"
+            - --cache-type-v
+            - "q8_0"
+            # - --mmap
+            # - --mlock
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
+              HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: llama-cpp-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: 4
+                memory: "20Gi"
+                gpu.intel.com/i915: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      pull-gemma4-26b-a4b: &ml-model-pull
+        type: cronjob
+        cronjob:
+          schedule: "@weekly"
+          concurrencyPolicy: "Replace"
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app: &ml-model-pull-ct
+            image:
+              repository: registry.jjgadgets.tech/jjgadgets/hf
+              tag: 1.15.0@sha256:b94cb083b60c422cf7f90bb3423a6ab85744f53e649517396ed812fddcfb2bf4
+            command: ["huggingface-cli", "download", "--exclude", ".git"]
+            args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
+            workingDir: &mlhome "/models"
+            env:
+              HOME: *mlhome
+              HF_HOME: *mlhome
+              HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
+              HF_HASH: ae4d537a6345467d1c86bb5cc0d4505ff3ebe0f3
+              HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: 4
+                memory: "2Gi"
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 8080
+            protocol: HTTP
+            appProtocol: http
+    persistence:
+      misc:
+        existingClaim: llama-cpp-misc
+        globalMounts:
+          - subPath: models
+            path: /models
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        supplementalGroups: [44]
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      from-frontends:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: open-webui
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: sillytavern
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: code-server
