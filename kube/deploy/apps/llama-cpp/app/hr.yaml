@@ -77,10 +77,18 @@ spec:
             - "q8_0"
             # - --mmap
             # - --mlock
+            # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
+            - --cache-ram
+            - "2048"
+            - --ctx-checkpoints
+            - "2"
             env: &env
               TZ: "${CONFIG_TZ}"
               HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
               HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+              ZES_ENABLE_SYSMAN: "1"
+              ONEAPI_DEVICE_SELECTOR: level_zero:gpu
+              UR_L0_ENABLE_RELAXED_ALLOCATION_LIMITS: "1"
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
