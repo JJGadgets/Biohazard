@@ -84,11 +84,20 @@ spec:
             - "2"
             env: &env
               TZ: "${CONFIG_TZ}"
+              # envsubst
               HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
               HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+              # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
               ONEAPI_DEVICE_SELECTOR: level_zero:gpu
               UR_L0_ENABLE_RELAXED_ALLOCATION_LIMITS: "1"
+              # llama.cpp config
+              LLAMA_ARG_HOST:
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+              LLAMA_ARG_PORT: &http 8080
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
@@ -145,7 +154,7 @@ spec:
         ports:
           http:
             port: 80
-            targetPort: 8080
+            targetPort: *http
             protocol: HTTP
             appProtocol: http
     persistence:
