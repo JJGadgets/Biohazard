@@ -102,10 +102,10 @@ spec:
               readiness:
                 enabled: true
       pull-gemma4-26b-a4b: &ml-model-pull
-        type: cronjob
-        cronjob:
-          schedule: "@weekly"
-          concurrencyPolicy: "Replace"
+        type: job
+        # cronjob:
+        #   schedule: "@weekly"
+        #   concurrencyPolicy: "Replace"
         pod:
           labels:
             egress.home.arpa/internet: allow
@@ -114,7 +114,7 @@ spec:
             image:
               repository: registry.jjgadgets.tech/jjgadgets/hf
               tag: 1.15.0@sha256:b94cb083b60c422cf7f90bb3423a6ab85744f53e649517396ed812fddcfb2bf4
-            command: ["huggingface-cli", "download", "--exclude", ".git"]
+            command: ["hf", "download", "--exclude", ".git"]
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
@@ -159,10 +159,10 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      # hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid 84925
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
