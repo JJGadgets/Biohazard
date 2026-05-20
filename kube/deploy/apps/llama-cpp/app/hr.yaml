@@ -186,6 +186,8 @@ spec:
         fsGroupChangePolicy: Always
         supplementalGroups: [44]
         seccompProfile: { type: "RuntimeDefault" }
+      nodeSelector:
+        gpu.intel.com/device-id.0300-46a6.present: "true"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
