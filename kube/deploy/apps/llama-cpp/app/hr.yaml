@@ -12,6 +12,59 @@ spec:
     name: app-template
     namespace: *app
   values:
+    x-models:
+      gemma4-26b-a4b:
+        model: &gemma4-26b-a4b-model
+          HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
+          HF_HASH: ae4d537a6345467d1c86bb5cc0d4505ff3ebe0f3
+          HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+        env: &gemma4-26b-a4b-env
+          # Model Params
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "0.4"
+          LLAMA_ARG_TOP_K: 40
+          LLAMA_ARG_TOP_P: "0.92"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # Others
+          LLAMA_ARG_CACHE_RAM: 2048
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
+          LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
+      qwen3.6-27b-mtp:
+        model: &qwen3.6-27b-mtp-model
+          HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
+          HF_HASH: b3a58239d8d40b953e34936c9afeb28baa518230
+          HF_FILE: Qwen3.6-27B-UD-Q5_K_XL.gguf
+        env: &qwen3.6-27b-mtp-env
+          # Model Params
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "0.6"
+          LLAMA_ARG_TOP_K: 20
+          LLAMA_ARG_TOP_P: "0.95"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Qwen 3.6 Preserve Thinking
+          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"preserve_thinking":true}'
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # MTP (Speculative Decoding)
+          LLAMA_ARG_SPEC_TYPE: draft-mtp
+          LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          # Others
+          LLAMA_ARG_MMAP: disabled
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
     controllers:
       app:
       # gemma4-26b-a4b:
@@ -22,6 +75,8 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             # prom.home.arpa/kps: allow
+          nodeSelector:
+            gpu.intel.com/device-id.0300-46a6.present: "true"
         containers:
           app:
             image: &img
@@ -33,72 +88,48 @@ spec:
             - "/models/$(HF_MODEL)/$(HF_FILE)"
             # - --mmproj
             # - /models/gemma4-26b/mmproj-F16.gguf
-            - --ctx-size
-            - "131072"
-            - --n-gpu-layers
-            - "all"
-            - --flash-attn
-            - "on"
-            - --parallel
-            - "2"
-            - --cont-batching
             - -sps
             - "0.90"
-            - --no-context-shift
-            - --cache-prompt
-            - --kv-unified
-            - --ctx-checkpoints
-            - "4"
-            - --checkpoint-every-n-tokens
-            - "16384"
-            - --image-min-tokens
-            - "1120"
-            - --image-max-tokens
-            - "1120"
-            - --metrics
             - --temp
-            - "0.4"
+            - "$(LLAMA_ARG_TEMPERATURE)"
             - --top-p
-            - "0.92"
-            - --top-k
-            - "40"
+            - "$(LLAMA_ARG_TOP_P)"
             - --min-p
-            - "0"
-            - --batch-size
-            - "4096"
-            - --ubatch-size
-            - "2048"
+            - "$(LLAMA_ARG_MIN_P)"
+            - --presence-penalty
+            - "$(LLAMA_ARG_PRESENCE_PENALTY)"
+            - --repeat-penalty
+            - "$(LLAMA_ARG_REPEAT_PENALTY)"
             - --threads
             - "3"
             - --threads-batch
             - "6"
-            - --cache-type-k
-            - "q8_0"
-            - --cache-type-v
-            - "q8_0"
             # - --mmap
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
-            - --cache-ram
-            - "2048"
-            - --ctx-checkpoints
-            - "2"
             env: &env
+              <<: [ *qwen3.6-27b-mtp-model, *qwen3.6-27b-mtp-env ]
               TZ: "${CONFIG_TZ}"
-              # envsubst
-              HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
-              HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
               ONEAPI_DEVICE_SELECTOR: level_zero:gpu
               UR_L0_ENABLE_RELAXED_ALLOCATION_LIMITS: "1"
               # llama.cpp config
+              LLAMA_OFFLINE: enabled
               LLAMA_ARG_HOST:
                 valueFrom:
                   fieldRef:
                     apiVersion: v1
                     fieldPath: status.podIP
               LLAMA_ARG_PORT: &http 8080
+              LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_FLASH_ATTN: on
+              LLAMA_ARG_N_PARALLEL: 3
+              LLAMA_ARG_CONT_BATCHING: enabled
+              LLAMA_ARG_CONTEXT_SHIFT: disabled
+              LLAMA_ARG_CACHE_PROMPT: enabled
+              LLAMA_ARG_KV_UNIFIED: enabled
+              LLAMA_ARG_ENDPOINT_METRICS: enabled
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
@@ -112,14 +143,15 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: 4
-                memory: "24Gi"
+                memory: "30Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
-      pull-gemma4-26b-a4b: &ml-model-pull
+      # pull-gemma4-26b-a4b: &ml-model-pull
+      pull: &ml-model-pull
         type: job
         # cronjob:
         #   schedule: "@weekly"
@@ -136,12 +168,10 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
+              <<: *qwen3.6-27b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
-              HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
-              HF_HASH: ae4d537a6345467d1c86bb5cc0d4505ff3ebe0f3
-              HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
             securityContext: *sc
             resources:
               requests:
@@ -187,8 +217,6 @@ spec:
         fsGroupChangePolicy: Always
         supplementalGroups: [44]
         seccompProfile: { type: "RuntimeDefault" }
-      nodeSelector:
-        gpu.intel.com/device-id.0300-46a6.present: "true"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
