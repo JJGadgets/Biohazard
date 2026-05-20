@@ -30,8 +30,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/open-webui/open-webui
-              # tag: 0.3.30@sha256:15eade1ea1ed2ccef43bb8a6f65b9cbe38db498e6e066272907f6356fa966823
-              tag: git-a27dcc8@sha256:4f3280487e01f14ff0de417bafbb2abe5657d90794c96f456edbc11e5102dd4e # TODO: for persistent config toggle env var
+              tag: 0.9.5@sha256:e045bde3b004cc7f8c319412345eb56c87ea6ac57031534a31ca37ad5424beb3
             env: &env
               TZ: "${CONFIG_TZ}"
               # General
@@ -40,7 +39,7 @@ spec:
               GLOBAL_LOG_LEVEL: "DEBUG"
               ENABLE_PERSISTENT_CONFIG: "False" # follow env vars for config without storing and reading from DB
               # Backends
-              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1"
+              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://llama-cpp.llama-cpp.svc.cluster.local/v1;http://mlc-llm-llama3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-phi3.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-r1-qwen-32b.mlc-llm.svc.cluster.local:8080/v1;http://mlc-llm-qwq.mlc-llm.svc.cluster.local:8080/v1"
               ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
               # Airgap
               RAG_EMBEDDING_ENGINE: "openai"
