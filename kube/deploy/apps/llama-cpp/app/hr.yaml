@@ -26,7 +26,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-intel@sha256:aeaa8c530f5fe638dc590ee1a453c09ad7e88936af9d8dc0df9a75028119b659
+              tag: server-intel@sha256:f8bbfe391eba075d284990d8eb11682394797aabdf12528db83112da7c949e27
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
