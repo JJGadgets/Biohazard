@@ -39,11 +39,11 @@ spec:
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
       qwen3.6-27b-mtp:
-        model: &qwen3.6-27b-mtp-model
+        model: &qwen36-27b-mtp-model
           HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
           HF_HASH: b3a58239d8d40b953e34936c9afeb28baa518230
           HF_FILE: Qwen3.6-27B-UD-Q5_K_XL.gguf
-        env: &qwen3.6-27b-mtp-env
+        env: &qwen36-27b-mtp-env
           # Model Params
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.6"
@@ -108,7 +108,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *qwen3.6-27b-mtp-model, *qwen3.6-27b-mtp-env ]
+              <<: [ *qwen36-27b-mtp-model, *qwen36-27b-mtp-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -168,7 +168,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *qwen3.6-27b-mtp-model
+              <<: *qwen36-27b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
