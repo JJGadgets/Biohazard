@@ -151,7 +151,7 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: 4
-                memory: "30Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
