@@ -55,7 +55,7 @@ spec:
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Qwen 3.6 Preserve Thinking
-          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"preserve_thinking":true}'
+          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":false}'
           # Cache quants
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
@@ -65,6 +65,11 @@ spec:
           # Others
           LLAMA_ARG_MMAP: disabled
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
+      qwen3.6-35b-a3b-mtp:
+        model: &qwen36-35b-a3b-mtp-model
+          HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+          HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
+          HF_FILE: Qwen3.6-35B-A3B-UD-IQ4_NL.gguf
     controllers:
       app:
       # gemma4-26b-a4b:
@@ -108,7 +113,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *qwen36-27b-mtp-model, *qwen36-27b-mtp-env ]
+              <<: [ *qwen36-35b-a3b-mtp-model, *qwen36-27b-mtp-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -168,7 +173,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *qwen36-27b-mtp-model
+              <<: *qwen36-35b-a3b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
@@ -197,10 +202,11 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
+          - subPath: shader-cache
+            path: /.cache
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
