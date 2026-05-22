@@ -91,8 +91,8 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             # prom.home.arpa/kps: allow
-          nodeSelector:
-            gpu.intel.com/device-id.0300-46a6.present: "true"
+          # nodeSelector:
+          #   gpu.intel.com/device-id.0300-46a6.present: "true"
         containers:
           app:
             image: &img
@@ -116,10 +116,8 @@ spec:
             - "$(LLAMA_ARG_PRESENCE_PENALTY)"
             - --repeat-penalty
             - "$(LLAMA_ARG_REPEAT_PENALTY)"
-            - --threads
-            - "3"
-            - --threads-batch
-            - "6"
+            # - --threads-batch
+            # - "6"
             # - --mmap
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
@@ -146,6 +144,9 @@ spec:
               LLAMA_ARG_CACHE_PROMPT: enabled
               LLAMA_ARG_KV_UNIFIED: enabled
               LLAMA_ARG_ENDPOINT_METRICS: enabled
+              LLAMA_ARG_THREADS:
+                resourceFieldRef:
+                  resource: limits.cpu
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
@@ -158,7 +159,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                # cpu: 4
+                cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
