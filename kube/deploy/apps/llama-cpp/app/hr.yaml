@@ -98,7 +98,7 @@ spec:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              tag: server-vulkan@sha256:887528bb22f54da88baabd4d2c70ed79d6dd76cb05666a28962d438c124d8ff0
+              tag: server-vulkan@sha256:213398d9d59ecdac5f716c201ca0181e9f2f8062dc9a5588203b1a4356fbab89
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
