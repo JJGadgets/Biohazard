@@ -73,6 +73,8 @@ spec:
           HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
           HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
           HF_FILE: Qwen3.6-35B-A3B-UD-IQ4_NL.gguf
+        env: &qwen35-35b-a3b-mtp-env
+          <<: *qwen36-27b-mtp-env
       qwen3.5-9b-mtp:
         model: &qwen35-9b-mtp-model
           HF_MODEL: unsloth/Qwen3.5-9B-MTP-GGUF
@@ -91,14 +93,16 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             # prom.home.arpa/kps: allow
-          # nodeSelector:
-          #   gpu.intel.com/device-id.0300-46a6.present: "true"
+          nodeSelector:
+            # kubernetes.io/hostname: dorothy
+            gpu.intel.com/device-id.0300-46a6.present: "true"
         containers:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              tag: server-vulkan@sha256:887528bb22f54da88baabd4d2c70ed79d6dd76cb05666a28962d438c124d8ff0
+              # tag: server-vulkan@sha256:887528bb22f54da88baabd4d2c70ed79d6dd76cb05666a28962d438c124d8ff0
+              tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -144,9 +148,9 @@ spec:
               LLAMA_ARG_CACHE_PROMPT: enabled
               LLAMA_ARG_KV_UNIFIED: enabled
               LLAMA_ARG_ENDPOINT_METRICS: enabled
-              LLAMA_ARG_THREADS:
-                resourceFieldRef:
-                  resource: limits.cpu
+              LLAMA_ARG_THREADS: 12
+                # resourceFieldRef:
+                #   resource: limits.cpu
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
@@ -159,8 +163,8 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: 6 # same number of cores as lowest number of non-HT cores per node
-                # gpu.intel.com/i915: "1"
+                # cpu: 6 # same number of cores as lowest number of non-HT cores per node
+                gpu.intel.com/i915: "1"
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
