@@ -97,8 +97,8 @@ spec:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              # tag: server-vulkan@sha256:9a7ec7d8313721d9fb3a05e01f088e70fdb6017273c1d290104fb496ac7a794d
+              # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
+              tag: server-vulkan@sha256:9a7ec7d8313721d9fb3a05e01f088e70fdb6017273c1d290104fb496ac7a794d
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -213,11 +213,12 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: shader-cache
-            path: /.cache
+          # - subPath: shader-cache
+          #   path: /.cache
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
