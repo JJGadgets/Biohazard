@@ -243,6 +243,60 @@ spec:
           - backendRefs:
               - identifier: app
                 port: http
+      external:
+        hostnames: ["${APP_DNS_IMMICH:=immich}"]
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /s/
+              - path:
+                  type: PathPrefix
+                  value: /share/
+              - path:
+                  type: PathPrefix
+                  value: /_app/immutable/
+                headers:
+                  - &referer
+                    name: Referer
+                    type: RegularExpression
+                    value: "https:\/\/${APP_DNS_IMMICH}\/s(?:hare)*\/.*"
+              - path:
+                  type: PathPrefix
+                  value: /api/shared-links/me
+                headers: [*referer]
+              - path:
+                  type: PathPrefix
+                  value: /api/server
+                headers: [*referer]
+              - path:
+                  type: PathPrefix
+                  value: /api/assets
+                headers:
+                  - *referer
+                  - &shared-link-cookie
+                    name: Cookie
+                    type: RegularExpression
+                    value: immich_shared_link_token=.*
+              - path:
+                  type: PathPrefix
+                  value: /api/albums
+                headers: [*referer, *shared-link-cookie]
+              - path:
+                  type: PathPrefix
+                  value: /api/download
+                headers: [*referer, *shared-link-cookie]
+              - path:
+                  type: PathPrefix
+                  value: /api/timeline/bucket
+                headers: [*referer, *shared-link-cookie]
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: immich-data
