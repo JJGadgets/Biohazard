@@ -72,7 +72,7 @@ spec:
           HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
           HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
           HF_FILE: Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf
-        env: &qwen35-35b-a3b-mtp-env
+        env: &qwen36-35b-a3b-mtp-env
           <<: *qwen36-27b-mtp-env
       qwen3.5-9b-mtp:
         model: &qwen35-9b-mtp-model
@@ -128,7 +128,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *qwen36-35b-a3b-mtp-model, *qwen35-35b-a3b-mtp-env ]
+              <<: [ *qwen35-9b-mtp-model, *qwen35-9b-mtp-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -192,7 +192,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *qwen36-35b-a3b-mtp-model
+              <<: *qwen35-9b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
