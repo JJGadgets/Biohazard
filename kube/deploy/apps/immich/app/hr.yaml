@@ -264,7 +264,7 @@ spec:
                   - &referer
                     name: Referer
                     type: RegularExpression
-                    value: "https:\/\/${APP_DNS_IMMICH}\/s(?:hare)*\/.*"
+                    value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
               - path:
                   type: PathPrefix
                   value: /api/shared-links/me
