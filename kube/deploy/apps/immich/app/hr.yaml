@@ -20,6 +20,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
             db.home.arpa/pg: pg-home
             prom.home.arpa/kps: allow
             authentik.home.arpa/oidc: allow
@@ -313,7 +314,7 @@ spec:
                 path: *pvc
           microservices: *mount
           redis:
-            redis:
+            app:
               - subPath: redis
                 path: /data
       misc:
