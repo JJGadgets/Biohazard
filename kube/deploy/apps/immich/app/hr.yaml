@@ -285,15 +285,21 @@ spec:
               - path:
                   type: PathPrefix
                   value: /api/albums
-                headers: [*referer, *shared-link-cookie]
+                headers:
+                  - *referer
+                  - *shared-link-cookie
               - path:
                   type: PathPrefix
                   value: /api/download
-                headers: [*referer, *shared-link-cookie]
+                headers:
+                  - *referer
+                  - *shared-link-cookie
               - path:
                   type: PathPrefix
                   value: /api/timeline/bucket
-                headers: [*referer, *shared-link-cookie]
+                headers:
+                  - *referer
+                  - *shared-link-cookie
             backendRefs:
               - identifier: app
                 port: http
