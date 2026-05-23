@@ -63,7 +63,6 @@ spec:
           LLAMA_ARG_SPEC_TYPE: draft-mtp
           LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
           # Others
-          LLAMA_ARG_MMAP: disabled
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
           LLAMA_ARG_CACHE_RAM: 4096
           LLAMA_ARG_CTX_CHECKPOINTS: 4
@@ -101,8 +100,8 @@ spec:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              # tag: server-vulkan@sha256:887528bb22f54da88baabd4d2c70ed79d6dd76cb05666a28962d438c124d8ff0
-              tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
+              tag: server-vulkan@sha256:887528bb22f54da88baabd4d2c70ed79d6dd76cb05666a28962d438c124d8ff0
+              # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -120,9 +119,12 @@ spec:
             - "$(LLAMA_ARG_PRESENCE_PENALTY)"
             - --repeat-penalty
             - "$(LLAMA_ARG_REPEAT_PENALTY)"
+            - --cpu-mask
+            - "0x55" # CPUs 0, 2, 4, 6 --> binary 01010101, CPU 0 from the rightmost (why?) --> hex 0x55
+            - --cpu-strict
+            - "1"
             # - --threads-batch
             # - "6"
-            # - --mmap
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
@@ -148,7 +150,8 @@ spec:
               LLAMA_ARG_CACHE_PROMPT: enabled
               LLAMA_ARG_KV_UNIFIED: enabled
               LLAMA_ARG_ENDPOINT_METRICS: enabled
-              LLAMA_ARG_THREADS: 12
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+              LLAMA_ARG_THREADS: 4
                 # resourceFieldRef:
                 #   resource: limits.cpu
             # envFrom: &envFrom
@@ -263,3 +266,6 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: code-server
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: home-assistant
