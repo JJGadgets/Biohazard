@@ -92,6 +92,30 @@ spec:
         env: &qwen35-9b-mtp-env
           <<: *qwen36-27b-mtp-env
           LLAMA_ARG_SPEC_DRAFT_N_MAX: 6
+      gpt-oss-20b:
+        model: &gpt-oss-20b-model
+          HF_MODEL: ggml-org/gpt-oss-20b-GGUF
+          HF_HASH: e1dc459feff949ff451ce107337a2026daa80df8
+          HF_FILE: gpt-oss-20b-mxfp4.gguf
+        env: &gpt-oss-20b-env
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "1.0"
+          LLAMA_ARG_TOP_K: 0
+          LLAMA_ARG_TOP_P: "1.0"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # Others
+          LLAMA_ARG_CACHE_RAM: 4096
+          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
+          LLAMA_ARG_IMAGE_MAX_TOKENS: 1024
     controllers:
       app:
       # gemma4-26b-a4b:
@@ -138,7 +162,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *gemma4-e4b-model, *gemma4-e4b-env ]
+              <<: [ *gpt-oss-20b-model, *gpt-oss-20b-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -154,7 +178,7 @@ spec:
               LLAMA_ARG_PORT: &http 8080
               LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_FLASH_ATTN: on
-              LLAMA_ARG_N_PARALLEL: 3
+              LLAMA_ARG_N_PARALLEL: 2
               LLAMA_ARG_CONT_BATCHING: enabled
               LLAMA_ARG_CONTEXT_SHIFT: disabled
               LLAMA_ARG_CACHE_PROMPT: enabled
@@ -202,7 +226,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *gemma4-e4b-model
+              <<: *gpt-oss-20b-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
