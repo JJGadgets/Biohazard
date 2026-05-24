@@ -67,8 +67,8 @@ spec:
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
           # MTP (Speculative Decoding)
-          LLAMA_ARG_SPEC_TYPE: draft-mtp
-          LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          # LLAMA_ARG_SPEC_TYPE: draft-mtp
+          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
           # Others
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
           LLAMA_ARG_CACHE_RAM: 2048
@@ -162,7 +162,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *gpt-oss-20b-model, *gpt-oss-20b-env ]
+              <<: [ *qwen36-35b-a3b-mtp-model, *qwen36-35b-a3b-mtp-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -201,7 +201,7 @@ spec:
                 cpu: "10m"
               limits:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
-                gpu.intel.com/i915: "1"
+                # gpu.intel.com/i915: "1"
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
