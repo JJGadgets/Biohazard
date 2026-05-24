@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/kiwix/kiwix-tools
-              tag: 3.8.2@sha256:e07a1a45fc3c2589dea34d67c0cb31862c5507fd327e16ac542c05dda7ae6339
+              tag: 3.8.2@sha256:0765fd2a9f7a736936e7f7b9f568dc931e4ee6892d72b16c37cc97dc96695309
             command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases $(find /data -type f -iname '*.zim')"]
             env: &env
               TZ: "${CONFIG_TZ}"
