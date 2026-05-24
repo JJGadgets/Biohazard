@@ -79,9 +79,12 @@ spec:
           # HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
           # HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
           # HF_FILE: Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf
-          HF_MODEL: byteshape/Qwen3.6-35B-A3B-MTP-GGUF
-          HF_HASH: 83dc80a65cb948b8e5a9dd9776eda7425180dacc
-          HF_FILE: Qwen3.6-35B-A3B-IQ4_XS-4.19bpw.gguf
+          # HF_MODEL: byteshape/Qwen3.6-35B-A3B-MTP-GGUF
+          # HF_HASH: 83dc80a65cb948b8e5a9dd9776eda7425180dacc
+          # HF_FILE: Qwen3.6-35B-A3B-IQ4_XS-4.19bpw.gguf
+          HF_MODEL: byteshape/Qwen3.6-35B-A3B-GGUF
+          HF_HASH: 57f6dec8727b4c3f5498ff2564a0333ac1f6624a
+          HF_FILE: Qwen3.6-35B-A3B-Q4_K_S-4.22bpw.gguf
         env: &qwen36-35b-a3b-mtp-env
           <<: *qwen36-27b-mtp-env
       qwen3.5-9b-mtp:
@@ -226,7 +229,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *gpt-oss-20b-model
+              <<: *qwen36-35b-a3b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
