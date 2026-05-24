@@ -6,6 +6,7 @@ metadata:
   namespace: &ns nvidia
   labels: &l
     app.kubernetes.io/name: "nvidia"
+    substitution.flux.home.arpa/disabled: "true"
 spec:
   targetNamespace: *ns
   commonMetadata:
