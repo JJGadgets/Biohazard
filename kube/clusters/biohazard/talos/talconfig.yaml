@@ -224,6 +224,12 @@ nodes:
     patches:
       - |
         machine:
+          kernel:
+            modules:
+              - name: nvidia
+              - name: nvidia_uvm
+              - name: nvidia_drm
+              - name: nvidia_modeset
           sysfs:
             devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_0_power_limit_uw: "45000000"
             devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "65000000"
