@@ -30,12 +30,12 @@ spec:
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Cache quants / VRAM fitting
-          # LLAMA_ARG_CACHE_TYPE_K: q8_0
-          # LLAMA_ARG_CACHE_TYPE_V: q8_0
-          LLAMA_ARG_CPU_MOE: "enabled"
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # LLAMA_ARG_CPU_MOE: "enabled"
           # Others
-          LLAMA_ARG_CACHE_RAM: 4096
-          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CACHE_RAM: 2048
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
@@ -168,7 +168,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
+              <<: [ *gemma4-e4b-model, *gemma4-e4b-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -233,7 +233,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *gemma4-26b-a4b-model
+              <<: *gemma4-e4b-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
