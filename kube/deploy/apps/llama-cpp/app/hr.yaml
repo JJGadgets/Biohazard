@@ -33,8 +33,8 @@ spec:
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
           # Others
-          LLAMA_ARG_CACHE_RAM: 2048
-          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CACHE_RAM: 4096
+          LLAMA_ARG_CTX_CHECKPOINTS: 4
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
@@ -137,8 +137,9 @@ spec:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              tag: server-vulkan@sha256:9b4358347f6bef458c95a12b86a463c62399393f2bae11d936886e8bf283ba02
+              # tag: server-vulkan@sha256:9b4358347f6bef458c95a12b86a463c62399393f2bae11d936886e8bf283ba02
               # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
+              tag: server-cuda12@sha256:e8d36f4dc2a72a1df323748f6219c9dd11f662f7cb3b06a6b2916c9bf3866d89
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -205,6 +206,7 @@ spec:
               limits:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
+                nvidia.com/gpu: 1
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
