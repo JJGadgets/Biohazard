@@ -165,7 +165,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
+              <<: [ *gemma4-e4b-model, *gemma4-e4b-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -229,7 +229,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *gemma4-26b-a4b-model
+              <<: *gemma4-e4b-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
