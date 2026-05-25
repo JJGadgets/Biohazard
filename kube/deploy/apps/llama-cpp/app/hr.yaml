@@ -29,9 +29,10 @@ spec:
           LLAMA_ARG_UBATCH: 2048
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
-          # Cache quants
-          LLAMA_ARG_CACHE_TYPE_K: q8_0
-          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # Cache quants / VRAM fitting
+          # LLAMA_ARG_CACHE_TYPE_K: q8_0
+          # LLAMA_ARG_CACHE_TYPE_V: q8_0
+          LLAMA_ARG_CPU_MOE: "enabled"
           # Others
           LLAMA_ARG_CACHE_RAM: 4096
           LLAMA_ARG_CTX_CHECKPOINTS: 4
@@ -131,7 +132,8 @@ spec:
             # prom.home.arpa/kps: allow
           nodeSelector:
             # kubernetes.io/hostname: dorothy
-            gpu.intel.com/device-id.0300-46a6.present: "true"
+            # gpu.intel.com/device-id.0300-46a6.present: "true"
+            nvidia.com/gpu.product: Tesla-T4
         containers:
           app:
             image: &img
