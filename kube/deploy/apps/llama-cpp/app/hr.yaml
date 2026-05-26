@@ -59,18 +59,18 @@ spec:
           LLAMA_ARG_TOP_K: 20
           LLAMA_ARG_TOP_P: "0.95"
           LLAMA_ARG_MIN_P: "0.0"
-          LLAMA_ARG_BATCH: 2048
-          LLAMA_ARG_UBATCH: 1024
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Qwen 3.6 Preserve Thinking
-          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":false}'
+          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
           # Cache quants
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
           # MTP (Speculative Decoding)
-          # LLAMA_ARG_SPEC_TYPE: draft-mtp
-          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          LLAMA_ARG_SPEC_TYPE: draft-mtp
+          LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
           # Others
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
           LLAMA_ARG_CACHE_RAM: 2048
@@ -116,8 +116,8 @@ spec:
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
           # Others
-          LLAMA_ARG_CACHE_RAM: 4096
-          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CACHE_RAM: 2048
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1024
