@@ -51,8 +51,8 @@ spec:
         model: &qwen36-27b-mtp-model
           HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
           HF_HASH: b3a58239d8d40b953e34936c9afeb28baa518230
-          # HF_FILE: Qwen3.6-27B-UD-Q4_K_XL.gguf
-          HF_FILE: Qwen3.6-27B-UD-IQ3_XXS.gguf
+          HF_FILE: Qwen3.6-27B-UD-Q4_K_XL.gguf
+          # HF_FILE: Qwen3.6-27B-UD-IQ3_XXS.gguf
         env: &qwen36-27b-mtp-env
           # Model Params
           LLAMA_ARG_CTX_SIZE: 131072
@@ -61,7 +61,7 @@ spec:
           LLAMA_ARG_TOP_P: "0.95"
           LLAMA_ARG_MIN_P: "0.0"
           LLAMA_ARG_BATCH: 4096
-          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_UBATCH: 1024
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Qwen 3.6 Preserve Thinking
@@ -70,12 +70,12 @@ spec:
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
           # MTP (Speculative Decoding)
-          LLAMA_ARG_SPEC_TYPE: draft-mtp
-          LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          # LLAMA_ARG_SPEC_TYPE: draft-mtp
+          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
           # Others
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
-          LLAMA_ARG_CACHE_RAM: 2048
-          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CACHE_RAM: 4096
+          LLAMA_ARG_CTX_CHECKPOINTS: 4
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
       qwen3.6-35b-a3b-mtp:
         model: &qwen36-35b-a3b-mtp-model
@@ -134,16 +134,16 @@ spec:
             # prom.home.arpa/kps: allow
           nodeSelector:
             # kubernetes.io/hostname: dorothy
-            # gpu.intel.com/device-id.0300-46a6.present: "true"
-            nvidia.com/gpu.product: Tesla-T4
+            gpu.intel.com/device-id.0300-46a6.present: "true"
+            # nvidia.com/gpu.product: Tesla-T4
         containers:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              # tag: server-vulkan@sha256:9b4358347f6bef458c95a12b86a463c62399393f2bae11d936886e8bf283ba02
+              tag: server-vulkan@sha256:9b4358347f6bef458c95a12b86a463c62399393f2bae11d936886e8bf283ba02
               # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
-              tag: server-cuda12@sha256:0814ef4500c03650b84f25bfe3c928f9050e28f2cae26a3167938756a228eebe
+              # tag: server-cuda12@sha256:0814ef4500c03650b84f25bfe3c928f9050e28f2cae26a3167938756a228eebe
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -170,7 +170,7 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env: &env
-              <<: [ *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
+              <<: [ *qwen36-27b-mtp-model, *qwen36-27b-mtp-env ]
               TZ: "${CONFIG_TZ}"
               # Intel iGPU SYCL
               ZES_ENABLE_SYSMAN: "1"
@@ -184,15 +184,15 @@ spec:
                     apiVersion: v1
                     fieldPath: status.podIP
               LLAMA_ARG_PORT: &http 8080
-              # LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_FLASH_ATTN: on
-              LLAMA_ARG_N_PARALLEL: 1
+              LLAMA_ARG_N_PARALLEL: 2
               LLAMA_ARG_CONT_BATCHING: enabled
               LLAMA_ARG_CONTEXT_SHIFT: disabled
               LLAMA_ARG_CACHE_PROMPT: enabled
               LLAMA_ARG_KV_UNIFIED: enabled
               LLAMA_ARG_ENDPOINT_METRICS: enabled
-              LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
               LLAMA_ARG_THREADS: 8
                 # resourceFieldRef:
                 #   resource: limits.cpu
@@ -210,7 +210,7 @@ spec:
               limits:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
-                nvidia.com/gpu: 1
+                # nvidia.com/gpu: 1
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
@@ -235,7 +235,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: &mlhome "/models"
             env:
-              <<: *gemma4-26b-a4b-model
+              <<: *qwen36-27b-mtp-model
               HOME: *mlhome
               HF_HOME: *mlhome
               HF_HUB_DISABLE_XET: "1"
