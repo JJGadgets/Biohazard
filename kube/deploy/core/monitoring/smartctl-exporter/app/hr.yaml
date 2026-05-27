@@ -18,10 +18,15 @@ spec:
     fullnameOverride: *app
     serviceMonitor:
       enabled: true
+      attachMetadata:
+        node: true
       relabelings:
         # replaces other node identifiers with hostname
-        - sourceLabels: ["node"]
+        - action: replace
+          regex: (.*)
+          replacement: $1.${CLUSTER_NAME}
+          sourceLabels:
+            - __meta_kubernetes_pod_node_name
           targetLabel: instance
-          action: replace
     prometheusRules:
       enabled: true

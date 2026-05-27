@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/gitrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: nvidia
+  namespace: nvidia
+spec:
+  interval: 1h
+  timeout: 30s
+  url: https://helm.ngc.nvidia.com/nvidia
