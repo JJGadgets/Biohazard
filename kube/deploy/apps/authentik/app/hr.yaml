@@ -49,7 +49,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2026.2.3@sha256:7806ae1ae3423624fe90331e8b3dcca0afc155fac890c696dd92ddac6dc3a384
+              tag: 2026.5.0@sha256:feb81e02f7af70469c87c8a4fbfdb148647ae7a3ee5f79f8b08b7ee02b98c4c9
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -244,7 +244,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2026.2.3@sha256:91f982a01cf78291d142071e4d03fb18fcfbb47d6166c53fcf96ca17d3eb3c54
+              tag: 2026.5@sha256:a9e6eeef559be37c6ff7e085e67bb1b47a85f6dd51c4f7a954f6711b5a5d4bf1
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -285,7 +285,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2026.2.3@sha256:9c745bf3c11fc965b1a7cf6a8f2565ffafa0d25b0ffea173b9d0fae2d032fc9b
+              tag: 2026.5@sha256:ba39642d7d0a7d16a48837996ca74c5b6fe9f5a5dac34774eb124e7c07e001e8
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -328,7 +328,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/rac
-              tag: 2026.2.3@sha256:d6a607a39abeb21c1dd6318209f425ec2f00561a455b1ba0ef794b3419db9a98
+              tag: 2026.5@sha256:266c454d9366a05b9e8d480e3a4a0a7df9ac6540faf1e6045c60335c1e6d3b80
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
