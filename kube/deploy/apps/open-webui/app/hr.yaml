@@ -1,9 +1,9 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app sillytavern
+  name: &app open-webui
   namespace: *app
 spec:
   interval: 5m
@@ -17,20 +17,49 @@ spec:
         namespace: flux-system
   values:
     controllers:
-      sillytavern:
+      open-webui:
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
+            authentik.home.arpa/oidc: allow
             egress.home.arpa/cloudflare: allow
+            #egress.home.arpa/nginx-internal: allow
         containers:
           main:
             image: &img
-              repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.13.0@sha256:2f427b0062908ebe34410f80e1eec7d8c78156f96250274e62efefe9c5d69ae2
+              repository: ghcr.io/open-webui/open-webui
+              tag: 0.9.5@sha256:e045bde3b004cc7f8c319412345eb56c87ea6ac57031534a31ca37ad5424beb3
             env: &env
               TZ: "${CONFIG_TZ}"
+              # General
+              WEBUI_NAME: "${CLUSTER_NAME}"
+              WEBUI_URL: "https://${APP_DNS_OPEN_WEBUI}"
+              GLOBAL_LOG_LEVEL: "DEBUG"
+              ENABLE_PERSISTENT_CONFIG: "False" # follow env vars for config without storing and reading from DB
+              # Backends
+              OPENAI_API_BASE_URLS: "https://api.cloudflare.com/client/v4/accounts/$(CLOUDFLARE_ACCOUNT_ID)/ai/v1;http://llama-cpp-app.llama-cpp.svc.cluster.local/v1;http://llama-cpp-lite.llama-cpp.svc.cluster.local/v1"
+              ENABLE_OLLAMA_API: "False" # to prevent app from attempting to hit Ollama
+              # Airgap
+              RAG_EMBEDDING_ENGINE: "openai"
+              LITELLM_LOCAL_MODEL_COST_MAP: "True"
+              # Security
+              WEBUI_SESSION_COOKIE_SAME_SITE: "lax" # OIDC needs lax
+              WEBUI_SESSION_COOKIE_SECURE: "True"
+              # Auth
+              ENABLE_LOGIN_FORM: "False"
+              ENABLE_OAUTH_SIGNUP: "True"
+              OAUTH_PROVIDER_NAME: "JJGadgets Auth"
+              OAUTH_USERNAME_CLAIM: "preferred_username"
+              OPENID_PROVIDER_URL: "https://${APP_DNS_AUTHENTIK}/application/o/open-webui/.well-known/openid-configuration"
+              ENABLE_OAUTH_ROLE_MANAGEMENT: "True"
+              OAUTH_ROLES_CLAIM: "profile.groups"
+              OAUTH_ADMIN_ROLES: "Role-OpenWebUI-Admin"
+              OAUTH_ALLOWED_ROLES: "Role-OpenWebUI-User"
+            envFrom: &envFrom
+              - secretRef:
+                  name: open-webui-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -39,7 +68,6 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
                 cpu: "1"
                 memory: "1Gi"
@@ -48,67 +76,52 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-              startup:
-                enabled: true
-                spec:
-                  periodSeconds: 1
-                  failureThreshold: 600
+              #startup:
+              #  enabled: true
     service:
-      sillytavern:
-        controller: sillytavern
+      open-webui:
+        controller: open-webui
         ports:
           http:
-            port: 8000
+            port: 8080
             protocol: HTTP
             appProtocol: http
     ingress:
       main:
         className: nginx-internal
         hosts:
-          - host: &host "${APP_DNS_SILLYTAVERN:=sillytavern}"
+          - host: &host "${APP_DNS_OPEN_WEBUI:=open-webui}"
             paths: &paths
               - path: /
                 pathType: Prefix
                 service:
-                  identifier: sillytavern
+                  identifier: open-webui
                   port: http
         tls:
           - hosts: [*host]
     persistence:
       data:
-        existingClaim: sillytavern-data
+        existingClaim: open-webui-data
         globalMounts:
-          - subPath: config
-            path: /home/node/app/config
           - subPath: data
-            path: /home/node/app/data
-          - subPath: plugins
-            path: /home/node/app/plugins
-          - subPath: extensions
-            path: /home/node/app/public/scripts/extensions/third-party
+            path: /app/backend/data
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 64Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
-          - subPath: backups # temporarily not using due to VolSync
-            path: /home/node/app/backups
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "1"
-      hostUsers: false
+        - ip: "0.0.0.0"
+          hostnames: ["api.github.com"] # disable version checks
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid ${APP_UID_OPEN_WEBUI:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -125,7 +138,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/sillytavern
+                  - key: fuckoff.home.arpa/open-webui
                     operator: DoesNotExist
     networkpolicies:
       to-llm:
@@ -137,3 +150,6 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: mlc-llm
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: llama-cpp

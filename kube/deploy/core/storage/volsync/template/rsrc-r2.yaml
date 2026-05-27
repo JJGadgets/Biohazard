@@ -29,6 +29,7 @@ spec:
     retain: # keep all backups within 1 week (7 days), keep latest snapshot from each day within 2 weeks
       daily: ${DAILY:=14}
       within: ${WITHIN:=7d}
+      weekly: ${WEEKLY:=8}
     moverPodLabels:
       egress.home.arpa/r2: allow
     moverResources:

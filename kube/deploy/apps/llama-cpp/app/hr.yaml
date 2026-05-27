@@ -1,0 +1,360 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app llama-cpp
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    x-models:
+      gemma4-26b-a4b:
+        model: &gemma4-26b-a4b-model
+          HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
+          HF_HASH: ae4d537a6345467d1c86bb5cc0d4505ff3ebe0f3
+          HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
+        env: &gemma4-26b-a4b-env
+          # Model Params
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "0.4"
+          LLAMA_ARG_TOP_K: 40
+          LLAMA_ARG_TOP_P: "0.92"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Cache quants / VRAM fitting
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # LLAMA_ARG_CPU_MOE: "enabled"
+          # LLAMA_ARG_N_CPU_MOE: 32
+          # Others
+          LLAMA_ARG_CACHE_RAM: 2048
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
+          LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
+      gemma4-e4b:
+        model: &gemma4-e4b-model
+          HF_MODEL: ggml-org/gemma-4-E4B-it-GGUF
+          HF_HASH: 2714b5519c6c3516b1000e7c5e1eba998dfe1fe8
+          HF_FILE: gemma-4-E4B-it-Q4_K_M.gguf
+        env: &gemma4-e4b-env
+          <<: *gemma4-26b-a4b-env
+      qwen3.6-27b-mtp:
+        model: &qwen36-27b-mtp-model
+          HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
+          HF_HASH: b3a58239d8d40b953e34936c9afeb28baa518230
+          HF_FILE: Qwen3.6-27B-UD-Q4_K_XL.gguf
+          # HF_FILE: Qwen3.6-27B-UD-IQ3_XXS.gguf
+        env: &qwen36-27b-mtp-env
+          # Model Params
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "0.6"
+          LLAMA_ARG_TOP_K: 20
+          LLAMA_ARG_TOP_P: "0.95"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 1024
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Qwen 3.6 Preserve Thinking
+          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # MTP (Speculative Decoding)
+          # LLAMA_ARG_SPEC_TYPE: draft-mtp
+          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          # Others
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
+          LLAMA_ARG_CACHE_RAM: 4096
+          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+      qwen3.6-35b-a3b-mtp:
+        model: &qwen36-35b-a3b-mtp-model
+          # HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+          # HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
+          # HF_FILE: Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf
+          # HF_MODEL: byteshape/Qwen3.6-35B-A3B-MTP-GGUF
+          # HF_HASH: 83dc80a65cb948b8e5a9dd9776eda7425180dacc
+          # HF_FILE: Qwen3.6-35B-A3B-IQ4_XS-4.19bpw.gguf
+          HF_MODEL: byteshape/Qwen3.6-35B-A3B-GGUF
+          HF_HASH: 57f6dec8727b4c3f5498ff2564a0333ac1f6624a
+          HF_FILE: Qwen3.6-35B-A3B-Q4_K_S-4.22bpw.gguf
+        env: &qwen36-35b-a3b-mtp-env
+          <<: *qwen36-27b-mtp-env
+      qwen3.5-9b-mtp:
+        model: &qwen35-9b-mtp-model
+          HF_MODEL: unsloth/Qwen3.5-9B-MTP-GGUF
+          HF_HASH: 9716a636ee4bddc3fed678220b7a33dd2a4160ae
+          HF_FILE: Qwen3.5-9B-UD-Q6_K_XL.gguf
+        env: &qwen35-9b-mtp-env
+          <<: *qwen36-27b-mtp-env
+          LLAMA_ARG_SPEC_DRAFT_N_MAX: 6
+      gpt-oss-20b:
+        model: &gpt-oss-20b-model
+          HF_MODEL: ggml-org/gpt-oss-20b-GGUF
+          HF_HASH: e1dc459feff949ff451ce107337a2026daa80df8
+          HF_FILE: gpt-oss-20b-mxfp4.gguf
+        env: &gpt-oss-20b-env
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "1.0"
+          LLAMA_ARG_TOP_K: 0
+          LLAMA_ARG_TOP_P: "1.0"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # Others
+          LLAMA_ARG_CACHE_RAM: 2048
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
+          LLAMA_ARG_IMAGE_MAX_TOKENS: 1024
+    x-app-env: &env
+      TZ: "${CONFIG_TZ}"
+      # Intel iGPU SYCL
+      ZES_ENABLE_SYSMAN: "1"
+      ONEAPI_DEVICE_SELECTOR: level_zero:gpu
+      UR_L0_ENABLE_RELAXED_ALLOCATION_LIMITS: "1"
+      # llama.cpp config
+      LLAMA_OFFLINE: enabled
+      LLAMA_ARG_HOST:
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      LLAMA_ARG_PORT: &http 8080
+      LLAMA_ARG_N_GPU_LAYERS: all
+      LLAMA_ARG_FLASH_ATTN: on
+      LLAMA_ARG_N_PARALLEL: 2
+      LLAMA_ARG_CONT_BATCHING: enabled
+      LLAMA_ARG_CONTEXT_SHIFT: disabled
+      LLAMA_ARG_CACHE_PROMPT: enabled
+      LLAMA_ARG_KV_UNIFIED: enabled
+      LLAMA_ARG_ENDPOINT_METRICS: enabled
+      LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+      LLAMA_ARG_THREADS: 11
+        # resourceFieldRef:
+        #   resource: limits.cpu
+    x-pull-env: &pull-env
+      HOME: &mlhome "/models"
+      HF_HOME: *mlhome
+      HF_HUB_DISABLE_XET: "1"
+    controllers:
+      app:
+      # gemma4-26b-a4b:
+        # type: statefulset
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            # prom.home.arpa/kps: allow
+          nodeSelector:
+            # kubernetes.io/hostname: dorothy
+            gpu.intel.com/device-id.0300-46a6.present: "true"
+            # nvidia.com/gpu.product: Tesla-T4
+        containers:
+          app: &ct
+            image: &img
+              repository: ghcr.io/ggml-org/llama.cpp
+              # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
+              tag: server-vulkan@sha256:b4918541dfbb1e1b4cdb327b7a25a30bc7f68e833e050bc9ee783caad1aadc88
+              # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
+              # tag: server-cuda12@sha256:0814ef4500c03650b84f25bfe3c928f9050e28f2cae26a3167938756a228eebe
+            args:
+            - --model
+            - "/models/$(HF_MODEL)/$(HF_FILE)"
+            # - --mmproj
+            # - /models/gemma4-26b/mmproj-F16.gguf
+            - -sps
+            - "0.90"
+            - --temp
+            - "$(LLAMA_ARG_TEMPERATURE)"
+            - --top-p
+            - "$(LLAMA_ARG_TOP_P)"
+            - --min-p
+            - "$(LLAMA_ARG_MIN_P)"
+            - --presence-penalty
+            - "$(LLAMA_ARG_PRESENCE_PENALTY)"
+            - --repeat-penalty
+            - "$(LLAMA_ARG_REPEAT_PENALTY)"
+            - --cpu-mask
+            - "0x55" # CPUs 0, 2, 4, 6 --> binary 01010101, CPU 0 from the rightmost (why?) --> hex 0x55
+            - --cpu-strict
+            - "1"
+            # - --threads-batch
+            # - "6"
+            # - --mlock
+            # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
+            env:
+              <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
+              LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_THREADS: 11
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+                # resourceFieldRef:
+                #   resource: limits.cpu
+            # envFrom: &envFrom
+            #   - secretRef:
+            #       name: llama-cpp-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                # cpu: 6 # same number of cores as lowest number of non-HT cores per node
+                # gpu.intel.com/i915: "1"
+                # nvidia.com/gpu: 1
+                memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      pull: &pull
+        type: job
+        # cronjob:
+        #   schedule: "@weekly"
+        #   concurrencyPolicy: "Replace"
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app: &pull-ct
+            image:
+              repository: registry.jjgadgets.tech/jjgadgets/hf
+              tag: 1.15.0@sha256:b94cb083b60c422cf7f90bb3423a6ab85744f53e649517396ed812fddcfb2bf4
+            command: ["hf", "download", "--exclude", ".git"]
+            args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
+            workingDir: *mlhome
+            env:
+              <<: [ *pull-env, *gemma4-26b-a4b-model ]
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                cpu: 4
+                memory: "1Gi"
+      lite:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            # prom.home.arpa/kps: allow
+        containers:
+          app:
+            <<: *ct
+            image: &img
+              repository: ghcr.io/ggml-org/llama.cpp
+              tag: server-vulkan@sha256:b4918541dfbb1e1b4cdb327b7a25a30bc7f68e833e050bc9ee783caad1aadc88
+            env:
+              <<: [ *env, *gemma4-e4b-model, *gemma4-e4b-env ]
+              # llama.cpp config
+              LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_N_PARALLEL: 1
+              LLAMA_ARG_THREADS: 6
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+                # resourceFieldRef:
+                #   resource: limits.cpu
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                gpu.intel.com/i915: "1"
+                memory: "10Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+      pull-lite:
+        <<: *pull
+        containers:
+          app:
+            <<: *pull-ct
+            env:
+              <<: [ *pull-env, *gemma4-e4b-model ]
+    service:
+      app: &svc
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+      lite:
+        <<: *svc
+        controller: lite
+    persistence:
+      misc:
+        existingClaim: llama-cpp-misc
+        globalMounts:
+          - subPath: models
+            path: /models
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          # - subPath: shader-cache
+          #   path: /.cache
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      # hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 84925
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        supplementalGroups: [44]
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      from-frontends:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: open-webui
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: sillytavern
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: code-server
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: home-assistant
