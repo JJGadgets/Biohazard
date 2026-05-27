@@ -148,7 +148,7 @@ spec:
       LLAMA_ARG_THREADS: 11
         # resourceFieldRef:
         #   resource: limits.cpu
-    x-pull-env:
+    x-pull-env: &pull-env
       HOME: &mlhome "/models"
       HF_HOME: *mlhome
       HF_HUB_DISABLE_XET: "1"
