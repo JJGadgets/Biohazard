@@ -435,7 +435,7 @@ patches:
             containers:
               - &ct
                 name: bridge-mac-set
-                image: nixery.dev/shell/gnugrep/gawk/findutils/iproute2/bridge-utils/ethtool:latest
+                image: nixery.dev/shell/gnugrep/gawk/findutils/iproute2/bridge-utils/ethtool:latest@sha256:abf1110019729853e21cf836ed0312709ade3f3e142ef33adf1e9d747cc788e8
                 command: ["/bin/sh", "-c"]
                 args:
                   - |
