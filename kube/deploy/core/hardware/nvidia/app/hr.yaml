@@ -1,0 +1,33 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app nvidia-gpu-operator
+  namespace: nvidia
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: gpu-operator
+      version: v26.3.1
+      sourceRef:
+        name: nvidia
+        kind: HelmRepository
+        namespace: nvidia
+  values:
+    daemonsets:
+      labels:
+        egress.home.arpa/apiserver: allow
+    operator:
+      labels:
+        egress.home.arpa/apiserver: allow
+    driver:
+      enabled: false
+    toolkit:
+      enabled: false
+    hostPaths:
+      driverInstallDir: /usr/local
+    nfd:
+      enabled: false
+      nodefeaturerules: true

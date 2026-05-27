@@ -46,17 +46,17 @@ spec:
         barmanObjectName: *name
         serverName: *name
   # # RECOVERY
-  # bootstrap:
-  #   recovery:
-  #     source: *name
-  #     # recoveryTarget:
-  #     #   targetTLI: "1"
-  # ## Note: externalClusters is needed when recovering from an existing cnpg cluster
-  # externalClusters:
-  #   - name: *name
-  #     plugin:
-  #       name: *plugin
-  #       parameters: *barman
+  bootstrap:
+    recovery:
+      source: *name
+      # recoveryTarget:
+      #   targetTLI: "1"
+  ## Note: externalClusters is needed when recovering from an existing cnpg cluster
+  externalClusters:
+    - name: *name
+      plugin:
+        name: *plugin
+        parameters: *barman
   resources:
     requests:
       cpu: "${PG_CPU_REQ:=50m}"

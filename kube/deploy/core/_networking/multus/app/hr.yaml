@@ -21,11 +21,17 @@ spec:
         type: daemonset
         serviceAccount:
           identifier: app
-        # initContainers:
-        #   01-install-cni-plugins: # NOTE: only required for CNI plugins not in base Talos image, basically anything not bridge, e.g. macvlan, sbr (https://github.com/siderolabs/talos/discussions/10524#discussioncomment-12492587)
-        #     image:
-        #       repository: ghcr.io/home-operations/cni-plugins
-        #       tag: 1.8.0@sha256:9353f70c1d202437a492935e9c053f91c352e69c8fa683ef039ae550ac4a27f5
+        initContainers:
+          01-install-cni-plugins: # NOTE: only required for CNI plugins not in base Talos image, basically anything not bridge, e.g. macvlan, sbr, as well as IPAM plugins (dhcp, static etc) (https://github.com/siderolabs/talos/discussions/10524#discussioncomment-12492587)
+            image:
+              repository: ghcr.io/home-operations/cni-plugins
+              tag: 1.8.0@sha256:9353f70c1d202437a492935e9c053f91c352e69c8fa683ef039ae550ac4a27f5
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_ADMIN"]
         containers:
           app:
             image: &img
@@ -34,12 +40,7 @@ spec:
             args:
               - --cleanup-config-on-exit
               - --multus-cni-conf-dir=/tmp
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-                add: ["NET_ADMIN"]
+            securityContext: *sc
     persistence:
       etc-cni-net-d:
         type: hostPath
