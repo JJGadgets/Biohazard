@@ -167,7 +167,7 @@ spec:
             gpu.intel.com/device-id.0300-46a6.present: "true"
             # nvidia.com/gpu.product: Tesla-T4
         containers:
-          app: &sc
+          app: &ct
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
@@ -262,7 +262,7 @@ spec:
             # prom.home.arpa/kps: allow
         containers:
           app:
-            <<: *sc
+            <<: *ct
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               tag: server-vulkan@sha256:9b4358347f6bef458c95a12b86a463c62399393f2bae11d936886e8bf283ba02
