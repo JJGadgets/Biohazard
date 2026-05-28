@@ -261,27 +261,32 @@ spec:
               - path:
                   type: PathPrefix
                   value: /_app/immutable/
-                # headers:
-                #   - &referer
-                #     name: Referer
-                #     type: RegularExpression
-                #     value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
+                headers:
+                  - &referer
+                    name: Referer
+                    type: RegularExpression
+                    value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
+              - path:
+                  type: Exact
+                  value: /_app/env.js
+                headers: [*referer]
               - path:
                   type: Exact
                   value: /service-worker.js
+                headers: [*referer]
               - path:
                   type: PathPrefix
                   value: /api/shared-links/me
-                # headers: [*referer]
+                headers: [*referer]
               - path:
                   type: PathPrefix
                   value: /api/server
-                # headers: [*referer]
+                headers: [*referer]
               - path:
                   type: PathPrefix
                   value: /api/assets
                 headers:
-                  # - *referer
+                  - *referer
                   - &shared-link-cookie
                     name: Cookie
                     type: RegularExpression
