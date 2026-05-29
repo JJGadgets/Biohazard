@@ -268,7 +268,7 @@ spec:
             <<: *ct
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-vulkan@sha256:b4918541dfbb1e1b4cdb327b7a25a30bc7f68e833e050bc9ee783caad1aadc88
+              tag: server-vulkan@sha256:411f8ba6e8cafd0771a0d62cde7bd968bf5169d9c0784d4f804ba26421305832
             env:
               <<: [ *env, *gemma4-e4b-model, *gemma4-e4b-env ]
               # llama.cpp config
