@@ -23,7 +23,7 @@ spec:
           HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_NL.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
-          LLAMA_ARG_CTX_SIZE: 49152
+          LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.4"
           LLAMA_ARG_TOP_K: 40
           LLAMA_ARG_TOP_P: "0.92"
@@ -35,7 +35,7 @@ spec:
           # Cache quants / VRAM fitting
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
-          # LLAMA_ARG_CPU_MOE: "enabled"
+          LLAMA_ARG_CPU_MOE: "enabled"
           # LLAMA_ARG_N_CPU_MOE: 32
           # Others
           LLAMA_ARG_CACHE_RAM: 2048
