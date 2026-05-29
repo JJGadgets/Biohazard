@@ -166,9 +166,9 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             # prom.home.arpa/kps: allow
           nodeSelector:
-            # kubernetes.io/hostname: dorothy
+            kubernetes.io/hostname: dorothy
             # gpu.intel.com/device-id.0300-46a6.present: "true"
-            nvidia.com/gpu.product: Tesla-T4
+            # nvidia.com/gpu.product: Tesla-T4
         containers:
           app: &ct
             image: &img
@@ -305,11 +305,22 @@ spec:
         <<: *svc
         controller: lite
     persistence:
+      local:
+        existingClaim: llama-cpp-local
+        advancedMounts:
+          app: &local
+            app:
+              - subPath: models
+                path: /models
+          pull: *local
       misc:
         existingClaim: llama-cpp-misc
-        globalMounts:
-          - subPath: models
-            path: /models
+        advancedMounts:
+          lite: &misc
+            app:
+              - subPath: models
+                path: /models
+          pull-lite: *misc
       tmp:
         type: emptyDir
         medium: Memory

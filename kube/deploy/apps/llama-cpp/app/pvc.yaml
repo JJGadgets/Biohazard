@@ -15,3 +15,20 @@ spec:
   resources:
     requests:
       storage: "150Gi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "llama-cpp-local"
+  namespace: &app "llama-cpp"
+  annotations:
+    description: "PVC on local-hostpath for misc files that don't need to be backed up, like models."
+  labels:
+    app.kubernetes.io/name: *app
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
+spec:
+  storageClassName: "local"
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: "150Gi"
