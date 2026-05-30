@@ -346,7 +346,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        supplementalGroups: [44]
+        # supplementalGroups: [44]
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
