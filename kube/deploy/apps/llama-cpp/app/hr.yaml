@@ -20,10 +20,10 @@ spec:
           # HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
           HF_MODEL: unsloth/gemma-4-26B-A4B-it-GGUF
           HF_HASH: 3365c68df1a83799b846d05324ebfadbb8cc70b3
-          HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_NL.gguf
+          HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_XS.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
-          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_CTX_SIZE: 60000
           LLAMA_ARG_TEMPERATURE: "0.4"
           LLAMA_ARG_TOP_K: 40
           LLAMA_ARG_TOP_P: "0.92"
@@ -35,11 +35,11 @@ spec:
           # Cache quants / VRAM fitting
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
-          LLAMA_ARG_CPU_MOE: "enabled"
+          # LLAMA_ARG_CPU_MOE: "enabled"
           # LLAMA_ARG_N_CPU_MOE: 32
           # Others
           LLAMA_ARG_CACHE_RAM: 2048
-          LLAMA_ARG_CTX_CHECKPOINTS: 1
+          LLAMA_ARG_CTX_CHECKPOINTS: 2
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
@@ -139,16 +139,14 @@ spec:
             apiVersion: v1
             fieldPath: status.podIP
       LLAMA_ARG_PORT: &http 8080
-      LLAMA_ARG_N_GPU_LAYERS: all
+      # LLAMA_ARG_N_GPU_LAYERS: all
       LLAMA_ARG_FLASH_ATTN: on
       LLAMA_ARG_N_PARALLEL: 1
-      LLAMA_ARG_CONT_BATCHING: enabled
-      LLAMA_ARG_CONTEXT_SHIFT: disabled
-      LLAMA_ARG_CACHE_PROMPT: enabled
-      LLAMA_ARG_KV_UNIFIED: enabled
+      # LLAMA_ARG_CONT_BATCHING: enabled
+      # LLAMA_ARG_CONTEXT_SHIFT: disabled
+      # LLAMA_ARG_CACHE_PROMPT: enabled
+      # LLAMA_ARG_KV_UNIFIED: enabled
       LLAMA_ARG_ENDPOINT_METRICS: enabled
-      LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
-      LLAMA_ARG_THREADS: 11
         # resourceFieldRef:
         #   resource: limits.cpu
     x-pull-env: &pull-env
@@ -204,7 +202,7 @@ spec:
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
-              LLAMA_ARG_N_GPU_LAYERS: all
+              # LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 1
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
@@ -283,7 +281,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                gpu.intel.com/i915: "1"
+                # gpu.intel.com/i915: "1"
                 memory: "11Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
       pull-lite:
         <<: *pull
