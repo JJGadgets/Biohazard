@@ -20,7 +20,8 @@ spec:
           # HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
           HF_MODEL: unsloth/gemma-4-26B-A4B-it-GGUF
           HF_HASH: 3365c68df1a83799b846d05324ebfadbb8cc70b3
-          HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_XS.gguf
+          # HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_XS.gguf
+          HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
           LLAMA_ARG_CTX_SIZE: 60000
@@ -142,17 +143,26 @@ spec:
       # LLAMA_ARG_N_GPU_LAYERS: all
       LLAMA_ARG_FLASH_ATTN: on
       LLAMA_ARG_N_PARALLEL: 1
-      # LLAMA_ARG_CONT_BATCHING: enabled
-      # LLAMA_ARG_CONTEXT_SHIFT: disabled
-      # LLAMA_ARG_CACHE_PROMPT: enabled
-      # LLAMA_ARG_KV_UNIFIED: enabled
+      LLAMA_ARG_CONT_BATCHING: enabled
+      LLAMA_ARG_CONTEXT_SHIFT: disabled
+      LLAMA_ARG_CACHE_PROMPT: enabled
+      LLAMA_ARG_KV_UNIFIED: enabled
       LLAMA_ARG_ENDPOINT_METRICS: enabled
+      LLAMA_ARG_THREADS: 11
+      LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
         # resourceFieldRef:
         #   resource: limits.cpu
     x-pull-env: &pull-env
       HOME: &mlhome "/models"
       HF_HOME: *mlhome
       HF_HUB_DISABLE_XET: "1"
+    x-svc-ports: &ports
+      ports:
+        http:
+          port: 80
+          targetPort: *http
+          protocol: HTTP
+          appProtocol: http
     controllers:
       app:
       # gemma4-26b-a4b:
@@ -172,9 +182,9 @@ spec:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
               # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              # tag: server-vulkan@sha256:b4918541dfbb1e1b4cdb327b7a25a30bc7f68e833e050bc9ee783caad1aadc88
+              tag: server-vulkan@sha256:b4918541dfbb1e1b4cdb327b7a25a30bc7f68e833e050bc9ee783caad1aadc88
               # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
-              tag: server-cuda12@sha256:e0334d55309a10a236b7e9e4bff21780882a311e4291e002bcc4fe5838e628af
+              # tag: server-cuda12@sha256:e0334d55309a10a236b7e9e4bff21780882a311e4291e002bcc4fe5838e628af
             args:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -204,10 +214,8 @@ spec:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
               # LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 1
-              LLAMA_ARG_THREADS: 4
-              LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
-                # resourceFieldRef:
-                #   resource: limits.cpu
+              # LLAMA_ARG_THREADS: 4
+              # LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
             # envFrom: &envFrom
             #   - secretRef:
             #       name: llama-cpp-secrets
@@ -222,7 +230,7 @@ spec:
               limits:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
-                nvidia.com/gpu: 1
+                # nvidia.com/gpu: 1
                 memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
@@ -254,54 +262,50 @@ spec:
               limits:
                 cpu: 4
                 memory: "1Gi"
-      lite:
-        type: deployment
-        replicas: 1
-        pod:
-          labels:
-            ingress.home.arpa/envoy-internal: allow
-            # prom.home.arpa/kps: allow
-        containers:
-          app:
-            <<: *ct
-            image: &img
-              repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-vulkan@sha256:dca559dd886b415b4ced54f09197a2d84b55c432736a3a3fccca82359444f50c
-            env:
-              <<: [ *env, *gemma4-e4b-model, *gemma4-e4b-env ]
-              # llama.cpp config
-              LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 1
-              LLAMA_ARG_THREADS: 6
-              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
-                # resourceFieldRef:
-                #   resource: limits.cpu
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                # gpu.intel.com/i915: "1"
-                memory: "11Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
-      pull-lite:
-        <<: *pull
-        containers:
-          app:
-            <<: *pull-ct
-            env:
-              <<: [ *pull-env, *gemma4-e4b-model ]
+      # lite:
+      #   type: deployment
+      #   replicas: 1
+      #   pod:
+      #     labels:
+      #       ingress.home.arpa/envoy-internal: allow
+      #       # prom.home.arpa/kps: allow
+      #   containers:
+      #     app:
+      #       <<: *ct
+      #       image: &img
+      #         repository: ghcr.io/ggml-org/llama.cpp
+      #         tag: server-vulkan@sha256:dca559dd886b415b4ced54f09197a2d84b55c432736a3a3fccca82359444f50c
+      #       env:
+      #         <<: [ *env, *gemma4-e4b-model, *gemma4-e4b-env ]
+      #         # llama.cpp config
+      #         LLAMA_ARG_N_GPU_LAYERS: all
+      #         LLAMA_ARG_N_PARALLEL: 1
+      #         LLAMA_ARG_THREADS: 6
+      #         LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+      #           # resourceFieldRef:
+      #           #   resource: limits.cpu
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           # gpu.intel.com/i915: "1"
+      #           memory: "11Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+      # pull-lite:
+      #   <<: *pull
+      #   containers:
+      #     app:
+      #       <<: *pull-ct
+      #       env:
+      #         <<: [ *pull-env, *gemma4-e4b-model ]
     service:
       app: &svc
+        <<: *ports
         controller: app
-        ports:
-          http:
-            port: 80
-            targetPort: *http
-            protocol: HTTP
-            appProtocol: http
-      lite:
-        <<: *svc
-        controller: lite
+        forceRename: *app
+      # lite:
+      #   <<: *ports
+      #   controller: lite
     persistence:
       local:
         existingClaim: llama-cpp-local
@@ -311,14 +315,14 @@ spec:
               - subPath: models
                 path: /models
           pull: *local
-      misc:
-        existingClaim: llama-cpp-misc
-        advancedMounts:
-          lite: &misc
-            app:
-              - subPath: models
-                path: /models
-          pull-lite: *misc
+      # misc:
+      #   existingClaim: llama-cpp-misc
+      #   advancedMounts:
+      #     lite: &misc
+      #       app:
+      #         - subPath: models
+      #           path: /models
+      #     pull-lite: *misc
       tmp:
         type: emptyDir
         medium: Memory
@@ -335,7 +339,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: false
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 84925
