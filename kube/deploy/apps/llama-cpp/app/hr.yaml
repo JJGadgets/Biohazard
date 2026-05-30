@@ -342,7 +342,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 84925
+        runAsUser: &uid 65534
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
