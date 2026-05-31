@@ -24,6 +24,7 @@ spec:
           HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
+          LLAMA_ARG_ALIAS: gemma4-26b-a4b
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.4"
           LLAMA_ARG_TOP_K: 40
@@ -51,6 +52,7 @@ spec:
           HF_FILE: gemma-4-E4B-it-Q4_K_M.gguf
         env: &gemma4-e4b-env
           <<: *gemma4-26b-a4b-env
+          LLAMA_ARG_ALIAS: gemma4-e4b
       qwen3.6-27b-mtp:
         model: &qwen36-27b-mtp-model
           HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
@@ -59,6 +61,7 @@ spec:
           # HF_FILE: Qwen3.6-27B-UD-IQ3_XXS.gguf
         env: &qwen36-27b-mtp-env
           # Model Params
+          LLAMA_ARG_ALIAS: qwen3.6-27b
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.6"
           LLAMA_ARG_TOP_K: 20
@@ -94,6 +97,7 @@ spec:
           HF_FILE: Qwen3.6-35B-A3B-Q4_K_S-4.22bpw.gguf
         env: &qwen36-35b-a3b-mtp-env
           <<: *qwen36-27b-mtp-env
+          LLAMA_ARG_ALIAS: qwen3.6-35b-a3b
       qwen3.5-9b-mtp:
         model: &qwen35-9b-mtp-model
           HF_MODEL: unsloth/Qwen3.5-9B-MTP-GGUF
@@ -101,6 +105,7 @@ spec:
           HF_FILE: Qwen3.5-9B-UD-Q6_K_XL.gguf
         env: &qwen35-9b-mtp-env
           <<: *qwen36-27b-mtp-env
+          LLAMA_ARG_ALIAS: qwen3.5-9b
           LLAMA_ARG_SPEC_DRAFT_N_MAX: 6
       gpt-oss-20b:
         model: &gpt-oss-20b-model
@@ -108,6 +113,7 @@ spec:
           HF_HASH: e1dc459feff949ff451ce107337a2026daa80df8
           HF_FILE: gpt-oss-20b-mxfp4.gguf
         env: &gpt-oss-20b-env
+          LLAMA_ARG_ALIAS: gpt-oss-20b
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "1.0"
           LLAMA_ARG_TOP_K: 0
