@@ -187,7 +187,7 @@ spec:
           app:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.8.0@sha256:25e102bdf0bd1ea1f5840ce8873275ba12dc544740a1c9bda9fc71001f5c7190"
+              tag: "8.8.0@sha256:aa049e689e141a4358ad1d4562dc49c88a89fbab711fd8fcc33f684c80b26301"
             command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
@@ -268,10 +268,15 @@ spec:
                 #     value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
               - path:
                   type: Exact
+                  value: /_app/env.js
+                # headers: [*referer]
+              - path:
+                  type: Exact
                   value: /service-worker.js
+                # headers: [*referer]
               - path:
                   type: PathPrefix
-                  value: /api/shared-links/me
+                  value: /api/shared-links/
                 # headers: [*referer]
               - path:
                   type: PathPrefix
@@ -300,7 +305,7 @@ spec:
                   - *shared-link-cookie
               - path:
                   type: PathPrefix
-                  value: /api/timeline/bucket
+                  value: /api/timeline/buckets
                 headers:
                   # - *referer
                   - *shared-link-cookie

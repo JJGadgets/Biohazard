@@ -42,7 +42,7 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "immich-data"
-      SIZE: "500Gi"
+      SIZE: "700Gi"
       CACHESIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
