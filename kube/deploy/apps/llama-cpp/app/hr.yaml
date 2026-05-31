@@ -24,7 +24,7 @@ spec:
           HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
-          LLAMA_ARG_CTX_SIZE: 60000
+          LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.4"
           LLAMA_ARG_TOP_K: 40
           LLAMA_ARG_TOP_P: "0.92"
@@ -34,13 +34,13 @@ spec:
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Cache quants / VRAM fitting
-          LLAMA_ARG_CACHE_TYPE_K: q8_0
-          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # LLAMA_ARG_CACHE_TYPE_K: q8_0
+          # LLAMA_ARG_CACHE_TYPE_V: q8_0
           # LLAMA_ARG_CPU_MOE: "enabled"
           # LLAMA_ARG_N_CPU_MOE: 32
           # Others
-          LLAMA_ARG_CACHE_RAM: 2048
-          LLAMA_ARG_CTX_CHECKPOINTS: 2
+          LLAMA_ARG_CACHE_RAM: 4096
+          LLAMA_ARG_CTX_CHECKPOINTS: 4
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
@@ -172,7 +172,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
-            # prom.home.arpa/kps: allow
+            prom.home.arpa/kps: allow
           nodeSelector:
             kubernetes.io/hostname: dorothy
             # gpu.intel.com/device-id.0300-46a6.present: "true"
@@ -213,7 +213,7 @@ spec:
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env ]
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 1
+              LLAMA_ARG_N_PARALLEL: 2
               # LLAMA_ARG_THREADS: 4
               # LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
             # envFrom: &envFrom
