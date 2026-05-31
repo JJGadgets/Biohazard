@@ -24,7 +24,7 @@ spec:
           HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
-          LLAMA_ARG_ALIAS: gemma4-26b-a4b
+          LLAMA_ARG_ALIAS: gemma-4-26b-a4b
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.4"
           LLAMA_ARG_TOP_K: 40
@@ -52,7 +52,7 @@ spec:
           HF_FILE: gemma-4-E4B-it-Q4_K_M.gguf
         env: &gemma4-e4b-env
           <<: *gemma4-26b-a4b-env
-          LLAMA_ARG_ALIAS: gemma4-e4b
+          LLAMA_ARG_ALIAS: gemma-4-e4b
       qwen3.6-27b-mtp:
         model: &qwen36-27b-mtp-model
           HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
