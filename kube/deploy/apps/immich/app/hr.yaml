@@ -41,7 +41,7 @@ spec:
               IMMICH_TELEMETRY_INCLUDE: "all"
               IMMICH_API_METRICS_PORT: &metrics-api 8081
               IMMICH_MICROSERVICES_METRICS_PORT: &metrics-ms 8081
-              IMMICH_SERVER_URL: &svcURL http://immich.immich.svc.cluster.local
+              IMMICH_SERVER_URL: &svcURL http://immich-app.immich.svc.cluster.local
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
               DB_VECTOR_EXTENSION: pgvector # I couldn't really care less for worser machine learning, over half my library is screenshots
