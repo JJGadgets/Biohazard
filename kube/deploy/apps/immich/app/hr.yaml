@@ -309,6 +309,12 @@ spec:
                 headers:
                   # - *referer
                   - *shared-link-cookie
+              - path:
+                  type: PathPrefix
+                  value: /api/timeline/bucket
+                headers:
+                  # - *referer
+                  - *shared-link-cookie
             backendRefs:
               - identifier: app
                 port: http
