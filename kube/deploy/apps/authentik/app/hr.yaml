@@ -527,7 +527,7 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      runtimeClassName: kata
+      runtimeClassName: gvisor
       # hostUsers: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"

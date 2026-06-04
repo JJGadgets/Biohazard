@@ -135,7 +135,8 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      # hostUsers: false
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 65534

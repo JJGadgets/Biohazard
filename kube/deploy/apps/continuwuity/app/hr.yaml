@@ -195,7 +195,7 @@ spec:
           - name: ndots
             value: "1"
       # hostUsers: false
-      runtimeClassName: kata
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 65534
