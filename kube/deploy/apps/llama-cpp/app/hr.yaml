@@ -231,10 +231,10 @@ spec:
             - "$(LLAMA_ARG_PRESENCE_PENALTY)"
             - --repeat-penalty
             - "$(LLAMA_ARG_REPEAT_PENALTY)"
-            - --cpu-mask
-            - "0x55" # CPUs 0, 2, 4, 6 --> binary 01010101, CPU 0 from the rightmost (why?) --> hex 0x55
-            - --cpu-strict
-            - "1"
+            # - --cpu-mask
+            # - "0x55" # CPUs 0, 2, 4, 6 --> binary 01010101, CPU 0 from the rightmost (why?) --> hex 0x55
+            # - --cpu-strict
+            # - "1"
             # - --threads-batch
             # - "6"
             # - --mlock
@@ -242,9 +242,12 @@ spec:
             # NOTE: ik_llama.cpp
             - --model-draft
             - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
-            - --spec-type mtp
-            - --draft-max 3
-            - --draft-p-min 0.0
+            - --spec-type
+            - mtp
+            - --draft-max
+            - "3"
+            - --draft-p-min
+            - "0.0"
             - --spec-autotune
             - --no-context-shift
             - --mlock
@@ -262,8 +265,10 @@ spec:
             - --split-mode-f32
             - --cpu-moe
             - --merge-up-gate-experts
-            - --flash-attn on
-            - --mla-use 3
+            - --flash-attn
+            - "on"
+            - --mla-use
+            - "3"
             - --mlock
             - --run-time-repack
             - --no-kv-offload
