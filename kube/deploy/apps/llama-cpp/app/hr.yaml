@@ -300,12 +300,11 @@ spec:
                 enabled: true
       pull: &pull
         type: job
-        # cronjob:
-        #   schedule: "@weekly"
-        #   concurrencyPolicy: "Replace"
         pod:
           labels:
             egress.home.arpa/internet: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app: &pull-ct
             image:
@@ -324,7 +323,12 @@ spec:
                 cpu: 4
                 memory: "1Gi"
       pull-mtp:
-        <<: *pull
+        type: job
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app:
             <<: *pull-ct
@@ -363,7 +367,10 @@ spec:
       #           # gpu.intel.com/i915: "1"
       #           memory: "11Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
       # pull-lite:
-      #   <<: *pull
+        # type: job
+        # pod:
+        #   labels:
+        #     egress.home.arpa/internet: allow
       #   containers:
       #     app:
       #       <<: *pull-ct
