@@ -105,21 +105,21 @@ transforms:
       # - <<: *perf
       #   field: freediskstorage
 sinks:
-  vlogs:
-    inputs: [fortigate-parse-message]
-    type: http
-    uri: http://victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local:9428/insert/jsonline?_stream_fields=fortigate,type,subtype,vd&_msg_field=message&_time_field=date
-    request:
-      headers:
-        AccountID: "51401"
-        ProjectID: "0"
-    compression: gzip
-    encoding:
-      codec: json
-    framing:
-      method: newline_delimited
-    healthcheck:
-      enabled: false
+  # vlogs:
+  #   inputs: [fortigate-parse-message]
+  #   type: http
+  #   uri: http://victoria-logs-victoria-logs-single-server.monitoring.svc.cluster.local:9428/insert/jsonline?_stream_fields=fortigate,type,subtype,vd&_msg_field=message&_time_field=date
+  #   request:
+  #     headers:
+  #       AccountID: "51401"
+  #       ProjectID: "0"
+  #   compression: gzip
+  #   encoding:
+  #     codec: json
+  #   framing:
+  #     method: newline_delimited
+  #   healthcheck:
+  #     enabled: false
   prometheus:
     inputs:
       - fortigate-convert-metrics
