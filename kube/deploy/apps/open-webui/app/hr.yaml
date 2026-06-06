@@ -119,6 +119,7 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
         - ip: "0.0.0.0"
           hostnames: ["api.github.com"] # disable version checks
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_OPEN_WEBUI:=1000}
