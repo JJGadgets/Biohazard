@@ -64,7 +64,7 @@ spec:
               - "sh"
               - "-c"
               - |
-                while [[ ! -z "$(pgrep node)" ]] || [[ ! -s $(HOME)/.openclaw/openclaw.json ]]; do
+                while [ ! -z "$(pgrep node)" ] || [ ! -s $(HOME)/.openclaw/openclaw.json ]; do
                   echo 'OpenClaw has not been setup, please exec to this container and run `openclaw setup` for the app to startup!';
                   sleep 60;
                 done;
@@ -99,9 +99,10 @@ spec:
         existingClaim: openclaw-data
         advancedMounts:
           app:
-            app:
+            app: &mount
               - subPath: data
                 path: *pvc
+            setup: *mount
       tmp:
         type: emptyDir
         medium: Memory
