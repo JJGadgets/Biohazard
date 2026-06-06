@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: opencode-app
+  namespace: &ns opencode
+  labels: &l
+    app.kubernetes.io/name: "opencode"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/opencode/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: opencode-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: opencode-pvc
+  namespace: &ns opencode
+  labels: &l
+    app.kubernetes.io/name: opencode
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "opencode-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/anomalyco/opencode:1.16.2@sha256:873c8572e4b28c299e56062a321aa968af815d708ce03906aae25ad5c3f8036e"
+      RUID: &uid "${APP_DNS_OPENCODE:=1000}"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "opencode-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "llama.cpp-biohazard/gemma-4-26b-a4b",
+  "provider": {
+    "llama.cpp-biohazard": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp (biohazard)",
+      "options": {
+        "baseURL": "http://llama-cpp.llama-cpp.svc.cluster.local/"
+      },
+      "models": {
+        "gemma-4-26b-a4b": {
+          "name": "Gemma 4 26B",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        },
+        "qwen3.6-35b-a3b": {
+          "name": "Qwen 3.6 35B",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        },
+        "gemma-4-e4b": {
+          "name": "Gemma 4 E4B",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        },
+        "qwen3.6-27b": {
+          "name": "Qwen 3.6 27B",
+          "limit": {
+            "context": 131072,
+            "output": 65536
+          }
+        }
+      }
+    }
+  },
+  "default_agent": "plan"
+}
