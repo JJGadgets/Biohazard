@@ -203,16 +203,16 @@ spec:
         containers:
           app:
             # NOTE: llama.cpp upstream
-            image: &img
-              repository: ghcr.io/ggml-org/llama.cpp
-              # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
-              tag: server-vulkan@sha256:fe71ba679289f8a301cb964f038baab87491928f6ac28b7697468bc6b9f4cb41
-              # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
-              # tag: server-cuda12@sha256:e0334d55309a10a236b7e9e4bff21780882a311e4291e002bcc4fe5838e628af
+            # image: &img
+            #   repository: ghcr.io/ggml-org/llama.cpp
+            #   # tag: server-intel@sha256:036dd98ac779e947df2591bb373877924e0b9b86d2c9cee52d35335b1f443e3f
+            #   tag: server-vulkan@sha256:fe71ba679289f8a301cb964f038baab87491928f6ac28b7697468bc6b9f4cb41
+            #   # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
+            #   # tag: server-cuda12@sha256:e0334d55309a10a236b7e9e4bff21780882a311e4291e002bcc4fe5838e628af
             # NOTE:  ik_llama.cpp fork for better CPU inference
-            # image:
-            #   repository: ghcr.io/ikawrakow/ik-llama-cpp
-            #   tag: cpu-server@sha256:72d5f4108563f7c087bdc6d25bee629786b34046f98d13b2e358e096547383b6
+            image:
+              repository: ghcr.io/ikawrakow/ik-llama-cpp
+              tag: cpu-server@sha256:72d5f4108563f7c087bdc6d25bee629786b34046f98d13b2e358e096547383b6
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args: &args
             - --model
@@ -240,39 +240,37 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             # NOTE: ik_llama.cpp
-            # - --model-draft
-            # - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
-            # - --spec-type
-            # - mtp
-            # - --draft-max
-            # - "3"
-            # - --draft-p-min
-            # - "0.0"
-            # - --spec-autotune
-            # - --no-context-shift
-            # - -cnv
-            # - --color
-            # - --jinja
-            # - --special
-            # # - -sm
-            # # - graph # no GPU so not applicable
-            # - -smgs
-            # - -mea
-            # - "256"
-            # - --split-mode-f32
-            # - --cpu-moe
-            # - --merge-up-gate-experts
-            # - --flash-attn
-            # - "on"
-            # - --mla-use
-            # - "3"
-            # - --mlock
-            # - --run-time-repack
-            # - --no-kv-offload
-            # - -cram
-            # - "$(LLAMA_ARG_CACHE_RAM)"
-            # - -crs
-            # - "0.90"
+            - --model-draft
+            - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
+            - --spec-type
+            - mtp
+            - --draft-max
+            - "3"
+            - --draft-p-min
+            - "0.0"
+            - --spec-autotune
+            - --no-context-shift
+            - --color
+            - --jinja
+            # - -sm
+            # - graph # no GPU so not applicable
+            - -smgs
+            - -mea
+            - "256"
+            - --split-mode-f32
+            - --cpu-moe
+            - --merge-up-gate-experts
+            - --flash-attn
+            - "on"
+            - --mla-use
+            - "3"
+            - --mlock
+            - --run-time-repack
+            - --no-kv-offload
+            - -cram
+            - "$(LLAMA_ARG_CACHE_RAM)"
+            - -crs
+            - "0.90"
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
