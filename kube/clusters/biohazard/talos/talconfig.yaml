@@ -217,23 +217,23 @@ nodes:
             - siderolabs/intel-ice-firmware
             - siderolabs/mei # Intel 12 gen & newer
             - siderolabs/thunderbolt
-            - siderolabs/nonfree-kmod-nvidia-production
-            - siderolabs/nvidia-container-toolkit-production
+            # - siderolabs/nonfree-kmod-nvidia-production
+            # - siderolabs/nvidia-container-toolkit-production
     extensionServices:
       - *lldpd
     patches:
       - |
         machine:
-          kernel:
-            modules:
-              - name: nvidia
-              - name: nvidia_uvm
-              - name: nvidia_drm
-              - name: nvidia_modeset
+          # kernel:
+          #   modules:
+          #     - name: nvidia
+          #     - name: nvidia_uvm
+          #     - name: nvidia_drm
+          #     - name: nvidia_modeset
           sysfs:
-            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_0_power_limit_uw: "45000000"
-            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "65000000"
-            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_2_power_limit_uw: "65000000"
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_0_power_limit_uw: "65000000"
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_1_power_limit_uw: "85000000"
+            devices.virtual.powercap.intel-rapl.intel-rapl:0.constraint_2_power_limit_uw: "85000000"
 
 patches:
   # set all disks to no scheduler
