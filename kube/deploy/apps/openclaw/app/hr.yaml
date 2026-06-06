@@ -29,10 +29,11 @@ spec:
               TZ: "${CONFIG_TZ}"
               OPENCLAW_LOG_LEVEL: debug
               BROWSER_WS_ENDPOINT: "ws://localhost:9222"
-              GOPATH: /home/node/go
-              HOME: &pvc /home/node
+              HOME: &pvc /home/openclaw
+              OPENCLAW_HOME: *pvc
+              GOPATH: "$(HOME)/go"
               OPENCLAW_GATEWAY_PORT: &http 8080
-              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              PATH: "$(HOME)/.local/bin:$(HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               TERM: xterm-256color
             # envFrom: &envFrom
@@ -56,6 +57,19 @@ spec:
                 enabled: true
         serviceAccount:
           identifier: app
+        initContainers:
+          setup:
+            image: *img
+            command:
+              - "sh"
+              - "-c"
+              - |
+                while [[ ! -z "$(pgrep node)" ]] || [[ ! -s $(HOME)/.openclaw/openclaw.json ]]; do
+                  echo 'OpenClaw has not been setup, please exec to this container and run `openclaw setup` for the app to startup!';
+                  sleep 60;
+                done;
+            env: *env
+            securityContext: *sc
     service:
       app:
         controller: app
@@ -88,13 +102,13 @@ spec:
             app:
               - subPath: data
                 path: *pvc
-      # tmp:
-      #   type: emptyDir
-      #   medium: Memory
-      #   sizeLimit: 16Mi
-      #   globalMounts:
-      #     - subPath: tmp
-      #       path: /tmp
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
       # nfs:
       #   type: nfs
       #   server: "${IP_TRUENAS:=127.0.0.1}"
@@ -112,7 +126,7 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000 # upstream `node` user
+        runAsUser: &uid "${APP_UID_OPENCLAW}" # upstream `node` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
