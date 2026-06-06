@@ -453,6 +453,12 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: home-assistant
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: opencode
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: openclaw
     serviceMonitor:
       app:
         service:
