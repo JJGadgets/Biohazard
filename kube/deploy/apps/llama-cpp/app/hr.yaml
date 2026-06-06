@@ -213,7 +213,7 @@ spec:
             image:
               repository: ghcr.io/ikawrakow/ik-llama-cpp
               tag: cpu-server@sha256:72d5f4108563f7c087bdc6d25bee629786b34046f98d13b2e358e096547383b6
-            command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
+            command: ["taskset", "-c", "0-7", "/app/llama-server"]
             args: &args
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
@@ -240,18 +240,18 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             # NOTE: ik_llama.cpp
-            - --model-draft
-            - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
-            - --spec-type
-            - mtp
-            - --draft-max
-            - "3"
-            - --draft-p-min
-            - "0.0"
-            - --spec-autotune
+            # - --model-draft
+            # - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
+            # - --spec-type
+            # - mtp
+            # - --draft-max
+            # - "3"
+            # - --draft-p-min
+            # - "0.0"
+            # - --spec-autotune
             - --no-context-shift
             - --color
-            - --jinja
+            # - --jinja
             # - -sm
             # - graph # no GPU so not applicable
             - -smgs
@@ -274,8 +274,8 @@ spec:
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 1 # TODO: ik_llama MTP doesn't support parallel
-              LLAMA_ARG_THREADS: 4
+              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_THREADS: 8
               # LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
             # envFrom: &envFrom
             #   - secretRef:
