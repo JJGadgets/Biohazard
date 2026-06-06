@@ -126,7 +126,7 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid "${APP_UID_OPENCLAW}" # upstream `node` user
+        runAsUser: &uid ${APP_UID_OPENCLAW:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
