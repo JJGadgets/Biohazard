@@ -13,10 +13,14 @@ spec:
   path: ./kube/deploy/apps/openclaw/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: openclaw-pvc
+  postBuild:
+    substitute:
+      AUTH_ROUTE: openclaw
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
