@@ -106,7 +106,6 @@ spec:
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
