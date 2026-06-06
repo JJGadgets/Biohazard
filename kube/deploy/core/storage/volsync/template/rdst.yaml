@@ -26,9 +26,9 @@ spec:
     cleanupCachePVC: true
     moverSecurityContext:
       runAsNonRoot: true
-      runAsUser: !!int ${RUID:=1000}
-      runAsGroup: !!int ${RGID:=1000}
-      fsGroup: !!int ${RFSG:=1000}
+      runAsUser: ${RUID:=1000}
+      runAsGroup: ${RGID:=1000}
+      fsGroup: ${RFSG:=1000}
       seccompProfile: {type: "RuntimeDefault"}
     moverPodLabels:
       s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
