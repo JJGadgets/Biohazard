@@ -1,0 +1,154 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app openclaw
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            # egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/openclaw/openclaw
+              tag: 2026.6.1@sha256:b12f76a7947e4cdd328bf3ea1045d41a5494b33852c911e9bc4fdd03dde469d5
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              OPENCLAW_LOG_LEVEL: debug
+              BROWSER_WS_ENDPOINT: "ws://localhost:9222"
+              GOPATH: /home/node/go
+              HOME: &pvc /home/node
+              OPENCLAW_GATEWAY_PORT: &http 8080
+              PATH: /home/node/.local/bin:/home/node/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              PIP_BREAK_SYSTEM_PACKAGES: "1"
+              TERM: xterm-256color
+            envFrom: &envFrom
+              - secretRef:
+                  name: openclaw-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "4"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_OPENCLAW:=openclaw}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      # config:
+      #   type: configMap
+      #   identifier: config
+      #   advancedMounts:
+      #     app:
+      #       app:
+      #         - subPath: server.toml
+      #           path: /data/server.toml
+      data:
+        existingClaim: openclaw-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: *pvc
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_PERSIST_K8S:=/home}"
+      #   globalMounts:
+      #     - subPath: openclaw
+      #       path: /nfs
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000 # upstream `node` user
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      app:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          egress:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: llama-cpp
+    serviceAccount:
+      app: {}
+    rbac:
+      roles:
+        openclaw-exec-deploy-llm:
+          type: Role
+          rules:
+            - apiGroups: [""]
+              resources: ["pods/exec"]
+              verbs: ["create"]
+            - apiGroups: ["apps"]
+              resources: ["deployments"]
+              verbs: ["patch", "update"]
+      bindings:
+        openclaw-exec-deploy-llm:
+          type: RoleBinding
+          roleRef:
+            identifier: openclaw-exec-deploy-llm
+          subjects:
+            - identifier: app
