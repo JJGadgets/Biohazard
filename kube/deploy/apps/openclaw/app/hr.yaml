@@ -36,9 +36,9 @@ spec:
               PATH: "$(HOME)/.local/bin:$(HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               TERM: xterm-256color
-            # envFrom: &envFrom
-            #   - secretRef:
-            #       name: openclaw-secrets
+            envFrom: &envFrom
+              - secretRef:
+                  name: openclaw-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -80,12 +80,19 @@ spec:
             protocol: HTTP
             appProtocol: http
     route:
-      app:
+      app: &route
         hostnames: ["${APP_DNS_OPENCLAW:=openclaw}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+      unauth:
+        <<: *route
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /manifest.webmanifest
     persistence:
       # config:
       #   type: configMap
