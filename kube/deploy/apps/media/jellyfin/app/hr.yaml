@@ -43,6 +43,7 @@ spec:
               limits:
                 cpu: "1"
                 memory: "2Gi"
+                gpu.intel.com/i915: "1"
             probes:
               liveness:
                 enabled: true
@@ -95,13 +96,13 @@ spec:
         globalMounts:
           - path: "/ceph-bulk"
             readOnly: true
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/media}"
-        globalMounts:
-          - path: /media
-            readOnly: true
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/media}"
+      #   globalMounts:
+      #     - path: /media
+      #       readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -119,7 +120,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
-        supplementalGroups: [44] # iGPU
+        # supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:

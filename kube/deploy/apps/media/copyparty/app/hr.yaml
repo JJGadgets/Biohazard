@@ -84,12 +84,12 @@ spec:
         existingClaim: "media-bulk"
         globalMounts:
           - path: "/w/ceph/media-bulk"
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/media}"
-        globalMounts:
-          - path: /w/nas/media
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/media}"
+      #   globalMounts:
+      #     - path: /w/nas/media
       tmp:
         type: emptyDir
         medium: Memory

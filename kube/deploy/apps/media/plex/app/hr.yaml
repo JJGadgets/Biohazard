@@ -116,13 +116,13 @@ spec:
             path: /config/Library/Application Support/Plex Media Server/Cache
           - subPath: transcode
             path: transcode
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/media}"
-        globalMounts:
-          - path: /nfs
-            readOnly: true
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/media}"
+      #   globalMounts:
+      #     - path: /nfs
+      #       readOnly: true
       media:
         existingClaim: "media-data" # VolSync
         globalMounts:

@@ -127,23 +127,23 @@ spec:
             app:
               - subPath: music-edit-venv
                 path: /config/.venv
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/media}"
-        advancedMounts:
-          app:
-            app:
-              - subPath: Music
-                path: /media/nfs
-                readOnly: true
-            # edit:
-            #   - &mount
-            #     subPath: Music
-            #     path: /media/nfs
-            # app:
-            #   - <<: *mount
-            #     readOnly: true
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/media}"
+      #   advancedMounts:
+      #     app:
+      #       app:
+      #         - subPath: Music
+      #           path: /media/nfs
+      #           readOnly: true
+      #       # edit:
+      #       #   - &mount
+      #       #     subPath: Music
+      #       #     path: /media/nfs
+      #       # app:
+      #       #   - <<: *mount
+      #       #     readOnly: true
       tmp:
         type: emptyDir
       ffmpeg:
