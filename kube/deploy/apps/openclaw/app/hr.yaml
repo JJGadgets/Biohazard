@@ -17,6 +17,7 @@ spec:
         type: deployment
         replicas: 1
         pod:
+          hostname: *app
           labels:
             ingress.home.arpa/envoy-internal: allow
             dns.home.arpa/l7: "true"

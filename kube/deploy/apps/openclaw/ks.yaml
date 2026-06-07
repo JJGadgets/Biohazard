@@ -42,10 +42,10 @@ spec:
     substitute:
       PVC: &pvc "openclaw-data"
       SIZE: "10Gi"
-      SC: &sc "file"
+      SC: &sc "block"
       SNAP: *sc
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       VS_APP_CURRENT_VERSION: "ghcr.io/openclaw/openclaw:2026.6.1@sha256:b12f76a7947e4cdd328bf3ea1045d41a5494b33852c911e9bc4fdd03dde469d5"
       RUID: &uid "1000" # upstream `node` user
       RGID: *uid
