@@ -19,6 +19,8 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
+            dns.home.arpa/l7: "true"
+            egress.home.arpa/github: allow
             # egress.home.arpa/internet: allow
         containers:
           app:
