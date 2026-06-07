@@ -104,6 +104,15 @@ spec:
               - subPath: data
                 path: *pvc
             setup: *mount
+      misc:
+        existingClaim: openclaw-misc
+        advancedMounts:
+          app:
+            app:
+              - subPath: brew
+                path: /home/linuxbrew
+              - subPath: nix
+                path: /nix
       tmp:
         type: emptyDir
         medium: Memory
