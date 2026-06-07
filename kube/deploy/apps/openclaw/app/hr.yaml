@@ -86,13 +86,7 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-      unauth:
-        <<: *route
-        rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /manifest.webmanifest
+        # NOTE: `manifest.webmanifest must be excluded as unauth on authentik forward auth provider for PWA install to work`
     persistence:
       # config:
       #   type: configMap
