@@ -39,8 +39,8 @@ spec:
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Cache quants / VRAM fitting
-          # LLAMA_ARG_CACHE_TYPE_K: q8_0
-          # LLAMA_ARG_CACHE_TYPE_V: q8_0
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
           # LLAMA_ARG_CPU_MOE: "enabled"
           # LLAMA_ARG_N_CPU_MOE: 32
           # Others
@@ -274,7 +274,7 @@ spec:
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_N_PARALLEL: 1 # TODO: ik_llama.cpp has a Flash Attention bug more commonly triggered by n_parallel > 1 https://github.com/ikawrakow/ik_llama.cpp/issues/1910
               LLAMA_ARG_THREADS: 8
               # LLAMA_ARG_MMAP: disabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
             # envFrom: &envFrom
@@ -292,7 +292,7 @@ spec:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
                 # nvidia.com/gpu: 1
-                memory: "45Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "46Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes:
               liveness:
                 enabled: true
