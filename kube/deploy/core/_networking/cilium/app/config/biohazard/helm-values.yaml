@@ -41,6 +41,14 @@ ipam:
         ipv4:
           cidrs: ["${IP_POD_CIDR_DEFAULT_V4}"]
           maskSize: 24
+      ingress:
+        ipv4:
+          cidrs: ["${IP_POD_CIDR_INGRESS_V4}"]
+          maskSize: 29
+      vpn-vlan:
+        ipv4:
+          cidrs: ["${IP_POD_CIDR_VPN_V4}"]
+          maskSize: 28
 kubeProxyReplacement: true
 k8s:
   apiServerURLs: &apiServerURLs "https://${IP_ROUTER_VLAN_K8S_PREFIX}1:6443 https://${IP_ROUTER_VLAN_K8S_PREFIX}2:6443 https://${IP_ROUTER_VLAN_K8S_PREFIX}3:6443"
