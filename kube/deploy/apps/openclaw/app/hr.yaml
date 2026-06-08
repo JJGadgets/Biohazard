@@ -23,14 +23,6 @@ spec:
             dns.home.arpa/l7: "true"
             egress.home.arpa/github: allow
             # egress.home.arpa/internet: allow
-          annotations:
-            k8s.v1.cni.cncf.io/networks: | # VPN
-              [{
-                "name":"vpn-vlan",
-                "namespace": "multus",
-                "ips": ["${APP_IP_OPENCLAW_VPN}"],
-                "mac": "${APP_MAC_OPENCLAW_VPN}"
-              }]
         containers:
           app:
             image: &img
