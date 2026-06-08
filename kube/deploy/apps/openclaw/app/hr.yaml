@@ -23,6 +23,9 @@ spec:
             dns.home.arpa/l7: "true"
             egress.home.arpa/github: allow
             # egress.home.arpa/internet: allow
+          annotations:
+            ipam.cilium.io/ip-pool: vpn-vlan
+            ipam.cilium.io/require-pool-match: "true"
         containers:
           app:
             image: &img
