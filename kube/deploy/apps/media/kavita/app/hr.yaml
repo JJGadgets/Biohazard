@@ -76,20 +76,20 @@ spec:
         globalMounts:
           - path: "/bulk"
             readOnly: true
-      nas:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_MEDIA:=/kavita}"
-        globalMounts:
-          - path: /nas
-            readOnly: true
-      backups:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_BACKUPS_K8S:=/backups}"
-        globalMounts:
-          - subPath: "kavita"
-            path: "/kavita/config/backups"
+      # nas:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/kavita}"
+      #   globalMounts:
+      #     - path: /nas
+      #       readOnly: true
+      # backups:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_BACKUPS_K8S:=/backups}"
+      #   globalMounts:
+      #     - subPath: "kavita"
+      #       path: "/kavita/config/backups"
       tmp:
         type: emptyDir
         medium: Memory
@@ -108,6 +108,7 @@ spec:
           - name: ndots
             value: "1"
       hostUsers: true
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 6969
