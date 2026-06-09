@@ -100,7 +100,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 977 # upstream `searxng` user
@@ -115,3 +115,16 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+    networkpolicies:
+      app:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: openclaw
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: open-webui
