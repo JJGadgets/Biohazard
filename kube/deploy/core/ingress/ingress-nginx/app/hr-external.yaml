@@ -30,6 +30,8 @@ spec:
         annotations:
           "io.cilium/lb-ipam-ips": "${APP_IP_NGINX_EXTERNAL:=127.0.0.1}"
           tailscale.com/expose: "true"
+          ipam.cilium.io/ip-pool: ingress
+          ipam.cilium.io/require-pool-match: "true"
       extraArgs:
         default-ssl-certificate: "ingress/short-domain-tls"
       ingressClassResource:

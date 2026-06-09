@@ -17,6 +17,8 @@ spec:
   infrastructure:
     annotations:
       lbipam.cilium.io/ips: "${APP_IP_ENVOY_EXTERNAL:=127.0.0.1}"
+      ipam.cilium.io/ip-pool: ingress
+      ipam.cilium.io/require-pool-match: "true"
   listeners:
     - name: http
       protocol: HTTP
