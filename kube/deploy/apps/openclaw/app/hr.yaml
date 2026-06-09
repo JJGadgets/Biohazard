@@ -22,6 +22,7 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             dns.home.arpa/l7: "true"
             egress.home.arpa/github: allow
+            egress.home.arpa/cloudflare: allow
             # egress.home.arpa/internet: allow
           annotations:
             ipam.cilium.io/ip-pool: vpn-vlan
