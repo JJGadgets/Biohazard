@@ -25,7 +25,7 @@ spec:
             image: &img
               repository: ghcr.io/9001/copyparty-dj
               tag: 1.20.16@sha256:2663c45945f613c9a1d93cf234ce265b7e35b2ff5b8c20a5192a5a9cae21821c
-            args: ["--rproxy=1", "--xff-src=${IP_POD_CIDR_V4}", "--no-robots", "--hist=/cfg/hists", "-v=/w::A"]
+            args: ["--rproxy=1", "--xff-src=${IP_POD_CIDR_INGRESS_V4}", "--no-robots", "--hist=/cfg/hists", "-v=/w::A"]
             env: &env
               TZ: "${CONFIG_TZ}"
               LD_PRELOAD: "/usr/lib/libmimalloc-secure.so.2"

@@ -48,7 +48,7 @@ spec:
               ND_PROMETHEUS_ENABLED: "true"
               ND_PROMETHEUS_METRICSPATH: &metrics /metrics
               ND_EXTAUTH_USERHEADER: X-authentik-username
-              ND_EXTAUTH_TRUSTEDSOURCES: "${IP_POD_CIDR_V4:=127.0.0.1/32},127.0.0.1/32,::1/128"
+              ND_EXTAUTH_TRUSTEDSOURCES: "${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32},127.0.0.1/32,::1/128"
               ND_ENABLEINSIGHTSCOLLECTOR: "false"
               ND_LISTENBRAINZ_ENABLED: "true"
               ND_LISTENBRAINZ_BASEURL: "http://maloja.maloja.svc.cluster.local/apis/listenbrainz/1/"

@@ -15,7 +15,7 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -43,7 +43,7 @@ spec:
             requests:
               cpu: 30m
             limits:
-              cpu: "1"
+              cpu: "4"
               memory: 1Gi
         containers:
           app:
@@ -113,7 +113,7 @@ spec:
               AUTHENTIK_STORAGE__MEDIA__S3__SECURE_URLS: "true"
               AUTHENTIK_STORAGE__MEDIA__S3__ADDRESSING_STYLE: path
               # misc
-              AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+              AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS: "${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"
               AUTHENTIK_OUTPOSTS__DISCOVER: "false"
               # error reporting
               AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
@@ -174,7 +174,7 @@ spec:
           #       enabled: true
       worker:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -204,7 +204,7 @@ spec:
                 cpu: 20m
                 # memory: 750Mi
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: 1Gi # TODO: workers have been memory leaking since 2025.10 due to outpost update tasks flooding Postgres and being scheduled more than 1 per second despite crontab of 28 */4 * * *
             probes:
               readiness: &worker-probe
@@ -232,7 +232,7 @@ spec:
                   <<: [*startup, *wps]
       ldap:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -257,8 +257,8 @@ spec:
               requests:
                 cpu: 10m
               limits:
-                cpu: "1"
-                memory: 50Mi
+                cpu: "4"
+                memory: 150Mi
             probes:
               liveness: &ldap-probe
                 enabled: true
@@ -273,7 +273,7 @@ spec:
                   <<: [*startup, *lps]
       radius:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -298,8 +298,8 @@ spec:
               requests:
                 cpu: 10m
               limits:
-                cpu: "1"
-                memory: "50Mi"
+                cpu: "4"
+                memory: "150Mi"
             probes:
               liveness: &radius-probe
                 enabled: true
@@ -314,7 +314,7 @@ spec:
                   <<: [*startup, *rps]
       rac:
         type: deployment
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "90%"
@@ -341,8 +341,8 @@ spec:
               requests:
                 cpu: 10m
               limits:
-                cpu: "1"
-                memory: "50Mi"
+                cpu: "4"
+                memory: "150Mi"
             probes:
               liveness: &rac-probe
                 enabled: true

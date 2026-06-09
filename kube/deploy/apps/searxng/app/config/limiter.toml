@@ -1,0 +1,10 @@
+[botdetection]
+trusted_proxies = [
+  '${IP_POD_CIDR_INGRESS_V4}',
+]
+
+[botdetection.ip_lists]
+pass_ip = [
+  '${IP_POD_CIDR_DEFAULT_V4}',
+  '${IP_POD_CIDR_VPN_V4}',
+]

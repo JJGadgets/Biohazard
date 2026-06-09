@@ -32,7 +32,7 @@ spec:
               TRILIUM_ENV: production
               TRILIUM_DATA_DIR: &pvc /data
               TRILIUM_NETWORK_PORT: &http 8080
-              TRILIUM_NETWORK_TRUSTEDREVERSEPROXY: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+              TRILIUM_NETWORK_TRUSTEDREVERSEPROXY: "${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://${APP_DNS_TRILIUM}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "JJGadgets Auth"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://jjgadgets.tech/images/favicon.png"
@@ -70,12 +70,25 @@ spec:
             protocol: HTTP
             appProtocol: http
     route:
-      app:
+      app: &route
         hostnames: ["${APP_DNS_TRILIUM:=trilium}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+      # share:
+      #   <<: *route
+      #   annotations:
+      #     external-dns
+      #   parentRefs:
+      #     - name: envoy-external
+      #       namespace: ingress
+      #       sectionName: external
+      #   rules:
+      #     - matches:
+      #         - path:
+      #             type: PathPrefix
+      #             value: /share
     persistence:
       data:
         existingClaim: trilium-data

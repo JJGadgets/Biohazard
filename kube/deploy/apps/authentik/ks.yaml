@@ -64,7 +64,7 @@ spec:
             dynamicConfiguration:
               postgresql:
                 parameters:
-                  max_connections: 500
+                  max_connections: 1000
       target:
         group: postgres-operator.crunchydata.com
         kind: PostgresCluster

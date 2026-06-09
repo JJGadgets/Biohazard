@@ -77,7 +77,7 @@ spec:
   clientIPDetection:
     xForwardedFor:
       # numTrustedHops: 1
-      trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+      trustedCIDRs: ["${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"]
     # customHeader:
     #   name: CF-Connecting-IP
     #   failClosed: false
@@ -160,7 +160,7 @@ spec:
   clientIPDetection:
     xForwardedFor:
       # numTrustedHops: 1
-      trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+      trustedCIDRs: ["${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"]
     # customHeader:
     #   name: CF-Connecting-IP
     #   failClosed: false

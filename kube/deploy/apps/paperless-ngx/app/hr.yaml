@@ -45,7 +45,7 @@ spec:
               PAPERLESS_TRASH_DIR: &trash "/data/trash"
               PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
               # PAPERLESS_SOCIALACCOUNT_PROVIDERS in ES envFrom
-              PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_V4}"
+              PAPERLESS_TRUSTED_PROXIES: "${IP_POD_CIDR_INGRESS_V4}"
               PAPERLESS_OCR_LANGUAGES: "eng"
               PAPERLESS_OCR_LANGUAGE: "eng"
               PAPERLESS_CONSUMER_POLLING: "60" # 1 minute, inotify doesn't work over NFS

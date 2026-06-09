@@ -69,7 +69,7 @@ spec:
       sectionName: internal
   clientIPDetection:
     xForwardedFor:
-      trustedCIDRs: ["${IP_POD_CIDR_V4:=127.0.0.1/32}"]
+      trustedCIDRs: ["${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"]
   tls:
     alpnProtocols:
       - http/1.1

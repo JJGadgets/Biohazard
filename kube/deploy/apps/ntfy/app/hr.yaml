@@ -31,7 +31,7 @@ spec:
               AAA_HTTP: &http 8080
               NTFY_LISTEN_HTTP: ":$(AAA_HTTP)"
               NTFY_BEHIND_PROXY: "true"
-              NTFY_PROXY_TRUSTED_HOSTS: "${IP_POD_CIDR_V4:=127.0.0.1/32}"
+              NTFY_PROXY_TRUSTED_HOSTS: "${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"
               AAA_HTTPS: &https 8443
               NTFY_LISTEN_HTTPS: ":$(AAA_HTTPS)"
               AAA_TLS_PATH: &tls "/tls"
