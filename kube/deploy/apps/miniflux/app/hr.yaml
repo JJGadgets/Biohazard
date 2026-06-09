@@ -24,9 +24,10 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             db.home.arpa/pg: pg-default
-            authentik.home.arpa/https: allow
+            authentik.home.arpa/oidc: allow
             egress.home.arpa/internet: allow
-            egress.home.arpa/discord: allow
+            # egress.home.arpa/discord: allow
+            egress.home.arpa/ntfy: allow
         containers:
           main:
             image: &img
@@ -93,10 +94,12 @@ spec:
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      hostUsers: false
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid ${APP_UID_MINIFLUX:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always

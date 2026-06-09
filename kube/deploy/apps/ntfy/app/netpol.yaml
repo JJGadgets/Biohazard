@@ -44,7 +44,6 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: ntfy
             app.kubernetes.io/name: ntfy
-            app.kubernetes.io/controller: app
       toPorts:
         - ports:
             - port: "8443"
