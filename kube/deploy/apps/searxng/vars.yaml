@@ -33,3 +33,7 @@ spec:
         APP_DNS_SEARXNG: '{{ .APP_DNS_SEARXNG }}'
         APP_DNS_LIBREDDIT: '{{ .APP_DNS_REDLIB }}'
         APP_DNS_PIPED_FRONTEND: '{{ .APP_DNS_PIPED_FRONTEND }}'
+        # Global vars
+        IP_POD_CIDR_DEFAULT_V4: '{{ .IP_POD_CIDR_DEFAULT_V4 }}'
+        IP_POD_CIDR_INGRESS_V4: '{{ .IP_POD_CIDR_INGRESS_V4 }}'
+        IP_POD_CIDR_VPN_V4: '{{ .IP_POD_CIDR_VPN_V4 }}'
