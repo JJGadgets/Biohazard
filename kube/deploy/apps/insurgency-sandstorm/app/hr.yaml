@@ -51,7 +51,7 @@ spec:
               requests:
                 cpu: "100m"
               limits:
-                cpu: "2"
+                cpu: "4"
                 memory: "2Gi"
             # probes: # TODO: figure out UDP probes
             #   liveness:
@@ -81,7 +81,7 @@ spec:
               requests:
                 cpu: "300m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "512Mi"
     service:
       app:
