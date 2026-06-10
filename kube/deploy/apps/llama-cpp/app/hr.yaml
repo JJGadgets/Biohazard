@@ -73,6 +73,21 @@ spec:
         env: &gemma-4-12b-env
           <<: *gemma4-26b-a4b-env
           LLAMA_ARG_ALIAS: gemma-4-12b
+      embeddinggemma:
+        model: &embeddinggemma-model
+          HF_MODEL: unsloth/embeddinggemma-300m-GGUF
+          HF_HASH: 6661a6504c30d8304af13455cb4a5d4f5bc6011f
+          HF_FILE: embeddinggemma-300M-Q8_0.gguf
+        env: &gemma4-26b-a4b-env
+          # Model Params
+          LLAMA_ARG_ALIAS: &alias embeddinggemma
+          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
+          LLAMA_ARG_CTX_SIZE: 2048
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          # Cache quants / VRAM fitting
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
       qwen3.6-27b-mtp:
         model: &qwen36-27b-mtp-model
           HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
@@ -345,6 +360,63 @@ spec:
               HF_MODEL: "$(AA_HF_MTP_MODEL)"
               HF_HASH: "$(AA_HF_MTP_HASH)"
               HF_FILE: "$(AA_HF_MTP_FILE)"
+      embedding:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            prom.home.arpa/kps: allow
+        containers:
+          app:
+            <<: *ct
+            image: &img
+              repository: ghcr.io/ikawrakow/ik-llama-cpp
+              tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
+            command: ["taskset", "-c", "0-7", "/app/llama-server"]
+            args:
+            - --embedding
+            - --model
+            - "/models/$(HF_MODEL)/$(HF_FILE)"
+            - --metrics
+            - --no-context-shift
+            - -smgs
+            - -mea
+            - "256"
+            - --split-mode-f32
+            - --merge-up-gate-experts
+            - --flash-attn
+            - "on"
+            # - --mla-use
+            # - "3"
+            - --mlock
+            - --run-time-repack
+            - --no-kv-offload
+            env:
+              <<: [ *env, *embeddinggemma-model, *embeddinggemma-env ]
+              # llama.cpp config
+              LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_THREADS: 6
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+                # resourceFieldRef:
+                #   resource: limits.cpu
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+      pull-embedding:
+        type: job
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            <<: *pull-ct
+            env:
+              <<: [ *pull-env, *embeddinggemma-model ]
       # lite:
       #   type: deployment
       #   replicas: 1
@@ -392,6 +464,9 @@ spec:
       # lite:
       #   <<: *ports
       #   controller: lite
+      embedding:
+        <<: *ports
+        controller: embedding
     persistence:
       local:
         existingClaim: llama-cpp-local
@@ -406,14 +481,16 @@ spec:
                 path: "/data/ik_llama/slot-save-path"
           pull: *local
           pull-mtp: *local
-      # misc:
-      #   existingClaim: llama-cpp-misc
-      #   advancedMounts:
-      #     lite: &misc
-      #       app:
-      #         - subPath: models
-      #           path: /models
-      #     pull-lite: *misc
+      misc:
+        existingClaim: llama-cpp-misc
+        advancedMounts:
+          embedding: &misc
+            app:
+              - subPath: models
+                path: /models
+          pull-embedding: *misc
+          # lite: *misc
+          # pull-lite: *misc
       tmp:
         type: emptyDir
         medium: Memory
@@ -472,10 +549,14 @@ spec:
                     matchLabels:
                       kubernetes.io/metadata.name: openclaw
     serviceMonitor:
-      app:
+      app: &sm
         service:
           identifier: app
         endpoints:
           - port: metrics
             scheme: http
             path: /metrics
+      embedding:
+        <<: *sm
+        service:
+          identifier: embedding
