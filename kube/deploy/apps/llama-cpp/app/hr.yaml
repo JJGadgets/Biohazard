@@ -219,7 +219,7 @@ spec:
             # gpu.intel.com/device-id.0300-46a6.present: "true"
             # nvidia.com/gpu.product: Tesla-T4
         containers:
-          app:
+          app: &ct
             # NOTE: llama.cpp upstream
             # image: &img
             #   repository: ghcr.io/ggml-org/llama.cpp
@@ -316,7 +316,7 @@ spec:
                 # gpu.intel.com/i915: "1"
                 # nvidia.com/gpu: 1
                 memory: "46Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
-            probes:
+            probes: &probes
               liveness:
                 enabled: true
               readiness:
@@ -369,7 +369,6 @@ spec:
             prom.home.arpa/kps: allow
         containers:
           app:
-            <<: *ct
             image: &img
               repository: ghcr.io/ikawrakow/ik-llama-cpp
               tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
@@ -407,6 +406,7 @@ spec:
                 cpu: "10m"
               limits:
                 memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+            probes: *probes
       pull-embedding:
         type: job
         pod:
