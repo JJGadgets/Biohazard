@@ -47,8 +47,8 @@ spec:
           # LLAMA_ARG_CPU_MOE: "enabled"
           # LLAMA_ARG_N_CPU_MOE: 32
           # Others
-          LLAMA_ARG_CACHE_RAM: 4096
-          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CACHE_RAM: 6144
+          LLAMA_ARG_CTX_CHECKPOINTS: 6
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
@@ -276,9 +276,9 @@ spec:
             - -crs
             - "0.90"
             - --prompt-cache
-            - "/data/ik_llama/prompt-cache/$(HF_MODEL)/$(HF_FILE)"
+            - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE)"
             - --slot-save-path
-            - "/data/ik_llama/slot-save-path/$(HF_MODEL)/$(HF_FILE)"
+            - "/data/ik_llama/slot-save-path/$(HF_HASH)-$(HF_FILE)"
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
@@ -400,10 +400,10 @@ spec:
             app:
               - subPath: models
                 path: /models
-              - subPath: "data/ik_llama/prompt-cache/$(HF_MODEL)"
-                path: "/data/ik_llama/prompt-cache/$(HF_MODEL)"
-              - subPath: "data/ik_llama/slot-save-path/$(HF_MODEL)"
-                path: "/data/ik_llama/slot-save-path/$(HF_MODEL)"
+              - subPath: "data/ik_llama/prompt-cache"
+                path: "/data/ik_llama/prompt-cache"
+              - subPath: "data/ik_llama/slot-save-path"
+                path: "/data/ik_llama/slot-save-path"
           pull: *local
           pull-mtp: *local
       # misc:
