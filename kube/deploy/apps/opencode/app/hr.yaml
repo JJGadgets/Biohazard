@@ -23,7 +23,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/anomalyco/opencode
-              tag: 1.17.1@sha256:99cd8712b75ef5da68ac85df929049b645ec90b8230e676af530a7558adc3cb0
+              tag: 1.17.2@sha256:ab6b8b6c7a786b6ea64b7f455be61a8ce63e12ed9335710ddcf8d7b1151bdf1b
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env: &env
               TZ: "${CONFIG_TZ}"
