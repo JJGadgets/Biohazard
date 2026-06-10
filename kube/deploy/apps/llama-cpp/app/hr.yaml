@@ -74,7 +74,7 @@ spec:
           HF_MODEL: unsloth/embeddinggemma-300m-GGUF
           HF_HASH: 6661a6504c30d8304af13455cb4a5d4f5bc6011f
           HF_FILE: embeddinggemma-300M-Q8_0.gguf
-        env: &gemma4-26b-a4b-env
+        env: &embeddinggemma-env
           # Model Params
           LLAMA_ARG_ALIAS: &alias embeddinggemma
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
@@ -267,8 +267,8 @@ spec:
             - --no-context-shift
             - --color
             - --jinja
-            - --k-cache-hadamard
-            - --v-cache-hadamard
+            # - --k-cache-hadamard
+            # - --v-cache-hadamard
             # - -sm
             # - graph # no GPU so not applicable
             - -smgs
@@ -288,10 +288,10 @@ spec:
             - "$(LLAMA_ARG_CACHE_RAM)"
             - -crs
             - "0.90"
-            - --prompt-cache
-            - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE)"
-            - --slot-save-path
-            - "/data/ik_llama/slot-save-path/"
+            # - --prompt-cache
+            # - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE)"
+            # - --slot-save-path
+            # - "/data/ik_llama/slot-save-path/"
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
