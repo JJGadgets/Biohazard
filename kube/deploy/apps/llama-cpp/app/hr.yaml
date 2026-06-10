@@ -399,8 +399,10 @@ spec:
             app:
               - subPath: models
                 path: /models
-              - subPath: data
-                path: /data
+              - subPath: "data/ik_llama/prompt-cache/$(HF_MODEL)"
+                path: "/data/ik_llama/prompt-cache/$(HF_MODEL)"
+              - subPath: "data/ik_llama/slot-save-path/$(HF_MODEL)"
+                path: "/data/ik_llama/slot-save-path/$(HF_MODEL)"
           pull: *local
           pull-mtp: *local
       # misc:
