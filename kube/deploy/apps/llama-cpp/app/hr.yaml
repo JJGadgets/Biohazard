@@ -15,19 +15,15 @@ spec:
     x-models:
       gemma4-26b-a4b:
         model: &gemma4-26b-a4b-model
-          # HF_MODEL: ggml-org/gemma-4-26B-A4B-it-GGUF
-          # HF_HASH: ae4d537a6345467d1c86bb5cc0d4505ff3ebe0f3
-          # HF_FILE: gemma-4-26B-A4B-it-Q4_K_M.gguf
-          HF_MODEL: unsloth/gemma-4-26B-A4B-it-GGUF
-          HF_HASH: 3365c68df1a83799b846d05324ebfadbb8cc70b3
+          # HF_MODEL: unsloth/gemma-4-26B-A4B-it-GGUF
+          # HF_HASH: 3365c68df1a83799b846d05324ebfadbb8cc70b3
+          # HF_FILE: gemma-4-26B-A4B-it-UD-Q4_K_M.gguf
           # HF_FILE: gemma-4-26B-A4B-it-UD-IQ4_XS.gguf
           # HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
-          # HF_FILE: gemma-4-26B-A4B-it-MXFP4_MOE.gguf
           # HF_FILE: gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf
-          HF_FILE: gemma-4-26B-A4B-it-UD-Q4_K_M.gguf
-          # HF_MODEL: unsloth/gemma-4-26B-A4B-it-qat-GGUF
-          # HF_HASH: 8a48e33e0795a825ad1c92c88d3ca0d08b03c248
-          # HF_FILE: gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
+          HF_MODEL: unsloth/gemma-4-26B-A4B-it-qat-GGUF
+          HF_HASH: 8a48e33e0795a825ad1c92c88d3ca0d08b03c248
+          HF_FILE: gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
         env: &gemma4-26b-a4b-env
           # Model Params
           LLAMA_ARG_ALIAS: &alias gemma-4-26b-a4b
@@ -293,7 +289,7 @@ spec:
             - --prompt-cache
             - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE)"
             - --slot-save-path
-            - "/data/ik_llama/slot-save-path/$(HF_HASH)-$(HF_FILE)"
+            - "/data/ik_llama/slot-save-path/"
             env:
               <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
               # LLAMA_ARG_N_GPU_LAYERS: all
