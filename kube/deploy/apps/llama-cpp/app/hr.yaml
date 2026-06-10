@@ -370,7 +370,7 @@ spec:
             image: &img
               repository: ghcr.io/ikawrakow/ik-llama-cpp
               tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
-            command: ["taskset", "-c", "0-7", "/app/llama-server"]
+            command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args:
             - --embedding
             - --model
@@ -394,7 +394,7 @@ spec:
               # llama.cpp config
               LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 2
-              LLAMA_ARG_THREADS: 6
+              LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
                 # resourceFieldRef:
                 #   resource: limits.cpu
@@ -505,10 +505,10 @@ spec:
         options:
           - name: ndots
             value: "1"
-      hostUsers: false
+      # hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 65534
+        runAsUser: &uid 98341
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
