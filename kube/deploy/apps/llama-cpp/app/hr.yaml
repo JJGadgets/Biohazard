@@ -237,7 +237,7 @@ spec:
             #   # tag: server-openvino@sha256:3617ff678e9b9bb6733042534e2fcd410d89b572b6f97ced5a702db926a47850
             #   # tag: server-cuda12@sha256:e0334d55309a10a236b7e9e4bff21780882a311e4291e002bcc4fe5838e628af
             # NOTE:  ik_llama.cpp fork for better CPU inference
-            image:
+            image: &img
               repository: ghcr.io/ikawrakow/ik-llama-cpp
               tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
             command: ["taskset", "-c", "0-7", "/app/llama-server"]
@@ -423,9 +423,7 @@ spec:
             # prom.home.arpa/kps: allow
         containers:
           app:
-            image: &img
-              repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-vulkan@sha256:dca559dd886b415b4ced54f09197a2d84b55c432736a3a3fccca82359444f50c
+            image: *img
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args: *args
             env:
