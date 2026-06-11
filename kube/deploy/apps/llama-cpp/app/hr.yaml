@@ -378,6 +378,14 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "kubernetes.io/hostname"
+                        operator: NotIn
+                        values: [dorothy]
         containers:
           app:
             image: &img
@@ -402,7 +410,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "2Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
@@ -421,6 +429,14 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             # prom.home.arpa/kps: allow
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "kubernetes.io/hostname"
+                        operator: NotIn
+                        values: [dorothy]
         containers:
           app:
             image: *img
@@ -497,6 +513,7 @@ spec:
             path: /tmp
           # - subPath: shader-cache
           #   path: /.cache
+    defaultPodOptionsStrategy: merge
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
