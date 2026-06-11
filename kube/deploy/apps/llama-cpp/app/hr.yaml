@@ -439,14 +439,15 @@ spec:
                         values: [dorothy]
         containers:
           app:
-            image: *img
+            image:
+              repository: ghcr.io/ikawrakow/ik-llama-cpp
+              tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args: *args
             env:
               <<: [ *env, *gemma4-e2b-model, *gemma4-e2b-env ]
               # llama.cpp config
-              LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_N_PARALLEL: 1
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
                 # resourceFieldRef:
