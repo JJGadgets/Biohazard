@@ -27,6 +27,9 @@ tasks:
     dir: "{{.USER_WORKING_DIR}}"
     vars:
       APP: "{{.APP}}"
+      IT:
+        sh: |-
+          [[ "{{.IT}}" == "no" ]] && echo -n "" || echo -n "-it"
       PG: &pg-default
         sh: |-
           [[ -n "{{.PG}}" ]] && ( echo -n "{{.PG}}" && exit 0 ) || ( [[ -n "{{.APP}}" ]] && echo -n "pg-{{.APP}}" || echo -n "pg-default" )
@@ -39,7 +42,7 @@ tasks:
       # PG: '{{ or .PG (fail "Missing `PG` environment variable!") }}'
       # NS: &ns-default '{{.NS | default "pg"}}'
     cmds:
-      - kubectl exec -it -n {{.NS}} {{.MASTER}} --container database -- {{.CLI_ARGS}}
+      - kubectl exec {{.IT}} -n {{.NS}} {{.MASTER}} --container database -- {{.CLI_ARGS}}
 
   adminer:
     desc: Use kubectl netshoot krew plugin to deploy adminer as sidecar to the current primary CNPG replica pod.
@@ -127,6 +130,32 @@ tasks:
       NS: *ns-default
     cmds:
       - kubectl get pods -n {{.NS}} -l postgres-operator.crunchydata.com/pgbackrest-dedicated=,postgres-operator.crunchydata.com/cluster={{.PG}} -o name | xargs -oI% kubectl exec -it -n {{.NS}} % -c pgbackrest -- pgbackrest expire --stanza=db --repo=1 --repo1-retention-full=1 --repo1-retention-diff=1
+
+  cnpg-restore:
+    desc: Restore a pg_dump to a CNPG Postgres cluster, writing to the primary instance.
+    dir: "{{.USER_WORKING_DIR}}"
+    vars: &crunchy-vars
+      APP: "{{.APP}}"
+      PG: *pg-default
+      NS: *ns-default
+      CNPG_PRIMARY: &cnpg-primary
+        sh: |-
+          kubectl get pods -n {{.NS}} -l cnpg.io/instanceRole=primary,cnpg.io/cluster={{.PG}} -o jsonpath='{.items[0].metadata.name}'
+      DBNAME: *dbname
+      DBUSER: *dbuser
+      DUMP: &dump '{{ or .DUMP (fail "Missing `DUMP` environment variable for specifying pg_dump file location!") }}'
+      CP_DIR: &cpdir '{{ .CP_DIR | default "/var/lib/postgresql/data" }}' # would've been /tmp or /run if Crunchy replica container didn't crash and restart when files are copied there for some reason, maybe small tmpfs size?
+      ARGS: # TODO: (for other users) these are my personal defaults, please check and change accordingly if copying this task before running it!
+        sh: |-
+          [[ -n "{{.ARGS}}" ]] && echo -n "{{.ARGS}}" || echo -n "--verbose --format=c --clean --if-exists --no-owner --role {{.DBUSER}}"
+    env:
+      DBUSER: '{{.DBUSER}}'
+    cmds:
+      - kubectl cp --container database {{.DUMP}} {{.NS}}/{{.CNPG_PRIMARY}}:{{.CP_DIR}}/restore-dump.psql
+      - |-
+        kubectl exec -it --container database -n {{.NS}} {{.CNPG_PRIMARY}} -- /bin/bash -c 'echo "ALTER DATABASE \"{{.DBNAME}}\" OWNER TO \"{{.DBUSER}}\";" | psql'
+      - kubectl exec -it --container database -n {{.NS}} {{.CNPG_PRIMARY}} -- /bin/bash -c 'pg_restore --dbname {{.DBNAME}} {{.ARGS}} {{.CP_DIR}}/restore-dump.psql'
+      - defer: kubectl exec -it -n {{.NS}} {{.CNPG_PRIMARY}} -- /bin/bash -c 'rm -rf {{.CP_DIR}}/restore-dump.psql'
 
   crunchy-wipe-replicas:
     cmds:
