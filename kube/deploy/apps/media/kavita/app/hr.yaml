@@ -19,6 +19,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
+            authentik.home.arpa/oidc: allow
             # egress.home.arpa/internet: allow
         containers:
           app:
