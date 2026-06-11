@@ -21,13 +21,8 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/ntfy: allow
           annotations:
-            k8s.v1.cni.cncf.io/networks: | # VPN
-              [{
-                "name":"vpn-vlan",
-                "namespace": "multus",
-                "ips": ["${APP_IP_MOLLYSOCKET_VPN}"],
-                "mac": "${APP_MAC_MOLLYSOCKET_VPN}"
-              }]
+            ipam.cilium.io/ip-pool: vpn-vlan
+            ipam.cilium.io/require-pool-match: "true"
         containers:
           app:
             image: &img
@@ -57,7 +52,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "150Mi"
             probes:
               liveness:
@@ -103,7 +98,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
+        runAsUser: &uid ${APP_UID_MOLLYSOCKET:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
