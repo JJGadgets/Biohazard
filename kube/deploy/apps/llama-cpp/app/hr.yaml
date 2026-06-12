@@ -125,8 +125,8 @@ spec:
           # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
           # Others
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
-          LLAMA_ARG_CACHE_RAM: 4096
-          LLAMA_ARG_CTX_CHECKPOINTS: 4
+          LLAMA_ARG_CACHE_RAM: 6144
+          LLAMA_ARG_CTX_CHECKPOINTS: 6
           LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
       qwen3.6-35b-a3b-mtp:
         model: &qwen36-35b-a3b-mtp-model
@@ -136,9 +136,12 @@ spec:
           # HF_MODEL: byteshape/Qwen3.6-35B-A3B-MTP-GGUF
           # HF_HASH: 83dc80a65cb948b8e5a9dd9776eda7425180dacc
           # HF_FILE: Qwen3.6-35B-A3B-IQ4_XS-4.19bpw.gguf
-          HF_MODEL: byteshape/Qwen3.6-35B-A3B-GGUF
-          HF_HASH: 57f6dec8727b4c3f5498ff2564a0333ac1f6624a
-          HF_FILE: Qwen3.6-35B-A3B-Q4_K_S-4.22bpw.gguf
+          # HF_MODEL: byteshape/Qwen3.6-35B-A3B-GGUF
+          # HF_HASH: 57f6dec8727b4c3f5498ff2564a0333ac1f6624a
+          # HF_FILE: Qwen3.6-35B-A3B-Q4_K_S-4.22bpw.gguf
+          HF_MODEL: mudler/Qwen3.6-35B-A3B-APEX-GGUF
+          HF_HASH: 42c47e7a396813c593fb12c9307ada5cd8090d4b
+          HF_FILE: Qwen3.6-35B-A3B-APEX-I-Compact.gguf
         env: &qwen36-35b-a3b-mtp-env
           <<: *qwen36-27b-mtp-env
           LLAMA_ARG_ALIAS: qwen3.6-35b-a3b
@@ -151,6 +154,21 @@ spec:
           <<: *qwen36-27b-mtp-env
           LLAMA_ARG_ALIAS: qwen3.5-9b
           LLAMA_ARG_SPEC_DRAFT_N_MAX: 6
+      qwen3-embedding:
+        model: &qwen3-embedding-model
+          HF_MODEL: Qwen/Qwen3-Embedding-0.6B-GGUF
+          HF_HASH: 370f27d7550e0def9b39c1f16d3fbaa13aa67728
+          HF_FILE: Qwen3-Embedding-0.6B-Q8_0.gguf
+        env: &qwen3-embedding-env
+          # Model Params
+          LLAMA_ARG_ALIAS: &alias embeddinggemma
+          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
+          LLAMA_ARG_CTX_SIZE: 32768
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
+          # Cache quants / VRAM fitting
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
       gpt-oss-20b:
         model: &gpt-oss-20b-model
           HF_MODEL: ggml-org/gpt-oss-20b-GGUF
@@ -280,8 +298,8 @@ spec:
             - --no-context-shift
             - --color
             - --jinja
-            # - --k-cache-hadamard
-            # - --v-cache-hadamard
+            - --k-cache-hadamard
+            - --v-cache-hadamard
             # - -sm
             # - graph # no GPU so not applicable
             - -smgs
@@ -292,8 +310,8 @@ spec:
             - --merge-up-gate-experts
             - --flash-attn
             - "on"
-            - --mla-use
-            - "3"
+            # - --mla-use
+            # - "3"
             - --mlock
             - --run-time-repack
             - --no-kv-offload
@@ -301,12 +319,12 @@ spec:
             - "$(LLAMA_ARG_CACHE_RAM)"
             - -crs
             - "0.90"
-            # - --prompt-cache
-            # - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE)"
-            # - --slot-save-path
-            # - "/data/ik_llama/slot-save-path/"
+            - --prompt-cache
+            - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE).cache"
+            - --slot-save-path
+            - "/data/ik_llama/slot-save-path/"
             env:
-              <<: [ *env, *gemma4-26b-a4b-model, *gemma4-26b-a4b-env, *gemma4-26b-a4b-mtp-model ]
+              <<: [ *env, *qwen36-35b-a3b-mtp-model, *qwen36-35b-a3b-mtp-env ]
               # LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 1 # TODO: ik_llama.cpp has a Flash Attention bug more commonly triggered by n_parallel > 1 https://github.com/ikawrakow/ik_llama.cpp/issues/1910
               LLAMA_ARG_THREADS: 8
@@ -348,7 +366,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: *mlhome
             env:
-              <<: [ *pull-env, *gemma4-26b-a4b-model ]
+              <<: [ *pull-env, *qwen36-35b-a3b-mtp-model ]
             securityContext: *sc
             resources:
               requests:
@@ -356,21 +374,21 @@ spec:
               limits:
                 cpu: 4
                 memory: "1Gi"
-      pull-mtp:
-        type: job
-        pod:
-          labels:
-            egress.home.arpa/internet: allow
-          nodeSelector:
-            kubernetes.io/hostname: dorothy
-        containers:
-          app:
-            <<: *pull-ct
-            env:
-              <<: [ *pull-env, *gemma4-26b-a4b-mtp-model ]
-              HF_MODEL: "$(AA_HF_MTP_MODEL)"
-              HF_HASH: "$(AA_HF_MTP_HASH)"
-              HF_FILE: "$(AA_HF_MTP_FILE)"
+      # pull-mtp:
+      #   type: job
+      #   pod:
+      #     labels:
+      #       egress.home.arpa/internet: allow
+      #     nodeSelector:
+      #       kubernetes.io/hostname: dorothy
+      #   containers:
+      #     app:
+      #       <<: *pull-ct
+      #       env:
+      #         <<: [ *pull-env, *qwen36-35b-a3b-mtp-model ]
+      #         HF_MODEL: "$(AA_HF_MTP_MODEL)"
+      #         HF_HASH: "$(AA_HF_MTP_HASH)"
+      #         HF_FILE: "$(AA_HF_MTP_FILE)"
       embedding:
         type: deployment
         replicas: 1
@@ -397,9 +415,9 @@ spec:
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
             env:
-              <<: [ *env, *embeddinggemma-model, *embeddinggemma-env ]
+              <<: [ *env, *qwen3-embedding-model, *qwen3-embedding-env ]
               # llama.cpp config
-              LLAMA_ARG_N_GPU_LAYERS: all
+              # LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 2
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
