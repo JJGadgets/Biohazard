@@ -493,9 +493,9 @@ spec:
         <<: *ports
         controller: app
         forceRename: *app
-      lite:
-        <<: *ports
-        controller: lite
+      # lite:
+      #   <<: *ports
+      #   controller: lite
       embedding:
         <<: *ports
         controller: embedding
