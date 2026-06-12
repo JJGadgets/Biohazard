@@ -439,55 +439,55 @@ spec:
           app:
             <<: *pull-ct
             env:
-              <<: [ *pull-env, *embeddinggemma-model ]
-      lite:
-        type: deployment
-        replicas: 1
-        pod:
-          labels:
-            ingress.home.arpa/envoy-internal: allow
-            # prom.home.arpa/kps: allow
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: "kubernetes.io/hostname"
-                        operator: NotIn
-                        values: [dorothy]
-        containers:
-          app:
-            image:
-              repository: ghcr.io/ikawrakow/ik-llama-cpp
-              tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
-            command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
-            args: *args
-            env:
-              <<: [ *env, *gemma4-e2b-model, *gemma4-e2b-env ]
-              # llama.cpp config
-              LLAMA_ARG_N_PARALLEL: 1
-              LLAMA_ARG_THREADS: 4
-              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
-                # resourceFieldRef:
-                #   resource: limits.cpu
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                # gpu.intel.com/i915: "1"
-                memory: "8Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
-            probes: *probes
-      pull-lite:
-        type: job
-        pod:
-          labels:
-            egress.home.arpa/internet: allow
-        containers:
-          app:
-            <<: *pull-ct
-            env:
-              <<: [ *pull-env, *gemma4-e2b-model ]
+              <<: [ *pull-env, *qwen3-embedding-model ]
+      # lite:
+      #   type: deployment
+      #   replicas: 1
+      #   pod:
+      #     labels:
+      #       ingress.home.arpa/envoy-internal: allow
+      #       # prom.home.arpa/kps: allow
+      #     affinity:
+      #       nodeAffinity:
+      #         requiredDuringSchedulingIgnoredDuringExecution:
+      #           nodeSelectorTerms:
+      #             - matchExpressions:
+      #                 - key: "kubernetes.io/hostname"
+      #                   operator: NotIn
+      #                   values: [dorothy]
+      #   containers:
+      #     app:
+      #       image:
+      #         repository: ghcr.io/ikawrakow/ik-llama-cpp
+      #         tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
+      #       command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
+      #       args: *args
+      #       env:
+      #         <<: [ *env, *gemma4-e2b-model, *gemma4-e2b-env ]
+      #         # llama.cpp config
+      #         LLAMA_ARG_N_PARALLEL: 1
+      #         LLAMA_ARG_THREADS: 4
+      #         LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+      #           # resourceFieldRef:
+      #           #   resource: limits.cpu
+      #       securityContext: *sc
+      #       resources:
+      #         requests:
+      #           cpu: "10m"
+      #         limits:
+      #           # gpu.intel.com/i915: "1"
+      #           memory: "8Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+      #       probes: *probes
+      # pull-lite:
+      #   type: job
+      #   pod:
+      #     labels:
+      #       egress.home.arpa/internet: allow
+      #   containers:
+      #     app:
+      #       <<: *pull-ct
+      #       env:
+      #         <<: [ *pull-env, *gemma4-e2b-model ]
     service:
       app: &svc
         <<: *ports
