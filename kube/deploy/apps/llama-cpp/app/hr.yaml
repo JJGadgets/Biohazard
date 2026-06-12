@@ -106,17 +106,18 @@ spec:
         env: &qwen36-27b-mtp-env
           # Model Params
           LLAMA_ARG_ALIAS: qwen3.6-27b
+          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
           LLAMA_ARG_CTX_SIZE: 131072
           LLAMA_ARG_TEMPERATURE: "0.6"
           LLAMA_ARG_TOP_K: 20
           LLAMA_ARG_TOP_P: "0.95"
           LLAMA_ARG_MIN_P: "0.0"
           LLAMA_ARG_BATCH: 4096
-          LLAMA_ARG_UBATCH: 1024
+          LLAMA_ARG_UBATCH: 2048
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Qwen 3.6 Preserve Thinking
-          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
+          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
           # Cache quants
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
