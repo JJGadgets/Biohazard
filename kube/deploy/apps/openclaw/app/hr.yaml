@@ -23,6 +23,7 @@ spec:
             dns.home.arpa/l7: "true"
             egress.home.arpa/github: allow
             egress.home.arpa/cloudflare: allow
+            egress.home.arpa/apiserver: allow
             # egress.home.arpa/internet: allow
           annotations:
             ipam.cilium.io/ip-pool: vpn-vlan
@@ -192,5 +193,12 @@ spec:
           type: RoleBinding
           roleRef:
             identifier: openclaw-exec-deploy-llm
+          subjects:
+            - identifier: app
+        cluster-read-only:
+          type: ClusterRoleBinding
+          roleRef:
+            kind: ClusterRole
+            name: view
           subjects:
             - identifier: app
