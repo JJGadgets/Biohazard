@@ -141,8 +141,7 @@ spec:
       #     - subPath: openclaw
       #       path: /nfs
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
+      automountServiceAccountToken: true
       dnsConfig:
         options:
           - name: ndots
