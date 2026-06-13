@@ -46,7 +46,7 @@ spec:
           # Others
           LLAMA_ARG_CACHE_RAM: 6144
           LLAMA_ARG_CTX_CHECKPOINTS: 6
-          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1120
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1120
       gemma4-26b-a4b-mtp:
@@ -97,40 +97,8 @@ spec:
           # Cache quants / VRAM fitting
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
-      qwen3.6-27b-mtp:
-        model: &qwen36-27b-mtp-model
-          HF_MODEL: unsloth/Qwen3.6-27B-MTP-GGUF
-          HF_HASH: b3a58239d8d40b953e34936c9afeb28baa518230
-          HF_FILE: Qwen3.6-27B-UD-Q4_K_XL.gguf
-          # HF_FILE: Qwen3.6-27B-UD-IQ3_XXS.gguf
-        env: &qwen36-27b-mtp-env
-          # Model Params
-          LLAMA_ARG_ALIAS: qwen3.6-27b
-          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
-          LLAMA_ARG_CTX_SIZE: 131072
-          LLAMA_ARG_TEMPERATURE: "0.6"
-          LLAMA_ARG_TOP_K: 20
-          LLAMA_ARG_TOP_P: "0.95"
-          LLAMA_ARG_MIN_P: "0.0"
-          LLAMA_ARG_BATCH: 4096
-          LLAMA_ARG_UBATCH: 2048
-          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
-          LLAMA_ARG_REPEAT_PENALTY: "1.0"
-          # Qwen 3.6 Preserve Thinking
-          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
-          # Cache quants
-          LLAMA_ARG_CACHE_TYPE_K: q8_0
-          LLAMA_ARG_CACHE_TYPE_V: q8_0
-          # MTP (Speculative Decoding)
-          # LLAMA_ARG_SPEC_TYPE: draft-mtp
-          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
-          # Others
-          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
-          LLAMA_ARG_CACHE_RAM: 6144
-          LLAMA_ARG_CTX_CHECKPOINTS: 6
-          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
-      qwen3.6-35b-a3b-mtp:
-        model: &qwen36-35b-a3b-mtp-model
+      qwen3.6-35b-a3b:
+        model: &qwen36-35b-a3b-model
           # HF_MODEL: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
           # HF_HASH: 5bc3e238d916f48a861bac2f8a1990a0e9b7e98d
           # HF_FILE: Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf
@@ -143,18 +111,32 @@ spec:
           HF_MODEL: mudler/Qwen3.6-35B-A3B-APEX-GGUF
           HF_HASH: 42c47e7a396813c593fb12c9307ada5cd8090d4b
           HF_FILE: Qwen3.6-35B-A3B-APEX-I-Compact.gguf
-        env: &qwen36-35b-a3b-mtp-env
-          <<: *qwen36-27b-mtp-env
+        env: &qwen36-35b-a3b-env
+          # Model Params
           LLAMA_ARG_ALIAS: qwen3.6-35b-a3b
-      qwen3.5-9b-mtp:
-        model: &qwen35-9b-mtp-model
-          HF_MODEL: unsloth/Qwen3.5-9B-MTP-GGUF
-          HF_HASH: 9716a636ee4bddc3fed678220b7a33dd2a4160ae
-          HF_FILE: Qwen3.5-9B-UD-Q6_K_XL.gguf
-        env: &qwen35-9b-mtp-env
-          <<: *qwen36-27b-mtp-env
-          LLAMA_ARG_ALIAS: qwen3.5-9b
-          LLAMA_ARG_SPEC_DRAFT_N_MAX: 6
+          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
+          LLAMA_ARG_CTX_SIZE: 131072
+          LLAMA_ARG_TEMPERATURE: "0.6"
+          LLAMA_ARG_TOP_K: 20
+          LLAMA_ARG_TOP_P: "0.95"
+          LLAMA_ARG_MIN_P: "0.0"
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 512
+          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
+          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          # Qwen 3.6 Preserve Thinking
+          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
+          # Cache quants
+          LLAMA_ARG_CACHE_TYPE_K: q8_0
+          LLAMA_ARG_CACHE_TYPE_V: q8_0
+          # MTP (Speculative Decoding)
+          # LLAMA_ARG_SPEC_TYPE: draft-mtp
+          # LLAMA_ARG_SPEC_DRAFT_N_MAX: 2
+          # Others
+          LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
+          LLAMA_ARG_CACHE_RAM: 8192
+          LLAMA_ARG_CTX_CHECKPOINTS: 64
+          LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT: 2048
       qwen3-embedding:
         model: &qwen3-embedding-model
           HF_MODEL: Qwen/Qwen3-Embedding-0.6B-GGUF
@@ -192,7 +174,7 @@ spec:
           # Others
           LLAMA_ARG_CACHE_RAM: 2048
           LLAMA_ARG_CTX_CHECKPOINTS: 2
-          LLAMA_ARG_CHECKPOINT_EVERY_NT: 16384
+          LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT: 16384
           LLAMA_ARG_IMAGE_MIN_TOKENS: 1024
           LLAMA_ARG_IMAGE_MAX_TOKENS: 1024
     x-app-env: &env
@@ -320,12 +302,16 @@ spec:
             - "$(LLAMA_ARG_CACHE_RAM)"
             - -crs
             - "0.90"
+            - --ctx-checkpoints
+            - "$(LLAMA_ARG_CTX_CHECKPOINTS)"
+            - --ctx-checkpoints-interval
+            - "$(LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT)"
             - --prompt-cache
             - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE).cache"
             - --slot-save-path
             - "/data/ik_llama/slot-save-path/"
             env:
-              <<: [ *env, *qwen36-35b-a3b-mtp-model, *qwen36-35b-a3b-mtp-env ]
+              <<: [ *env, *qwen36-35b-a3b-model, *qwen36-35b-a3b-env ]
               # LLAMA_ARG_N_GPU_LAYERS: all
               LLAMA_ARG_N_PARALLEL: 1 # TODO: ik_llama.cpp has a Flash Attention bug more commonly triggered by n_parallel > 1 https://github.com/ikawrakow/ik_llama.cpp/issues/1910
               LLAMA_ARG_THREADS: 8
@@ -367,7 +353,7 @@ spec:
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: *mlhome
             env:
-              <<: [ *pull-env, *qwen36-35b-a3b-mtp-model ]
+              <<: [ *pull-env, *qwen36-35b-a3b-model ]
             securityContext: *sc
             resources:
               requests:
@@ -386,7 +372,7 @@ spec:
       #     app:
       #       <<: *pull-ct
       #       env:
-      #         <<: [ *pull-env, *qwen36-35b-a3b-mtp-model ]
+      #         <<: [ *pull-env, *qwen36-35b-a3b-model ]
       #         HF_MODEL: "$(AA_HF_MTP_MODEL)"
       #         HF_HASH: "$(AA_HF_MTP_HASH)"
       #         HF_FILE: "$(AA_HF_MTP_FILE)"
