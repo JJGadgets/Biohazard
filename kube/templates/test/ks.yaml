@@ -13,15 +13,11 @@ spec:
   path: ./kube/deploy/apps/${APPNAME}/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     # - name: ${APPNAME}-db
     - name: ${APPNAME}-pvc
-  postBuild:
-    substitute:
-      APP_TEMPLATE: 4.6.2
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -63,30 +59,5 @@ spec:
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: ${APPNAME}-db
-  namespace: &ns pg
-  labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
-    app.kubernetes.io/name: "${APPNAME}"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: *ns
-  dependsOn:
-    - name: 1-core-db-pg-clusters-default
-    - name: 1-core-secrets-es-k8s
-  postBuild:
-    substitute:
-      PG_NAME: "default"
-      PG_DB_USER: &app "${APPNAME}"
-      PG_APP_NS: *app
-      PG_APP_CURRENT_VERSION: "${IMAGENAME}:${IMAGETAG}"
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
