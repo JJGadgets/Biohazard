@@ -33,9 +33,13 @@ elseif has('mac') || has('unix')
     set backup                        " enable backups
     set swapfile                      " enable swaps
     
-    set undodir=/tmp/.vim/tmp/undo"     " undo files
-    set backupdir=/tmp/.vim/tmp/backup " backups
-    set directory=/tmp/.vim/tmp/swap   " swap files
+    if $TMPDIR == ""
+        let $TMPDIR="/tmp"
+    endif
+    set undodir=$TMPDIR/.vim/tmp/undo     " undo files
+    set backupdir=$TMPDIR/.vim/tmp/backup " backups
+    set directory=$TMPDIR/.vim/tmp/swap   " swap files
+
 endif
 
 " Make those folders automatically if they don't already exist.
