@@ -332,12 +332,13 @@ au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g
 set laststatus=2
 
 " Default statusline
-set statusline=""
+" Neovim 0.12 default for blank statusline now falls back to the default
+" statusline rather than a blank statusline
+set statusline=\ 
 
 " Format the status line
 ""if !has('nvim')
 "if ! empty(globpath(&rtp, 'lazy/lualine.nvim/lua/lualine.lua'))
-  set statusline+=\ 
   set statusline+=%{&paste?'PASTE\ ':''}
   set statusline+=%{mode()}\ \|\ 
   set statusline+=%f
