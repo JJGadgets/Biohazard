@@ -54,10 +54,8 @@ kube/
 │   ├── apps/               # ~60 user-facing apps (see App Pattern below)
 │   └── vm/                 # KubeVirt VMs (_kubevirt, ad, jj)
 ├── repos/flux/             # HelmRepository and OCIRepository sources (helmpatches applied)
-└── templates/test/         # Template for testing
+└── templates/              # App scaffolding templates
 .taskfiles/                 # go-task Taskfile includes (one per domain)
-ostree/                     # NixOS/oStree host configurations (outside k8s scope)
-dots/                       # Dotfiles (vim, k9s configs, etc.)
 ```
 
 ## Core Components (kube/deploy/core)
