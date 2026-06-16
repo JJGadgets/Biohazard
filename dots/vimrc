@@ -33,9 +33,13 @@ elseif has('mac') || has('unix')
     set backup                        " enable backups
     set swapfile                      " enable swaps
     
-    set undodir=/tmp/.vim/tmp/undo"     " undo files
-    set backupdir=/tmp/.vim/tmp/backup " backups
-    set directory=/tmp/.vim/tmp/swap   " swap files
+    if $TMPDIR == ""
+        let $TMPDIR="/tmp"
+    endif
+    set undodir=$TMPDIR/.vim/tmp/undo     " undo files
+    set backupdir=$TMPDIR/.vim/tmp/backup " backups
+    set directory=$TMPDIR/.vim/tmp/swap   " swap files
+
 endif
 
 " Make those folders automatically if they don't already exist.
@@ -332,12 +336,13 @@ au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g
 set laststatus=2
 
 " Default statusline
-set statusline=""
+" Neovim 0.12 default for blank statusline now falls back to the default
+" statusline rather than a blank statusline
+set statusline=\ 
 
 " Format the status line
 ""if !has('nvim')
 "if ! empty(globpath(&rtp, 'lazy/lualine.nvim/lua/lualine.lua'))
-  set statusline+=\ 
   set statusline+=%{&paste?'PASTE\ ':''}
   set statusline+=%{mode()}\ \|\ 
   set statusline+=%f

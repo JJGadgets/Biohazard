@@ -115,24 +115,24 @@ require("lazy").setup({
     --  },
     --},
     --- TreeSitter
-    { "nvim-treesitter/nvim-treesitter",
-      --branch = "master",
-      --event = "VeryLazy", -- causes syntax highlighting to be slower to init
-      build = ":TSUpdate",
-      config = function()
-        require("nvim-treesitter.configs").setup({
-          ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "json", "json5", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix", "elixir" },
-          --ensure_installed = 'all',
-          ignore_install = { 'org' }, -- nvim-orgmode compatibility
-          sync_install = false,
-          highlight = {
-            enable = true,
-            --disable = { "yaml", },
-          },
-          indent = { enable = true },
-        })
-      end
-    },
+    -- { "nvim-treesitter/nvim-treesitter", -- TODO: replace this chunk with auto update/install Treesitter parsers function, maybe use tree-sitter-cli or something?
+    --   branch = "main",
+    --   --event = "VeryLazy", -- causes syntax highlighting to be slower to init
+    --   build = ":TSUpdate",
+    --   config = function()
+    --     require("nvim-treesitter.configs").setup({
+    --       ensure_installed = { "c", "lua", "vim", "vimdoc", "yaml", "json", "json5", "go", "dockerfile", "fish", "bash", "python", "javascript", "typescript", "html", "css", "nix", "elixir" },
+    --       --ensure_installed = 'all',
+    --       ignore_install = { 'org' }, -- nvim-orgmode compatibility
+    --       sync_install = false,
+    --       highlight = {
+    --         enable = true,
+    --         --disable = { "yaml", },
+    --       },
+    --       indent = { enable = true },
+    --     })
+    --   end
+    -- },
     --- telescope
     { "nvim-telescope/telescope.nvim", event = "VeryLazy", },
     --- auto brackets
@@ -190,7 +190,23 @@ require("lazy").setup({
             { name = "async_path" },
             { name = "fish" },
           }, {
-            { name = "buffer" },
+            {
+              name = "buffer",
+              -- option = {
+              --   get_bufnrs = function()
+              --     return vim.api.nvim_list_bufs()
+              --   end
+              -- }
+              option = {
+                get_bufnrs = function()
+                  local bufs = {}
+                  for _, win in ipairs(vim.api.nvim_list_wins()) do
+                    bufs[vim.api.nvim_win_get_buf(win)] = true
+                  end
+                  return vim.tbl_keys(bufs)
+                end
+              }
+            },
           }),
           completion = { completeopt = "menu,menuone,noinsert" .. (auto_select and "" or ",noselect"), }, -- suggested config
           preselect = auto_select and cmp.PreselectMode.Item or cmp.PreselectMode.None, -- suggested config
@@ -237,8 +253,9 @@ require("lazy").setup({
     --- LSP
     {
       "mason-org/mason-lspconfig.nvim",
-      opts = { 
+      opts = {
         automatic_installation = true,
+        ensure_installed = { "yamlls", "jsonls", "jsonls", "taplo", "helm_ls", "lua_ls", "dockerls", "vtsls", "ruff", "basedpyright", "elixirls", "clangd", "nil_ls", "gopls", "bashls", "fish_lsp" },
         automatic_enable = {
           exclude = {
             "yamlls"
@@ -259,9 +276,9 @@ require("lazy").setup({
       --event = "VeryLazy",
       ft = { "yaml" },
       dependancies = { "nvim-lua/plenary.nvim" },
-      config = function()
-        require("telescope").load_extension("yaml_schema")
-      end,
+      -- config = function()
+      --   require("telescope").load_extension("yaml_schema")
+      -- end,
     },
     --{ "cenk1cenk2/schema-companion.nvim",
     --  dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
@@ -276,6 +293,8 @@ require("lazy").setup({
     --    })
     --  end
     --},
+    --- explain crons
+    -- { "fabridamicelli/cronex.nvim", opts = {} }, -- TODO: any way to auto install cron libraries?
     --- LSP Context Breadcrumbs
     { "SmiteshP/nvim-navic", lazy = true, opts = { highlight = true, click = true, lsp = { auto_attach = true } } },
     { "utilyre/barbecue.nvim", name = "barbecue", version = "*", event = { "LspAttach" }, dependencies = { "SmiteshP/nvim-navic", }, opts = { theme = "catppuccin", } },

@@ -14,14 +14,13 @@ spec:
   values:
     controllers:
       app:
-        # type: statefulset
         type: deployment
         replicas: 1
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
-            db.home.arpa/pg: pg-default
-            s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
+            # db.home.arpa/pg: pg-default
+            # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             # authentik.home.arpa/oidc: allow
             # prom.home.arpa/kps: allow
             # egress.home.arpa/internet: allow
@@ -59,7 +58,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "512Mi"
             probes:
               liveness:
@@ -72,39 +71,6 @@ spec:
               #     periodSeconds: 1
               #     failureThreshold: 300
               #     initialDelaySeconds: 5
-        # statefulset:
-        #   volumeClaimTemplates:
-        #     - name: data
-        #       size: 20Gi
-        #       storageClass: block
-        #       accessMode: ReadWriteOnce
-        #       advancedMounts:
-        #         main: # only container name here
-        #           - path: /data
-        #         01-init-${APPNAME}-admin-password:
-        #           - path: /data
-        #     - name: backup
-        #       accessMode: ReadWriteOnce
-        #       size: 20Gi
-        #       storageClass: block
-        #       globalMounts:
-        #         - path: /backup
-        # initContainers:
-        #   01-init-${APPNAME}-admin-password:
-        #     image: *img
-        #     command:
-        #       - /bin/sh
-        #       - -c
-        #       - "[ -s /data/${APPNAME}.db ] || /sbin/${APPNAME}d recover_account -c /data/server.toml admin"
-        #     securityContext: *sc
-        #     #resources:
-        #   01-init-db:
-        #     image:
-        #       repository: "ghcr.io/onedr0p/postgres-init"
-        #       tag: "17.4@sha256:43dd04e91e861cf912378bad987afa168fa4f13d05528304907ad0aa351195d6"
-        #     envFrom: [secretRef: { name: "${APPNAME}-pg-superuser" }]
-        #     securityContext: *sc
-        #     #resources:
     service:
       app:
         controller: app
@@ -114,26 +80,26 @@ spec:
             targetPort: 8080
             protocol: HTTP
             appProtocol: http
-      expose:
-        primary: false
-        controller: app
-        type: LoadBalancer
-        annotations:
-          coredns.io/hostname: "${APP_DNS_APPNAME:=${APPNAME}}"
-          lbipam.cilium.io/ips: "${APP_IP_APPNAME:=127.0.0.1}"
-        ports:
-          http:
-            port: 443
-            targetPort: 8443
-            protocol: HTTPS
-          ldap-tcp:
-            port: 636
-            targetPort: 3636
-            protocol: TCP
-          ldap-udp:
-            port: 636
-            targetPort: 3636
-            protocol: UDP
+      # expose: # uncomment if LoadBalancer service needed
+      #   primary: false
+      #   controller: app
+      #   type: LoadBalancer
+      #   annotations:
+      #     coredns.io/hostname: "${APP_DNS_APPNAME:=${APPNAME}}"
+      #     lbipam.cilium.io/ips: "${APP_IP_APPNAME:=127.0.0.1}"
+      #   ports:
+      #     http:
+      #       port: 443
+      #       targetPort: 8443
+      #       protocol: HTTPS
+      #     ldap-tcp:
+      #       port: 636
+      #       targetPort: 3636
+      #       protocol: TCP
+      #     ldap-udp:
+      #       port: 636
+      #       targetPort: 3636
+      #       protocol: UDP
     route:
       app:
         # annotations:
@@ -144,26 +110,18 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-        rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /test
-            backendRefs:
-              - identifier: app
-                port: 80
-          - backendRefs:
-              - identifier: app
-                port: 80
-    persistence:
-      config:
-        type: configMap
-        identifier: config
-        advancedMounts:
-          app:
-            app:
-              - subPath: server.toml
-                path: /data/server.toml
+        # rules: # uncomment if advanced routing needed or multiple service backends specified
+        #   - matches:
+        #       - path:
+        #           type: PathPrefix
+        #           value: /test
+        #     backendRefs:
+        #       - identifier: app
+        #         port: 80
+        #   - backendRefs:
+        #       - identifier: app
+        #         port: 80
+    persistence: # delete entries where not necessary
       data:
         existingClaim: ${APPNAME}-data
         advancedMounts:
@@ -171,13 +129,6 @@ spec:
             app:
               - subPath: data
                 path: /data
-      nfs:
-        type: nfs
-        server: "${IP_TRUENAS:=127.0.0.1}"
-        path: "${PATH_NAS_PERSIST_K8S:=/home}"
-        globalMounts:
-          - subPath: ${APPNAME}
-            path: /nfs
       tmp:
         type: emptyDir
         medium: Memory
@@ -185,44 +136,43 @@ spec:
         globalMounts:
           - subPath: tmp
             path: /tmp
-      tls:
-        type: secret
-        name: ${APPNAME}-tls
-        defaultMode: 0400
-        advancedMounts:
-          app:
-            app:
-              - subPath: tls.crt
-                path: /tls/fullchain.pem
-                readOnly: true
-              - subPath: tls.key
-                path: /tls/privkey.pem
-                readOnly: true
-    configMaps:
-      config:
-        data:
-          server.toml: |
-            domain = "${APP_DNS_APPNAME}"
-            origin = "https://${APP_DNS_APPNAME}"
-            tls_chain = "/tls/fullchain.pem"
-            tls_key = "/tls/privkey.pem"
-            role = "WriteReplica"
-            log_level = "verbose"
-            bindaddress = "[::]:8443"
-            ldapbindaddress = "[::]:3636"
-            trust_x_forward_for = true
-            db_path = "/data/${APPNAME}.db"
-            db_fs_type = "other"
-            [online_backup]
-            path = "/backup/"
-            schedule = "0 0 22 * * * *"
-            versions = 7
+    #   config:
+    #     type: configMap
+    #     identifier: config
+    #     advancedMounts:
+    #       app:
+    #         app:
+    #           - subPath: server.toml
+    #             path: /data/server.toml
+    #   nfs:
+    #     type: nfs
+    #     server: "${IP_TRUENAS:=127.0.0.1}"
+    #     path: "${PATH_NAS_PERSIST_K8S:=/home}"
+    #     globalMounts:
+    #       - subPath: ${APPNAME}
+    #         path: /nfs
+    #   tls:
+    #     type: secret
+    #     name: ${APPNAME}-tls
+    #     defaultMode: 0400
+    #     advancedMounts:
+    #       app:
+    #         app:
+    #           - subPath: tls.crt
+    #             path: /tls/fullchain.pem
+    #             readOnly: true
+    #           - subPath: tls.key
+    #             path: /tls/privkey.pem
+    #             readOnly: true
+    # configMaps:
+    #   config:
+    #     data:
+    #       server.toml: |
+    #         key = value
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
-      hostAliases:
-        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      # hostAliases: # uncomment if authentik OIDC is used
+      #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+      #     hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
@@ -239,13 +189,6 @@ spec:
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
