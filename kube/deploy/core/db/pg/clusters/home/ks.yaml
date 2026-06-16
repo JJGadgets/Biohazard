@@ -39,20 +39,10 @@ spec:
               databases: ["firefly"]
             - name: "paperless-ngx"
               databases: ["paperless-ngx"]
-            - name: "joplin"
-              databases: ["joplin"]
-            - name: "vikunja"
-              databases: ["vikunja"]
-            - name: "kanboard"
-              databases: ["kanboard"]
             - name: "reactive-resume"
               databases: ["reactive-resume"]
             - name: "linkding"
               databases: ["linkding"]
-            - name: "davis"
-              databases: ["davis"]
-              password:
-                type: "AlphaNumeric" # Otherwise, PHP Symfony will throw "this parameter must be defined" errors, e.g. `This parameter "3C+" must be defined`, where 3C+ is a part of the password
             - name: "immich"
               databases: ["immich"]
             - name: "gotosocial"

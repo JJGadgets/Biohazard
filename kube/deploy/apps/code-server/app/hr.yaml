@@ -21,7 +21,6 @@ spec:
           secret.reloader.stakater.com/reload: "code-server-secrets"
         pod:
           labels:
-            tailscale.com/expose: "true"
             ingress.home.arpa/jjgadgets: allow
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/apiserver: allow
@@ -82,8 +81,6 @@ spec:
         annotations:
           coredns.io/hostname: "vs-ssh.${DNS_SHORT:=internal}"
           io.cilium/lb-ipam-ips: "${APP_IP_CODE_SERVER_SSH:=127.0.0.1}"
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "vs-ssh"
         labels:
           io.cilium/l2: "true"
         ports:

@@ -22,7 +22,6 @@ spec:
           labels:
             ingress.home.arpa/internet: "allow"
             egress.home.arpa/internet: "allow"
-            tailscale.com/expose: "true"
         containers:
           main:
             image: &image
@@ -125,8 +124,6 @@ spec:
         annotations:
           coredns.io/hostname: "${APP_DNS_MINECRAFT2}"
           "io.cilium/lb-ipam-ips": "${APP_IP_MINECRAFT2}"
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "${APP_TS_MINECRAFT2}"
         ports:
           http:
             enabled: false

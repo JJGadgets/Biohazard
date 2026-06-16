@@ -69,16 +69,7 @@ spec:
                   name: main
                   port: http
         tls:
-          - hosts: [*host]
-      tailscale:
-        enabled: true
-        primary: true
-        className: "tailscale"
-        hosts:
-          - host: &host "${APP_DNS_TS_KARMA:=karma}"
-            paths: *paths
-        tls:
-          - hosts: [*host]
+              - hosts: [*host]
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

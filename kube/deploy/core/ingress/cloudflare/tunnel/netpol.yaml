@@ -38,18 +38,6 @@ spec:
             - key: ingress.home.arpa/cloudflare
               operator: In
               values: [allow]
-    # Headscale
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: &hs headscale
-            app.kubernetes.io/instance: *hs
-            app.kubernetes.io/name: *hs
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-            - port: "8080"
-              protocol: UDP
     # GoToSocial
     - toEndpoints:
         - matchLabels:

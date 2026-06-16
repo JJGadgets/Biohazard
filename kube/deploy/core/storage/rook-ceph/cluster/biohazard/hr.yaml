@@ -78,7 +78,6 @@ spec:
         mgr:
           ingress.home.arpa/nginx-internal: "allow"
           prom.home.arpa/kps: "allow"
-          tailscale.com/expose: "true"
           egress.home.arpa/kps: "allow"
       mon:
         count: 3
@@ -391,7 +390,7 @@ spec:
               interval: "60s"
           gateway:
             labels: # netpols
-              tailscale.com/expose: "true"
+
             instances: 2
             hostNetwork: false
             port: 6953
