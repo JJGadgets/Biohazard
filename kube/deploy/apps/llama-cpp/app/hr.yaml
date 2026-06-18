@@ -325,6 +325,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                add: ["IPC_LOCK"]
             resources:
               requests:
                 cpu: "10m"
