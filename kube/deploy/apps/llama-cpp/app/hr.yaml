@@ -240,7 +240,7 @@ spec:
             # NOTE:  ik_llama.cpp fork for better CPU inference
             image: &img
               repository: ghcr.io/ikawrakow/ik-llama-cpp
-              tag: cpu-server@sha256:4648f7f917031663b67d27c85ef6ca9c68d3459973b45fd06a537c0e52ef229e
+              tag: cpu-server@sha256:f7d45daf5056bfd04229643770ee3bef1c218c128f8136af7776c0021ba71617
             command: ["taskset", "-c", "0-7", "/app/llama-server"]
             args: &args
             - --model
