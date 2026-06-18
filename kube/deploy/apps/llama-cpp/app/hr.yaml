@@ -125,7 +125,7 @@ spec:
           LLAMA_ARG_PRESENCE_PENALTY: "0.0"
           LLAMA_ARG_REPEAT_PENALTY: "1.0"
           # Qwen 3.6 Preserve Thinking
-          # LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
+          LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
           # Cache quants
           LLAMA_ARG_CACHE_TYPE_K: q8_0
           LLAMA_ARG_CACHE_TYPE_V: q8_0
@@ -268,6 +268,11 @@ spec:
             # - --mlock
             # https://www.reddit.com/r/LocalLLaMA/comments/1sgl3qz/gemma_4_on_llamacpp_should_be_stable_now/
             # NOTE: ik_llama.cpp
+            - --prompt-cache-all
+            - --prompt-cache
+            - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE).cache"
+            - --slot-save-path
+            - "/data/ik_llama/slot-save-path/"
             # - --model-draft
             # - "/models/$(AA_HF_MTP_MODEL)/$(AA_HF_MTP_FILE)"
             # - --spec-type
@@ -301,15 +306,11 @@ spec:
             - -cram
             - "$(LLAMA_ARG_CACHE_RAM)"
             - -crs
-            - "0.90"
+            - "0.75"
             - --ctx-checkpoints
             - "$(LLAMA_ARG_CTX_CHECKPOINTS)"
             - --ctx-checkpoints-interval
             - "$(LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT)"
-            - --prompt-cache
-            - "/data/ik_llama/prompt-cache/$(HF_HASH)-$(HF_FILE).cache"
-            - --slot-save-path
-            - "/data/ik_llama/slot-save-path/"
             env:
               <<: [ *env, *qwen36-35b-a3b-model, *qwen36-35b-a3b-env ]
               # LLAMA_ARG_N_GPU_LAYERS: all
@@ -331,7 +332,7 @@ spec:
                 # cpu: 6 # same number of cores as lowest number of non-HT cores per node
                 # gpu.intel.com/i915: "1"
                 # nvidia.com/gpu: 1
-                memory: "46Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "35Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: &probes
               liveness:
                 enabled: true
