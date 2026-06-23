@@ -48,7 +48,7 @@ spec:
               cpu: 10m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-resizer
           resource:
             requests:
@@ -56,7 +56,7 @@ spec:
               cpu: 5m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-attacher
           resource:
             requests:
@@ -64,7 +64,7 @@ spec:
               cpu: 20m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-snapshotter
           resource:
             requests:
@@ -72,7 +72,7 @@ spec:
               cpu: 10m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-rbdplugin
           resource:
             requests:
@@ -80,7 +80,7 @@ spec:
               cpu: 20m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : csi-omap-generator
           resource:
             requests:
@@ -88,7 +88,7 @@ spec:
               cpu: 25m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : liveness-prometheus
           resource:
             requests:
@@ -96,7 +96,7 @@ spec:
               cpu: 10m
             limits:
               memory: 256Mi
-              cpu: 100m
+              cpu: 1
 
       # -- CEPH CSI RBD plugin resource requirement list
       # @default -- see values.yaml
@@ -116,7 +116,7 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : liveness-prometheus
           resource:
             requests:
@@ -124,7 +124,7 @@ spec:
               cpu: 250m
             limits:
               memory: 256Mi
-              cpu: 100m
+              cpu: 1
 
       # -- CEPH CSI CephFS provisioner resource requirement list
       # @default -- see values.yaml
@@ -136,7 +136,7 @@ spec:
               cpu: 20m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-resizer
           resource:
             requests:
@@ -144,7 +144,7 @@ spec:
               cpu: 20m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-attacher
           resource:
             requests:
@@ -152,7 +152,7 @@ spec:
               cpu: 20m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-snapshotter
           resource:
             requests:
@@ -160,7 +160,7 @@ spec:
               cpu: 20m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-cephfsplugin
           resource:
             requests:
@@ -168,7 +168,7 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : liveness-prometheus
           resource:
             requests:
@@ -176,7 +176,7 @@ spec:
               cpu: 10m
             limits:
               memory: 256Mi
-              cpu: 100m
+              cpu: 1
 
       # -- CEPH CSI CephFS plugin resource requirement list
       # @default -- see values.yaml
@@ -196,7 +196,7 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : liveness-prometheus
           resource:
             requests:
@@ -204,7 +204,7 @@ spec:
               cpu: 25m
             limits:
               memory: 256Mi
-              cpu: 100m
+              cpu: 1
 
       # -- CEPH CSI NFS provisioner resource requirement list
       # @default -- see values.yaml
@@ -216,7 +216,7 @@ spec:
               cpu: 25m
             limits:
               memory: 256Mi
-              cpu: 200m
+              cpu: 4
         - name : csi-nfsplugin
           resource:
             requests:
@@ -224,7 +224,7 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
         - name : csi-attacher
           resource:
             requests:
@@ -232,7 +232,7 @@ spec:
               cpu: 25m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
 
       # -- CEPH CSI NFS plugin resource requirement list
       # @default -- see values.yaml
@@ -252,12 +252,13 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 4
     resources:
       requests:
         cpu: 200m
       limits:
-        cpu: "200m"
+        # cpu: "200m"
+        cpu: "2"
         memory: 1Gi
     monitoring:
       enabled: true
