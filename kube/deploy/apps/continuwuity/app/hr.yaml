@@ -63,6 +63,10 @@ spec:
                   secretKeyRef:
                     name: continuwuity-secrets
                     key: CONDUWUIT_EMERGENCY_PASSWORD
+              # DNS optimizations (Matrix federation is very DNS heavy)
+              CONTINUWUITY_QUERY_OVER_TCP_ONLY: "true" # Query DNS over TCP only: recommended in containers
+              CONTINUWUITY_IP_LOOKUP_STRATEGY: "1" # Remove when IPv6 networking is added to my cluster
+              CONTINUWUITY_DNS_TIMEOUT: "60" # Alex has a dynamic DNS which causes issues with old cache entries
               # HIGHLY RECOMMENDED but OPTIONAL
               # anti Matrix Synapse, we're only interested in Matrix the protocol amongst our community
               # NOTE: this will block joining *spaces* from homeservers that have matrix.org users federated
@@ -119,7 +123,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "3"
+                cpu: "4"
                 memory: "512Mi"
             probes:
               liveness:
