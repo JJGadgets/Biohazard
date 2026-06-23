@@ -41,6 +41,7 @@ spec:
               MOLLY_ALLOWED_ENDPOINTS: '["http://${APP_DNS_NTFY}", "https://${APP_DNS_NTFY}", "http://ntfy.ntfy.svc.cluster.local"]'
               AAA_PVC: &pvc /data
               MOLLY_DB: "$(AAA_PVC)/data.sqlite"
+              RUST_LOG: info
             envFrom: &envFrom
               - secretRef:
                   name: mollysocket-secrets
@@ -84,6 +85,9 @@ spec:
             app:
               - subPath: data
                 path: *pvc
+      tmp:
+        type: emptyDir
+        medium: Memory
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
