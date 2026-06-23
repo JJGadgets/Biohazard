@@ -27,13 +27,8 @@ spec:
             egress.home.arpa/ntfy: allow
             egress.home.arpa/mullvad: allow
           annotations:
-            k8s.v1.cni.cncf.io/networks: | # VPN
-              [{
-                "name":"vpn-vlan",
-                "namespace": "multus",
-                "ips": ["${APP_IP_CONTINUWUITY_VPN}"],
-                "mac": "${APP_MAC_CONTINUWUITY_VPN}"
-              }]
+            ipam.cilium.io/ip-pool: vpn-vlan
+            ipam.cilium.io/require-pool-match: "true"
         containers:
           app:
             image: &img
