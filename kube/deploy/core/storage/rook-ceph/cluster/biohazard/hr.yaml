@@ -118,6 +118,13 @@ spec:
               operator: "Exists"
             - key: "node-role.kubernetes.io/unschedulable"
               operator: "Exists"
+        mon:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: Exists
       resources: # defaults are very aggressive
         mgr:
           requests:
