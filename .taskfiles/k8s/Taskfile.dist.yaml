@@ -104,6 +104,15 @@ tasks:
       #- sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"{{.FCMD}} {{.F}} | envsubst | kubectl apply --context {{.C}} -f -\""
       - sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"{{.FCMD}} {{.F}} | envsubst | kubectl apply -f -\""
 
+  talos-reboot:
+    aliases: [reboot]
+    desc: Drain target node and `talosctl reboot`, then uncordon rebooted node.
+    vars:
+      NODE: '{{ or .NODE (fail "Missing NODE var to specify target node to reboot!") }}'
+    cmds:
+      - |
+        kubectl drain --delete-emptydir-data --ignore-daemonsets --timeout 0 --skip-wait-for-delete-timeout 1 --grace-period 60 --chunk-size 0 --disable-eviction --pod-selector rook_cluster!=rook-ceph {{.NODE}}; talosctl reboot -m powercycle -n {{.NODE}}; kubectl uncordon {{.NODE}}
+
   cilium-bootstrap-apply:
     aliases: [cilium]
     desc: Bootstrap Cilium onto new cluster, ready for Flux to take over managing Cilium.
@@ -129,15 +138,22 @@ tasks:
       IMAGENAME: &imagename-fail '{{ or .IMAGENAME (fail "Missing `IMAGENAME` variable!") }}'
       IMAGETAG: &imagetag-fail '{{ or .IMAGETAG (fail "Missing `IMAGETAG` variable!") }}'
     cmds:
-      - cp -r ./kube/templates/test ./kube/deploy/apps/{{.APP}}
+      - cp -r ./kube/templates/test{{.FILE}} ./kube/deploy/apps/{{.APP}}{{.FILE}}
       # lowercase, used for resource names etc
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
-      - grep -lR 'IMAGENAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${IMAGENAME}/{{.IMAGENAME | replace "/" "\\/"}}/g' %
-      - grep -lR 'IMAGETAG' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/${IMAGETAG}/{{.IMAGETAG | replace "/" "\\/"}}/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/${APPNAME}/{{.APP}}/g' %
+      - grep -lR 'IMAGENAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/${IMAGENAME}/{{.IMAGENAME | replace "/" "\\/"}}/g' %
+      - grep -lR 'IMAGETAG' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/${IMAGETAG}/{{.IMAGETAG | replace "/" "\\/"}}/g' %
       # uppercase, for variable substitution references e.g. ${APP_DNS_AUTHENTIK}
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g;s/\(_{{.APP}}:=\)/\U\1/g' %
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
-      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/ | xargs -I% sed -i 's/_APPNAME }}/_{{.APP}}}/g;s/\(_{{.APP}} }}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/_APPNAME:=/_{{.APP}}:=/g;s/\(_{{.APP}}:=\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/_APPNAME}/_{{.APP}}}/g;s/\(_{{.APP}}}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/_APPNAME }}/_{{.APP}} }}/g;s/\(_{{.APP}} }}\)/\U\1/g' %
+      - grep -lR 'APPNAME' ./kube/deploy/apps/{{.APP}}/{{.FILE}} | xargs -I% sed -i 's/_APPNAME:/_{{.APP}}:/g;s/\(_{{.APP}}:\)/\U\1/g' %
+
+  vars-nvim:
+    vars:
+      FOLDER: '{{ or .FOLDER (fail "Missing `FOLDER` variable!") }}'
+    cmds:
+      - grep -REoh '\$\{.*\}' {{.FOLDER}}/app | nvim -c ":vs {{.FOLDER}}/vars.yaml"
 
   shortnames:
     desc: List all installed CRDs and their short names.
