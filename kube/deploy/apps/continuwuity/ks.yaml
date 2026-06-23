@@ -59,23 +59,8 @@ spec:
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
-  patches:
-    - patch: |-
-        apiVersion: volsync.backube/v1alpha1
-        kind: ReplicationDestination
-        metadata:
-          name: "continuwuity-data-bootstrap"
-          namespace: continuwuity
-        spec:
-          restic:
-            restoreAsOf: 2026-05-03T14:00:00+00:00
-      target:
-        group: volsync.backube
-        kind: ReplicationDestination
-        name: continuwuity-data-bootstrap
-        namespace: continuwuity
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -97,10 +82,10 @@ spec:
     substitute:
       PVC: *pvc
       SIZE: "50Gi"
-      SC: &sc "file-ec-2-1"
-      SNAP: "file"
-      ACCESSMODE: "ReadWriteMany"
-      SNAP_ACCESSMODE: "ReadOnlyMany"
+      SC: &sc "block-2"
+      SNAP: "block"
+      ACCESSMODE: &am "ReadWriteOnce"
+      SNAP_ACCESSMODE: *am
       VS_APP_CURRENT_VERSION: "forgejo.ellis.link/continuwuation/continuwuity:v0.5.10-maxperf@sha256:137c3ec3145beab4f826f63c8fe44347002400ed115d42c0450d49d9bf6fe16f"
       RUID: &uid "65534"
       RGID: *uid
@@ -117,20 +102,5 @@ spec:
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
-  patches:
-    - patch: |-
-        apiVersion: volsync.backube/v1alpha1
-        kind: ReplicationDestination
-        metadata:
-          name: "continuwuity-mass-bootstrap"
-          namespace: continuwuity
-        spec:
-          restic:
-            restoreAsOf: 2026-05-03T14:00:00+00:00
-      target:
-        group: volsync.backube
-        kind: ReplicationDestination
-        name: continuwuity-mass-bootstrap
-        namespace: continuwuity
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

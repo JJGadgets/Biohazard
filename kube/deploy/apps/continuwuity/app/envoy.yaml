@@ -3,13 +3,13 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
-  name: envoy-internal
-  namespace: ingress
+  name: &app continuwuity
+  namespace: *app
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      name: continuwuity
+      name: *app
   connection:
     bufferLimit: 8Mi
   tcpKeepalive: {}
