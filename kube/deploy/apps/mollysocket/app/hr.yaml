@@ -20,6 +20,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/ntfy: allow
+            egress.home.arpa/internet: allow
           annotations:
             ipam.cilium.io/ip-pool: vpn-vlan
             ipam.cilium.io/require-pool-match: "true"
