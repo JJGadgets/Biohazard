@@ -87,6 +87,8 @@ spec:
             path: /usr/share/tessdata
           - subPath: localbin
             path: /usr/local/bin
+          - subPath: homedir
+            path: /home/stirlingpdfuser
     defaultPodOptions:
       # hostAliases:
       #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
@@ -98,7 +100,7 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_STIRLING_PDF:=1000}
+        runAsUser: &uid 1000 # upstream `stirlingpdfuser` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
