@@ -3,58 +3,61 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: stirling-pdf-app
-  namespace: flux-system
+  namespace: &ns stirling-pdf
   labels: &l
     app.kubernetes.io/name: "stirling-pdf"
 spec:
-  targetNamespace: "stirling-pdf"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/stirling-pdf/app
   components:
     - ../../../core/flux-system/alerts/template/
-  #   - ../../../core/storage/volsync/component/
-  dependsOn: []
-#     - name: stirling-pdf-db
-#     - name: 1-core-storage-volsync-app
-#     - name: 1-core-storage-rook-ceph-cluster
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    # - name: stirling-pdf-db
+#     - name: stirling-pdf-pvc
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: stirling-pdf-pvc
+#   namespace: &ns stirling-pdf
+#   labels: &l
+#     app.kubernetes.io/name: stirling-pdf
+#     pvc.home.arpa/volsync: "true"
+# spec:
+#   targetNamespace: *ns
+#   commonMetadata:
+#     labels: *l
+#   path: ./kube/deploy/core/storage/volsync/template
+#   dependsOn:
+#     - name: crds
+#       namespace: flux-system
 #   postBuild:
 #     substitute:
-#       PVC: "stirling-pdf-data"
+#       PVC: &pvc "stirling-pdf-data"
 #       SIZE: "10Gi"
 #       SC: &sc "file"
 #       SNAP: *sc
 #       ACCESSMODE: "ReadWriteMany"
 #       SNAP_ACCESSMODE: "ReadOnlyMany"
+#       VS_APP_CURRENT_VERSION: "ghcr.io/stirling-tools/stirling-pdf:2.13.1-fat@sha256:e5731460b0545eba75f0af04d86954713fd768d0f51f89ebfb6e70b6d89b2f48"
 #       RUID: &uid "1000"
 #       RGID: *uid
 #       RFSG: *uid
-#       # RUID: !!str &uid |
-#       #   ${APP_UID_STIRLING-PDF:=1000}
-#       # RGID: !!str |
-#       #   ${APP_UID_STIRLING-PDF:=1000}
-#       # RFSG: !!str |
-#       #   ${APP_UID_STIRLING-PDF:=1000}
-# ---
-# apiVersion: kustomize.toolkit.fluxcd.io/v1
-# kind: Kustomization
-# metadata:
-#   name: stirling-pdf-db
-#   namespace: flux-system
-#   labels: &l
-#     prune.flux.home.arpa/enabled: "true"
-#     db.home.arpa/pg: "pg-default"
-#     app.kubernetes.io/name: "stirling-pdf"
-# spec:
-#   commonMetadata:
-#     labels: *l
-#   path: ./kube/deploy/core/db/pg/clusters/template/pguser
-#   targetNamespace: "pg"
-#   dependsOn:
-#     - name: 1-core-db-pg-clusters-default
-#     - name: 1-core-secrets-es-k8s
-#   postBuild:
-#     substitute:
-#       PG_NAME: "default"
-#       PG_DB_USER: &app "stirling-pdf"
-#       PG_APP_NS: *app
+#   healthChecks:
+#     - apiVersion: v1
+#       kind: PersistentVolumeClaim
+#       name: *pvc
+#       namespace: *ns
+#     - apiVersion: volsync.backube/v1alpha1
+#       kind: ReplicationSource
+#       name: "stirling-pdf-data-r2-updates-restic"
+#       namespace: *ns
+#   healthCheckExprs:
+#     - apiVersion: volsync.backube/v1alpha1
+#       kind: ReplicationSource
+#       current: status.latestMoverStatus.result == "Successful"
+#       failed: status.latestMoverStatus.result == "Failed"
