@@ -89,6 +89,8 @@ spec:
             path: /usr/local/bin
           - subPath: homedir
             path: /home/stirlingpdfuser
+          - subPath: defaultWebUIConfigs
+            path: /app/./pipeline/defaultWebUIConfigs
     defaultPodOptions:
       # hostAliases:
       #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
