@@ -51,7 +51,6 @@ spec:
               requests:
                 cpu: "100m"
               limits:
-                cpu: "4"
                 memory: "2Gi"
             # probes: # TODO: figure out UDP probes
             #   liveness:
@@ -103,6 +102,8 @@ spec:
         globalMounts:
           - subPath: data
             path: /home/steam/steamcmd/sandstorm
+          - subPath: mods
+            path: /home/steam/mod.io
       config:
         type: configMap
         name: insurgency-sandstorm-config
@@ -130,7 +131,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: false
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1001 # `steam` user, 1000 is `ubuntu` user
@@ -157,16 +158,4 @@ spec:
                 matchExpressions:
                   - key: "kubernetes.io/hostname"
                     operator: In
-                    values: ["ange", "charlotte"] # i5-8500T
-            - weight: 10
-              preference:
-                matchExpressions:
-                  - key: "kubernetes.io/hostname"
-                    operator: In
-                    values: ["chise"] # i3-8100
-            # - weight: 20
-            #   preference:
-            #     matchExpressions:
-            #       - key: "kubernetes.io/hostname"
-            #         operator: In
-            #         values: ["thunderscreech"] # R730xd VM, because it can't run VMs so let others run VMs
+                    values: ["ange", "charlotte", "chise"] # i5-12500T, etcd + Ceph nodes so packet loss contention
