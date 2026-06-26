@@ -70,10 +70,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: "128Mi"
               limits:
-                cpu: "1"
-                memory: "2Gi"
+                cpu: "4"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
@@ -104,8 +103,8 @@ spec:
                 cpu: 10m
                 memory: "300Mi"
               limits:
-                cpu: "1"
-                memory: "2Gi"
+                cpu: "4"
+                memory: "3Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -138,10 +137,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: "1Gi"
               limits:
-                cpu: "1"
-                memory: "6Gi"
+                cpu: "4"
+                memory: "3Gi"
                 gpu.intel.com/i915: "1"
             probes:
               liveness:
@@ -172,7 +170,7 @@ spec:
               requests:
                 cpu: 10m
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "2Gi"
       ml-model-pull-facial:
         <<: *ml-model-pull
@@ -193,10 +191,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: "32Mi"
               limits:
-                cpu: "1"
-                memory: "128Mi"
+                cpu: "4"
+                memory: "100Mi"
             probes:
               liveness:
                 enabled: true
