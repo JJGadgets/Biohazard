@@ -154,16 +154,7 @@ spec:
                   name: local
                   port: http
         tls:
-          - hosts: [*host]
-      tailscale:
-        enabled: true
-        primary: false
-        className: "tailscale"
-        hosts:
-          - host: &host "${APP_DNS_ALERTMANAGER_TS:=alertmanager}"
-            paths: *paths
-        tls:
-          - hosts: [*host]
+              - hosts: [*host]
     persistence:
       data:
         existingClaim: alertmanager-data

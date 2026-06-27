@@ -32,12 +32,6 @@ spec:
             io.kubernetes.pod.namespace: "kube-system"
     - fromEndpoints:
         - matchLabels:
-            io.kubernetes.pod.namespace: "tailscale"
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: "blocky"
-    - fromEndpoints:
-        - matchLabels:
             io.kubernetes.pod.namespace: "code-server"
   egress:
     - toCIDRSet:

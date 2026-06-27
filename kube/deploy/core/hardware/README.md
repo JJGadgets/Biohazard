@@ -1,1 +1,0 @@
-Intel Device Plugins depends on Node Feature Discovery

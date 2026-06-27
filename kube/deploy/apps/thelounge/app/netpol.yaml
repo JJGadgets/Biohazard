@@ -30,11 +30,6 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    # access K@H
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kah
-            app.kubernetes.io/name: inspircd
     - toEntities:
         - world
       toPorts:

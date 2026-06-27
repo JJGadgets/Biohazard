@@ -74,11 +74,6 @@ spec:
                 path: "^/webhooks"
                 service: http://piped-backend.piped.svc.cluster.local:8080
 
-              - hostname: "${APP_DNS_HEADSCALE}"
-                service: https://headscale.headscale.svc.cluster.local.:8080
-                originRequest:
-                  originServerName: "${APP_DNS_HEADSCALE}"
-
               - hostname: "*.${DNS_SHORT}"
                 service: https://envoy-external.ingress.svc.cluster.local:443
                 originRequest:

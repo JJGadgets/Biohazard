@@ -18,9 +18,6 @@ metadata:
   namespace: flux-system
 spec:
   path: ./kube/deploy/core/flux-system/misc
-  dependsOn:
-    - name: 1-core-kyverno-crds
-    - name: 1-core-kyverno-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
