@@ -53,7 +53,7 @@ spec:
             envFrom: &envFrom
               - secretRef:
                   name: openclaw-secrets
-            workingDir: *pvc
+            # workingDir: *pvc # NOTE: DO NOT enable this, as the entrypoint uses a relative path by default
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -68,6 +68,7 @@ spec:
             image: &img
               repository: ghcr.io/anomalyco/opencode
               tag: 1.17.11@sha256:c38a7cb4449f342166c43ff4a69e1b02f12ef1959bbfdd83993cdff8cea698a7
+            command: ["/usr/local/bin/opencode"]
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env:
               <<: *env
