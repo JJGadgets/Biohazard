@@ -181,7 +181,7 @@ spec:
         runAsUser: &uid ${APP_UID_OPENCLAW:=1000}
         runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: Always
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
