@@ -17,6 +17,8 @@ spec:
         key: "authentik vars - ${CLUSTER_NAME}"
     - extract:
         key: "OpenClaw - ${CLUSTER_NAME}"
+    - extract:
+        key: "OpenCode - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
