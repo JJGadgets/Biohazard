@@ -28,6 +28,12 @@ spec:
           annotations:
             ipam.cilium.io/ip-pool: vpn-vlan
             ipam.cilium.io/require-pool-match: "true"
+          resources:
+            requests:
+              cpu: "10m"
+            limits:
+              cpu: "4"
+              memory: "2Gi"
         containers:
           app:
             image: &img
@@ -47,22 +53,29 @@ spec:
             envFrom: &envFrom
               - secretRef:
                   name: openclaw-secrets
+            workingDir: *pvc
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "4"
-                memory: "1Gi"
-            probes:
+            probes: &probes
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+          opencode:
+            image: &img
+              repository: ghcr.io/anomalyco/opencode
+              tag: 1.17.11@sha256:c38a7cb4449f342166c43ff4a69e1b02f12ef1959bbfdd83993cdff8cea698a7
+            args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
+            env:
+              <<: *env
+              HTTP_PORT: &opencode-http 8081
+            envFrom: *envFrom
+            workingDir: *pvc
+            securityContext: *sc
+            probes: *probes
         serviceAccount:
           identifier: app
         initContainers:
@@ -87,6 +100,14 @@ spec:
             targetPort: *http
             protocol: HTTP
             appProtocol: http
+      opencode:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *opencode-http
+            protocol: HTTP
+            appProtocol: http
     route:
       app: &route
         hostnames: ["${APP_DNS_OPENCLAW:=openclaw}"]
@@ -95,6 +116,17 @@ spec:
             namespace: ingress
             sectionName: internal
         # NOTE: `manifest.webmanifest must be excluded as unauth on authentik forward auth provider for PWA install to work`
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+      opencode:
+        <<: *route
+        hostnames: ["${APP_DNS_OPENCODE:=opencode}"]
+        rules:
+          - backendRefs:
+              - identifier: opencode
+                port: http
     persistence:
       # config:
       #   type: configMap
@@ -106,29 +138,24 @@ spec:
       #           path: /data/server.toml
       data:
         existingClaim: openclaw-data
-        advancedMounts:
-          app:
-            app: &mount
-              - subPath: data
-                path: *pvc
-            setup: *mount
+        globalMounts:
+          - subPath: data
+            path: *pvc
       misc:
         existingClaim: openclaw-misc
-        advancedMounts:
-          app:
-            app:
-              - subPath: brew
-                path: /home/linuxbrew
-              - subPath: nix
-                path: /nix
-              - subPath: go
-                path: /home/openclaw/go
-              - subPath: go-local
-                path: /home/openclaw/.local/go
-              - subPath: mise
-                path: /home/openclaw/.local/share/mise
-              - subPath: gradle
-                path: /home/openclaw/.gradle
+        globalMounts:
+          - subPath: brew
+            path: /home/linuxbrew
+          - subPath: nix
+            path: /nix
+          - subPath: go
+            path: /home/openclaw/go
+          - subPath: go-local
+            path: /home/openclaw/.local/go
+          - subPath: mise
+            path: /home/openclaw/.local/share/mise
+          - subPath: gradle
+            path: /home/openclaw/.gradle
       tmp:
         type: emptyDir
         medium: Memory
@@ -176,6 +203,9 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: searxng
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: soft-serve
     serviceAccount:
       app: {}
     rbac:

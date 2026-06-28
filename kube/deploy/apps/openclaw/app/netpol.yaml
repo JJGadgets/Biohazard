@@ -18,6 +18,7 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
     - toFQDNs:
+        - matchName: "brew.sh"
         - matchPattern: "*.brew.sh"
         - matchName: "openrouter.ai"
         - matchPattern: "*.openrouter.ai"
@@ -26,6 +27,10 @@ spec:
         - matchPattern: "*.*.nvidia.com"
         - matchName: "opencode.ai"
         - matchPattern: "*.opencode.ai"
+        - matchName: "openai.com"
+        - matchPattern: "*.openai.com"
+        - matchName: "chatgpt.com"
+        - matchPattern: "*.chatgpt.com"
         - matchName: "parallel.ai"
         - matchPattern: "*.parallel.ai"
         - matchName: "duckduckgo.com"
