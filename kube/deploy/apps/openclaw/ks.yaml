@@ -20,7 +20,7 @@ spec:
     - name: openclaw-pvc
   postBuild:
     substitute:
-      AUTH_ROUTE: openclaw
+      AUTH_ROUTE: openclaw-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
