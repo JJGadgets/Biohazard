@@ -179,7 +179,7 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_OPENCLAW:=1000}
+        runAsUser: &uid 1000 # upstream `node` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
