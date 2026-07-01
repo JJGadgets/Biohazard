@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/mollyim/mollysocket
-              tag: 1.7.1-alpine@sha256:4173369367665ee1ebe92fdaf24aa8948cf24080cfcb46b5790cc8c5d2d64d67
+              tag: 1.7.1-alpine@sha256:4e6e038cad9e4cf839191f290e95252d46349eb74d79e03f8cfb20db69e92e7e
             args: ["server"]
             env: &env
               TZ: "${CONFIG_TZ}"
