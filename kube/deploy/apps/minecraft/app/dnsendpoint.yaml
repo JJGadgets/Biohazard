@@ -1,0 +1,16 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: minecraft
+  namespace: minecraft
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/target: "yes"
+spec:
+  endpoints:
+    - &dns
+      dnsName: "${APP_DNS_MINECRAFT}"
+      recordTTL: 60
+      recordType: CNAME
+      targets: ["${DNS_VPN}"]
