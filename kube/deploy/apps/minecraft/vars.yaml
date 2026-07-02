@@ -28,3 +28,5 @@ spec:
         # App specific
         APP_DNS_MINECRAFT: '{{ .APP_DNS_MINECRAFT }}'
         APP_IP_MINECRAFT: '{{ .APP_IP_MINECRAFT }}' # only for LoadBalancer service IP
+        # Cluster wide vars
+        DNS_VPN: '{{ .DNS_VPN }}'
