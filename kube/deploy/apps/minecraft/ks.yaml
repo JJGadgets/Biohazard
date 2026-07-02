@@ -37,7 +37,7 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "minecraft-data"
-      SIZE: "10Gi"
+      SIZE: "20Gi"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: "ReadWriteOnce"
