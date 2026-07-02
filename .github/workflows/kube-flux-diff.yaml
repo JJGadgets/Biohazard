@@ -91,7 +91,7 @@ jobs:
       - run: |
           cat ${{ matrix.files }}
       - name: Add comment
-        uses: mshick/add-pr-comment@64b8e914979889d746c99dea15a76e77ef64580a # v3.10.0
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3.12.0
         with:
           repo-token: "${{ steps.oauth-token.outputs.token }}"
           message-id: "${{ github.event.pull_request.number }}/${{ matrix.files }}"
