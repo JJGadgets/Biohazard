@@ -1,30 +1,30 @@
----
-apiVersion: snapscheduler.backube/v1
-kind: SnapshotSchedule
-metadata:
-  name: "${PVC}-daily"
-spec:
-  claimSelector:
-    matchLabels:
-      app.kubernetes.io/pvc-name: "${PVC}"
-  disabled: false
-  retention:
-    expires: "168h" # 1 week
-  schedule: "@daily"
-  snapshotTemplate:
-    snapshotClassName: "${SNAP:=file}"
----
-apiVersion: snapscheduler.backube/v1
-kind: SnapshotSchedule
-metadata:
-  name: "${PVC}-hourly"
-spec:
-  claimSelector:
-    matchLabels:
-      app.kubernetes.io/pvc-name: "${PVC}"
-  disabled: false
-  retention:
-    expires: "48h" # 2 days
-  schedule: "@hourly"
-  snapshotTemplate:
-    snapshotClassName: "${SNAP:=file}"
+#---
+#apiVersion: snapscheduler.backube/v1
+#kind: SnapshotSchedule
+#metadata:
+#  name: "${PVC}-daily"
+#spec:
+#  claimSelector:
+#    matchLabels:
+#      app.kubernetes.io/pvc-name: "${PVC}"
+#  disabled: false
+#  retention:
+#    expires: "168h" # 1 week
+#  schedule: "@daily"
+#  snapshotTemplate:
+#    snapshotClassName: "${SNAP:=file}"
+#---
+#apiVersion: snapscheduler.backube/v1
+#kind: SnapshotSchedule
+#metadata:
+#  name: "${PVC}-hourly"
+#spec:
+#  claimSelector:
+#    matchLabels:
+#      app.kubernetes.io/pvc-name: "${PVC}"
+#  disabled: false
+#  retention:
+#    expires: "48h" # 2 days
+#  schedule: "@hourly"
+#  snapshotTemplate:
+#    snapshotClassName: "${SNAP:=file}"
