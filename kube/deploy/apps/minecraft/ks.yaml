@@ -3,12 +3,60 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: minecraft-app
-  namespace: flux-system
-  labels:
-    wait.flux.home.arpa/disabled: "true"
+  namespace: &ns minecraft
+  labels: &l
+    app.kubernetes.io/name: "minecraft"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/minecraft/app
-  wait: false
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-storage-volsync-app
+    - name: crds
+      namespace: flux-system
+    - name: minecraft-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: minecraft-pvc
+  namespace: &ns minecraft
+  labels: &l
+    app.kubernetes.io/name: minecraft
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "minecraft-data"
+      SIZE: "10Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteOnce"
+      SNAP_ACCESSMODE: "ReadWriteOnce"
+      VS_APP_CURRENT_VERSION: "ghcr.io/itzg/minecraft-server:2026.6.1@sha256:2a3ed0997720d79b7ed783a79e43143358b2e60d27daf15c2b1d27b59d04a6d8"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "minecraft-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

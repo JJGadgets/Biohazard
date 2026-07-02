@@ -16,7 +16,10 @@ spec:
     creationPolicy: Owner
     deletionPolicy: Retain
     name: *name
-    # template:
-    #   type: Opaque
-    #   data:
-    #     age.agekey: '{{ .agekey }}'
+    template:
+      type: Opaque
+      data:
+        SERVER_NAME: "{{ .SERVER_NAME }}"
+        OPS: "{{ .OPS }}"
+        ICON: "{{ .ICON }}"
+        RCON_PASSWORD: "{{ .RCON_PASSWORD }}"
