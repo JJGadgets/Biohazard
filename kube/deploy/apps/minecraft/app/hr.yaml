@@ -70,6 +70,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                add: ["NET_RAW"]
             resources:
               requests:
                 cpu: "10m"
