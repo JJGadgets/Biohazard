@@ -130,7 +130,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: "RuntimeDefault" }
+        seccompProfile: { type: "Unconfined" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
