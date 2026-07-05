@@ -51,12 +51,8 @@ spec:
               VIEW_DISTANCE: "10"
               OVERRIDE_SERVER_PROPERTIES: "true"
               ENABLE_RCON: "true"
-              ENABLE_AUTOPAUSE: "TRUE"
+              PAUSE_WHEN_EMPTY_SECONDS: "300"
               SKIP_SUDO: "true"
-              AUTOPAUSE_SUDO: "false"
-              AUTOPAUSE_KNOCK_INTERFACE: "eth0"
-              AUTOPAUSE_TIMEOUT_EST: "300"
-              AUTOPAUSE_TIMEOUT_INIT: "120"
               RCON_CMDS_STARTUP: |-
                 gamerule keepInventory false
               SNOOPER_ENABLED: "false"
@@ -70,7 +66,6 @@ spec:
               allowPrivilegeEscalation: true
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_RAW"]
             resources:
               requests:
                 cpu: "10m"
@@ -122,7 +117,6 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: false
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
@@ -130,7 +124,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: "Unconfined" }
+        seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
