@@ -20,6 +20,12 @@ spec:
           labels:
             ingress.home.arpa/world: allow
             egress.home.arpa/internet: allow
+          resources: &resources
+            requests:
+              cpu: "10m"
+            limits:
+              # cpu: "4"
+              memory: "4Gi"
         containers:
           app:
             image: &img
@@ -66,12 +72,7 @@ spec:
               allowPrivilegeEscalation: true
               capabilities:
                 drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                # cpu: "4"
-                memory: "4Gi"
+            resources: *resources
             probes:
               liveness: &probe
                 enabled: true
