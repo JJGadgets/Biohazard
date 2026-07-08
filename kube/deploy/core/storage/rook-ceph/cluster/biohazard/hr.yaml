@@ -220,21 +220,21 @@ spec:
           <<: *rbd-sc
           name: "block-2"
           isDefault: false
-      # - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
-      #   spec:
-      #     failureDomain: "osd"
-      #     deviceClass: "ssd"
-      #     erasureCoded:
-      #       dataChunks: 2
-      #       codingChunks: 1
-      #     parameters:
-      #       min_size: "2"
-      #       compression_mode: "aggressive"
-      #       compression_algorithm: "lz4"
-      #   storageClass:
-      #     <<: *rbd-sc
-      #     name: "block-ssd-ec-2-1"
-      #     isDefault: false
+      - name: &rbd "${CLUSTER_NAME}-block-k8s-ssd-ec-2-1"
+        spec:
+          failureDomain: "osd"
+          deviceClass: "ssd"
+          erasureCoded:
+            dataChunks: 2
+            codingChunks: 1
+          parameters:
+            min_size: "2"
+            compression_mode: "aggressive"
+            compression_algorithm: "lz4"
+        storageClass:
+          <<: *rbd-sc
+          name: "block-ssd-ec-2-1"
+          isDefault: false
       # - name: &rbd "${CLUSTER_NAME}-block-k8s-hdd-ec-2-2"
       #   spec:
       #     failureDomain: "osd"
