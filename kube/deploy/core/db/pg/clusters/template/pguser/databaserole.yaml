@@ -5,7 +5,7 @@ metadata:
   name: "${PG_DB_USER}"
 spec:
   cluster:
-    name: "${PG_NAME}"
+    name: "pg-${PG_NAME}"
   name: "${PG_DB_USER}"
   ensure: present
   login: true
