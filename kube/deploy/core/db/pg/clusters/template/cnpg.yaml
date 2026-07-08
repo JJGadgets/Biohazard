@@ -16,15 +16,15 @@ spec:
       db.home.arpa/pg: *name
       prom.home.arpa/kps: "allow"
   instances: ${PG_REPLICAS:=2}
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:01182316b7e3b75799a390a064a78f52109f8671b51999d5701fba37cb2fdd8a
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie@sha256:802cb43a4d482acf1037b418e421c865b16959ba22e07f16fc003e06cb21084c
   primaryUpdateStrategy: unsupervised # let k8s handle upgrades
   # primaryUpdateMethod: restart # prefer downtime of image download from registry instead of switching primary instance (promote a standby instance to primary) when current primary pod is updated
   storage:
     size: "${PG_CONFIG_SIZE:=10Gi}"
-    storageClass: "${PG_SC:=local}"
+    storageClass: "${PG_SC:=block}"
   walStorage:
     size: "${PG_CONFIG_SIZE_WAL:=20Gi}"
-    storageClass: "${PG_SC:=local}"
+    storageClass: "${PG_SC:=block}"
   # superuserSecret:
   #   name: pg-default-superuser
   postgresql:
