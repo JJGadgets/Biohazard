@@ -1,0 +1,20 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: "${PG_DB_USER}"
+spec:
+  cluster:
+    name: "${PG_NAME}"
+  name: "${PG_DB_USER}"
+  ensure: present
+  login: true
+  superuser: false
+  createdb: false
+  createrole: false
+  inherit: true
+  databaseRoleReclaimPolicy: retain
+  passwordSecret:
+    name: "pg-${PG_NAME}-pguser-${PG_DB_USER}-cnpg"
+  clientCertificate:
+    enabled: true
