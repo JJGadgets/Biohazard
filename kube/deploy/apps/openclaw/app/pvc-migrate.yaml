@@ -4,6 +4,8 @@ kind: VolumeSnapshot
 metadata:
   name: openclaw-misc
   namespace: openclaw
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
   volumeSnapshotClassName: block
   source:
@@ -14,6 +16,8 @@ kind: ReferenceGrant
 metadata:
   name: openclaw-misc
   namespace: openclaw
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:
   from:
   - group: ""
