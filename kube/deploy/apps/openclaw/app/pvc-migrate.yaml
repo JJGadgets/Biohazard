@@ -1,0 +1,25 @@
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: openclaw-misc
+  namespace: openclaw
+spec:
+  volumeSnapshotClassName: block
+  source:
+    persistentVolumeClaimName: openclaw-misc
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: openclaw-misc
+  namespace: openclaw
+spec:
+  from:
+  - group: ""
+    kind: PersistentVolumeClaim
+    namespace: ai
+  to:
+  - group: snapshot.storage.k8s.io
+    kind: VolumeSnapshot
+    name: openclaw-misc

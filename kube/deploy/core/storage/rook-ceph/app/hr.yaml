@@ -262,3 +262,9 @@ spec:
         memory: 1Gi
     monitoring:
       enabled: true
+    drivers:
+      rbd:
+        controllerPlugin:
+          containerExtraArgs:
+            csi-provisioner:
+              - --feature-gates=CrossNamespaceVolumeDataSource=true

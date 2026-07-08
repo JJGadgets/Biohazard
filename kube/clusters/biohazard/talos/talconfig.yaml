@@ -492,6 +492,7 @@ patches:
                   type: Directory
                   path: /proc
                   readOnly: true
+
   - &watchdog |
     apiVersion: v1alpha1
     kind: WatchdogTimerConfig
@@ -595,10 +596,10 @@ controlPlane:
       cluster:
         apiServer:
           extraArgs:
-            feature-gates: ImageVolume=true,UserNamespacesSupport=true,PodLevelResources=true,MutatingAdmissionPolicy=true,ResourceHealthStatus=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
+            feature-gates: ImageVolume=true,UserNamespacesSupport=true,PodLevelResources=true,MutatingAdmissionPolicy=true,ResourceHealthStatus=true,CrossNamespaceVolumeDataSource=true # K8s 1.32+ user namespaces, K8s 1.32+ pod level resources, K8s 1.32+ mutating admission policy to avoid Kyverno
         controllerManager:
           extraArgs:
-            feature-gates: PodLevelResources=true
+            feature-gates: PodLevelResources=true,CrossNamespaceVolumeDataSource=true
         scheduler:
           extraArgs:
             feature-gates: PodLevelResources=true
