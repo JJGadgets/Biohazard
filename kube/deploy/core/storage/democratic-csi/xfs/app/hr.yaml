@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: local-xfs-hostpath
+  namespace: democratic-csi
+spec:
+  chart:
+    spec:
+      chart: democratic-csi
+      version: 0.15.1
+      sourceRef:
+        name: democratic-csi
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    csiDriver:
+      name: "local-xfs-hostpath.democratic-csi.${CLUSTER_NAME}.home.arpa"
+      storageCapacity: true # With storage capacity tracking, the scheduler filters out nodes which do not have enough capacity.
+      fsGroupPolicy: File # fsGroupChangePolicy
+
+    storageClasses:
+      - name: local-xfs
+        defaultClass: false
+        reclaimPolicy: Delete
+        volumeBindingMode: WaitForFirstConsumer
+        allowVolumeExpansion: true
+
+    volumeSnapshotClasses:
+      - name: local-xfs
+        deletionPolicy: Delete
+        parameters:
+          cluster: "${CLUSTER_NAME}"
+
+    controller:
+      enabled: true
+      strategy: node
+      externalProvisioner:
+        extraArgs:
+          - --leader-election=false
+          - --node-deployment=true
+          - --node-deployment-immediate-binding=false
+          - --feature-gates=Topology=true
+          - --strict-topology=true
+          - --enable-capacity=true
+          - --capacity-ownerref-level=1
+
+      # distributed support is not yet ready
+      externalResizer:
+        enabled: false
+
+      externalSnapshotter:
+        enabled: true
+        extraArgs:
+          - --leader-election=false
+          - --node-deployment=true
+
+      driver:
+        image: &img
+          registry: ghcr.io/jjgadgets/democratic-csi
+          tag: xfs
+          pullPolicy: Always
+
+    node:
+      driver:
+        image: *img
+        extraVolumeMounts:
+          - name: local-xfs-hostpath
+            mountPath: /var/lib/democratic-csi-local-xfs-hostpath
+            mountPropagation: Bidirectional
+
+      extraVolumes:
+        - name: local-xfs-hostpath
+          hostPath:
+            path: /var/lib/democratic-csi-local-xfs-hostpath
+            type: DirectoryOrCreate
+
+    driver:
+      config:
+        driver: local-xfs-hostpath
+        instance_id: ${CLUSTER_NAME}-local-xfs-hostpath
+        local-xfs-hostpath:
+          shareBasePath: "/var/lib/democratic-csi-local-xfs-hostpath"
+          controllerBasePath: "/var/lib/democratic-csi-local-xfs-hostpath"
+          dirPermissionsMode: "0770"
+          dirPermissionsUser: 0
+          dirPermissionsGroup: 0
