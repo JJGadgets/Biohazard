@@ -16,6 +16,7 @@ spec:
   values:
     csiDriver:
       name: "local-xfs-hostpath.democratic-csi.${CLUSTER_NAME}.home.arpa"
+      attachRequired: false
       storageCapacity: true # With storage capacity tracking, the scheduler filters out nodes which do not have enough capacity.
       fsGroupPolicy: File # fsGroupChangePolicy
 
@@ -44,16 +45,15 @@ spec:
           - --strict-topology=true
           - --enable-capacity=true
           - --capacity-ownerref-level=1
-
-      # distributed support is not yet ready
-      externalResizer:
-        enabled: false
-
       externalSnapshotter:
         enabled: true
         extraArgs:
           - --leader-election=false
           - --node-deployment=true
+      externalResizer:
+        enabled: true
+      externalAttacher:
+        enabled: false
 
       driver:
         image: &img
