@@ -58,8 +58,7 @@ spec:
       driver:
         image: &img
           registry: ghcr.io/jjgadgets/democratic-csi
-          tag: xfs
-          pullPolicy: Always
+          tag: xfs@sha256:39e186c65b5385b6860817f88230d1bc6cc23a915c9ca76503f5c50da2d7c309
 
     node:
       driver:
