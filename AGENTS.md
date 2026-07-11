@@ -45,14 +45,14 @@ The repo is structured for multi-cluster. Each cluster gets its own `kube/cluste
 |-----------|------|
 | `_networking/cilium` | CNI, kube-proxy replacement, NetworkPolicy (CiliumNetworkPolicy + CiliumClusterwideNetworkPolicy), LoadBalancer (BGP + LB-IPAM), Hubble observability, L7 proxy for DNS/FQDN policies |
 | `_networking/multus` | Secondary network attachments for pods/VMs needing direct L2/VLAN access (e.g. Home Assistant to IoT VLAN) |
-| `_networking/bird` | BIRD daemon for BGP/OSPF route redistribution between Cilium LB IPs and upstream router |
+| `_networking/bird` | BIRD daemon for advertising Cilium LB IP routes to older L3 switches that don't speak BGP (FortiGate already peers with Cilium directly) |
 | `storage/rook-ceph` | HA Ceph cluster (CephFS + RBD + RGW S3), the primary distributed storage |
 | `storage/democratic-csi` | Local hostpath, local XFS, and NAS ZFS (dataset + zvol) CSI drivers |
 | `storage/volsync` | Backup/restore of PVCs via Restic to Cloudflare R2 and Ceph RGW |
 | `storage/snapscheduler` | Scheduled CephFS/RBD volume snapshots |
 | `storage/fstrim` | Periodic fstrim on Ceph OSDs |
 | `storage/_external-snapshotter` + `_csi-addons` | VolumeSnapshot CRDs and Ceph CSI add-ons |
-| `dns/internal/k8s-gateway` | In-cluster DNS resolution for services |
+| `dns/internal/k8s-gateway` | In-cluster DNS resolution for services; FortiGate's DNS server forwards cluster-domain queries here for all home network clients including VPN users |
 | `dns/external-dns` | Syncs DNS records to Cloudflare |
 | `tls/cert-manager` + `trust-manager` | TLS certificate issuance and CA trust distribution |
 | `ingress/envoy-gateway` | Gateway API controller (internal + external Gateways), ClientTrafficPolicy (TLS hardening, security headers), BackendTrafficPolicy, SecurityPolicy (forward-auth to Authentik, IP allowlists) |
@@ -113,8 +113,9 @@ Security is the top priority in this repo. Defense-in-depth is preferred; never 
 - **IP allowlists**: Envoy Gateway SecurityPolicy supports `authorization` rules with `clientCIDRs` for IP-based access control (e.g. OpenCode UI restricted to `IP_JJ_V4`). External Gateway adds security headers (HSTS, X-Frame-Options, nosniff, CSP-adjacent, no-referrer, FLoC block, robots noindex).
 - **Runtime hardening**: `gvisor` (runsc-kvm, requires baremetal nodeSelector) and `kata` RuntimeClasses are defined in `kube/clusters/biohazard/config/gvisor.yaml`. Apps set `runtimeClassName: gvisor` or `kata` in `defaultPodOptions`. `hostUsers: false` is used where possible. All pods use `readOnlyRootFilesystem: true`, drop ALL capabilities, `seccompProfile: RuntimeDefault`, `runAsNonRoot: true`.
 - **TLS hardening**: Envoy ClientTrafficPolicy enforces TLS 1.2-1.3, modern ciphers (ECDHE-ECDSA-CHACHA20-POLY1305, AES-GCM), X25519MLKEM768 post-quantum curve, mTLS client validation (optional). Ceph requires msgr2 with encryption.
-- **Pod-to-pod isolation**: Apps use `networkpolicies` in their HR (app-template's built-in CiliumNetworkPolicy) for same-namespace isolation; cross-namespace traffic is via explicit labels.
-- **Affinity anti-colocation**: `fuckoff.home.arpa/{{ .Release.Name }}` nodeAffinity prevents app co-location on nodes where the label exists.
+- **Pod-to-pod isolation**: Apps use `networkpolicies` in their HR (app-template's built-in Kubernetes NetworkPolicy) for same-namespace isolation; cross-namespace traffic is via explicit labels.
+- **No default external exposure**: Apps must never be exposed externally or publicly unless explicitly stated. VPN access is preferred over exposing apps.
+- **`APP_*` variables**: Substituted values like `${APP_DNS_<NAME>}` (internal DNS hostname), `${APP_IP_<NAME>}` (LoadBalancer/internal IP), `${APP_UID_<NAME>}` (container UID/GID), `${APP_MAC_<NAME>}` (Multus MAC), `${APP_DNS_<NAME>_<PROTOCOL>}` / `${APP_IP_<NAME>_<PROTOCOL>}` (per-protocol e.g. LDAP/RADIUS) are cluster-specific and must never be committed in plaintext — store them in 1Password and surface via ExternalSecret. Treating them as secrets prevents probing, enumeration, and network mapping by bad actors.
 
 ## Storage Stack
 
@@ -133,10 +134,9 @@ StorageClasses (defined in `storageclass.yaml` + HR values):
 
 ### democratic-csi (local + NAS)
 
-`kube/deploy/core/storage/democratic-csi/` — three drivers:
+`kube/deploy/core/storage/democratic-csi/` — two drivers:
 - `local` (local-hostpath, WaitForFirstConsumer, reclaim Delete) — for node-local single-replica PVCs like Postgres data (Crunchy default SC). No expansion support.
 - `local-xfs` (local XFS hostpath, reclaim Delete, expansion supported) — fork of democratic-csi with XFS support (custom image `ghcr.io/jjgadgets/democratic-csi:xfs`).
-- `nas-zfs-local-dataset` + `nas-zfs-local-zvol` (TrueNAS ZFS, nodeSelector `role.nodes.home.arpa/nas: true`, reclaim **Retain**) — for NAS-attached storage; not currently in the biohazard kustomization.
 
 ### VolSync (backups)
 
@@ -150,7 +150,7 @@ StorageClasses (defined in `storageclass.yaml` + HR values):
 - **Important mass storage (RWX, retain)**: `file-size-2` (CephFS 2-replica, Retain) — e.g. Immich library.
 - **Non-critical mass storage (RWX)**: `file-ec-2-1` (CephFS erasure-coded) — e.g. thumbnails, transcode, game server files. Cheap, no backup.
 - **Non-critical RWO**: `block-2` (RBD 2-replica) — e.g. OpenClaw misc (Homebrew, Nix, Go cache).
-- **NAS-attached**: `nas-zfs-local-dataset`/`nas-zfs-local-zvol` — only on NAS-labelled nodes.
+- **NAS-attached**: mount NFS directly as a pod volume (not a PVC).
 
 ## Networking Stack
 
@@ -164,7 +164,7 @@ StorageClasses (defined in `storageclass.yaml` + HR values):
 
 ### BIRD
 
-`kube/deploy/core/_networking/bird/` — runs on each node, redistributes Cilium LB IPs (from `${IP_LB_CIDR}`) into the kernel routing table via BGP to node-local Cilium and OSPF to upstream router. This allows non-Cilium-aware hosts (FortiGate) to route to LoadBalancer IPs.
+`kube/deploy/core/_networking/bird/` — runs on each node, redistributes Cilium LB IPs (from `${IP_LB_CIDR}`) into the kernel routing table via BGP to node-local Cilium and OSPF to upstream router. This allows older L3 switches that don't speak BGP to route to LoadBalancer IPs. The FortiGate router does not need BIRD — it peers with Cilium directly via BGP.
 
 ### Multus
 
@@ -199,14 +199,13 @@ All apps use the bjw-s/labs `app-template` Helm chart (OCIRepository), deployed 
 - `controllers.<name>`: deployment or statefulset, with `replicas`, `strategy`, `pod.labels` (for netpol opt-in), `pod.annotations` (for Multus/IPAM), `pod.runtimeClassName`.
 - `securityContext`: `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`.
 - `defaultPodOptions.securityContext`: `runAsNonRoot: true`, `runAsUser`/`runAsGroup`/`fsGroup` (app-specific UID), `seccompProfile: RuntimeDefault`, `fsGroupChangePolicy`.
-- `defaultPodOptions.affinity.nodeAffinity`: `fuckoff.home.arpa/{{ .Release.Name }}` DoesNotExist (anti-colocation).
 - `defaultPodOptions.hostAliases`: Authentik host alias (`${APP_IP_AUTHENTIK}` → `${APP_DNS_AUTHENTIK}`) for OIDC apps.
 - `defaultPodOptions.dnsConfig.options`: `ndots: "1"` (reduces DNS search path recursion).
 - `defaultPodOptions.automountServiceAccountToken: false`, `enableServiceLinks: false`.
 - `persistence`: `existingClaim` for app data, `emptyDir` (medium: Memory) for tmp, optional `configMap`/`secret` mounts.
 - `route`: HTTPRoute to `envoy-internal` (sectionName: internal) and optionally `envoy-external` (sectionName: external).
 - `service`: primary HTTP service + optional LoadBalancer `expose` service (for non-HTTP ports like LDAP, RADIUS, game servers, HomeKit).
-- `networkpolicies`: built-in CiliumNetworkPolicy for same-namespace isolation.
+- `networkpolicies`: built-in Kubernetes NetworkPolicy for same-namespace isolation.
 - `serviceMonitor`: for Prometheus metrics scraping.
 - `probes`: liveness + readiness, sometimes startup (for slow-starting apps).
 
@@ -251,9 +250,12 @@ Task namespace aliases: `bs` (bootstrap), `f` (flux), `k` (k8s), `t` (talos), `v
 ## Adding a New App
 
 1. `task k8s:newapp APP=<name> IMAGENAME=<img> IMAGETAG=<tag>` — copies `kube/templates/test/` to `kube/deploy/apps/<name>/`, substituting `APPNAME`/`IMAGENAME`/`IMAGETAG`.
-2. Edit the generated files: set pod labels for netpol/ingress/auth opt-in, runtimeClassName, securityContext UID/GID, persistence (create `<app>-pvc` Kustomization for VolSync-backed PVC or inline PVC for misc), route (internal/external Gateway refs), service (LB if non-HTTP ports), optionally DB Kustomization.
-3. Add the app path to `kube/clusters/biohazard/flux/kustomization.yaml`.
-4. Commit and push — Flux reconciles within 5m; Renovate will track the image/chart versions.
+2. Configure the app via env vars or config file. For config files, place them in `./kube/deploy/apps/<app>/app/config/` and add a `configMapGenerator` with `disableNameSuffixHash: true` in `./kube/deploy/apps/<app>/app/config/kustomization.yaml`.
+3. Add secrets via `envFrom` (referencing a Secret named `<app>-secrets`) and edit `es.yaml` accordingly (ExternalSecret pulling from 1Password key `<app> - ${CLUSTER_NAME}`).
+4. Edit the generated files: set pod labels for netpol/ingress/auth opt-in, runtimeClassName, securityContext UID/GID, persistence (create `<app>-pvc` Kustomization for VolSync-backed PVC or inline PVC for misc), route (internal/external Gateway refs), service (LB if non-HTTP ports), optionally DB Kustomization.
+5. Add the app path to `kube/clusters/biohazard/flux/kustomization.yaml`.
+6. Create the 1Password entries for the app's secrets and vars, matching the keys referenced in `es.yaml` and `vars.yaml`.
+7. Commit and push — Flux reconciles within 5m; Renovate will track the image/chart versions.
 
 ## CI (GitHub Actions)
 
@@ -271,4 +273,3 @@ Task namespace aliases: `bs` (bootstrap), `f` (flux), `k` (k8s), `t` (talos), `v
 - All network access is default-deny; apps must explicitly label pods for every egress/ingress path they need.
 - Prefer defense-in-depth: gvisor/kata runtime isolation + CiliumNetworkPolicy + Authentik auth + TLS hardening + security headers.
 - App images are pinned with digests (`image.tag: version@sha256:...`); Renovate updates them.
-- The `app-template` chart version is set per-app via `postBuild.substitute.APP_TEMPLATE` in `ks.yaml`, not globally.
