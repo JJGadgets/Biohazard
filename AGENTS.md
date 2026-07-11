@@ -2,6 +2,8 @@
 
 This is JJGadgets' homelab monorepo, covering all machines in the home infrastructure. The primary focus is the "biohazard" production Kubernetes cluster on Talos Linux, reconciled by Flux from this repo. There is no application code to build, lint, typecheck, or test — everything is Kubernetes YAML, Talos config, dotfiles, and OSTree build scripts. Verify Kubernetes changes with `flux-local` (pipx) or `kustomize build`, not a test suite.
 
+This is a personal "production" environment used to explore security solutions and infrastructure patterns in a real-world setting. "Glorifying jank that *works*" is the operating philosophy.
+
 ## Agent Rules
 
 All agents must follow these rules:
