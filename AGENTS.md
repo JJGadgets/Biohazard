@@ -66,17 +66,7 @@ Key files:
 
 ## Security (always first consideration)
 
-Security is the top priority in this repo. Nine principles guide all infrastructure and application design decisions:
-
-- **Defense in Depth** — Multiple independent layers (network, runtime, identity, transport, header) so no single failure compromises the whole.
-- **Principle of Least Privilege** — Minimum permissions only: ALL capabilities dropped, read-only root fs, seccomp default, default-deny network, scoped RBAC, no host access.
-- **Default Deny** — All network access denied unless explicitly allowed via Cilium label-based opt-in (`egress.home.arpa/<target>: allow`, `ingress.home.arpa/<source>: allow`); no default external exposure.
-- **Zero Trust** — No implicit trust by location or identity; Authentik SSO/OIDC auth on all apps, IP allowlists on sensitive UIs, explicit cross-namespace isolation.
-- **Encryption Everywhere** — TLS 1.2-1.3 with post-quantum key exchange (X25519MLKEM768), optional mTLS, Ceph msgr2 encryption; no plaintext protocols.
-- **Secret Hygiene** — 1Password is the single source of truth via ExternalSecrets; `APP_*` variables treated as secrets to prevent probing and enumeration; never commit plaintext.
-- **Attack Surface Minimization** — Path-based external routing, security headers, admin path obscurity; smallest viable surface to smallest viable audience.
-- **Secure by Default** — Hardening baked into app-template defaults (read-only fs, cap drop, seccomp, non-root, no SA token, gvisor/kata runtime); new apps inherit automatically.
-- **Supply Chain & Vulnerability Management** — All images pinned with digests, Renovate auto-updates, mandatory security audits, CVSS v3 vulnerability disclosure process.
+Security is the top priority in this repo. Key principles (non-exhaustive) include defense in depth, least privilege, default deny, zero trust, encryption everywhere, secret hygiene, attack surface minimization, secure by default, and supply chain & vulnerability management. Security posture should always be continuously improved and adaptable to both old and emerging threats.
 
 See [`.agents/security.md`](.agents/security.md) for full principles explanation and concrete implementation details.
 

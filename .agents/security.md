@@ -1,6 +1,6 @@
 # Security (always first consideration)
 
-Security is the top priority in this repo. The following security principles guide all infrastructure and application design decisions. Each principle maps to concrete measures implemented across the cluster. Defense-in-depth is preferred; never complacent to old or new threats.
+Security is the top priority in this repo. The following security principles (non-exhaustive) guide all infrastructure and application design decisions. Each principle maps to concrete measures implemented across the cluster. Security posture should always be continuously improved and adaptable to both old and emerging threats.
 
 ## Security Principles
 
