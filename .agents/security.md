@@ -1,5 +1,7 @@
 # Security (always first consideration)
 
+> The root [`AGENTS.md`](../AGENTS.md#security-always-first-consideration) contains the **security principles** explanation (defense in depth, least privilege, default deny, zero trust, etc.) that underpin the concrete measures below. This file is the comprehensive implementation reference.
+
 Security is the top priority in this repo. Defense-in-depth is preferred; never complacent to old or new threats. Key measures:
 
 - **Network policies**: CiliumNetworkPolicy (namespace-scoped) and CiliumClusterwideNetworkPolicy (cluster-scoped) define default-deny + label-based allow. Apps opt into egress by setting pod labels like `egress.home.arpa/<target>: allow` (e.g. `egress.home.arpa/internet`, `egress.home.arpa/r2`, `egress.home.arpa/github`, `egress.home.arpa/iot`, `egress.home.arpa/discord`). Ingress similarly via `ingress.home.arpa/<source>: allow`. The cluster-wide policies in `kube/deploy/core/_networking/cilium/netpols/` map each label to specific CIDRs/FQDNs/ports. FQDN-based egress uses Cilium's L7 DNS proxy (label `dns.home.arpa/l7: "true"` for per-query filtering).
