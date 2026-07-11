@@ -26,6 +26,7 @@ spec:
         reclaimPolicy: Delete
         volumeBindingMode: WaitForFirstConsumer
         allowVolumeExpansion: true
+        storageCapacity: false # controller has no ControllerExpandVolume capabilities, hence cannot do this
 
     volumeSnapshotClasses:
       - name: local-xfs
@@ -58,7 +59,7 @@ spec:
       driver:
         image: &img
           registry: ghcr.io/jjgadgets/democratic-csi
-          tag: xfs@sha256:8eea00d23d8cf2d41a7d45d87edb01266218c8be306e29797e0ae64727ab1be8
+          tag: xfs@sha256:42626b21c9b909327f5a2ecfe102d55ca84e325c5687b1635e0a5ba32abb1261
 
     node:
       driver:
