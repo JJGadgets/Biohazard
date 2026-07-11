@@ -29,7 +29,7 @@ All agents must follow these rules:
 ## Tooling
 
 - `mise` installs all tools from `.mise.toml` (kubectl, flux, talosctl, helm, kustomize, yq, jq, op, etc.). Run `mise install` first.
-- `task` (go-task) is the primary command interface. Root file is `Taskfile.dist.yaml`; per-domain includes live in `.taskfiles/`. Run `task` with no args to list all tasks.
+- `task` (go-task) is the primary command interface. Root file is `Taskfile.dist.yaml`; per-domain includes live in `.taskfiles/`. Run `task` with no args to list all tasks. See [`.agents/taskfiles.md`](.agents/taskfiles.md) for common tasks and namespace aliases.
 - A Python venv lives at `.venv` (created by mise).
 - Files are named `*.dist.yaml` (committed); local overrides drop the `.dist` segment.
 
@@ -80,22 +80,6 @@ See [`.agents/security.md`](.agents/security.md) for full principles explanation
 - Prefer defense-in-depth: gvisor/kata runtime isolation + CiliumNetworkPolicy + Authentik auth + TLS hardening + security headers.
 - App images are pinned with digests (`image.tag: version@sha256:...`); Renovate updates them.
 
-## Common Tasks
-
-```bash
-task                                            # list all tasks
-task talos:run C=biohazard                      # regenerate Talos config (requires `op` signed in)
-task bootstrap:bootstrap C=biohazard            # full cluster bootstrap (Flux + 1Password + config)
-task k8s:newapp APP=<name> IMAGENAME=<img> IMAGETAG=<tag>  # scaffold new app from template
-task k8s:scale-to-0 APP=<app>                   # scale down (suspends Flux, saves replica count)
-task k8s:scale-back-up APP=<app>                # restore (resumes Flux, restores replicas)
-task rook:toolbox                               # Rook-Ceph toolbox shell
-task pg:crunchy-master APP=<app> -- <cmd>       # exec into Crunchy Postgres primary
-task flux:cantWait KS=<name> NS=flux-system      # force a stuck Kustomization to skip deps/wait
-```
-
-Task namespace aliases: `bs` (bootstrap), `f` (flux), `k` (k8s), `t` (talos), `vs` (volsync), `r` (rook), `nas` (truenas), `pl` (pulumi).
-
 ## Detailed Topics
 
 Detailed documentation is split across topic files under `.agents/`:
@@ -110,3 +94,4 @@ Detailed documentation is split across topic files under `.agents/`:
 | [`.agents/app-deployment.md`](.agents/app-deployment.md) | App deployment patterns, PVC/DB patterns, app examples |
 | [`.agents/new-app.md`](.agents/new-app.md) | Step-by-step guide for adding a new app |
 | [`.agents/ci.md`](.agents/ci.md) | CI/CD (GitHub Actions) |
+| [`.agents/taskfiles.md`](.agents/taskfiles.md) | Taskfiles (go-task), common tasks, namespace aliases |
