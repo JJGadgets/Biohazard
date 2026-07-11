@@ -4,6 +4,8 @@ This is JJGadgets' homelab monorepo, covering all machines in the home infrastru
 
 This is a personal "production" environment used to explore security solutions and infrastructure patterns in a real-world setting. "Glorifying jank that *works*" is the operating philosophy.
 
+Before making any changes or running anything, always refer to the additional documentation in [`.agents/`](.agents/) — it contains detailed topic-specific guides that expand on the summaries in this file.
+
 ## Agent Rules
 
 All agents must follow these rules:
