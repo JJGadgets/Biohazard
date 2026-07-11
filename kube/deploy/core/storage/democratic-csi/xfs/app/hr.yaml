@@ -51,7 +51,7 @@ spec:
           - --leader-election=false
           - --node-deployment=true
       externalResizer:
-        enabled: true
+        enabled: false # node level CSI resizer
       externalAttacher:
         enabled: false
 
