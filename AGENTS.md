@@ -2,6 +2,28 @@
 
 This is JJGadgets' homelab monorepo, covering all machines in the home infrastructure. The primary focus is the "biohazard" production Kubernetes cluster on Talos Linux, reconciled by Flux from this repo. There is no application code to build, lint, typecheck, or test — everything is Kubernetes YAML, Talos config, dotfiles, and OSTree build scripts. Verify Kubernetes changes with `flux-local` (pipx) or `kustomize build`, not a test suite.
 
+## Agent Rules
+
+All agents must follow these rules:
+
+1. Before writing any code, or when you are stuck, or when you are unable to troubleshoot, you are highly recommended to use web search and web fetch, check Kubesearch.dev, and check source code repositories like GitHub for relevant code or information, to research and understand anything and everything you are unsure of or have doubts about.
+
+2. Always version control all changes with Git with semantic commits.
+
+3. Always check for the latest versions of any software with web search and web fetch, and always use the latest versions.
+
+4. Always pin all software versions, including adding digests/hashes.
+
+5. Always use subagents to build code, but avoid parallelism with subagents.
+
+6. Security should always be the first cosideration.
+
+7. Always write code adhering to secure coding practices.
+
+8. Always security audit your work after completing for any potential security issues regardless of severity and fix them in a separate commit or change for clarity.
+
+9. If vulnerable code has already been pushed to the Git remote (e.g. GitHub) and a release has been cut with the vulnerable commit, document the vulnerability clearly in a vulnerability disclosure format with the appropriate risk scoring (e.g. CVSS v3) and resultant severity. If the Git owner is "JJGadgets" or "ciel-shieru", publish the vulnerability documentation automatically in a forge issue (e.g. GitHub Issues, Forgejo Issues) and in the repo docs, else store it locally for user to manually publish.
+
 ## Tooling
 
 - `mise` installs all tools from `.mise.toml` (kubectl, flux, talosctl, helm, kustomize, yq, jq, op, etc.). Run `mise install` first.
