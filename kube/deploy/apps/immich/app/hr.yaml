@@ -185,7 +185,7 @@ spec:
           app:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.8.0@sha256:77cb4599f0121142e25139cea1aafaf45fe765c74a0a41b38f4a4ea9fc8cb846"
+              tag: "8.8.0@sha256:e24be9c810185d280b7246dfaa3afe2e92735a2495a2fdc9dcdfdd8c85fa8cd6"
             command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
