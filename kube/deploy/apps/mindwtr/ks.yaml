@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mindwtr-app
+  namespace: &ns mindwtr
+  labels: &l
+    app.kubernetes.io/name: "mindwtr"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/mindwtr/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: mindwtr-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mindwtr-pvc
+  namespace: &ns mindwtr
+  labels: &l
+    app.kubernetes.io/name: mindwtr
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "mindwtr-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/dongdongbh/mindwtr-cloud:1.1.0@sha256:541322f73d113d7a02d079d81328391448d64b7601646ce12b69b2149bb1e6c4"
+      RUID: &uid "1000" # upstream `bun` user
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "mindwtr-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
