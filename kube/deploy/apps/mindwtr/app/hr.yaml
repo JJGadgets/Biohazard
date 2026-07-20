@@ -115,10 +115,19 @@ spec:
       data:
         existingClaim: mindwtr-data
         advancedMounts:
-          app:
+          cloud:
             app:
               - subPath: data
-                path: /data
+                path: /app/cloud_data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: cache
+            path: /var/cache/nginx
+          - subPath: run
+            path: /var/run
       # tmp:
       #   type: emptyDir
       #   medium: Memory
