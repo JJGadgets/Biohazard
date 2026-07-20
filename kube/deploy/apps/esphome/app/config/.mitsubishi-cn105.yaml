@@ -113,6 +113,35 @@ switch:
           level: INFO
           format: "Remote temperature disabled, setting to 0 to revert to internal temperature"
       - lambda: "id($${climate_id}).set_remote_temperature(0);"
+  - platform: template
+    name: "Remote Temperature State Before HASS Down"
+    id: remote_temp_switch_old
+    # restore_mode: "RESTORE_DEFAULT_$${remote_temp_enable_old}"
+    optimistic: true
+    internal: true
+api:
+  on_client_connect:
+    - if:
+        condition:
+          api.connected:
+            state_subscription_only: true
+        then:
+          - switch.control:
+              id: remote_temp_switch
+              state: !lambda |-
+                return id(remote_temp_switch_old).state;
+  on_client_disconnect:
+    - if:
+        condition:
+          not:
+            api.connected:
+              state_subscription_only: true
+        then:
+          - switch.control:
+              id: remote_temp_switch_old
+              state: !lambda |-
+                return id(remote_temp_switch).state;
+          - switch.turn_off: remote_temp_switch
 # logger:
 #   logs:
 #     CYCLE: WARN
