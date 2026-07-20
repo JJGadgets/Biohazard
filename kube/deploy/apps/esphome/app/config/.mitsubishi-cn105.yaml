@@ -107,6 +107,10 @@ switch:
     id: remote_temp_switch
     restore_mode: "RESTORE_DEFAULT_$${remote_temp_enable}"
     optimistic: true
+    turn_on_action:
+      - logger.log:
+          level: INFO
+          format: "Remote temperature enabled"
     turn_off_action:
       - delay: 2s
       - logger.log:
