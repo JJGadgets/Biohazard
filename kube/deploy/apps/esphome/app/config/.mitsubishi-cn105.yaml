@@ -12,7 +12,7 @@ packages:
     file: ./.common.yaml
     vars:
       board: "$${board | default('lolin_s3_mini')}"
-      version: "5.4.1"
+      # version: "5.4.1"
   wifi: !include
     file: ./.wifi.yaml
     vars:
@@ -26,7 +26,10 @@ packages:
 
 # Mitsubishi CN105 air conditioner controller
 external_components:
-  - source: github://echavet/MitsubishiCN105ESPHome
+  - source:
+      type: git
+      url: https://github.com/echavet/MitsubishiCN105ESPHome
+      ref: 2026.5.1
 climate: # Climate entity config
   - platform: cn105
     id: "$${climate_id}"
@@ -36,7 +39,9 @@ climate: # Climate entity config
     visual:
       min_temperature: 16
       max_temperature: 28
-      temperature_step: 1
+      temperature_step:
+        target_temperature: 1
+        current_temperature: 0.1
     compressor_frequency_sensor:
       name: Compressor Frequency
       entity_category: diagnostic
