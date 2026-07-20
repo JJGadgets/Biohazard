@@ -59,6 +59,10 @@ spec:
       #    "io.cilium/lb-ipam-ips": "${APP_IP_CILIUM_INGRESS}"
     ## NOTE: Observability with Hubble & Prometheus
     hubble:
+      tls:
+        auto:
+          enabled: true
+          method: cronJob
       ui:
         ingress:
           enabled: true
