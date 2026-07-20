@@ -116,11 +116,14 @@ switch:
   - platform: template
     name: "Remote Temperature State Before HASS Down"
     id: remote_temp_switch_old
-    # restore_mode: "RESTORE_DEFAULT_$${remote_temp_enable_old}"
+    restore_mode: "RESTORE_DEFAULT_$${remote_temp_enable}"
     optimistic: true
     internal: true
 api:
   on_client_connected:
+    - logger.log:
+        format: "Client %s connected to API with IP %s"
+        args: ["client_info.c_str()", "client_address.c_str()"]
     - if:
         condition:
           api.connected:
@@ -130,7 +133,11 @@ api:
               id: remote_temp_switch
               state: !lambda |-
                 return id(remote_temp_switch_old).state;
+          - logger.log: "HASS connected, setting remote temp to previous/default value..."
   on_client_disconnected:
+    - logger.log:
+        format: "Client %s disconnected from API with IP %s"
+        args: ["client_info.c_str()", "client_address.c_str()"]
     - if:
         condition:
           not:
@@ -142,6 +149,7 @@ api:
               state: !lambda |-
                 return id(remote_temp_switch).state;
           - switch.turn_off: remote_temp_switch
+          - logger.log: "HASS disconnected, disabled remote temp."
 # logger:
 #   logs:
 #     CYCLE: WARN
