@@ -120,7 +120,7 @@ switch:
     optimistic: true
     internal: true
 api:
-  on_client_connect:
+  on_client_connected:
     - if:
         condition:
           api.connected:
@@ -130,7 +130,7 @@ api:
               id: remote_temp_switch
               state: !lambda |-
                 return id(remote_temp_switch_old).state;
-  on_client_disconnect:
+  on_client_disconnected:
     - if:
         condition:
           not:
