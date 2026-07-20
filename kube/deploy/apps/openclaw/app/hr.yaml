@@ -212,6 +212,12 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: soft-serve
+                - podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: openclaw
+                  namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: openclaw
     serviceAccount:
       app: {}
     rbac:
