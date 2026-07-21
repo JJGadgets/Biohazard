@@ -43,13 +43,18 @@ spec:
               TZ: "${CONFIG_TZ}"
               OPENCLAW_LOG_LEVEL: debug
               BROWSER_WS_ENDPOINT: "ws://localhost:9222"
-              HOME: &pvc /home/openclaw
+              AAA_HOME: &pvc /home/openclaw
+              HOME: *pvc
               OPENCLAW_HOME: *pvc
-              GOPATH: "$(HOME)/go"
+              GOPATH: "$(AAA_HOME)/go"
               OPENCLAW_GATEWAY_PORT: &http 8080
-              PATH: "$(HOME)/.local/bin:$(HOME)/.local/share/mise/shims:$(HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              PATH: "$(AAA_HOME)/.local/bin:$(AAA_HOME)/.local/share/mise/shims:$(AAA_HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               TERM: xterm-256color
+              GRADLE_USER_HOME: "$(HOME)/.gradle"
+              ANDROID_HOME: "$(AAA_HOME)/.android-sdk"
+              ANDROID_SDK_ROOT: "$(AAA_HOME)/.android-sdk"
+              ANDROID_USER_HOME: "$(AAA_HOME)/.android-sdk"
             envFrom: &envFrom
               - secretRef:
                   name: openclaw-secrets
@@ -91,7 +96,7 @@ spec:
               - "sh"
               - "-c"
               - |
-                while [ ! -z "$(pgrep node)" ] || [ ! -s $(HOME)/.openclaw/openclaw.json ]; do
+                while [ ! -z "$(pgrep node)" ] || [ ! -s $(AAA_HOME)/.openclaw/openclaw.json ]; do
                   echo 'OpenClaw has not been setup, please exec to this container and run `openclaw setup` for the app to startup!';
                   sleep 60;
                 done;
