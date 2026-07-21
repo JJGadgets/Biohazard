@@ -101,17 +101,20 @@ spec:
             namespace: ingress
             sectionName: internal
         rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /sync
-            backendRefs:
-              - identifier: cloud
-                port: 80
           - backendRefs:
               - identifier: app
                 port: 80
-    persistence: # delete entries where not necessary
+      cloud:
+        hostnames: ["${APP_DNS_MINDWTR_CLOUD:=mindwtr-cloud}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: cloud
+                port: 80
+    persistence:
       data:
         existingClaim: mindwtr-data
         advancedMounts:
