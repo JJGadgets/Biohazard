@@ -79,7 +79,7 @@ spec:
           99-de-escalate-netpols:
             image:
               repository: registry.k8s.io/kubectl
-              tag: v1.36.2@sha256:b0d792e0d8dfb9bb1b922b78b23137e2a34bb6f9667640353a9d2aadd1fd7761
+              tag: v1.36.3@sha256:6e4fce3c83651edb91b74bc67701c5cd263dd8aa3cd4254b1798d6425a5ab789
             command: ["kubectl", "label", "pods", "--namespace", "$(POD_NS)", "$(POD_NAME)", "egress.home.arpa/github-", "egress.home.arpa/apiserver-"]
             env:
               POD_NAME:
