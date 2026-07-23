@@ -22,12 +22,12 @@ spec:
         NTFY_AUTH_USERS: >-
           {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:{{ .X_NTFY_USERS_GOSHAWK_BCRYPT }}:user,
           {{ .X_NTFY_USERS_BLACKHAWK_USERNAME }}:{{ .X_NTFY_USERS_BLACKHAWK_BCRYPT }}:user,
+          {{ .X_NTFY_USERS_HASS_USERNAME }}:{{ .X_NTFY_USERS_HASS_BCRYPT }}:user,
           {{ .X_NTFY_USERS_MINIFLUX_USERNAME }}:{{ .X_NTFY_USERS_MINIFLUX_BCRYPT }}:user
-          {{ .X_NTFY_USERS_HASS_USERNAME }}:{{ .X_NTFY_USERS_HASS_BCRYPT }}:user
         NTFY_AUTH_ACCESS: >-
           {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:up*:read-only,
-          {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:miniflux*:read-only,
-          {{ .X_NTFY_USERS_MINIFLUX_USERNAME }}:miniflux*:read-write,
           {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:hass*:read-only,
           {{ .X_NTFY_USERS_HASS_USERNAME }}:hass*:read-write,
+          {{ .X_NTFY_USERS_GOSHAWK_USERNAME }}:miniflux*:read-only,
+          {{ .X_NTFY_USERS_MINIFLUX_USERNAME }}:miniflux*:read-write,
           everyone:up*:write-only
