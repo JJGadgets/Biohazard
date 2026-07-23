@@ -1,0 +1,40 @@
+# App Deployment Patterns
+
+All apps use the bjw-s/labs `app-template` Helm chart (OCIRepository), deployed via Flux HelmRelease. The standard layout per app: `app/` (HelmRelease + values), `ks.yaml` (Flux Kustomizations: one for app, one for PVC, optionally one for DB), `kustomization.yaml`, `ns.yaml`, `vars.yaml` (ExternalSecret from 1Password).
+
+## Common patterns (from app-template)
+
+- `controllers.<name>`: deployment or statefulset, with `replicas`, `strategy`, `pod.labels` (for netpol opt-in), `pod.annotations` (for Multus/IPAM), `pod.runtimeClassName`.
+- `securityContext`: `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`.
+- `defaultPodOptions.securityContext`: `runAsNonRoot: true`, `runAsUser`/`runAsGroup`/`fsGroup` (app-specific UID), `seccompProfile: RuntimeDefault`, `fsGroupChangePolicy`.
+- `defaultPodOptions.hostAliases`: Authentik host alias (`${APP_IP_AUTHENTIK}` -> `${APP_DNS_AUTHENTIK}`) for OIDC apps.
+- `defaultPodOptions.dnsConfig.options`: `ndots: "1"` (reduces DNS search path recursion).
+- `defaultPodOptions.automountServiceAccountToken: false`, `enableServiceLinks: false`.
+- `persistence`: `existingClaim` for app data, `emptyDir` (medium: Memory) for tmp, optional `configMap`/`secret` mounts.
+- `route`: HTTPRoute to `envoy-internal` (sectionName: internal) and optionally `envoy-external` (sectionName: external).
+- `service`: primary HTTP service + optional LoadBalancer `expose` service (for non-HTTP ports like LDAP, RADIUS, game servers, HomeKit).
+- `networkpolicies`: built-in Kubernetes NetworkPolicy for same-namespace isolation.
+- `serviceMonitor`: for Prometheus metrics scraping.
+- `probes`: liveness + readiness, sometimes startup (for slow-starting apps).
+
+## PVC pattern
+
+Apps that need persistent storage create a separate `<app>-pvc` Flux Kustomization (label `pvc.home.arpa/volsync: "true"`) pointing at the VolSync template (`kube/deploy/core/storage/volsync/template`). It substitutes PVC name, size, SC, access modes, app UID/GID, and `VS_APP_CURRENT_VERSION` (the app's image ref, used as a manual backup trigger on image updates). The app's main Kustomization `dependsOn` the PVC Kustomization. Some apps also define a separate `<app>-misc` PVC directly in `app/pvc.yaml` (e.g. for caches, transcode) — these use cheaper SCs (`file-ec-2-1`, `block-2`) and are labelled `kustomize.toolkit.fluxcd.io/prune: Disabled`.
+
+## DB pattern
+
+Apps needing Postgres create a `<app>-db` Kustomization pointing at the Crunchy template (`kube/deploy/core/db/pg/clusters/template`) or the pguser template. It substitutes PG name, namespace, DB/user, replicas, SC (typically `local`), size, config version. The app's HR references the generated `pg-<name>-pguser-<user>` Secret for DB credentials. Backups go to R2 (repo2) + RGW (repo3) via pgBackRest.
+
+## App examples and nuances
+
+**Immich** (`kube/deploy/apps/immich/`): Multi-controller (server 2 replicas, microservices 2 replicas, ML 3 replicas with OpenVINO + Intel GPU, Redis, cronjob for ML model preloading from HuggingFace). Uses `file-size-2` SC (Retain) for the 700Gi library (important mass storage), `file-ec-2-1` for misc (thumbnails, encoded video — regenerable). External HTTPRoute only exposes `/s/`, `/share/`, `/_app/immutable/`, `/api/shared-links/` etc. with shared-link-cookie header matching — not the full app. GPU via `supplementalGroups: [44]` + `gpu.intel.com/i915: "1"` resource limit. ML model pull cronjobs use `egress.home.arpa/internet: allow`. Uses `pg-home` (shared home Postgres cluster), not its own. Pod labels: `authentik.home.arpa/oidc: allow` for OIDC auth.
+
+**Authentik** (`kube/deploy/apps/authentik/`): Multi-controller (server 2 replicas, worker 2 replicas, LDAP outpost 2 replicas, RADIUS 2 replicas, RAC 2 replicas). `runtimeClassName: gvisor` on all pods. Server exposes HTTP (9000) + HTTPS (9443) + metrics (9300). LoadBalancer services for LDAP (389/636 TCP+UDP) and RADIUS (1812 TCP+UDP) with dedicated LB IPs + CoreDNS hostnames. External HTTPRoute has a `harden` route that redirects `/if/admin`, `/api/v3/policies/expression`, `/api/v3/propertymappings`, `/api/v3/managed/blueprints` to google.com (security through obscurity for admin paths). A `forward-auth` HTTPRoute handles `/outpost.goauthentik.io` paths on both internal and external Gateways. Uses its own `pg-authentik` Crunchy cluster. Media stored on S3 (RGW). Complex CiliumNetworkPolicy: ingress allows by `authentik.home.arpa/http`/`https`/`oidc` labels with TLS termination rules; egress to Duo, Plex, HIBP, AWS SES, S3 — all FQDN-based with DNS proxy rules. ClusterwideNetworkPolicies map those labels for egress from other namespaces.
+
+**OpenClaw** (`kube/deploy/apps/openclaw/`): Two containers in one pod (OpenClaw + OpenCode web UI). `runtimeClassName: gvisor`. Pod IPAM annotation `ipam.cilium.io/ip-pool: vpn-vlan` for VPN egress. Data PVC uses `block` SC (10Gi, RWO, backed up via VolSync). Misc PVC uses `block-2` (50Gi, RWO, not backed up — Homebrew, Nix, Go cache). Includes forward-auth component (`AUTH_ROUTE: openclaw-app`). OpenCode UI has a separate `SecurityPolicy` (`envoy.yaml`) with IP allowlist (`IP_JJ_V4`). RBAC: Role for `pods/exec` + `deployments` patch (for LLM deploy), ClusterRoleBinding to `view` (read-only cluster access). Netpol allows egress to llama-cpp, searxng, soft-serve namespaces + FQDNs (brew.sh, openrouter.ai, nvidia.com, openai.com, chatgpt.com, etc.). Has an initContainer that blocks until OpenClaw is set up. `automountServiceAccountToken: true` (needed for k8s API access).
+
+**Home Assistant** (`kube/deploy/apps/home-assistant/`): Single replica. Multus annotation attaches to `iot` network with static IP + MAC + gateway for direct IoT VLAN access. Egress labels: `egress.home.arpa/iot`, `esp`, `appletv`, `r2`, `pypi`, `github` (HACS), `db.home.arpa/mqtt`. LoadBalancer service for HomeKit (ports 21061-21066). Data PVC `file` SC (10Gi, RWX, VolSync backup). `runtimeClassName: gvisor`. `runAsUser: 65534` (nobody) due to image's uv workaround. Startup probe with `failureThreshold: 3600` (slow DB migrations). Authentik OIDC via `authentik.home.arpa/oidc: allow` label + hostAliases. No netpol in HR (relies on cluster-wide policies + the Multus interface for IoT VLAN isolation).
+
+**Plex** (`kube/deploy/apps/media/plex/`): In `media` namespace (shared with other media apps). LoadBalancer service (not HTTPRoute-only) for media streaming on port 32400. Data PVC `file` SC (50Gi, RWX, VolSync). Misc PVC `file-ec-2-1` (100Gi, cache + transcode — regenerable). Mounts shared `media-data` and `media-bulk` PVCs (read-only) for media library. Intel GPU via `gpu.intel.com/i915: "1"` + `supplementalGroups: [44]`. Preferred nodeAffinity for specific GPU models (12600H > 8500T > 8100T). External HTTPRoute removes `Range` header on `/library/streams` to prevent seeking abuse. Netpol allows ingress from Home Assistant namespace on port 32400. No gvisor (needs GPU + host access for transcoding). `automountServiceAccountToken: false`.
+
+**Insurgency Sandstorm** (`kube/deploy/apps/insurgency-sandstorm/`): Game server. `runtimeClassName: kata` (Kata containers, not gvisor — different isolation). `hostUsers: false`. LoadBalancer service with UDP ports (game 27102, query 27131) + CoreDNS hostname. Data PVC `file-ec-2-1` (20Gi, RWX — game files are redownloadable, labelled as such). Config from ConfigMaps (Game.ini, Engine.ini, MapCycle, Mods), secrets mounted as files (GameUserSettings, Admins). A daily cronjob downloads/updates game files via steamcmd (uses `egress.home.arpa/internet: allow`, `readOnlyRootFilesystem: false` for that cronjob only). Netpol: CiliumNetworkPolicy with FQDN egress to `*.mod.io`, `*.modapi.io`, `*.modcdn.io` for mod downloads. Ingress label `ingress.home.arpa/world: allow` (game server must be reachable from internet). Preferred nodeAffinity for `dorothy` (MS01, no etcd/Ceph contention). No probes (UDP probes don't work). KEDA ScaledObject (commented out) would scale to 0 based on Hubble flow metrics.
