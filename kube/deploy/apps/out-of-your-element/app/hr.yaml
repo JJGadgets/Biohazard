@@ -86,11 +86,11 @@ spec:
     persistence:
       data:
         existingClaim: out-of-your-element-data
+        globalMounts:
+          - subPath: data
+            path: /data
         advancedMounts:
           app:
-            setup:
-              - subPath: data
-                path: /data
             app:
               - subPath: data/ooye.db
                 path: /usr/src/app/ooye.db
@@ -103,7 +103,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      runtimeClassName: kata
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000 # upstream `node` user, needed for /usr/src/app rootfs file creates during `npm run setup` to work
