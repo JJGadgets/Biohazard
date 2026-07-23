@@ -34,7 +34,7 @@ spec:
               tag: v3.6@sha256:ecd3961f2041b977cf1ca56bc174bd427886baccd72d16a25edb6328f6499eea
             env: &env
               TZ: "${CONFIG_TZ}"
-              OOYE_DATADIR: /data
+              # OOYE_DATADIR: /data
             securityContext: &sc
               readOnlyRootFilesystem: false # SQLite DB can't open without this because its rootfs is a dir in the image
               allowPrivilegeEscalation: false
@@ -91,6 +91,9 @@ spec:
             path: /data
         advancedMounts:
           app:
+            # setup:
+            #   - subPath: data
+            #     path: /data
             app:
               - subPath: data/ooye.db
                 path: /usr/src/app/ooye.db
