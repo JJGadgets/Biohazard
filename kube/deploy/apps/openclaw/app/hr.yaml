@@ -24,16 +24,17 @@ spec:
             egress.home.arpa/github: allow
             egress.home.arpa/cloudflare: allow
             egress.home.arpa/apiserver: allow
-            # egress.home.arpa/internet: allow
+            egress.home.arpa/internet: allow
           annotations:
             ipam.cilium.io/ip-pool: vpn-vlan
             ipam.cilium.io/require-pool-match: "true"
           resources:
             requests:
               cpu: "10m"
+              memory: "2Gi"
             limits:
               cpu: "4"
-              memory: "2Gi"
+              memory: "5Gi"
         containers:
           app:
             image: &img
@@ -76,9 +77,8 @@ spec:
                   failureThreshold: 3600
           opencode:
             image: &img
-              repository: ghcr.io/anomalyco/opencode
-              tag: 1.18.4@sha256:a55db0fdcaca7b28651014f2f7ff8164d6cd188fa0be2fcedf2e4222e5c3b2c9
-            command: ["/usr/local/bin/opencode"]
+              repository: ghcr.io/jjgadgets/opencode
+              tag: 1.18.5@sha256:0ec810c21f23fdb44faf7464df9acae6872fdc7229d11b3c8bcfc23b6cdadedf
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env:
               <<: *env
