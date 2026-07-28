@@ -13,15 +13,10 @@ spec:
   path: ./kube/deploy/apps/media/plex/app
   components:
     - ../../../../core/flux-system/alerts/template/
-    - ../../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: plex-pvc
-  postBuild:
-    substitute:
-      APP_TEMPLATE: 4.4.0
-      CHART_NAME: plex
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -64,5 +59,4 @@ spec:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+      failed: status.latestMoverStatus.result == "Failed"

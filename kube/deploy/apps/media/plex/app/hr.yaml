@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -31,8 +30,7 @@ spec:
               tag: 1.43.3.10828@sha256:0c0b6899339503af17cb190b25af6acf10f0030e2820985e16ee14ef428f49d7
             env: &env
               TZ: "${CONFIG_TZ}"
-              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400"
-              # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443"
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -116,15 +114,8 @@ spec:
             path: /config/Library/Application Support/Plex Media Server/Cache
           - subPath: transcode
             path: transcode
-      # nfs:
-      #   type: nfs
-      #   server: "${IP_TRUENAS:=127.0.0.1}"
-      #   path: "${PATH_NAS_MEDIA:=/media}"
-      #   globalMounts:
-      #     - path: /nfs
-      #       readOnly: true
       media:
-        existingClaim: "media-data" # VolSync
+        existingClaim: "media-data"
         globalMounts:
           - path: "/ceph"
             readOnly: true
@@ -155,7 +146,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
-        supplementalGroups: [44] # iGPU
+        supplementalGroups: [44]
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
@@ -168,19 +159,19 @@ spec:
             - weight: 25
               preference:
                 matchExpressions:
-                  - key: gpu.intel.com/device-id.0300-46a6.present # MS01 12600H
+                  - key: gpu.intel.com/device-id.0300-46a6.present
                     operator: In
                     values: ["true"]
             - weight: 15
               preference:
                 matchExpressions:
-                  - key: gpu.intel.com/device-id.0300-3e92.present # i5-8500T
+                  - key: gpu.intel.com/device-id.0300-3e92.present
                     operator: In
                     values: ["true"]
             - weight: 10
               preference:
                 matchExpressions:
-                  - key: gpu.intel.com/device-id.0300-3e91.present # i3-8100T
+                  - key: gpu.intel.com/device-id.0300-3e91.present
                     operator: In
                     values: ["true"]
     networkpolicies:
