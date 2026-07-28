@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -21,8 +20,8 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
             authentik.home.arpa/oidc: allow
-            egress.home.arpa/github: allow # will be de-escalated
-            egress.home.arpa/apiserver: allow # will be de-escalated
+            egress.home.arpa/github: allow
+            egress.home.arpa/apiserver: allow
         serviceAccount:
           identifier: app
         containers:
@@ -57,20 +56,6 @@ spec:
             env: *env
             command: ["/cryptpad/install-onlyoffice.sh", "--accept-license", "--trust-repository"]
             securityContext: *sc
-          # 02-install-plugin-sso:
-          #   image: *img
-          #   command: ["/usr/bin/env", "bash", "-c"]
-          #   args:
-          #     - |
-          #       cd /cryptpad/lib/plugins
-          #       git clone --no-checkout --filter=tree:0 --depth 1 https://github.com/cryptpad/sso || true
-          #       cd sso
-          #       git fetch --depth 1 origin $(SSO_VERSION)
-          #       git checkout FETCH_HEAD
-          #   env:
-          #     # renovate: datasource=github-tags depName=cryptpad/sso
-          #     SSO_VERSION: "0.6.0"
-          #   securityContext: *sc
           03-npm-build:
             image: *img
             command: ["npm", "run", "build"]
@@ -200,11 +185,10 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: false
       runtimeClassName: kata
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 4001 # upstream `cryptpad` user
+        runAsUser: &uid 4001
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -214,7 +198,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/{{ .Release.Name }}
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     serviceAccount:
       app: {}
@@ -226,7 +210,6 @@ spec:
             - apiGroups: [""]
               resources: ["pods"]
               verbs: ["get", "list", "patch", "update", "watch"]
-              # resourceNames: ["cryptpad-0"] # MutatingAdmissionPolicy will handle this
       bindings:
         app:
           type: RoleBinding

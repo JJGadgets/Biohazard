@@ -24,14 +24,10 @@ spec:
     template:
       type: Opaque
       data:
-        # Core cluster-wide vars
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
-        # App specific
         APP_DNS_CRYPTPAD: '{{ .APP_DNS_CRYPTPAD }}'
         APP_DNS_CRYPTPAD_SAFE: '{{ .APP_DNS_CRYPTPAD_SAFE }}'
-        # authentik hostAliases
         APP_DNS_AUTHENTIK: '{{ .APP_DNS_AUTHENTIK }}'
         APP_IP_AUTHENTIK: '{{ .APP_IP_AUTHENTIK }}'
-        # Other cluster-wide vars
         DNS_CF: '{{ .DNS_CF }}'
