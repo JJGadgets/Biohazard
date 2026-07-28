@@ -1,16 +1,15 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app kavita
-  namespace: &ns media
+  namespace: *app
 spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: *app
-    namespace: *ns
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -20,7 +19,6 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/oidc: allow
-            # egress.home.arpa/internet: allow
         containers:
           app:
             image: &img
@@ -68,29 +66,15 @@ spec:
             app:
               - path: /kavita/config
       media:
-        existingClaim: "media-data" # VolSync
+        existingClaim: "media-data"
         globalMounts:
           - path: "/media"
             readOnly: true
       bulk:
-        existingClaim: "media-bulk" # no backups
+        existingClaim: "media-bulk"
         globalMounts:
           - path: "/bulk"
             readOnly: true
-      # nas:
-      #   type: nfs
-      #   server: "${IP_TRUENAS:=127.0.0.1}"
-      #   path: "${PATH_NAS_MEDIA:=/kavita}"
-      #   globalMounts:
-      #     - path: /nas
-      #       readOnly: true
-      # backups:
-      #   type: nfs
-      #   server: "${IP_TRUENAS:=127.0.0.1}"
-      #   path: "${PATH_NAS_BACKUPS_K8S:=/backups}"
-      #   globalMounts:
-      #     - subPath: "kavita"
-      #       path: "/kavita/config/backups"
       tmp:
         type: emptyDir
         medium: Memory
