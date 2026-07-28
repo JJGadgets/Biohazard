@@ -4,7 +4,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: &name navidrome-secrets
-  namespace: media
+  namespace: navidrome
 spec:
   secretStoreRef:
     kind: ClusterSecretStore

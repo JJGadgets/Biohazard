@@ -1,16 +1,16 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app navidrome
-  namespace: &ns media
+  namespace: *app
 spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: *app
-    namespace: *ns
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -20,7 +20,6 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
-            # egress.home.arpa/internet: allow
           annotations:
             fluentbit.io/parser: "logfmt"
         containers:
@@ -113,13 +112,6 @@ spec:
               - subPath: Music
                 path: /media/ceph
                 readOnly: true
-            # edit:
-            #   - &mount
-            #     subPath: Music
-            #     path: /media/ceph
-            # app:
-            #   - <<: *mount
-            #     readOnly: true
       bulk:
         existingClaim: media-bulk
         advancedMounts:
@@ -127,23 +119,6 @@ spec:
             app:
               - subPath: music-edit-venv
                 path: /config/.venv
-      # nfs:
-      #   type: nfs
-      #   server: "${IP_TRUENAS:=127.0.0.1}"
-      #   path: "${PATH_NAS_MEDIA:=/media}"
-      #   advancedMounts:
-      #     app:
-      #       app:
-      #         - subPath: Music
-      #           path: /media/nfs
-      #           readOnly: true
-      #       # edit:
-      #       #   - &mount
-      #       #     subPath: Music
-      #       #     path: /media/nfs
-      #       # app:
-      #       #   - <<: *mount
-      #       #     readOnly: true
       tmp:
         type: emptyDir
       ffmpeg:
@@ -187,6 +162,16 @@ spec:
             scheme: http
             path: *metrics
     networkpolicies:
+      same-ns:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}
       to-maloja:
         controller: app
         policyTypes: [Egress]

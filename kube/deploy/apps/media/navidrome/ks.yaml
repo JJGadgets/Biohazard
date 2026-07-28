@@ -1,19 +1,19 @@
 ---
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: navidrome-app
-  namespace: &ns media
+  namespace: &ns navidrome
   labels: &l
-    app.kubernetes.io/name: &app "navidrome"
+    app.kubernetes.io/name: "navidrome"
 spec:
   targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/media/navidrome/app
   components:
-    - ../../../../core/flux-system/alerts/template/
-    - ../../../../../repos/flux/helm-oci/app-template/
+    - ../../../core/flux-system/alerts/template/
     - ../../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
     - name: crds
@@ -21,17 +21,15 @@ spec:
     - name: navidrome-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.4.0
-      CHART_NAME: *app
       AUTH_ROUTE: navidrome-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: navidrome-pvc
-  namespace: &ns media
+  namespace: &ns navidrome
   labels: &l
-    app.kubernetes.io/name: &app navidrome
+    app.kubernetes.io/name: navidrome
     pvc.home.arpa/volsync: "true"
     kustomization.flux.home.arpa/helmpatches: "false"
 spec:
@@ -68,7 +66,7 @@ spec:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
+      failed: status.latestMoverStatus.result == "Failed"
   patches:
     - patch: |
         apiVersion: volsync.backube/v1alpha1
@@ -81,4 +79,3 @@ spec:
       target:
         group: volsync.backube
         kind: ReplicationDestination
-        # labelSelector: pvc.home.arpa/rdst=navidrome-data-bootstrap
