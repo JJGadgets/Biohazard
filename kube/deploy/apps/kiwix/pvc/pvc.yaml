@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "kiwix-library"
-  namespace: &app "kiwix"
+  name: kiwix-library
+  namespace: kiwix
   annotations:
     description: "For Kiwix ZIM library"
   labels:
-    app.kubernetes.io/name: *app
+    app.kubernetes.io/name: kiwix
     snapshot.home.arpa/enabled: "true"
     kustomize.toolkit.fluxcd.io/prune: "Disabled"
 spec:

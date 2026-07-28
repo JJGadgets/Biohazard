@@ -3,16 +3,42 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: kiwix-app
-  namespace: flux-system
+  namespace: &ns kiwix
   labels: &l
     app.kubernetes.io/name: "kiwix"
 spec:
-  targetNamespace: "kiwix"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/kiwix/app
   components:
     - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
+    - name: kiwix-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "5.0.1"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kiwix-pvc
+  namespace: &ns kiwix
+  labels: &l
+    app.kubernetes.io/name: kiwix
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/kiwix/pvc
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: kiwix-library
+      namespace: *ns
