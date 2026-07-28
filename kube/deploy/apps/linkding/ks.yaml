@@ -3,11 +3,11 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: linkding-app
-  namespace: flux-system
+  namespace: &ns linkding
   labels: &l
     app.kubernetes.io/name: "linkding"
 spec:
-  targetNamespace: "linkding"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/linkding/app
@@ -23,21 +23,21 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: linkding-pvc
-  namespace: flux-system
-  labels: &l
+  namespace: &ns2 linkding
+  labels: &l2
     app.kubernetes.io/name: linkding
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: linkding
+  targetNamespace: *ns2
   commonMetadata:
-    labels: *l
+    labels: *l2
   path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "linkding-data"
+      PVC: &pvc "linkding-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
@@ -47,19 +47,33 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns2
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "linkding-data-r2-updates-restic"
+      namespace: *ns2
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: linkding-snapshots-pvc
-  namespace: flux-system
-  labels: &l
+  namespace: &ns3 linkding
+  labels: &l3
     app.kubernetes.io/name: linkding
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: linkding
+  targetNamespace: *ns3
   commonMetadata:
-    labels: *l
+    labels: *l3
   path: ./kube/deploy/core/storage/volsync/template
   dependsOn:
     - name: crds
@@ -73,6 +87,20 @@ spec:
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
       VS_APP_CURRENT_VERSION: "ghcr.io/sissbruecker/linkding:1.45.0-plus@sha256:d36c779808dd0980fc60a15167ca119b8be7f90debdd068fb038f227a87c106d"
-      RUID: &uid "1000"
-      RGID: *uid
-      RFSG: *uid
+      RUID: &uid2 "1000"
+      RGID: *uid2
+      RFSG: *uid2
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "linkding-snapshots"
+      namespace: *ns3
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "linkding-snapshots-r2-updates-restic"
+      namespace: *ns3
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
