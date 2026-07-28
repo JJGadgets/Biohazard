@@ -6,6 +6,6 @@ configMapGenerator:
     files:
       - ./go2rtc.yaml
 generatorOptions:
-  disableNameSuffixHash: true # Reloader
+  disableNameSuffixHash: true
   annotations:
     kustomize.toolkit.fluxcd.io/substitute: disabled
