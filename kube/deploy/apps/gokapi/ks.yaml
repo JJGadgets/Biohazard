@@ -3,9 +3,60 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: gokapi-app
-  namespace: flux-system
+  namespace: &ns gokapi
+  labels: &l
+    app.kubernetes.io/name: "gokapi"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/gokapi/app
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
-    - name: 1-core-ingress-nginx-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
+    - name: gokapi-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gokapi-pvc
+  namespace: &ns gokapi
+  labels: &l
+    app.kubernetes.io/name: gokapi
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "gokapi-data"
+      SIZE: "1Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteOnce"
+      SNAP_ACCESSMODE: "ReadOnlyOnce"
+      VS_APP_CURRENT_VERSION: "docker.io/f0rc3/gokapi:v1.9.6@sha256:ae9094a0ead891eef80499a072e680734bcb34892242f0e232223c65eb4c3af8"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "gokapi-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
