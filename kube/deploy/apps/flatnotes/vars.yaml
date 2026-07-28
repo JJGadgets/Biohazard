@@ -22,10 +22,7 @@ spec:
     template:
       type: Opaque
       data:
-        # Core cluster-wide vars
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
-        # App specific
         APP_DNS_FLATNOTES: '{{ .APP_DNS_FLATNOTES }}'
-        # Other cluster-wide vars
         IP_JJ_V4: '{{ .IP_JJ_V4 }}'
