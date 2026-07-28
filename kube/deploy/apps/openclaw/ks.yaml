@@ -41,7 +41,7 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "openclaw-data"
-      SIZE: "10Gi"
+      SIZE: "15Gi"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
