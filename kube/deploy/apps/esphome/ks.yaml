@@ -3,15 +3,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: esphome-app
-  namespace: flux-system
+  namespace: &ns esphome
   labels: &l
     app.kubernetes.io/name: "esphome"
 spec:
-  targetNamespace: "esphome"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/esphome/app
   components:
+    - "../../../../repos/flux/helm-oci/app-template/"
     - ../../../core/flux-system/alerts/template/
   dependsOn:
     - name: crds
@@ -19,23 +20,18 @@ spec:
     - name: esphome-pvc
   postBuild:
     substitute:
-      AREA_DNS: >
-        $${area | replace("'s", "") | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
-      AREA_ID: >
-        $${area | replace("'", "_") | replace(" - ", "-") | replace(" ", "-") | replace("-", "_") | lower}
-      NAME_DNS: >
-        $${name | replace("_", "-") | replace(" - ", "-") | replace(" ", "-") | lower}
+      APP_TEMPLATE: "5.0.1"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: esphome-pvc
-  namespace: flux-system
+  namespace: &ns esphome
   labels: &l
     app.kubernetes.io/name: esphome
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: esphome
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -44,7 +40,7 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "esphome-data"
+      PVC: &pvc "esphome-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
@@ -54,3 +50,17 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "esphome-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
