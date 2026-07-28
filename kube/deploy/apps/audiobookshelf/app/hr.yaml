@@ -5,67 +5,68 @@ metadata:
   name: &app audiobookshelf
   namespace: *app
 spec:
-  chart:
-    spec:
-      chart: app-template
-      version: 2.6.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: "allow"
-            egress.home.arpa/world: "allow"
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/world: allow
         containers:
-          main:
-            image:
-              repository: "ghcr.io/advplyr/audiobookshelf"
+          app:
+            image: &img
+              repository: ghcr.io/advplyr/audiobookshelf
               tag: "2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e"
             env:
               TZ: "${CONFIG_TZ}"
               PORT: &http "8080"
               CONFIG_PATH: &config "/config"
               METADATA_PATH: &meta "/metadata"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: "10m"
+                memory: "128Mi"
               limits:
-                memory: 6000Mi
+                memory: "6000Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: *http
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        className: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_AUDIOBOOKSHELF:=audiobookshelf}"
-            paths:
-              - path: /
-                pathType: Prefix
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts:
-              - *host
+            port: 80
+            targetPort: *http
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_AUDIOBOOKSHELF:=audiobookshelf}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       config:
-        enabled: true
-        existingClaim: "audiobookshelf-config"
+        existingClaim: audiobookshelf-config
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - path: *config
       nfs:
         enabled: true
@@ -73,8 +74,8 @@ spec:
         server: "${IP_TRUENAS:=127.0.0.1}"
         path: "${PATH_NAS_MEDIA:=/media}"
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: ".audiobookshelf-metadata"
                 path: *meta
               - subPath: "Podcasts"
@@ -83,8 +84,19 @@ spec:
                 path: "/audiobooks"
     defaultPodOptions:
       automountServiceAccountToken: false
+      enableServiceLinks: false
+      runtimeClassName: gvisor
       securityContext:
+        runAsNonRoot: true
         runAsUser: &uid ${APP_UID_AUDIOBOOKSHELF:=1000}
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
