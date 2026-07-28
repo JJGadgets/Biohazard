@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,18 +6,13 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       go-discord-modtools:
-        # type: statefulset
         type: deployment
         replicas: 1
         pod:
@@ -27,14 +21,14 @@ spec:
         containers:
           main:
             image: &img
-              repository: "ghcr.io/tyzbit/go-discord-modtools"
-              tag: "v0.3.1@sha256:a789bb7b4bd109f9a5f85f9d256a2ff27717c0a043132660a367b2fdc666987b"
-            env: &env
+              repository: ghcr.io/tyzbit/go-discord-modtools
+              tag: v0.3.1@sha256:a789bb7b4bd109f9a5f85f9d256a2ff27717c0a043132660a367b2fdc666987b
+            env:
               TZ: "${CONFIG_TZ}"
-            envFrom: &envFrom
+            envFrom:
               - secretRef:
                   name: go-discord-modtools-secrets
-            securityContext: &sc
+            securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
@@ -60,20 +54,34 @@ spec:
     persistence:
       data:
         existingClaim: go-discord-modtools-data
+        advancedMounts:
+          go-discord-modtools:
+            main:
+              - subPath: data
+                path: /var/go-discord-modtools
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
-          - subPath: data
-            path: /var/go-discord-modtools
+          - subPath: tmp
+            path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
         - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
-        runAsGroup: *uid
-        fsGroup: *uid
+        runAsUser: ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
+        runAsGroup: ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
+        fsGroup: ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
       topologySpreadConstraints:
