@@ -3,7 +3,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: phanpy-app
-  namespace: flux-system
+  namespace: &ns phanpy
+  labels: &l
+    app.kubernetes.io/name: "phanpy"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/phanpy/app
-  dependsOn: []
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
