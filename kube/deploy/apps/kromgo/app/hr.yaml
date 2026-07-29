@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -15,16 +15,12 @@ spec:
     controllers:
       app:
         type: deployment
-        replicas: 1
+        replicas: 2
+        strategy: RollingUpdate
         pod:
           labels:
-            # AGENTS: for allowlisting pods for existing NetworkPolicies, uncomment where necessary, else delete. remember principle of least privilege, do not grant network access if an app does not require it.
-            ingress.home.arpa/envoy-internal: allow
-            # db.home.arpa/pg: pg-default
-            # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
-            # authentik.home.arpa/oidc: allow
-            # prom.home.arpa/kps: allow
-            # egress.home.arpa/internet: allow
+            ingress.home.arpa/nginx-public: allow
+            egress.home.arpa/kps: allow
         containers:
           app:
             image: &img
@@ -32,26 +28,11 @@ spec:
               tag: v0.10.0@sha256:965ecc92d68dc1a4a969397855367bbc70da03227a941ea607b73bb7e0b78fd6
             env: &env
               TZ: "${CONFIG_TZ}"
-              # AGENTS: CRUD where appropriate, these envs are all example values
-              EXAMPLE_ENV: test
-              _APPNAME_DATABASE_SOURCE:
-                valueFrom:
-                  secretKeyRef:
-                    name: pg-default-pguser-kromgo
-                    key: pgbouncer-uri
-              GTS_STORAGE_S3_ACCESS_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: kromgo-data-s3
-                    key: AWS_ACCESS_KEY_ID
-              GTS_STORAGE_S3_SECRET_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: kromgo-media-s3
-                    key: AWS_SECRET_ACCESS_KEY
-            envFrom: &envFrom
-              - secretRef:
-                  name: kromgo-secrets
+              PROMETHEUS_URL: http://vmsingle-victoria.monitoring.svc.cluster.local.:8429
+              SERVER_HOST: &host "[::]"
+              SERVER_PORT: &http 8080
+              HEALTH_HOST: *host
+              HEALTH_PORT: &health 8888
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -61,153 +42,91 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "4"
-                memory: "250Mi"
+                memory: "128Mi"
             probes:
               liveness:
                 enabled: true
+                custom: true
+                spec: &probes
+                  httpGet:
+                    path: /-/health
+                    port: *health
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
               readiness:
                 enabled: true
-              # AGENTS: uncomment if app uses database (including SQLite) and thus may need time to run database migrations
-              # startup:
-              #   enabled: true
-              #   spec:
-              #     periodSeconds: 1
-              #     failureThreshold: 300
-              #     initialDelaySeconds: 5
+                custom: true
+                spec:
+                  <<: *probes
+                  httpGet:
+                    path: /-/ready
+                    port: *health
     service:
       app:
         controller: app
         ports:
           http:
-            port: 80
-            targetPort: 8080
+            port: *http
             protocol: HTTP
             appProtocol: http
-      # AGENTS: uncomment if LoadBalancer service needed
-      # expose:
-      #   primary: false
-      #   controller: app
-      #   type: LoadBalancer
-      #   annotations:
-      #     coredns.io/hostname: "${APP_DNS_KROMGO:=kromgo}"
-      #     lbipam.cilium.io/ips: "${APP_IP_KROMGO:=127.0.0.1}"
-      #   ports:
-      #     http:
-      #       port: 443
-      #       targetPort: 8443
-      #       protocol: HTTPS
-      #     ldap-tcp:
-      #       port: 636
-      #       targetPort: 3636
-      #       protocol: TCP
-      #     ldap-udp:
-      #       port: 636
-      #       targetPort: 3636
-      #       protocol: UDP
+          health:
+            port: *health
+            protocol: HTTP
+            appProtocol: http
     route:
       app:
-        # AGENTS: uncomment if app is to be exposed to external/public via FQDN
-        # annotations:
-        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hostnames: ["${APP_DNS_KROMGO:=kromgo}"]
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["biohazard-metrics.jjgadgets.tech"]
         parentRefs:
-          - name: envoy-internal
+          - name: envoy-external
             namespace: ingress
-            sectionName: internal
-        # AGENTS: uncomment if advanced routing needed or multiple service backends specified
-        # rules:
-        #   - matches:
-        #       - path:
-        #           type: PathPrefix
-        #           value: /test
-        #     backendRefs:
-        #       - identifier: app
-        #         port: 80
-        #   - backendRefs:
-        #       - identifier: app
-        #         port: 80
-    # AGENTS: delete entries where not necessary
+            sectionName: public
+        tls:
+          - hostnames: ["biohazard-metrics.jjgadgets.tech"]
     persistence:
-      data:
-        existingClaim: kromgo-data
+      config:
+        type: configMap
+        identifier: kromgo-config
         advancedMounts:
           app:
             app:
-              - subPath: data
-                path: /data
+              - subPath: config.yaml
+                path: /kromgo/config.yaml
+                readOnly: true
       tmp:
         type: emptyDir
         medium: Memory
-        sizeLimit: 16Mi
         globalMounts:
           - subPath: tmp
             path: /tmp
-    #   config:
-    #     type: configMap
-    #     identifier: config
-    #     advancedMounts:
-    #       app:
-    #         app:
-    #           - subPath: server.toml
-    #             path: /data/server.toml
-    #   nfs:
-    #     type: nfs
-    #     server: "${IP_TRUENAS:=127.0.0.1}"
-    #     path: "${PATH_NAS_PERSIST_K8S:=/home}"
-    #     globalMounts:
-    #       - subPath: kromgo
-    #         path: /nfs
-    #   tls:
-    #     type: secret
-    #     name: kromgo-tls
-    #     defaultMode: 0400
-    #     advancedMounts:
-    #       app:
-    #         app:
-    #           - subPath: tls.crt
-    #             path: /tls/fullchain.pem
-    #             readOnly: true
-    #           - subPath: tls.key
-    #             path: /tls/privkey.pem
-    #             readOnly: true
-    # configMaps:
-    #   config:
-    #     data:
-    #       server.toml: |
-    #         key = value
+      #fonts:
+      #  type: configMap
+      #  name: kromgo-fonts
+      #  globalMounts:
+      #    - subPath: TimesNewRamen.woff
+      #      path: /kromgo/TimesNewRamen.woff
+      #      readOnly: true
     defaultPodOptions:
-      # AGENTS: uncomment if authentik OIDC is used, else delete
-      # hostAliases:
-      #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-      #     hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "1"
-      # AGENTS: START if
-      # delete whichever version is unused
-      # EITHER THIS, if internal-only app (most apps are)
-      hostUsers: false
+      automountServiceAccountToken: false
+      enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000
-      # OR THIS, uncomment if external/public facing as determined by gateway class or if service LoadBalancer is used, or if internal-only app BUT non-standard mounts are used like NFS because hostUsers requires idmap support
-      # runtimeClassName: gvisor
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: &uid ${APP_UID_KROMGO:=1000}
-      # OR THIS, uncomment if app cannot use additional sandboxing methods, such as if GPUs or other /dev devices are passed through to the app using resources or hostPath
-      # hostUsers: true
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: &uid ${APP_UID_KROMGO:=1000}
-      # END if
+        runAsUser: &uid 568
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
         seccompProfile: { type: "RuntimeDefault" }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -215,18 +134,3 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
-    networkpolicies:
-      same-ns:
-        # AGENTS: either this for specific controller within HelmRelease
-        # controller: app
-        # or this for whole namespace
-        podSelector: {}
-        # end
-        policyTypes: [Ingress, Egress]
-        rules:
-          ingress:
-            - from:
-                - podSelector: {}
-          egress:
-            - to:
-                - podSelector: {}
