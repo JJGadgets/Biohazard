@@ -1,87 +1,117 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app velociraptor
   namespace: *app
 spec:
-  chart:
-    spec:
-      chart: app-template
-      version: 1.5.1
-      sourceRef:
-        kind: HelmRepository
-        name: bjw-s
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
-    controller:
-      type: statefulset
-    image:
-      repository: docker.io/wlambert/velociraptor
-      tag: latest@sha256:06c68fefa291a7c294e54b01c7dad1e772bca484cd4c240848b32e5ceb0adebe
-    env:
-      TZ: "${CONFIG_TZ}"
+    controllers:
+      app:
+        type: statefulset
+        pod:
+          labels:
+            ingress.home.arpa/nginx-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: docker.io/wlambert/velociraptor
+              tag: latest@sha256:06c68fefa291a7c294e54b01c7dad1e772bca484cd4c240848b32e5ceb0adebe
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                memory: "6000Mi"
     service:
-      main:
-        enabled: true
-        type: LoadBalancer
-        externalTrafficPolicy: Local
-        annotations:
-          coredns.io/hostname: "${APP_DNS_VELOCIRAPTOR}"
+      app:
+        controller: app
         ports:
-          http:
+          gui:
             port: &gui 8889
             protocol: TCP
           frontend:
             port: &frontend 8000
             protocol: TCP
+      expose:
+        primary: false
+        controller: app
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        annotations:
+          coredns.io/hostname: "${APP_DNS_VELOCIRAPTOR}"
+        ports:
+          gui:
+            port: *gui
+            targetPort: *gui
+            protocol: TCP
+          frontend:
+            port: *frontend
+            targetPort: *frontend
+            protocol: TCP
     ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
+      app:
+        className: nginx-internal
         annotations:
           external-dns.alpha.kubernetes.io/target: "${IP_EC2_INGRESS}"
         hosts:
-          - host: &host "${APP_DNS_VELOCIRAPTOR}"
+          - host: "${APP_DNS_VELOCIRAPTOR}"
             paths:
               - path: /gui
                 pathType: Prefix
                 service:
+                  identifier: app
                   port: *gui
               - path: /
                 pathType: Prefix
                 service:
+                  identifier: app
                   port: *frontend
         tls:
-          - hosts:
-              - *host
-#     dnsConfig:
-#       options:
-#         - name: ndots
-#           value: "1"
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_VELOCIRAPTOR}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    volumeClaimTemplates:
-      - name: persist
-        mountPath: /persist
-        accessMode: ReadWriteOnce
-        size: 50Gi
-        storageClass: block
+          - hosts: ["${APP_DNS_VELOCIRAPTOR}"]
     persistence:
+      data:
+        existingClaim: velociraptor-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /persist
       config:
-        enabled: true
         type: configMap
         name: velociraptor-config
-        subPath: server.config.yaml
-        mountPath: /velociraptor/server.config.yaml
-        readOnly: true
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 6000Mi
+        advancedMounts:
+          app:
+            app:
+              - subPath: server.config.yaml
+                path: /velociraptor/server.config.yaml
+                readOnly: true
+    defaultPodOptions:
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_VELOCIRAPTOR}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
