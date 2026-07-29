@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -18,6 +19,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
+            # authentik.home.arpa/https: allow
             egress.home.arpa/iot: allow
             egress.home.arpa/esp: allow
             egress.home.arpa/internet: allow
@@ -37,6 +39,7 @@ spec:
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
+                # add: ["NET_RAW"] # ping, userns'ed so safer # gave up on ESPHome ping, it works without it so whatever lol
             resources:
               requests:
                 cpu: "5m"
@@ -140,10 +143,10 @@ spec:
                     operator: DoesNotExist
                   - key: "feature.node.kubernetes.io/cpu-model.family"
                     operator: In
-                    values: ["6"]
+                    values: ["6"] # Intel
                   - key: "feature.node.kubernetes.io/cpu-model.id"
                     operator: In
-                    values: ["154"]
+                    values: ["154"] # Alder Lake / 12th Gen
     networkpolicies:
       esp:
         controller: app
