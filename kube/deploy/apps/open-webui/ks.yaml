@@ -3,43 +3,60 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: open-webui-app
-  namespace: flux-system
+  namespace: &ns open-webui
   labels: &l
     app.kubernetes.io/name: "open-webui"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/open-webui/app
-  targetNamespace: "open-webui"
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: open-webui-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: open-webui-pvc
-  namespace: flux-system
+  namespace: &ns open-webui
   labels: &l
-    app.kubernetes.io/name: "open-webui"
+    app.kubernetes.io/name: open-webui
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "open-webui"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "open-webui-data"
+      PVC: &pvc "open-webui-data"
       SIZE: "1Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_OPEN_WEBUI:=1000}
-      RGID: !!str |
-        ${APP_UID_OPEN_WEBUI:=1000}
-      RFSG: !!str |
-        ${APP_UID_OPEN_WEBUI:=1000}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/open-webui/open-webui:0.9.5@sha256:e045bde3b004cc7f8c319412345eb56c87ea6ac57031534a31ca37ad5424beb3"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "open-webui-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
