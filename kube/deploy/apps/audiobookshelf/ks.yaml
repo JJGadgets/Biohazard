@@ -51,7 +51,7 @@ spec:
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
-      CRON: "0 22 * * *"
+      CRON: "0 22 * * *" # 6am GMT+8
   healthChecks:
     - apiVersion: v1
       kind: PersistentVolumeClaim
