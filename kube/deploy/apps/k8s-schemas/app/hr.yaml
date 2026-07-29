@@ -115,7 +115,7 @@ spec:
     persistence:
       config:
         type: secret
-        identifier: "k8s-schemas-rclone"
+        name: "k8s-schemas-rclone"
         globalMounts:
           - subPath: "rclone.conf"
             path: "/.rclone.conf"
