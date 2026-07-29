@@ -3,41 +3,64 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: redbot-app
-  namespace: flux-system
+  namespace: &ns redbot
   labels: &l
     app.kubernetes.io/name: "redbot"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/redbot/app
-  targetNamespace: "redbot"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: redbot-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "5.0.1"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: redbot-pvc
-  namespace: flux-system
+  namespace: &ns redbot
   labels: &l
-    app.kubernetes.io/name: "redbot"
+    app.kubernetes.io/name: redbot
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "redbot"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "redbot-data"
+      PVC: &pvc "redbot-data"
       SIZE: "20Gi"
       SC: &sc "file"
       SNAP: *sc
-      RUID: !!str &uid |
-        ${APP_UID_REDBOT}
-      RGID: !!str |
-        ${APP_UID_REDBOT}
-      RFSG: !!str |
-        ${APP_UID_REDBOT}
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "jank.ing/jjgadgets/redbot:3.5.22@sha256:0b4cdbc40cfb2e19d8555348ac0457f260e01e98f20804c6d222481b7808e1f0"
+      RUID: !!str &uid "${APP_UID_REDBOT}"
+      RGID: !!str "${APP_UID_REDBOT}"
+      RFSG: !!str "${APP_UID_REDBOT}"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "redbot-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

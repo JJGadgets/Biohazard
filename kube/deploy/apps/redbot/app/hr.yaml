@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -6,17 +7,13 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: "2.6.0"
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
@@ -25,20 +22,23 @@ spec:
             egress.home.arpa/github: "allow"
             egress.home.arpa/pypi: "allow"
         containers:
-          main:
+          app:
             image: &img
               repository: "jank.ing/jjgadgets/redbot"
               tag: "3.5.22@sha256:0b4cdbc40cfb2e19d8555348ac0457f260e01e98f20804c6d222481b7808e1f0"
             args: ["--mentionable"]
-            env:
+            env: &env
               TZ: "${CONFIG_TZ}"
               NAME: "JJGadgets"
               PREFIXES: "yui. y."
               TOKEN_FILE: &token "/secrets/token"
               OWNER_FILE: &owner "/secrets/owner"
-              BASE_PATH: &path "/config"
+              BASE_PATH: "/config"
               STORAGE_TYPE: "JSON"
-            securityContext:
+            envFrom: &envFrom
+              - secretRef:
+                  name: redbot-secrets
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
@@ -50,33 +50,30 @@ spec:
               limits:
                 cpu: "3000m"
                 memory: "6000Mi"
-    service:
-      main:
-        enabled: false
     persistence:
       config:
-        enabled: true
         existingClaim: "redbot-data"
-        globalMounts:
-          - subPath: "config"
-            path: *path
+        advancedMounts:
+          app:
+            app:
+              - subPath: "config"
+                path: "/config"
       tmp:
-        enabled: true
         type: emptyDir
         medium: Memory
+        sizeLimit: 16Mi
         globalMounts:
           - subPath: "tmp"
             path: "/tmp"
           - subPath: "cache"
             path: "/.cache"
       secrets:
-        enabled: true
         type: secret
         name: "redbot-secrets"
         defaultMode: 0400
         advancedMounts:
-          main:
-            main:
+          app:
+            app:
               - subPath: "TOKEN"
                 path: *token
                 readOnly: true
@@ -86,6 +83,11 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_REDBOT}
@@ -99,11 +101,14 @@ spec:
           whenUnsatisfiable: "DoNotSchedule"
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: *app
+              app.kubernetes.io/name: "{{ .Release.Name }}"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/redbot"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: "DoesNotExist"
+    networkpolicies:
+      main:
+        enabled: false
