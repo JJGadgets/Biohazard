@@ -199,9 +199,9 @@ spec:
         options:
           - name: ndots
             value: "1"
-       runtimeClassName: kata
-       # hostUsers: false
-       securityContext:
+      runtimeClassName: kata
+      # hostUsers: false
+      securityContext:
         runAsNonRoot: true
         runAsUser: &uid 4001 # upstream `cryptpad` user
         runAsGroup: *uid

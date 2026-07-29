@@ -111,11 +111,6 @@ spec:
         type: emptyDir
       tmp:
         type: emptyDir
-      multus:
-        type: multus
-        networkDevices:
-          - name: iot
-            networkName: esphome/iot
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

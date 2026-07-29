@@ -12,7 +12,7 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/media/kavita/app
   components:
-    - ../../../core/flux-system/alerts/template/
+    - ../../../../core/flux-system/alerts/template/
   dependsOn:
     - name: crds
       namespace: flux-system

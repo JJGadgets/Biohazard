@@ -85,8 +85,6 @@ spec:
           - name: envoy-external
             namespace: ingress
             sectionName: public
-        tls:
-          - hostnames: ["biohazard-metrics.jjgadgets.tech"]
     persistence:
       config:
         type: configMap

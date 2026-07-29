@@ -13,6 +13,7 @@ spec:
   components:
     - ../../../../repos/flux/helm-oci/app-template/
   path: ./kube/deploy/apps/excalidraw/app
+  dependsOn: []
   postBuild:
     substitute:
       APP_TEMPLATE: 5.0.1
