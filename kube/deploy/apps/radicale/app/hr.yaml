@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -75,20 +75,26 @@ spec:
       config:
         type: secret
         name: radicale-secrets
-        globalMounts:
-          - subPath: config
-            path: /config/config
+        advancedMounts:
+          app:
+            app:
+              - subPath: config
+                path: /config/config
       data:
         existingClaim: radicale-data
-        globalMounts:
-          - subPath: data
-            path: /data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
       tmp:
         type: emptyDir
         medium: Memory
-        globalMounts:
-          - subPath: tmp
-            path: /tmp
+        advancedMounts:
+          app:
+            app:
+              - subPath: tmp
+                path: /tmp
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

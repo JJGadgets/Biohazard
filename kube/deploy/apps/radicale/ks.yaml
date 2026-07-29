@@ -13,7 +13,6 @@ spec:
   path: ./kube/deploy/apps/radicale/app
   components:
     - ../../../core/flux-system/alerts/template/
-    - ../../../../repos/flux/helm-oci/app-template/
     - ../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
     - name: crds
@@ -21,7 +20,6 @@ spec:
     - name: radicale-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.4.0
       AUTH_ROUTE: radicale-app
       AUTH_HEADER: X-Remote-User
 ---
@@ -49,7 +47,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "jank.ing/jjgadgets/radicale:3.6.0@sha256:8291a73e50a0aa8c58836c499075ed09f657eb1ae664a174602a716ded155845"
+      VS_APP_CURRENT_VERSION: "ghcr.io/jjgadgets/radicale:3.7.7@sha256:7cd92ea06f263eca3065a22655411e1d7c4d8212f298f3d68f6e8f4aa0e148db"
       RUID: &uid "65534"
       RGID: *uid
       RFSG: *uid
