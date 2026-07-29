@@ -3,43 +3,65 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: satisfactory-app
-  namespace: flux-system
+  namespace: &ns satisfactory
   labels: &l
     app.kubernetes.io/name: "satisfactory"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/satisfactory/app
-  targetNamespace: "satisfactory"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: satisfactory-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "5.0.1"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: satisfactory-pvc
-  namespace: flux-system
+  namespace: &ns satisfactory
   labels: &l
-    app.kubernetes.io/name: "satisfactory"
+    app.kubernetes.io/name: satisfactory
+    pvc.home.arpa/volsync: "true"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "satisfactory"
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-snapscheduler-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "satisfactory-data"
+      PVC: &pvc "satisfactory-data"
       SIZE: "10Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_SATISFACTORY:=1000}
-      RGID: !!str |
-        ${APP_UID_SATISFACTORY:=1000}
-      RFSG: !!str |
-        ${APP_UID_SATISFACTORY:=1000}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "docker.io/wolveix/satisfactory-server:v1.9.10@sha256:e103700ae6ae4c50f19dac80eadb2a805c5b885e179ae2a40850e967bf189efd"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "satisfactory-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
