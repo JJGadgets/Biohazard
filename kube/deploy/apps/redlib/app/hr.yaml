@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       redlib:
@@ -25,70 +21,72 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             egress.home.arpa/internet: allow
-        containers:
-          main:
-            image: &img
-              repository: quay.io/redlib/redlib
-              tag: latest@sha256:e6647a94d553bf3f7c95c53fc6d9da5785e6c278d9002e99ea32abdb5e3c513a # for JSON HTTP2 fix
-            env: &env
-              TZ: "${CONFIG_TZ}"
-              REDLIB_SFW_ONLY: "off"
-              REDLIB_BANNER: "JJGadgets"
-              REDLIB_ROBOTS_DISABLE_INDEXING: "on"
-              REDLIB_DEFAULT_THEME: "dracula"
-              REDLIB_DEFAULT_FRONT_PAGE: "default"
-              REDLIB_DEFAULT_LAYOUT: "card"
-              REDLIB_DEFAULT_WIDE: "on"
-              REDLIB_DEFAULT_POST_SORT: "hot"
-              REDLIB_DEFAULT_COMMENT_SORT: "confidence"
-              REDLIB_DEFAULT_SHOW_NSFW: "on"
-              REDLIB_DEFAULT_BLUR_NSFW: "on"
-              REDLIB_DEFAULT_AUTOPLAY_VIDEOS: "off"
-              REDLIB_DEFAULT_DISABLE_VISIT_REDDIT_CONFIRMATION: "false"
-              REDLIB_ENABLE_RSS: "on"
-              REDLIB_FULL_URL: "https://${APP_DNS_REDLIB}"
-              REDLIB_SUBSCRIPTIONS:
-                valueFrom:
-                  secretKeyRef:
-                    name: redlib-secrets
-                    key: subscriptions
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
-            resources:
-              requests:
-                cpu: "10m"
-              limits:
-                cpu: "1"
-                memory: "256Mi"
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
+          containers:
+            main:
+              image: &img
+                repository: quay.io/redlib/redlib
+                tag: latest@sha256:e6647a94d553bf3f7c95c53fc6d9da5785e6c278d9002e99ea32abdb5e3c513a # for JSON HTTP2 fix
+              env: &env
+                TZ: "${CONFIG_TZ}"
+                REDLIB_SFW_ONLY: "off"
+                REDLIB_BANNER: "JJGadgets"
+                REDLIB_ROBOTS_DISABLE_INDEXING: "on"
+                REDLIB_DEFAULT_THEME: "dracula"
+                REDLIB_DEFAULT_FRONT_PAGE: "default"
+                REDLIB_DEFAULT_LAYOUT: "card"
+                REDLIB_DEFAULT_WIDE: "on"
+                REDLIB_DEFAULT_POST_SORT: "hot"
+                REDLIB_DEFAULT_COMMENT_SORT: "confidence"
+                REDLIB_DEFAULT_SHOW_NSFW: "on"
+                REDLIB_DEFAULT_BLUR_NSFW: "on"
+                REDLIB_DEFAULT_AUTOPLAY_VIDEOS: "off"
+                REDLIB_DEFAULT_DISABLE_VISIT_REDDIT_CONFIRMATION: "false"
+                REDLIB_ENABLE_RSS: "on"
+                REDLIB_FULL_URL: "https://${APP_DNS_REDLIB}"
+                REDLIB_SUBSCRIPTIONS:
+                  valueFrom:
+                    secretKeyRef:
+                      name: redlib-secrets
+                      key: subscriptions
+              securityContext: &sc
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: "10m"
+                limits:
+                  cpu: "1"
+                  memory: "256Mi"
+              probes:
+                liveness:
+                  enabled: true
+                readiness:
+                  enabled: true
     service:
-      redlib:
+      main:
         controller: redlib
         ports:
           http:
             port: 8080
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_REDLIB:=redlib}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: redlib
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      redlib:
+        hostnames: ["${APP_DNS_REDLIB:=redlib}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: main
+                port: http
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
