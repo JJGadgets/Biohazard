@@ -28,15 +28,18 @@ spec:
               tag: 1.45.0-plus@sha256:d36c779808dd0980fc60a15167ca119b8be7f90debdd068fb038f227a87c106d
             env: &env
               TZ: "${CONFIG_TZ}"
+              # Security
               LD_ENABLE_OIDC: "True"
               LD_CSRF_TRUSTED_ORIGINS: "https://${APP_DNS_LINKDING}"
+              # Options
               LD_SERVER_PORT: &http 8080
               LD_LOG_X_FORWARDED_FOR: "true"
               LD_FAVICON_PROVIDER: "https://icons.duckduckgo.com/ip3/{domain}.ico"
               LD_ENABLE_SNAPSHOTS: "True"
-              LD_ASSET_FOLDER: &snap "/assets/"
+              LD_ASSET_FOLDER: &snap "/assets/" # local archive path (do NOT use LD_SINGLEFILE_PATH that's the executable location)
               LD_FAVICON_FOLDER: &fav "/favicons"
               LD_PREVIEW_FOLDER: &preview "/preview"
+              # Database
               LD_DB_ENGINE: sqlite
             envFrom:
               - secretRef:
@@ -62,7 +65,7 @@ spec:
         replicas: 1
         pod: *p
         containers:
-          bg-tasks:
+          bg-tasks: # taken from supervisord config
             image: *img
             command: ["python", "manage.py", "run_huey", "-f"]
             env:
@@ -152,7 +155,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 33
+        runAsUser: &uid 33 # www-data
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always

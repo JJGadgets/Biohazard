@@ -71,6 +71,14 @@ spec:
           rtsp:
             port: *rtsp
             protocol: TCP
+      # expose:
+      #   primary: false
+      #   controller: app
+      #   type: LoadBalancer
+      #   annotations:
+      #     # coredns.io/hostname: "${APP_DNS_GO2RTC:=go2rtc}"
+      #     lbipam.cilium.io/ips: "${APP_IP_GO2RTC:=127.0.0.1}"
+      #   ports:
     route:
       app:
         hostnames: ["${APP_DNS_GO2RTC:=go2rtc}"]
@@ -102,6 +110,19 @@ spec:
             app:
               - path: /config
                 readOnly: true
+      # tls:
+      #   type: secret
+      #   name: go2rtc-tls
+      #   defaultMode: 0400
+      #   advancedMounts:
+      #     go2rtc:
+      #       main:
+      #         - subPath: tls.crt
+      #           path: /tls/fullchain.pem
+      #           readOnly: true
+      #         - subPath: tls.key
+      #           path: /tls/privkey.pem
+      #           readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
