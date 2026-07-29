@@ -1,74 +1,115 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app thelounge
   namespace: *app
 spec:
-  chart:
-    spec:
-      chart: app-template
-      version: 1.5.1
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      authentik.home.arpa/ldap: "allow"
-    image:
-      repository: ghcr.io/thelounge/thelounge
-      tag: "4.5.2@sha256:ec3e798d7d9243e49f4f268a4d83c03606fb7e8ace07191e8d1260faceb68d13"
-    command: ["thelounge"]
-    args: ["start"]
-    env:
-      TZ: "${CONFIG_TZ}"
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            authentik.home.arpa/ldap: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/thelounge/thelounge
+              tag: "4.5.2@sha256:ec3e798d7d9243e49f4f268a4d83c03606fb7e8ace07191e8d1260faceb68d13"
+            command: ["thelounge"]
+            args: ["start"]
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            envFrom: &envFrom
+              - secretRef:
+                  name: thelounge-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1000m"
+                memory: "6000Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
             port: 9000
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
-        hosts:
-          - host: &host "${APP_DNS_THELOUNGE:=thelounge}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-    podSecurityContext:
-      runAsUser: &uid ${APP_UID_THELOUNGE:=1000}
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
+            targetPort: 9000
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_THELOUNGE:=thelounge}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     persistence:
       config:
-        enabled: true
         type: secret
         name: thelounge-config
-        subPath: config.js
-        mountPath: /var/opt/thelounge/config.js
-        readOnly: true
+        defaultMode: 0400
+        advancedMounts:
+          app:
+            app:
+              - subPath: config.js
+                path: /var/opt/thelounge/config.js
+                readOnly: true
       data:
-        enabled: true
         existingClaim: thelounge-data
-        mountPath: /var/opt/thelounge
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        cpu: 1000m
-        memory: 6000Mi
+        advancedMounts:
+          app:
+            app:
+              - path: /var/opt/thelounge
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_THELOUNGE:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
