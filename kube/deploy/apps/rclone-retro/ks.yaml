@@ -1,14 +1,13 @@
 ---
-# yaml-language-server: $schema=https://flux.jank.ing/kustomization-kustomize-v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: rclone-retro-app
-  namespace: flux-system
+  namespace: &ns rclone-retro
   labels: &l
     app.kubernetes.io/name: "rclone-retro"
 spec:
-  targetNamespace: "rclone-retro"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/rclone-retro/app
@@ -18,17 +17,20 @@ spec:
     - name: crds
       namespace: flux-system
     - name: rclone-retro-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: 5.0.1
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: rclone-retro-pvc
-  namespace: flux-system
+  namespace: &ns rclone-retro
   labels: &l
     app.kubernetes.io/name: rclone-retro
     pvc.home.arpa/volsync: "true"
 spec:
-  targetNamespace: rclone-retro
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
@@ -37,13 +39,27 @@ spec:
       namespace: flux-system
   postBuild:
     substitute:
-      PVC: "rclone-retro-data"
+      PVC: &pvc "rclone-retro-data"
       SIZE: "50Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/rclone/rclone:1.74.4@sha256:c61954aaa32328a5486715dd063a81c7879f5195ad3505cd362deddd509dc4a1"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid
-      VS_APP_CURRENT_VERSION: "ghcr.io/rclone/rclone:1.74.4@sha256:c61954aaa32328a5486715dd063a81c7879f5195ad3505cd362deddd509dc4a1"
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "rclone-retro-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
