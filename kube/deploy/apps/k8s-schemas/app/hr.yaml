@@ -23,7 +23,7 @@ spec:
           labels:
             egress.home.arpa/apiserver: "allow"
             egress.home.arpa/r2: "allow"
-            egress.home.arpa/github: "allow"
+            egress.home.arpa/github: "allow" # only because of the openapi2jsonschema.py script lol
             s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
         initContainers:
           01-extract:

@@ -19,6 +19,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/oidc: allow
+            # egress.home.arpa/internet: allow
         containers:
           app:
             image: &img
@@ -66,15 +67,29 @@ spec:
             app:
               - path: /kavita/config
       media:
-        existingClaim: "media-data"
+        existingClaim: "media-data" # VolSync
         globalMounts:
           - path: "/media"
             readOnly: true
       bulk:
-        existingClaim: "media-bulk"
+        existingClaim: "media-bulk" # no backups
         globalMounts:
-          - path: "/bulk"
-            readOnly: true
+            - path: "/bulk"
+              readOnly: true
+      # nas:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/kavita}"
+      #   globalMounts:
+      #     - path: /nas
+      #       readOnly: true
+      # backups:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_BACKUPS_K8S:=/backups}"
+      #   globalMounts:
+      #     - subPath: "kavita"
+      #       path: "/kavita/config/backups"
       tmp:
         type: emptyDir
         medium: Memory

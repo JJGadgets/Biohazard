@@ -13,6 +13,7 @@ spec:
   values:
     controllers:
       go-discord-modtools:
+        # type: statefulset
         type: deployment
         replicas: 1
         pod:

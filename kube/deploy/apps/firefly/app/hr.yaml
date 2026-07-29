@@ -40,20 +40,21 @@ spec:
               COOKIE_DOMAIN: "${APP_DNS_FIREFLY}"
               COOKIE_SECURE: "true"
               COOKIE_SAMESITE: "lax"
-              DISABLE_FRAME_HEADER: "false"
-              DISABLE_CSP_HEADER: "false"
-              TRACKER_SITE_ID: ""
-              TRACKER_URL: ""
+              DISABLE_FRAME_HEADER: "false" # just to be sure
+              DISABLE_CSP_HEADER: "false" # just to be sure
+              TRACKER_SITE_ID: "" # just to be sure
+              TRACKER_URL: "" # just to be sure
               AUTHENTICATION_GUARD: "remote_user_guard"
-              AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTHENTIK_USERNAME"
-              AUTHENTICATION_GUARD_EMAIL: "HTTP_X_AUTHENTIK_EMAIL"
+              AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTHENTIK_USERNAME" # disabled username change ability for users
+              AUTHENTICATION_GUARD_EMAIL: "HTTP_X_AUTHENTIK_EMAIL" # somehow doesn't work?
               DB_CONNECTION: "sqlite"
-              DKR_CHECK_SQLITE: "false"
+              DKR_CHECK_SQLITE: "false" # auto create?
               CACHE_DRIVER: "file"
               SESSION_DRIVER: "file"
               SEND_ERROR_MESSAGE: "true"
               SEND_REPORT_JOURNALS: "false"
               ENABLE_EXCHANGE_RATES: "false"
+              # ENABLE_EXTERNAL_RATES: "true"
               ALLOW_WEBHOOKS: "false"
               APP_KEY:
                 valueFrom:
@@ -61,6 +62,7 @@ spec:
                     name: firefly-secrets
                     key: APP_KEY
             securityContext: &sc
+              # readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
@@ -99,6 +101,11 @@ spec:
                   secretKeyRef:
                     name: firefly-secrets
                     key: FIREFLY_III_CLIENT_ID
+              # FIREFLY_III_CLIENT_ID:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: firefly-secrets
+              #       key: FIREFLY_III_CLIENT_ID
             securityContext: *sc
             resources:
               requests:
@@ -191,7 +198,7 @@ spec:
       hostUsers: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 33
+        runAsUser: &uid 33 # upstream `www-data` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always

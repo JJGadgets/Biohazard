@@ -65,7 +65,7 @@ spec:
               pullPolicy: Always
             command: ["wget", "--output-document=/data/$(ZIM).zim", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
             env:
-              CAT: ifixit
+              CAT: ifixit # category
               ZIM: ifixit_en_all_2025-06
             securityContext: *sc
             resources:

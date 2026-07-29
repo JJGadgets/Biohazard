@@ -22,6 +22,8 @@ spec:
             egress.home.arpa/internet: "allow"
             egress.home.arpa/dlna: "allow"
             authentik.home.arpa/ldap: "allow"
+            # egress.home.arpa/r2: "allow"
+            # tailscale.com/expose: "true"
         containers:
           app:
             image: &img
@@ -63,6 +65,9 @@ spec:
             appProtocol: http
     route:
       app:
+        # annotations:
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
         hostnames: ["${APP_DNS_JELLYFIN:=jellyfin}"]
         parentRefs:
           - name: envoy-internal
@@ -81,15 +86,22 @@ spec:
         medium: Memory
         sizeLimit: 1Gi
       media:
-        existingClaim: "media-data"
+        existingClaim: "media-data" # VolSync
         globalMounts:
           - path: "/ceph"
             readOnly: true
       bulk:
         existingClaim: "media-bulk"
         globalMounts:
-          - path: "/ceph-bulk"
-            readOnly: true
+            - path: "/ceph-bulk"
+              readOnly: true
+      # nfs:
+      #   type: nfs
+      #   server: "${IP_TRUENAS:=127.0.0.1}"
+      #   path: "${PATH_NAS_MEDIA:=/media}"
+      #   globalMounts:
+      #     - path: /media
+      #       readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -107,6 +119,7 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
+        # supplementalGroups: [44] # iGPU
         seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
