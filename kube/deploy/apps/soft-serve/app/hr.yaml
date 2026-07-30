@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -6,26 +7,22 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: "2.6.0"
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      main:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            #db.home.arpa/pg: "pg-default"
+            # db.home.arpa/pg: "pg-default"
             ingress.home.arpa/world: "allow"
             ingress.home.arpa/cluster: "allow"
         containers:
-          main:
+          app:
             image: &img
               repository: "ghcr.io/charmbracelet/soft-serve"
               tag: "v0.11.6@sha256:7742f301ab4e5c24eccf999b10aabb97ec64e18c23f693a16599071d49ae5bf4"
@@ -46,9 +43,12 @@ spec:
               SOFT_SERVE_LFS_ENABLED: "true"
               SOFT_SERVE_LFS_SSH_ENABLED: "true"
               SOFT_SERVE_DB_DRIVER: "sqlite"
-              #SOFT_SERVE_DB_DRIVER: "postgres"
-              #SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
+              # SOFT_SERVE_DB_DRIVER: "postgres"
+              # SOFT_SERVE_DB_DATA_SOURCE: {valueFrom: {secretKeyRef: {name: pg-default-pguser-softserve, key: pgbouncer-uri}}}
               SOFT_SERVE_INITIAL_ADMIN_KEYS: {valueFrom: {secretKeyRef: {name: soft-serve-secrets, key: admin-keys}}}
+            envFrom:
+              - secretRef:
+                  name: soft-serve-secrets
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -62,10 +62,8 @@ spec:
                 cpu: "3000m"
                 memory: "1Gi"
     service:
-      main:
-        enabled: true
-        primary: true
-        controller: main
+      app:
+        controller: app
         type: LoadBalancer
         externalTrafficPolicy: Cluster
         annotations:
@@ -73,17 +71,14 @@ spec:
           "io.cilium/lb-ipam-ips": "${APP_IP_SOFT_SERVE}"
         ports:
           http:
-            enabled: true
             port: 443
             targetPort: 23232
             protocol: HTTPS
           ssh:
-            enabled: true
             port: 22
             targetPort: 23231
             protocol: TCP
           git:
-            enabled: true
             port: 9418
             targetPort: 9418
             protocol: TCP
@@ -91,19 +86,16 @@ spec:
             port: 23233
     persistence:
       config:
-        enabled: true
         type: secret
         name: "soft-serve-secrets"
         globalMounts:
           - path: "/secrets"
       data:
-        enabled: true
         existingClaim: "soft-serve-data"
         globalMounts:
           - subPath: "data"
             path: "/soft-serve"
       tls:
-        enabled: true
         type: secret
         name: "short-domain-tls"
         defaultMode: 0400
@@ -132,5 +124,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: "fuckoff.home.arpa/soft-serve"
-                    operator: "DoesNotExist"
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

@@ -1,63 +1,114 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app elk
-  namespace: apps
+  namespace: *app
 spec:
-  chart:
-    spec:
-      chart: app-template
-      version: 1.5.1
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: "jank.ing/jjgadgets/elk"
-      tag: "0.16.0@sha256:c16ee6249e539bfa4e5a45c27c04b59f9ff46b8d0077f8ce57a7971ad0afe8a6"
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
-      egress.home.arpa/nginx-internal: "allow"
-    env:
-      TZ: "${CONFIG_TZ}"
-      NUXT_PUBLIC_DEFAULT_SERVER: "social.jjgadgets.tech"
-      NUXT_PUBLIC_PRIVACY_POLICY_URL: "https://jjgadgets.tech"
-      NUXT_PUBLIC_SINGLE_INSTANCE: "true"
-    envFrom:
-      - secretRef:
-          name: "elk-secrets"
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: jank.ing/jjgadgets/elk
+              tag: 0.16.0@sha256:c16ee6249e539bfa4e5a45c27c04b59f9ff46b8d0077f8ce57a7971ad0afe8a6
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              NUXT_PUBLIC_DEFAULT_SERVER: "social.jjgadgets.tech"
+              NUXT_PUBLIC_PRIVACY_POLICY_URL: "https://jjgadgets.tech"
+              NUXT_PUBLIC_SINGLE_INSTANCE: "true"
+            envFrom: &envFrom
+              - secretRef:
+                  name: elk-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
             port: 5314
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
-        hosts:
-          - host: &host "elk.${DNS_SHORT}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-    podSecurityContext:
-      runAsUser: &uid 911
-      runAsGroup: *uid
-      fsGroup: *uid
-      fsGroupChangePolicy: Always
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 512Mi
+            targetPort: 5314
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_ELK:=elk}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      data:
+        existingClaim: elk-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: /data
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      hostUsers: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 911
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}

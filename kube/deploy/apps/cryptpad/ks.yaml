@@ -20,7 +20,7 @@ spec:
     - name: cryptpad-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.4.0
+      APP_TEMPLATE: "5.0.1"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -46,7 +46,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: docker.io/cryptpad/cryptpad:version-2026.5.1@sha256:1f89dcdd28c1375f675e47b1d0cf07a51f3e9a07a79dc93c8cddb3295b98a34d
+      VS_APP_CURRENT_VERSION: "docker.io/cryptpad/cryptpad:version-2026.5.1@sha256:1f89dcdd28c1375f675e47b1d0cf07a51f3e9a07a79dc93c8cddb3295b98a34d"
       RUID: &uid "4001"
       RGID: *uid
       RFSG: *uid
@@ -63,7 +63,6 @@ spec:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
       current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
-      # inProgress: status.conditions.filter(s, s.status == "True").all(s, s.reason == "SyncInProgress") # TODO: somehow the inProgress healthCheckExprs CEL expression causes Flux to infinitely think it's inProgress
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
   patches:
     - patch: |-

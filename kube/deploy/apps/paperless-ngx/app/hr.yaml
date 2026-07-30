@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -156,6 +156,10 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: paperless-ngx-data

@@ -3,36 +3,40 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: miniflux-app
-  namespace: flux-system
+  namespace: &ns miniflux
   labels: &l
     app.kubernetes.io/name: "miniflux"
 spec:
-  targetNamespace: "miniflux"
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/miniflux/app
   components:
     - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: miniflux-db
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: miniflux-db
-  namespace: flux-system
-  labels: &l
+  namespace: &ns2 miniflux
+  labels: &l2
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"
     app.kubernetes.io/name: "miniflux"
 spec:
   commonMetadata:
-    labels: *l
+    labels: *l2
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:
     - name: 1-core-db-pg-clusters-default
+      namespace: flux-system
     - name: 1-core-secrets-es-k8s
+      namespace: flux-system
   postBuild:
     substitute:
       PG_NAME: "default"

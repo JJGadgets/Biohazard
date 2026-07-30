@@ -1,54 +1,90 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app phanpy
-  namespace: flux-system
+  namespace: *app
 spec:
-  targetNamespace: *app
-  install:
-    createNamespace: true
-  chart:
-    spec:
-      chart: app-template
-      version: 1.5.1
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
-    global:
-      fullnameOverride: *app
-    automountServiceAccountToken: false
-    controller:
-      type: deployment
-      replicas: 1
-    image:
-      repository: "ghcr.io/jjgadgets/phanpy"
-      tag: "rolling@sha256:178a857ba5f3d12664e5bee15a617958b8799d81dbda36662276362268c5e42f" # versioning is weird
-    podLabels:
-      ingress.home.arpa/nginx-internal: "allow"
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/jjgadgets/phanpy
+              tag: rolling@sha256:178a857ba5f3d12664e5bee15a617958b8799d81dbda36662276362268c5e42f # versioning is weird
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                memory: "512Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
-            port: 8080
-    ingress:
-      main:
-        enabled: true
-        primary: true
-        ingressClassName: "nginx-internal"
-        hosts:
-          - host: &host "phanpy.${DNS_SHORT}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-    resources:
-      requests:
-        cpu: 10m
-        memory: 128Mi
-      limits:
-        memory: 512Mi
+            port: 80
+            targetPort: 8080
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_PHANPY:=phanpy}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

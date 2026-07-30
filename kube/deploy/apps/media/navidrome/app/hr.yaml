@@ -1,16 +1,16 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app navidrome
-  namespace: &ns media
+  namespace: *app
 spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: *app
-    namespace: *ns
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -187,6 +187,16 @@ spec:
             scheme: http
             path: *metrics
     networkpolicies:
+      same-ns:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}
       to-maloja:
         controller: app
         policyTypes: [Egress]

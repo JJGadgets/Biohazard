@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,29 +7,25 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.4.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
-      miniflux:
+      app:
         type: deployment
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             db.home.arpa/pg: pg-default
             authentik.home.arpa/oidc: allow
             egress.home.arpa/internet: allow
             # egress.home.arpa/discord: allow
             egress.home.arpa/ntfy: allow
         containers:
-          main:
+          app:
             image: &img
               repository: ghcr.io/miniflux/miniflux
               tag: "2.3.3-distroless@sha256:59e4e31b349f008ecd34b547f23498b1d8abc0c03d5f6d12bdb713ab7f7c04bf"
@@ -45,7 +41,7 @@ spec:
               DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
-                    name: &pgsec "pg-default-pguser-miniflux"
+                    name: "pg-default-pguser-miniflux"
                     key: "pgbouncer-uri"
             envFrom: &envFrom
               - secretRef:
@@ -68,26 +64,21 @@ spec:
               readiness:
                 enabled: true
     service:
-      miniflux:
-        controller: miniflux
+      app:
+        controller: app
         ports:
           http:
-            port: 8080
+            port: 80
+            targetPort: 8080
             protocol: HTTP
             appProtocol: http
-    ingress:
-      main:
-        className: nginx-internal
-        hosts:
-          - host: &host "${APP_DNS_MINIFLUX:=miniflux}"
-            paths: &paths
-              - path: /
-                pathType: Prefix
-                service:
-                  identifier: miniflux
-                  port: http
-        tls:
-          - hosts: [*host]
+    route:
+      app:
+        hostnames: ["${APP_DNS_MINIFLUX:=miniflux}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
@@ -96,6 +87,10 @@ spec:
           hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
         - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
           hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
@@ -109,5 +104,5 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: fuckoff.home.arpa/miniflux
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist

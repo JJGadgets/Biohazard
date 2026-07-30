@@ -21,7 +21,7 @@ spec:
     - name: firefly-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.4.0
+      APP_TEMPLATE: 5.0.1
       AUTH_ROUTE: firefly-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1

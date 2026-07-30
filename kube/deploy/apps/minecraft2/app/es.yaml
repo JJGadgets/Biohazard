@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name minecraft2-secrets
+  namespace: minecraft2
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Minecraft2 - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        CONFIG_MINECRAFT2_NAME: '{{ .CONFIG_MINECRAFT2_NAME }}'
+        CONFIG_MINECRAFT2_OPS: '{{ .CONFIG_MINECRAFT2_OPS }}'

@@ -3,34 +3,44 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: piped-app
-  namespace: flux-system
+  namespace: &ns piped
   labels: &l
     app.kubernetes.io/name: "piped"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/piped/app
-  targetNamespace: "piped"
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: piped-db
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "5.0.1"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: piped-db
-  namespace: flux-system
-  labels: &l
+  namespace: &ns2 piped
+  labels: &l2
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"
     app.kubernetes.io/name: "piped"
 spec:
   commonMetadata:
-    labels: *l
+    labels: *l2
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:
     - name: 1-core-db-pg-clusters-default
+      namespace: flux-system
     - name: 1-core-secrets-es-k8s
+      namespace: flux-system
   postBuild:
     substitute:
       PG_NAME: "default"

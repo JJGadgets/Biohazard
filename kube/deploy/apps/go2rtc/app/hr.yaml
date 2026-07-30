@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 4.4.0
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       app:
@@ -22,7 +18,7 @@ spec:
         replicas: 1
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/iot: allow
           annotations:
             k8s.v1.cni.cncf.io/networks: |
@@ -72,6 +68,9 @@ spec:
             targetPort: *http
             protocol: HTTP
             appProtocol: http
+          rtsp:
+            port: *rtsp
+            protocol: TCP
       # expose:
       #   primary: false
       #   controller: app
@@ -80,24 +79,28 @@ spec:
       #     # coredns.io/hostname: "${APP_DNS_GO2RTC:=go2rtc}"
       #     lbipam.cilium.io/ips: "${APP_IP_GO2RTC:=127.0.0.1}"
       #   ports:
-          rtsp:
-            port: *rtsp
-            protocol: TCP
+    route:
+      app:
+        hostnames: ["${APP_DNS_GO2RTC:=go2rtc}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
     ingress:
       app:
         className: nginx-internal
         annotations:
           nginx.ingress.kubernetes.io/whitelist-source-range: "${IP_JJ_V4:=127.0.0.1/32}"
         hosts:
-          - host: &host "${APP_DNS_GO2RTC:=go2rtc}"
-            paths: &paths
+          - host: "${APP_DNS_GO2RTC:=go2rtc}"
+            paths:
               - path: /
                 pathType: Prefix
                 service:
                   identifier: app
                   port: http
         tls:
-          - hosts: [*host]
+          - hosts: ["${APP_DNS_GO2RTC:=go2rtc}"]
     persistence:
       config:
         type: configMap

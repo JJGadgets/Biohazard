@@ -2,50 +2,106 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: gokapi
-  namespace: gokapi
+  name: &app gokapi
+  namespace: *app
 spec:
-  chart:
-    spec:
-      chart: app-template
-      version: 1.5.1
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
-    controller:
-      strategy: RollingUpdate
-    image:
-      repository: docker.io/f0rc3/gokapi
-      tag: v1.9.6@sha256:ae9094a0ead891eef80499a072e680734bcb34892242f0e232223c65eb4c3af8
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ingress.home.arpa/envoy-external: allow
+        containers:
+          app:
+            image: &img
+              repository: docker.io/f0rc3/gokapi
+              tag: v1.9.6@sha256:ae9094a0ead891eef80499a072e680734bcb34892242f0e232223c65eb4c3af8
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              GOKAPI_MAX_MEMORY_UPLOAD: "128"
+              GOKAPI_PORT: "53842"
+            envFrom: &envFrom
+              - secretRef:
+                  name: gokapi-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "4"
+                memory: "250Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
     service:
-      main:
+      app:
+        controller: app
         ports:
           http:
             port: 53842
-    env:
-      GOKAPI_MAX_MEMORY_UPLOAD: "128"
-      GOKAPI_PORT: 53842
-    ingress:
-      main:
-        enabled: true
-        ingressClassName: "nginx-external"
-        hosts:
-          - host: &host "${APP_DNS_GOKAPI:=gokapi}"
-            paths:
-            - path: /
-              pathType: Prefix
-        tls:
-          - hosts: [*host]
-            secretName: long-domain-tls
+            targetPort: 53842
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        hostnames: ["${APP_DNS_GOKAPI:=gokapi}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+          - name: envoy-external
+            namespace: ingress
+            sectionName: public
     persistence:
       config:
-        enabled: true
-        type: pvc
-        mountPath: /app/config
-        readOnly: false
-        accessMode: ReadWriteOnce
-        size: 1Gi
-        storageClass: block
-        retain: true
+        existingClaim: gokapi-data
+        advancedMounts:
+          app:
+            app:
+              - path: /app/config
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      hostUsers: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist

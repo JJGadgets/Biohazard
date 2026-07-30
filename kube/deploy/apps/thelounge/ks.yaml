@@ -3,26 +3,44 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: thelounge-app
-  namespace: flux-system
+  namespace: &ns thelounge
+  labels: &l
+    app.kubernetes.io/name: "thelounge"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/thelounge/app
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: thelounge-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: thelounge-pvc
-  namespace: flux-system
+  namespace: &ns thelounge
+  labels: &l
+    app.kubernetes.io/name: thelounge
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "thelounge"
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: 1-core-storage-volsync-app
+      namespace: flux-system
     - name: 1-core-storage-rook-ceph-cluster
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "thelounge-data"
+      PVC: &pvc "thelounge-data"
       SIZE: "10Gi"
       SC: &sc "block"
       SNAP: *sc
@@ -34,3 +52,17 @@ spec:
         ${APP_UID_THELOUNGE}
       RFSG: !!str |
         ${APP_UID_THELOUNGE}
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "thelounge-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

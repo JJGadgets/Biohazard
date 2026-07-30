@@ -29,7 +29,7 @@ spec:
               maxWorkers: 3,
               otpSessionExpiration: 7*24, // hours
               enforceMFA: false, // SSO
-              logIP: true, // internal use only, so no public IPs logged
+              logIP: true,
               adminKeys: [],
               inactiveTime: 180, // days
               archiveRetentionTime: 30, // days
@@ -42,9 +42,9 @@ spec:
               blobPath: './blob',
               blobStagingPath: './data/blobstage',
               decreePath: './data/decrees',
-              logPath: '', // disable logging to disk
+              logPath: '',
               logToStdout: true,
-              logLevel: 'feedback', // feedback + info and below
+              logLevel: 'feedback',
               logFeedback: true,
               verbose: false,
           };

@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -31,7 +30,7 @@ spec:
               tag: 1.43.3.10828@sha256:0c0b6899339503af17cb190b25af6acf10f0030e2820985e16ee14ef428f49d7
             env: &env
               TZ: "${CONFIG_TZ}"
-              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400"
+              PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400
               # on first init of Plex, to join to your account by claiming the server, first make sure netpols can hit internet Plex servers, then `kubectl port-forward` the pod or add an LB service to 32400/TCP, then access via a private/localhost IP (MUST BE IP, NOT FQDN) and add /web path, then you can claim the server. Alternatively, add a PLEX_TOKEN env.
             securityContext: &sc
               readOnlyRootFilesystem: true
@@ -185,7 +184,7 @@ spec:
                     values: ["true"]
     networkpolicies:
       app:
-        controller: plex
+        controller: app
         policyTypes: [Ingress, Egress]
         rules:
           ingress:

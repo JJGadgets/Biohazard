@@ -3,12 +3,65 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: elk-app
-  namespace: flux-system
-  labels:
-    wait.flux.home.arpa/disabled: "true"
+  namespace: &ns elk
+  labels: &l
+    app.kubernetes.io/name: "elk"
 spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
   path: ./kube/deploy/apps/elk/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
   dependsOn:
-    - name: 1-core-storage-rook-ceph-cluster
-    - name: 1-core-ingress-nginx-app
-    - name: 1-core-storage-volsync-app
+    - name: crds
+      namespace: flux-system
+    # - name: elk-db
+    - name: elk-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "5.0.1"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: elk-pvc
+  namespace: &ns elk
+  labels: &l
+    app.kubernetes.io/name: elk
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "elk-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "jank.ing/jjgadgets/elk:0.16.0@sha256:c16ee6249e539bfa4e5a45c27c04b59f9ff46b8d0077f8ce57a7971ad0afe8a6"
+      RUID: &uid "911"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "elk-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

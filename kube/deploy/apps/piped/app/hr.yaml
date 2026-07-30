@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -7,14 +7,10 @@ metadata:
   namespace: *app
 spec:
   interval: 5m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        name: bjw-s
-        kind: HelmRepository
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
   values:
     controllers:
       frontend:
@@ -23,7 +19,7 @@ spec:
         strategy: RollingUpdate
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
         containers:
           main:
             image: &img
@@ -56,17 +52,33 @@ spec:
         strategy: RollingUpdate
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/cloudflare: allow
             db.home.arpa/pg: pg-default
             # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             egress.home.arpa/internet: allow
         containers:
           main:
-            image: &img
-              repository: p.jank.me/nieveve/piped-backend
+            image:
+              repository: nieveve/piped-backend
               tag: latest@sha256:afe193e016316c7965b15c0fdbe6e0ee542264ae3f8b5aeaa593f2f76e19a27a
-            env: *env
+            env:
+              <<: *env
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-default-pguser-piped
+                    key: pgbouncer-jdbc-uri
+              DB_USERNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-default-pguser-piped
+                    key: username
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: pg-default-pguser-piped
+                    key: password
             securityContext: *sc
             probes: *probes
             resources:
@@ -81,11 +93,11 @@ spec:
         strategy: RollingUpdate
         pod:
           labels:
-            ingress.home.arpa/nginx-internal: allow
+            ingress.home.arpa/envoy-internal: allow
             egress.home.arpa/internet: allow
         containers:
           main:
-            image: &img
+            image:
               repository: docker.io/1337kavin/piped-proxy
               tag: latest@sha256:8aba8ba9d8bd3321ae9b15434b8d8bb9ffa03d699b2feb8f654f242a667e8cf2
             command: ["/app/piped-proxy"]
@@ -272,6 +284,7 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_PIPED:=1000}

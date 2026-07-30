@@ -3,14 +3,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: soft-serve-app
-  namespace: flux-system
+  namespace: &ns soft-serve
   labels: &l
     app.kubernetes.io/name: "soft-serve"
 spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/soft-serve/app
-  targetNamespace: "soft-serve"
+  targetNamespace: *ns
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
     #- name: soft-serve-db
     - name: soft-serve-pvc
@@ -19,37 +21,51 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: soft-serve-pvc
-  namespace: flux-system
+  namespace: &ns soft-serve
   labels: &l
-    app.kubernetes.io/name: "soft-serve"
+    app.kubernetes.io/name: soft-serve
     pvc.home.arpa/volsync: "true"
 spec:
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "soft-serve"
+  targetNamespace: *ns
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
+    - name: crds
+      namespace: flux-system
   postBuild:
     substitute:
-      PVC: "soft-serve-data"
+      PVC: &pvc "soft-serve-data"
       SIZE: "20Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/charmbracelet/soft-serve:v0.11.6@sha256:7742f301ab4e5c24eccf999b10aabb97ec64e18c23f693a16599071d49ae5bf4"
       RUID: !!str &uid |
         ${APP_UID_SOFT_SERVE}
-      RGID: !!str |
-        ${APP_UID_SOFT_SERVE}
-      RFSG: !!str |
-        ${APP_UID_SOFT_SERVE}
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "soft-serve-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: soft-serve-db
-  namespace: flux-system
+  namespace: &ns soft-serve
   labels: &l
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-default"

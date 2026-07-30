@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.4.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -138,7 +138,7 @@ spec:
             appProtocol: http
     route:
       app:
-        hostnames: ["${APP_DNS_FIREFLY:=firefly}"]
+        hostnames: ["${APP_DNS_FIREFLY}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
@@ -148,7 +148,7 @@ spec:
               - identifier: app
                 port: 80
       unauth:
-        hostnames: ["${APP_DNS_FIREFLY:=firefly}"]
+        hostnames: ["${APP_DNS_FIREFLY}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
@@ -162,7 +162,7 @@ spec:
               - identifier: app
                 port: 80
       data-importer:
-        hostnames: ["${APP_DNS_FIREFLY_DATA_IMPORTER:=firefly-data-importer}"]
+        hostnames: ["${APP_DNS_FIREFLY_DATA_IMPORTER}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
@@ -189,8 +189,8 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       hostAliases:
-        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
-          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+        - ip: "${APP_IP_AUTHENTIK}"
+          hostnames: ["${APP_DNS_AUTHENTIK}"]
       dnsConfig:
         options:
           - name: ndots

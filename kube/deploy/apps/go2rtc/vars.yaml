@@ -1,0 +1,32 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: go2rtc
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "Go2RTC - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        APP_DNS_GO2RTC: '{{ .APP_DNS_GO2RTC }}'
+        APP_DNS_AUTHENTIK: '{{ .APP_DNS_AUTHENTIK }}'
+        APP_IP_AUTHENTIK: '{{ .APP_IP_AUTHENTIK }}'
+        APP_IP_GO2RTC_IOT: '{{ .APP_IP_GO2RTC_IOT }}'
+        APP_MAC_GO2RTC_IOT: '{{ .APP_MAC_GO2RTC_IOT }}'
+        IP_JJ_V4: '{{ .IP_JJ_V4 }}'
+        IP_ROUTER_VLAN_IOT: '{{ .IP_ROUTER_VLAN_IOT }}'

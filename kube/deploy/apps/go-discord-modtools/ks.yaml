@@ -3,43 +3,63 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: go-discord-modtools-app
-  namespace: flux-system
+  namespace: &ns go-discord-modtools
   labels: &l
     app.kubernetes.io/name: "go-discord-modtools"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/apps/go-discord-modtools/app
-  targetNamespace: "go-discord-modtools"
+  components:
+    - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: go-discord-modtools-pvc
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: go-discord-modtools-pvc
-  namespace: flux-system
+  namespace: &ns go-discord-modtools
   labels: &l
-    app.kubernetes.io/name: "go-discord-modtools"
+    app.kubernetes.io/name: go-discord-modtools
+    pvc.home.arpa/volsync: "true"
 spec:
+  targetNamespace: *ns
   commonMetadata:
     labels: *l
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "go-discord-modtools"
   dependsOn:
+    - name: crds
+      namespace: flux-system
     - name: 1-core-storage-volsync-app
     - name: 1-core-storage-snapscheduler-app
     - name: 1-core-storage-rook-ceph-cluster
   postBuild:
     substitute:
-      PVC: "go-discord-modtools-data"
+      PVC: &pvc "go-discord-modtools-data"
       SIZE: "2Gi"
       SC: &sc "file"
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
-      RUID: !!str &uid |
-        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
-      RGID: !!str |
-        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
-      RFSG: !!str |
-        ${APP_UID_GO_DISCORD_MODTOOLS:=1000}
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/tyzbit/go-discord-modtools:v0.3.1@sha256:a789bb7b4bd109f9a5f85f9d256a2ff27717c0a043132660a367b2fdc666987b"
+      RUID: &uid "${APP_UID_GO_DISCORD_MODTOOLS:=1000}"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "go-discord-modtools-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

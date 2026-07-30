@@ -1,0 +1,39 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name "${CLUSTER_NAME:=biohazard}-vars"
+  namespace: piped
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: ".${CLUSTER_NAME}-vars"
+    - extract: # delete if authentik OIDC not used
+        key: "authentik vars - ${CLUSTER_NAME}"
+    - extract:
+        key: "piped - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        # Core cluster-wide vars
+        CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # App specific
+        APP_DNS_PIPED: '{{ .APP_DNS_PIPED }}'
+        APP_DNS_PIPED_BACKEND: '{{ .APP_DNS_PIPED_BACKEND }}'
+        APP_DNS_PIPED_YTPROXY: '{{ .APP_DNS_PIPED_YTPROXY }}'
+        APP_UID_PIPED: '{{ .APP_UID_PIPED }}'
+        # authentik hostAliases (delete if authentik OIDC not used)
+        APP_DNS_AUTHENTIK: '{{ .APP_DNS_AUTHENTIK }}'
+        APP_IP_AUTHENTIK: '{{ .APP_IP_AUTHENTIK }}'
+        # Other cluster-wide vars (delete where unnecessary)
+        DNS_CF: '{{ .DNS_CF }}'

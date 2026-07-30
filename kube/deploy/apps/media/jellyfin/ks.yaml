@@ -5,7 +5,7 @@ metadata:
   name: jellyfin-app
   namespace: &ns media
   labels: &l
-    app.kubernetes.io/name: &app "jellyfin"
+    app.kubernetes.io/name: "jellyfin"
 spec:
   targetNamespace: *ns
   commonMetadata:
@@ -13,15 +13,10 @@ spec:
   path: ./kube/deploy/apps/media/jellyfin/app
   components:
     - ../../../../core/flux-system/alerts/template/
-    - ../../../../../repos/flux/helm-oci/app-template/
   dependsOn:
     - name: crds
       namespace: flux-system
     - name: jellyfin-pvc
-  postBuild:
-    substitute:
-      APP_TEMPLATE: 4.4.0
-      CHART_NAME: *app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

@@ -1,5 +1,8 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: elk
 resources:
+  - ns.yaml
+  - vars.yaml
   - ks.yaml

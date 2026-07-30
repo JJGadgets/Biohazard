@@ -1,5 +1,4 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.34.0/mutatingadmissionpolicybinding-admissionregistration-v1beta1.json
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingAdmissionPolicyBinding
 metadata:
@@ -16,7 +15,6 @@ spec:
         app.kubernetes.io/instance: cryptpad
         app.kubernetes.io/controller: app
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.34.0/mutatingadmissionpolicy-admissionregistration-v1beta1.json
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingAdmissionPolicy
 metadata:

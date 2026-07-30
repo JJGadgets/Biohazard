@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This is JJGadgets' homelab monorepo, covering all machines in the home infrastructure. The primary focus is the "biohazard" production Kubernetes cluster on Talos Linux, reconciled by Flux from this repo. There is no application code to build, lint, typecheck, or test — everything is Kubernetes YAML, Talos config, dotfiles, and OSTree build scripts. Verify Kubernetes changes with `flux-local` (pipx) or `kustomize build`, not a test suite.
+This is JJGadgets' homelab monorepo, covering all machines in the home infrastructure. The primary focus is the "biohazard" production Kubernetes cluster on Talos Linux, reconciled by Flux from this repo. There is no application code to build, lint, typecheck, or test — everything is Kubernetes YAML, Talos config, dotfiles, and OSTree build scripts. After modifying anything in `./kube`, always verify and diff changes with `flate` — see [`.agents/FLATE.md`](.agents/FLATE.md).
 
 This is a personal "production" environment used to explore security solutions and infrastructure patterns in a real-world setting. "Glorifying jank that *works*" is the operating philosophy.
 
@@ -88,6 +88,7 @@ Detailed documentation is split across topic files under `.agents/`:
 
 | File | Topic |
 |------|-------|
+| [`.agents/FLATE.md`](.agents/FLATE.md) | flate — offline Flux rendering, diffing, and verification |
 | [`.agents/flux.md`](.agents/flux.md) | Multi-cluster setup, Flux labels, PostBuild substitution, secrets management |
 | [`.agents/core-components.md`](.agents/core-components.md) | Kubernetes core components reference table |
 | [`.agents/security.md`](.agents/security.md) | Security practices and defense-in-depth measures |
