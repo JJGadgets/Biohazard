@@ -121,6 +121,12 @@ spec:
               - path:
                   type: PathPrefix
                   value: /cryptpad_websocket
+            filters:
+              - type: ResponseHeaderModifier
+                responseHeaderModifier:
+                  set:
+                    - name: Cross-Origin-Opener-Policy
+                      value: unsafe-none
             backendRefs:
               - identifier: app
                 port: *ws
