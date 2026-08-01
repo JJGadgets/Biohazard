@@ -14,5 +14,4 @@ spec:
       inline: |
         function envoy_on_response(response_handle)
           response_handle:headers():remove("X-Frame-Options")
-          response_handle:headers():remove("Cross-Origin-Opener-Policy")
         end
