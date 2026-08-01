@@ -16,3 +16,24 @@ spec:
           response_handle:headers():remove("X-Frame-Options")
           response_handle:headers():replace("Cross-Origin-Opener-Policy", "unsafe-none")
         end
+---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: &app cryptpad
+  namespace: *app
+spec:
+  targetSelectors:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+  compression:
+    - type: Brotli
+    - type: Gzip
+    - type: Zstd
+  connection:
+    bufferLimit: 8Mi
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: "120s"
