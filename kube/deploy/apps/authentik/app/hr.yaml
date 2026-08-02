@@ -54,32 +54,27 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               # PostgreSQL
-              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-ha.authentik.svc.cluster.local"
-                # valueFrom:
-                #   secretKeyRef:
-                #     name: pg-authentik-pguser-authentik
-                #     # key: pgbouncer-host
-                #     key: host
+              AUTHENTIK_POSTGRESQL__HOST: &pghost pg-authentik-rw.authentik.svc.cluster.local
               AUTHENTIK_POSTGRESQL__PORT: &pgport
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     #key: pgbouncer-port
                     key: port
               AUTHENTIK_POSTGRESQL__NAME: &pgname
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: dbname
               AUTHENTIK_POSTGRESQL__USER: &pguser
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: user
               AUTHENTIK_POSTGRESQL__PASSWORD: &pgpass
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: password
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
@@ -500,12 +495,10 @@ spec:
     persistence:
       pg-ca:
         type: secret
-        #name: pg-authentik-pgbouncer
-        name: pg-authentik-cluster-cert
+        name: pg-authentik-ca
         defaultMode: 0400
         globalMounts:
           - subPath: ca.crt
-            #subPath: pgbouncer-frontend.ca-roots
             path: *pgca
       tls:
         type: secret
