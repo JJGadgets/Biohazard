@@ -35,6 +35,6 @@ spec:
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
-      PG_NAME: "default"
+      PG_NAME: "home"
       PG_DB_USER: &app "miniflux"
       PG_APP_NS: *app
