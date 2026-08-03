@@ -73,8 +73,9 @@ spec:
         kind: Cluster
       patch: |-
         - op: add
-          path: /spec/postgresql/shared_preload_libraries/-
-          value: vchord.so
+          path: /spec/postgresql/shared_preload_libraries
+          value:
+            - vchord.so
         - op: add
           path: /spec/postgresql/extensions
           value:
