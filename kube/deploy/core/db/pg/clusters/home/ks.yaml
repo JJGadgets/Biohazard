@@ -76,6 +76,7 @@ spec:
           path: /spec/postgresql/shared_preload_libraries
           value:
             - vchord.so
+            - pg_stat_statements
         - op: add
           path: /spec/postgresql/extensions
           value:
