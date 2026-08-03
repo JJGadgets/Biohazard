@@ -27,7 +27,10 @@ spec:
       PG_DUMPALL: !!str "'TRUE'"
       PG_DUMP_FROM: "primary"
   patches:
-    - patch: |-
+    - target:
+        group: postgres-operator.crunchydata.com
+        kind: PostgresCluster
+      patch: |-
         apiVersion: postgres-operator.crunchydata.com/v1beta1
         kind: PostgresCluster
         metadata:
@@ -65,9 +68,23 @@ spec:
                 pg_hba:
                   - hostnossl reactive-resume reactive-resume all md5
                   - hostssl all all all md5
-      target:
-        group: postgres-operator.crunchydata.com
-        kind: PostgresCluster
+    - target:
+        group: postgresql.cnpg.io
+        kind: Cluster
+      patch: |-
+        - op: add
+          path: /spec/postgresql/shared_preload_libraries/-
+          value: vchord.so
+        - op: add
+          path: /spec/postgresql/extensions
+          value:
+            - name: vchord
+              image:
+                reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
+              dynamic_library_path:
+                - /usr/lib/postgresql/18/lib
+              extension_control_path:
+                - /usr/share/postgresql/18/
   healthChecks:
     - apiVersion: postgres-operator.crunchydata.com/v1beta1
       kind: PostgresCluster
