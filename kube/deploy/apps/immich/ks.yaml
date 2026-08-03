@@ -79,6 +79,7 @@ metadata:
     prune.flux.home.arpa/enabled: "true"
     db.home.arpa/pg: "pg-home"
     app.kubernetes.io/name: "immich"
+    kustomization.flux.home.arpa/helmpatches: "false"
 spec:
   commonMetadata:
     labels: *l
