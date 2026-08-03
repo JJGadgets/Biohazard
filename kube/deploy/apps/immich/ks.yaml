@@ -100,9 +100,12 @@ spec:
         group: postgresql.cnpg.io
         kind: Database
       patch: |-
-        - op: add
-          path: /spec/extensions
-          value:
+        apiVersion: postgresql.cnpg.io/v1
+        kind: Database
+        metadata:
+          name: not-used
+        spec:
+          extensions:
             - name: vector
               ensure: present
             - name: vchord
