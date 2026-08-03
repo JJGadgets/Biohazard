@@ -6,8 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   path: ./kube/deploy/apps/excalidraw/deps
-  dependsOn:
-    - name: 1-core-tls-cert-manager-config
+  dependsOn: []
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -18,7 +17,6 @@ spec:
   path: ./kube/deploy/apps/excalidraw/app
   dependsOn:
     - name: excalidraw-deps
-    - name: 1-core-ingress-nginx-app
   healthChecks:
     - name: excalidraw
       namespace: excalidraw
