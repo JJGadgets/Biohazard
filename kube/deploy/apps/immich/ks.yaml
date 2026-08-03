@@ -67,7 +67,7 @@ spec:
   healthCheckExprs:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
-      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      current: status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed" # TODO: add failed conditions
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -95,3 +95,22 @@ spec:
       PG_DB_USER: &app "immich"
       PG_APP_NS: *app
       PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5"
+  patches:
+    - target:
+        group: postgresql.cnpg.io/v1
+        kind: Database
+      patch: |-
+        apiVersion: postgresql.cnpg.io/v1
+        kind: Database
+        metadata:
+          name: not-used
+        spec:
+          extensions:
+            - name: vector
+              ensure: present
+            - name: vchord
+              ensure: present
+            - name: earthdistance
+              ensure: present
+            - name: cube
+              ensure: present
