@@ -4,6 +4,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: "${PG_DB_USER}"
+  labels:
+    kind: Database
 spec:
   name: "${PG_DB_USER}"
   owner: "${PG_DB_USER}"
@@ -17,6 +19,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: DatabaseRole
 metadata:
   name: "${PG_DB_USER}"
+  labels:
+    kind: DatabaseRole
 spec:
   cluster:
     name: "pg-${PG_NAME}"

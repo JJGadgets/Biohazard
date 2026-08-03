@@ -99,7 +99,7 @@ spec:
     - target:
         group: postgresql.cnpg.io/v1
         kind: Database
-        labelSelector: app.kubernetes.io/name=immich
+        labelSelector: kind=Database
       patch: |-
         apiVersion: postgresql.cnpg.io/v1
         kind: Database
