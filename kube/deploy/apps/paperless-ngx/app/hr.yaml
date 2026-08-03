@@ -19,12 +19,12 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
-            authentik.home.arpa/https: allow
+            authentik.home.arpa/oidc: allow
           resources:
             requests:
               cpu: "10m"
             limits:
-              cpu: "1"
+              cpu: "4"
               memory: "1Gi"
         containers:
           app:
@@ -35,8 +35,12 @@ spec:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port 8000
               PAPERLESS_TIME_ZONE: "${CONFIG_TZ}"
-              PAPERLESS_WEBSERVER_WORKERS: "2" # TODO: use fieldRef for this
-              PAPERLESS_TASK_WORKERS: "2"
+              PAPERLESS_WEBSERVER_WORKERS:
+                resourceFieldRef:
+                  resource: limits.cpu
+              PAPERLESS_TASK_WORKERS:
+                resourceFieldRef:
+                  resource: limits.cpu
               PAPERLESS_REDIS: "unix:///sockets/redis.sock"
               PAPERLESS_CONSUMPTION_DIR: &consume "/data/consume"
               PAPERLESS_DATA_DIR: &pvc "/data/data" # including PVC
@@ -52,8 +56,8 @@ spec:
               PAPERLESS_CONSUMER_RECURSIVE: "true"
               PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
               PAPERLESS_TIKA_ENABLED: "true"
-              PAPERLESS_TIKA_ENDPOINT: "http://tika.paperless-ngx.svc.cluster.local"
-              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg.paperless-ngx.svc.cluster.local"
+              PAPERLESS_TIKA_ENDPOINT: "http://paperless-ngx-tika.paperless-ngx.svc.cluster.local"
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://paperless-ngx-gotenberg.paperless-ngx.svc.cluster.local"
               USERMAP_UID: &uid 1000
               USERMAP_GID: *uid
             envFrom:
@@ -156,6 +160,14 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: paperless-ngx-data
@@ -207,11 +219,7 @@ spec:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: true
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: &uid ${APP_UID_PAPERLESS-NGX:=1000}
-      hostUsers: false
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: *uid # hardcoded `paperless` user

@@ -61,7 +61,7 @@ spec:
             reloader.stakater.com/auto: "false"
           labels:
             egress.home.arpa/internet: allow
-        initContainers:
+        containers:
           download: &dl-ct
             image:
               repository: nixery.dev/wget
