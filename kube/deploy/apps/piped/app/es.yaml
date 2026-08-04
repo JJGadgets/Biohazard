@@ -62,7 +62,7 @@ spec:
     name: "kubernetes-piped"
   dataFrom:
     - extract:
-        key: "pg-default-pguser-piped"
+        key: "pg-home-pguser-piped-cnpg"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -71,10 +71,10 @@ spec:
       type: Opaque
       data:
         # subscriptions fetch cron
-        PGHOST: '{{ index . "pgbouncer-host" }}.cluster.local'
-        PGUSER: '{{ .user }}'
+        PGHOST: 'pg-home-rw.pg.svc.cluster.local'
+        PGUSER: '{{ .username }}'
         PGPASSWORD: '{{ .password }}'
-        PGDATABASE: '{{ .dbname }}'
+        PGDATABASE: '{{ .username }}'
         # backend
         #   MATRIX_SERVER: ""
         config.properties: |
@@ -85,8 +85,8 @@ spec:
           FRONTEND_URL: https://${APP_DNS_PIPED}
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
-          FEED_RETENTION: 365
-          hibernate.connection.url: {{ index . "pgbouncer-jdbc-uri" | replace "svc:" "svc.cluster.local:" }}
-          hibernate.connection.username: {{ .user }}
+          FEED_RETENTION: 3
+          hibernate.connection.url: jdbc:postgresql://{{ .username }}:{{ .password }}@pg-home.rw.svc.local:5432
+          hibernate.connection.username: {{ .username }}
           hibernate.connection.password: {{ .password }}
           SENTRY_DSN:
