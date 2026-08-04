@@ -23,7 +23,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            db.home.arpa/pg: pg-default
+            db.home.arpa/pg: pg-home
             authentik.home.arpa/oidc: allow
             egress.home.arpa/internet: allow
             # egress.home.arpa/discord: allow
@@ -46,7 +46,7 @@ spec:
               AAA_DATABASE_USERNAME:
                 valueFrom:
                   secretKeyRef:
-                    name: &pgsec "pg-default-pguser-miniflux-cnpg"
+                    name: &pgsec "pg-home-pguser-miniflux-cnpg"
                     key: "username"
               AAA_DATABASE_PASSWORD:
                 valueFrom:

@@ -23,7 +23,7 @@ metadata:
   namespace: flux-system
   labels: &l
     prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
+    db.home.arpa/pg: "pg-home"
     app.kubernetes.io/name: "miniflux"
 spec:
   commonMetadata:
@@ -31,7 +31,7 @@ spec:
   path: ./kube/deploy/core/db/pg/clusters/template/pguser
   targetNamespace: "pg"
   dependsOn:
-    - name: 1-core-db-pg-clusters-default
+    - name: 1-core-db-pg-clusters-home
     - name: 1-core-secrets-es-k8s
   postBuild:
     substitute:
