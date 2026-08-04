@@ -44,18 +44,25 @@ spec:
               IMMICH_SERVER_URL: &svcURL http://immich-app.immich.svc.cluster.local
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
-              DB_VECTOR_EXTENSION: pgvector # I couldn't really care less for worser machine learning, over half my library is screenshots
+              DB_VECTOR_EXTENSION: vectorchord
               IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local
               MACHINE_LEARNING_HTTP_KEEPALIVE_TIMEOUT_S: "0" # avoid keep-alive to better load balance requests across replicas
               MACHINE_LEARNING_MODEL_TTL: "0" # keep models loaded, for predictable resource requests
               # default models as of v1.112.1
               MACHINE_LEARNING_PRELOAD__CLIP: ViT-B-32__openai
               MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION: buffalo_l
-              DB_URL:
+              AAA_DATABASE_HOST: "pg-home-rw.pg.svc.cluster.local"
+              AAA_DATABASE_USERNAME:
                 valueFrom:
                   secretKeyRef:
-                    name: pg-home-pguser-immich-fixed
-                    key: pgbouncer-uri-sslmode
+                    name: &pgsec "pg-home-pguser-immich-cnpg"
+                    key: "username"
+              AAA_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "password"
+              DB_URL: "postgresql://$(AAA_DATABASE_USERNAME):$(AAA_DATABASE_PASSWORD)@$(AAA_DATABASE_HOST):5432/$(AAA_DATABASE_USERNAME)?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"
               CPU_CORES:
                 resourceFieldRef:
                   resource: limits.cpu
