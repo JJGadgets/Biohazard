@@ -42,11 +42,18 @@ spec:
               OAUTH2_REDIRECT_URL: https://${APP_DNS_MINIFLUX}/oauth2/oidc/callback
               OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://${APP_DNS_AUTH}/application/o/miniflux/
               OAUTH2_USER_CREATION: "1"
-              DATABASE_URL:
+              AAA_DATABASE_HOST: "pg-home-rw.pg.svc.cluster.local"
+              AAA_DATABASE_USERNAME:
                 valueFrom:
                   secretKeyRef:
-                    name: &pgsec "pg-default-pguser-miniflux"
-                    key: "pgbouncer-uri"
+                    name: &pgsec "pg-default-pguser-miniflux-cnpg"
+                    key: "username"
+              AAA_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "password"
+              DATABASE_URL: "postgresql://$(AAA_DATABASE_USERNAME):$(AAA_DATABASE_PASSWORD)@$(AAA_DATABASE_HOST):5432/$(AAA_DATABASE_USERNAME)"
             envFrom: &envFrom
               - secretRef:
                   name: miniflux-secrets
