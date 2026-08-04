@@ -41,7 +41,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "128Mi"
             probes: &probes
               liveness:
@@ -58,13 +58,13 @@ spec:
           labels:
             ingress.home.arpa/nginx-internal: allow
             ingress.home.arpa/cloudflare: allow
-            db.home.arpa/pg: pg-default
+            db.home.arpa/pg: pg-home
             # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
             egress.home.arpa/internet: allow
         containers:
           main:
             image: &img
-              repository: p.jank.me/nieveve/piped-backend
+              repository: docker.io/nieveve/piped-backend
               tag: latest@sha256:afe193e016316c7965b15c0fdbe6e0ee542264ae3f8b5aeaa593f2f76e19a27a
             env: *env
             securityContext: *sc
@@ -73,8 +73,8 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
-                memory: "2Gi"
+                cpu: "4"
+                memory: "2500Mi"
       ytproxy:
         type: deployment
         replicas: 1
@@ -96,7 +96,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "256Mi"
       # refresh: # TODO: got rate limited from this
       #   type: cronjob
