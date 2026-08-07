@@ -186,6 +186,11 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostAliases:
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+        - ip: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
+          hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER}"]
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true

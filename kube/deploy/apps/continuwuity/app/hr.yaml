@@ -108,6 +108,8 @@ spec:
               CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
               CONDUWUIT_LDAP__UID_ATTRIBUTE: "continuwuityUsername" # authentik users can't change usernames by themselves, UID usernames is weird
               CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
+              CONDUWUIT_TLS__CERTS: "/tls/tls.crt"
+              CONDUWUIT_TLS__KEY: "/tls/tls.key"
               # =============================
               # END OF DO NOT YOINK SECTION
               # =============================
@@ -133,6 +135,9 @@ spec:
     service:
       app:
         controller: app
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
         ports:
           http:
             port: 80
@@ -161,7 +166,7 @@ spec:
               - subPath: data
                 path: *data
       mass: # Ceph EC 2-1 for bigger and less critical data
-        # you can either use your NAS for this or just have it all in the PVC
+        # you can either use your NAS for this or just have it all in the main PVC
         # I have it this way because my Ceph cluster has >60% space used lol
         existingClaim: continuwuity-mass
         advancedMounts:
@@ -180,7 +185,14 @@ spec:
             app:
               - subPath: CONDUWUIT_LDAP__BIND_PASSWORD # continuwuity doesn't allow env var for this
                 path: *ldap-secret
-                readOnly: true
+      tls:
+        type: secret
+        name: long-domain-tls
+        defaultMode: 0400
+        advancedMounts:
+          app:
+            app:
+              - path: /tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
