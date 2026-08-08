@@ -12,6 +12,10 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    - fromEntities:
+        - kube-apiserver
+        - remote-node
+        - host
   egress:
     # same namespace
     - toEndpoints:
