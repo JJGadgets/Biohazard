@@ -135,7 +135,7 @@ api:
           api.connected:
             state_subscription_only: true
         then:
-          - switch.turn_on: remote_temp_sensor
+          - switch.turn_on: remote_temp_switch
           # - switch.control:
           #     id: remote_temp_switch
           #     state: !lambda |-
