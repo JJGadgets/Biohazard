@@ -112,7 +112,7 @@ switch:
       - logger.log:
           level: INFO
           format: "Remote temperature enabled"
-      - lambda: "id($${climate_id}).set_remote_temperature(id(remote_temp_sensor).get_state())"
+      - lambda: "id($${climate_id}).set_remote_temperature(id(remote_temp_sensor).get_state());"
     turn_off_action:
       - delay: 2s
       - logger.log:
