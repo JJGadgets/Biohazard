@@ -108,8 +108,8 @@ spec:
               CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
               CONDUWUIT_LDAP__UID_ATTRIBUTE: "continuwuityUsername" # authentik users can't change usernames by themselves, UID usernames is weird
               CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
-              CONDUWUIT_TLS__CERTS: "/tls/tls.crt"
-              CONDUWUIT_TLS__KEY: "/tls/tls.key"
+              # CONDUWUIT_TLS__CERTS: "/tls/tls.crt" # upstream maxperf image (not sure about normal) doesn't have TLS support compiled
+              # CONDUWUIT_TLS__KEY: "/tls/tls.key"
               # =============================
               # END OF DO NOT YOINK SECTION
               # =============================
