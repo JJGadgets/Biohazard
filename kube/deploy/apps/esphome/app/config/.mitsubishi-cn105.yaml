@@ -42,6 +42,12 @@ climate: # Climate entity config
       temperature_step:
         target_temperature: 1
         current_temperature: 0.1
+    remote_temperature_source:
+      sensor_id: remote_temp_sensor # References the sensor declared above
+      info: # Optional: exposes a text sensor showing the source name
+        name: "Remote Temp Source"
+    remote_temperature_timeout: 5min
+    remote_temperature_keepalive_interval: 120s
     compressor_frequency_sensor:
       name: Compressor Frequency
       entity_category: diagnostic
@@ -87,21 +93,21 @@ sensor:
     unit_of_measurement: "°C"
     filters:
       - clamp: # Limits values to range accepted by Mitsubishi units
-          min_value: 1
+          min_value: 0
           max_value: 40
           ignore_out_of_range: true
       - throttle: 30s
-    on_value:
+    on_raw_value:
       then:
+        - logger.log:
+            level: INFO
+            format: "Remote temperature received from HA: %.1f C"
+            args: ["x"]
         - if:
             condition:
-              lambda: "return id(remote_temp_switch).state;"
+              lambda: "return !id(remote_temp_switch).state;"
             then:
-              - logger.log:
-                  level: INFO
-                  format: "Remote temperature received from HA: %.1f C"
-                  args: ["x"]
-              - lambda: "id($${climate_id}).set_remote_temperature(x);" # TODO: set on switch on of remote temp switch, set even if changes are in decimal places (more frequent), handle non-numbers (e.g. "unknown") as unable to update temp, after 5 minutes of no updates, revert back to internal sensor
+              - lambda: "id(remote_temp_sensor).publish_state(0);" # TODO: set on switch on of remote temp switch, set even if changes are in decimal places (more frequent), handle non-numbers (e.g. "unknown") as unable to update temp, after 5 minutes of no updates, revert back to internal sensor
 switch:
   - platform: template
     name: "Enable Remote Temperature (default $${remote_temp_enable})"
@@ -162,6 +168,6 @@ api:
           #       return id(remote_temp_switch).state;
         else:
           - logger.log: "Client disconnected did not subscribe to state changes."
-# logger:
-#   logs:
-#     CYCLE: WARN
+logger:
+  logs:
+    CYCLE: WARN
