@@ -127,6 +127,7 @@ switch:
   #   internal: true
 api:
   on_client_connected:
+    - delay: 3s
     - logger.log:
         format: "Client %s connected to API with IP %s"
         args: ["client_info.c_str()", "client_address.c_str()"]
@@ -135,12 +136,14 @@ api:
           api.connected:
             state_subscription_only: true
         then:
+          - logger.log: "HASS connected, setting remote temp to previous/default value..."
           - switch.turn_on: remote_temp_switch
           # - switch.control:
           #     id: remote_temp_switch
           #     state: !lambda |-
           #       return id(remote_temp_switch_old).state;
-          - logger.log: "HASS connected, setting remote temp to previous/default value..."
+        else:
+          - logger.log: "Client connected did not subscribe to state changes."
   on_client_disconnected:
     - logger.log:
         format: "Client %s disconnected from API with IP %s"
@@ -151,12 +154,14 @@ api:
             api.connected:
               state_subscription_only: true
         then:
+          - logger.log: "HASS disconnected, disabled remote temp."
+          - switch.turn_off: remote_temp_switch
           # - switch.control:
           #     id: remote_temp_switch_old
           #     state: !lambda |-
           #       return id(remote_temp_switch).state;
-          - switch.turn_off: remote_temp_switch
-          - logger.log: "HASS disconnected, disabled remote temp."
+        else:
+          - logger.log: "Client disconnected did not subscribe to state changes."
 # logger:
 #   logs:
 #     CYCLE: WARN
