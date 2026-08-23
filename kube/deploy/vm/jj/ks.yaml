@@ -26,7 +26,7 @@ spec:
     - name: vm-jj-1-deps
   postBuild:
     substitute:
-      PVC: "vm-jj-secureblue-root"
+      PVC: &pvc "vm-jj-secureblue-root"
       SIZE: "55Gi"
       VOLUMEMODE: "Filesystem"
       RUID: &uid "107"
@@ -84,7 +84,7 @@ spec:
     - name: vm-jj-1-deps
   postBuild:
     substitute:
-      PVC: "vm-jj-w11-school-root"
+      PVC: &pvc "vm-jj-w11-school-root"
       SIZE: "55Gi"
       SC: block
       SNAP: block
