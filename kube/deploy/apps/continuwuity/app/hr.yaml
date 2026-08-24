@@ -20,10 +20,8 @@ spec:
           labels: # netpols
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
-            # authentik.home.arpa/oidc: allow
-            authentik.home.arpa/ldap: allow
+            authentik.home.arpa/oidc: allow
             # prom.home.arpa/kps: allow
-            # egress.home.arpa/internet: allow
             egress.home.arpa/ntfy: allow
             egress.home.arpa/internet: allow
           annotations:
