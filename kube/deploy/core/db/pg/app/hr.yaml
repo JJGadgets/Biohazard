@@ -71,3 +71,22 @@ spec:
     kind: OCIRepository
     name: *app
     namespace: *ns
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app crunchy-pgo
+  namespace: *app
+spec:
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+  chart:
+    spec:
+      chart: pgo
+      version: 5.5.1
+      sourceRef:
+        name: crunchydata
+        kind: HelmRepository
+        namespace: flux-system
