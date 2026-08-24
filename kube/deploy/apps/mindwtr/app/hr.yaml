@@ -23,7 +23,7 @@ spec:
           app: &ct
             image: &img
               repository: ghcr.io/dongdongbh/mindwtr-cloud
-              tag: 1.2.0@sha256:0ae94d6c4f0edb356375e209a17072ac953b6a12a7e6c7150ce3a26ee51e1d54
+              tag: 1.2.1@sha256:3d5987d3fec4dba7fe39039ded25b6c80600e0fb8f5e56514dc75d9bff614929
             env: &env
               TZ: "${CONFIG_TZ}"
             envFrom: &envFrom
@@ -61,7 +61,7 @@ spec:
           app: &ct
             image: &img
               repository: ghcr.io/dongdongbh/mindwtr-app
-              tag: 1.2.0@sha256:2b157a210c7b4b2f428b3a6e3adfa08dfed1fbf16a698108b7baa123b1d6b6ea
+              tag: 1.2.1@sha256:870fad3d88ff8692ed3498f8cc1194cda4a62e3c8b52a5903b6baa323654b0a2
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: *sc
