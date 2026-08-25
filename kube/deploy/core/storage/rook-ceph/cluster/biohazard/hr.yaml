@@ -188,15 +188,15 @@ spec:
           - aes
           daemon:
             keyRotationPolicy: KeyGeneration
-            keyGeneration: 2
+            keyGeneration: 3
             keyType: aes256k
           rbdMirrorPeer:
             keyRotationPolicy: KeyGeneration
-            keyGeneration: 2
+            keyGeneration: 3
             keyType: aes256k
           csi:
             keyRotationPolicy: KeyGeneration
-            keyGeneration: 2
+            keyGeneration: 3
             keyType: aes
             keepPriorKeyCountMax: 1
       healthCheck:
