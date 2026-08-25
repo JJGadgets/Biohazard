@@ -179,6 +179,38 @@ spec:
             memory: "128Mi"
       logCollector:
         enabled: false
+      security:
+        cephx:
+          # Kernel RBD clients still require AES keys. Keep only CSI identities on
+          # AES while service daemons and the userspace mirror use AES256K.
+          allowedCiphers:
+          - aes256k
+          - aes
+          daemon:
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
+            keyType: aes256k
+          rbdMirrorPeer:
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
+            keyType: aes256k
+          csi:
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
+            keyType: aes
+            keepPriorKeyCountMax: 1
+      healthCheck:
+        # These checks are expected while Talos' kernel RBD client still requires
+        # the legacy AES cipher. Keep all unrelated Ceph health warnings visible.
+        muteHealthWarning:
+          AUTH_EMERGENCY_CIPHERS_SET:
+            policy: mute
+          AUTH_INSECURE_CLIENT_KEY_TYPE:
+            policy: mute
+          AUTH_INSECURE_KEYS_ALLOWED:
+            policy: mute
+          AUTH_INSECURE_KEYS_CREATABLE:
+            policy: mute
     cephBlockPools:
       - name: "${CLUSTER_NAME}-block-k8s-ssd"
         spec:
