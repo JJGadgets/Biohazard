@@ -71,7 +71,7 @@ metadata:
   name: vm-jj-w11-school-pvc
   namespace: &ns vm-jj
   labels: &l
-    app.kubernetes.io/name: ${APPNAME}
+    app.kubernetes.io/name: vm-jj-w11-school
     pvc.home.arpa/volsync: "true"
 spec:
   path: ./kube/deploy/core/storage/volsync/template
