@@ -43,7 +43,7 @@ spec:
     clusterName: "${CLUSTER_NAME:=biohazard}"
     operatorNamespace: "rook-ceph"
     # yes, the empty newline at the end of configOverride is apparently needed so that the generated configMap doesn't trim newline...
-    configOverride: |
+    configOverride: |+
       [global]
       debug ms = 0/0
       bdev_enable_discard = true
