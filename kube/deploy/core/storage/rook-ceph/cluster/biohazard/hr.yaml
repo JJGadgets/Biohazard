@@ -354,8 +354,8 @@ spec:
                 compression_mode: "aggressive"
                 compression_algorithm: "lz4"
           metadataServer: &mds
-            activeCount: 2 # 2 active 2 standby
-            activeStandby: true
+            activeCount: 3 # 3 active 0 standby
+            activeStandby: false
             priorityClassName: system-cluster-critical
             placement:
               topologySpreadConstraints:
@@ -369,8 +369,7 @@ spec:
               requests:
                 cpu: 100m
               limits:
-                cpu: 3 # 3 cores
-                memory: 3Gi
+                memory: 4Gi
         storageClass: &cephfsSC
           enabled: true
           isDefault: false
