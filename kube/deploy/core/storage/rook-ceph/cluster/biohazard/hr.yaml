@@ -610,6 +610,9 @@ spec:
       cephfs:
         enabled: true
         name: rook-ceph.cephfs.csi.ceph.com
+        kernelMountOptions:
+          ms_mode: prefer-secure # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
+          recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
         grpcTimeout: 150
         snapshotPolicy: volumeGroupSnapshot
         log:
