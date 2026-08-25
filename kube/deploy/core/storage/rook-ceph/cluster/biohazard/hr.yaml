@@ -42,7 +42,6 @@ spec:
   values:
     clusterName: "${CLUSTER_NAME:=biohazard}"
     operatorNamespace: "rook-ceph"
-    # yes, the empty newline at the end of configOverride is apparently needed so that the generated configMap doesn't trim newline...
     configOverride: |+
       [global]
       debug ms = 0/0
@@ -52,9 +51,6 @@ spec:
       osd_pool_default_size = 3
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
-
-
-    #  does this force the newline?
     cephImage:
       repository: quay.io/ceph/ceph
       tag: v19.2.5@sha256:1bb011052bc6d347d3418adcbf7d88156860d45697bc6323594a11410084064b
