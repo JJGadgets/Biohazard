@@ -19,6 +19,8 @@ spec:
         key: "OpenClaw - ${CLUSTER_NAME}"
     - extract:
         key: "OpenCode - ${CLUSTER_NAME}"
+    - extract:
+        key: "Continuwuity - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -36,6 +38,12 @@ spec:
         # APP_IP_OPENCLAW: '{{ .APP_IP_OPENCLAW }}'
         APP_IP_OPENCLAW_VPN: '{{ .APP_IP_OPENCLAW_VPN }}'
         # APP_IP_OPENCLAW_VPN: '{{ .APP_IP_OPENCLAW_VPN }}'
+        # Other apps
+        APP_DNS_NTFY: '{{ .APP_DNS_NTFY }}'
+        APP_IP_NTFY_MX: '{{ .APP_IP_NTFY_MX }}'
+        APP_DNS_CONTINUWUITY: '{{ .APP_DNS_CONTINUWUITY }}'
+        APP_DNS_CONTINUWUITY_SERVER: '{{ .APP_DNS_CONTINUWUITY_SERVER }}'
+        APP_IP_CONTINUWUITY: '{{ .APP_IP_CONTINUWUITY }}'
         # Other cluster-wide vars
         IP_JJ_V4: '{{ .IP_JJ_V4 }}'
         IP_TRUENAS: '{{ .IP_TRUENAS }}'

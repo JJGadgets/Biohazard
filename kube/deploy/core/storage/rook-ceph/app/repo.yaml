@@ -1,0 +1,20 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: rook-ceph
+  namespace: flux-system
+spec:
+  interval: 1h
+  timeout: 3m0s
+  url: https://charts.rook.io/release
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: ceph-csi
+  namespace: flux-system
+spec:
+  interval: 1h
+  timeout: 3m0s
+  url: https://ceph.github.io/ceph-csi-operator

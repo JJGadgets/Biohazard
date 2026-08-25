@@ -20,10 +20,8 @@ spec:
           labels: # netpols
             ingress.home.arpa/envoy-internal: allow
             ingress.home.arpa/envoy-external: allow
-            # authentik.home.arpa/oidc: allow
-            authentik.home.arpa/ldap: allow
+            authentik.home.arpa/oidc: allow
             # prom.home.arpa/kps: allow
-            # egress.home.arpa/internet: allow
             egress.home.arpa/ntfy: allow
             egress.home.arpa/internet: allow
           annotations:
@@ -33,7 +31,7 @@ spec:
           app:
             image: &img
               repository: forgejo.ellis.link/continuwuation/continuwuity
-              tag: v0.5.10-maxperf@sha256:137c3ec3145beab4f826f63c8fe44347002400ed115d42c0450d49d9bf6fe16f
+              tag: v26.8.1-maxperf@sha256:19821bed098a4bef16682a112e2b249c1d87406a844f52617f5ced90f2be08f2
             env: &env
               # core settings (FOR YOINKERS)
               TZ: "${CONFIG_TZ}"
@@ -97,17 +95,11 @@ spec:
               CONDUWUIT_ALLOW_LEGACY_MEDIA: false # unauthenticated
               CONDUWUIT_DEFAULT_ROOM_VERSION: '"12"' # more secure, room/space creator has highest power
               CONDUWUIT_CONFIG_RELOAD_SIGNAL: true # idk if we can have Reloader hit this endpoint instead or something?
-              # NOT REQUIRED FOR YOINKERS! external auth (wen eta OIDC/SAML)
-              CONDUWUIT_LDAP__ENABLE: true
-              CONDUWUIT_LDAP__LDAP_ONLY: true
-              CONDUWUIT_LDAP__URI: "ldaps://${APP_DNS_AUTHENTIK_LDAP}:636"
-              CONDUWUIT_LDAP__BIND_DN: CN=continuwuity-ldap,OU=service-accounts,OU=goauthentik.io,DC=ldap,DC=goauthentik,DC=io
-              CONDUWUIT_LDAP__BIND_PASSWORD_FILE: &ldap-secret /secrets/ldap-bind-password
-              CONDUWUIT_LDAP__BASE_DN: DC=ldap,DC=goauthentik,DC=io
-              CONDUWUIT_LDAP__FILTER: "(memberOf=CN=Role-Continuwuity-User,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
-              CONDUWUIT_LDAP__ADMIN_FILTER: "(memberOf=CN=Role-Continuwuity-Admin,OU=groups,DC=ldap,DC=goauthentik,DC=io)"
-              CONDUWUIT_LDAP__UID_ATTRIBUTE: "continuwuityUsername" # authentik users can't change usernames by themselves, UID usernames is weird
-              CONDUWUIT_LDAP__NAME_ATTRIBUTE: "displayName" # authentik users can't change usernames by themselves, UID usernames is weird
+              # NOT REQUIRED FOR YOINKERS! external OIDC auth
+              CONDUWUIT_OAUTH__OIDC__ADDITIONAL_SCOPES: "[openid, email, profile, offline_access]"
+              CONDUWUIT_OAUTH__OIDC__PREFERRED_USERNAME_CLAIM: "preferred_username" # can have custom property mappings on authentik side
+              # CONDUWUIT_TLS__CERTS: "/tls/tls.crt" # upstream maxperf image (not sure about normal) doesn't have TLS support compiled
+              # CONDUWUIT_TLS__KEY: "/tls/tls.key"
               # =============================
               # END OF DO NOT YOINK SECTION
               # =============================
@@ -133,6 +125,9 @@ spec:
     service:
       app:
         controller: app
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
         ports:
           http:
             port: 80
@@ -161,7 +156,7 @@ spec:
               - subPath: data
                 path: *data
       mass: # Ceph EC 2-1 for bigger and less critical data
-        # you can either use your NAS for this or just have it all in the PVC
+        # you can either use your NAS for this or just have it all in the main PVC
         # I have it this way because my Ceph cluster has >60% space used lol
         existingClaim: continuwuity-mass
         advancedMounts:
@@ -171,16 +166,14 @@ spec:
                 path: /data/media
               - subPath: backups
                 path: *backup
-      secrets:
+      tls:
         type: secret
-        name: continuwuity-secrets
+        name: long-domain-tls
         defaultMode: 0400
         advancedMounts:
           app:
             app:
-              - subPath: CONDUWUIT_LDAP__BIND_PASSWORD # continuwuity doesn't allow env var for this
-                path: *ldap-secret
-                readOnly: true
+              - path: /tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

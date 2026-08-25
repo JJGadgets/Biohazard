@@ -78,7 +78,7 @@ spec:
           opencode:
             image: &img
               repository: ghcr.io/jjgadgets/opencode
-              tag: 1.18.15@sha256:c5a4b0b8a36b9e2dd1a1ac3622f451dcf358ba95587e2d1d095aeb63fc04bc14
+              tag: 1.18.22@sha256:bb15ab9f296b3950c9d2265e7efd5a777fbc97ac005c84ffefd6107020824b33
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env:
               <<: *env
@@ -186,6 +186,11 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostAliases:
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+        - ip: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
+          hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER}"]
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true

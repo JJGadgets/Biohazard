@@ -31,7 +31,7 @@ spec:
   chart:
     spec:
       chart: rook-ceph-cluster
-      version: "v1.18.11"
+      version: "v1.20.6"
       sourceRef:
         name: rook-ceph
         kind: HelmRepository
@@ -42,7 +42,8 @@ spec:
   values:
     clusterName: "${CLUSTER_NAME:=biohazard}"
     operatorNamespace: "rook-ceph"
-    configOverride: |
+    # yes, the empty newline at the end of configOverride is apparently needed so that the generated configMap doesn't trim newline...
+    configOverride: |+
       [global]
       debug ms = 0/0
       bdev_enable_discard = true
@@ -51,9 +52,14 @@ spec:
       osd_pool_default_size = 3
       osd_pool_default_min_size = 2
       mon_data_avail_warn = 10
+      ; end
+
+
+    #  does this force the newline?
+    cephImage:
+      repository: quay.io/ceph/ceph
+      tag: v19.2.5@sha256:1bb011052bc6d347d3418adcbf7d88156860d45697bc6323594a11410084064b
     cephClusterSpec:
-      cephVersion:
-        image: "quay.io/ceph/ceph:v18.2.8@sha256:69cbef90eb58cf96e572e7497227a2bcb0ec9175bc2247809c0a37857db9b820" # 2025-01-14: not v19 Squid yet due to CephFS MDS trim issue
       network:
         provider: host
         addressRanges:
@@ -449,3 +455,145 @@ spec:
       cephfs:
         kernelMountOptions: "ms_mode=prefer-secure" # needed for mounting CephFS on a cluster with network encryption enabled or msgr2 required
           # recover_session: clean # recover_session allows CephFS to gracefully recover from network failure causing MDS to blocklist
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ceph-csi-drivers
+  namespace: rook-ceph
+  labels:
+    helm.flux.home.arpa/default: "false"
+    kustomize.toolkit.fluxcd.io/prune: Disabled
+spec:
+  interval: 5m
+  timeout: 1h
+  maxHistory: 10
+  install:
+    crds: CreateReplace
+    createNamespace: true
+    remediation:
+      retries: 5
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      retries: 5
+      strategy: rollback
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  uninstall:
+    keepHistory: false
+  chart:
+    spec:
+      chart: ceph-csi-drivers
+      version: 1.0.4
+      sourceRef:
+        name: ceph-csi
+        kind: HelmRepository
+        namespace: flux-system
+  values:
+    # Rook-compatible values, see
+    # https://github.com/rook/rook/blob/v1.20.5/deploy/charts/ceph-csi-drivers/values.yaml
+    # Settings beyond that file preserve what rook v1.19 wrote into the live Driver
+    # CRs; chart defaults would otherwise overwrite them on helm adoption.
+    operatorConfig:
+      namespace: rook-ceph
+      driverSpecDefaults:
+        imageSet:
+          name: rook-csi-operator-image-set-configmap
+        log:
+          rotation:
+            enabled: false
+        nodePlugin:
+          priorityClassName: system-node-critical
+          resources:
+            plugin:
+              limits:
+                cpu: "4"
+                memory: 1Gi
+              requests:
+                cpu: 50m
+                memory: 512Mi
+            registrar:
+              limits:
+                cpu: "4"
+                memory: 256Mi
+              requests:
+                cpu: 25m
+                memory: 128Mi
+        controllerPlugin:
+          priorityClassName: system-cluster-critical
+          resources:
+            attacher:
+              limits:
+                cpu: "4"
+                memory: 256Mi
+              requests:
+                cpu: 20m
+                memory: 128Mi
+            omapGenerator:
+              limits:
+                cpu: "4"
+                memory: 1Gi
+              requests:
+                cpu: 25m
+                memory: 512Mi
+            plugin:
+              limits:
+                cpu: "4"
+                memory: 1Gi
+              requests:
+                cpu: 20m
+                memory: 512Mi
+            provisioner:
+              limits:
+                cpu: "4"
+                memory: 256Mi
+              requests:
+                cpu: 10m
+                memory: 128Mi
+            resizer:
+              limits:
+                cpu: "4"
+                memory: 256Mi
+              requests:
+                cpu: 5m
+                memory: 128Mi
+            snapshotter:
+              limits:
+                cpu: "4"
+                memory: 256Mi
+              requests:
+                cpu: 10m
+                memory: 128Mi
+    drivers:
+      rbd:
+        enabled: true
+        name: rook-ceph.rbd.csi.ceph.com
+        # Chart defaults render grpcTimeout 30, replicas 1, snapshotPolicy none and
+        # log rotation on; the live Driver CRs run 150/2/snapshotter-enabled/off
+        grpcTimeout: 150
+        snapshotPolicy: volumeGroupSnapshot
+        log:
+          rotation:
+            enabled: false
+        controllerPlugin:
+          replicas: 2
+      cephfs:
+        enabled: true
+        name: rook-ceph.cephfs.csi.ceph.com
+        grpcTimeout: 150
+        snapshotPolicy: volumeGroupSnapshot
+        log:
+          rotation:
+            enabled: false
+        controllerPlugin:
+          replicas: 2
+      nfs:
+        enabled: false
+        name: rook-ceph.nfs.csi.ceph.com
+      nvmeof:
+        enabled: false
+        name: rook-ceph.nvmeof.csi.ceph.com

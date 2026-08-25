@@ -3,7 +3,7 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: &app keda
+  name: &app trilium
   namespace: *app
 spec:
   endpointSelector: {}
@@ -12,12 +12,10 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
-    - fromEntities:
-        - kube-apiserver
-        - remote-node
-        - host
   egress:
     # same namespace
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    - toFQDNs:
+        - matchName: "sinon.jj.dhcp.internal"

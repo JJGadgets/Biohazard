@@ -41,13 +41,13 @@ spec:
     substitute:
       PVC: &pvc "code-server-data"
       SIZE: "50Gi"
-      CACHESIZE: "15Gi"
+      CACHESIZE: "17Gi"
       RGW_CRON: "0 */12 * * *"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
       SNAP_ACCESSMODE: *am
-      VS_APP_CURRENT_VERSION: "ghcr.io/coder/code-server:4.131.0@sha256:3623e6362abdec6258472882b06fdeec9d6ce2ad3fda316b3c5d7ed092b89add"
+      VS_APP_CURRENT_VERSION: "ghcr.io/coder/code-server:4.134.0@sha256:9d6c9b2e89f95c95885f859bbca0af2f648c376e61e9bbdff5c14be5a6e27d40"
       RUID: &uid "1000"
       RGID: *uid
       RFSG: *uid

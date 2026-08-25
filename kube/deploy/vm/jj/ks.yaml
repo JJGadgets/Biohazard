@@ -2,49 +2,127 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: zz-vm-jj-1-deps
-  namespace: flux-system
+  name: vm-jj-1-deps
+  namespace: &ns vm-jj
 spec:
   path: ./kube/deploy/vm/jj/_deps
-  targetNamespace: "vm-jj"
+  targetNamespace: *ns
   dependsOn:
-    - name: zz-vm-1-kubevirt-app
+    - name: vm-1-kubevirt-app
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: zz-vm-jj-debian-pvc
-  namespace: flux-system
+  name: vm-jj-secureblue-pvc
+  namespace: &ns vm-jj
 spec:
   path: ./kube/deploy/core/storage/volsync/template
-  targetNamespace: "vm-jj"
+  targetNamespace: *ns
   dependsOn:
-    - name: 1-core-storage-volsync-app
-    - name: 1-core-storage-rook-ceph-cluster
-    - name: zz-vm-jj-1-deps
+    - name: crds
+      namespace: flux-system
+    # - name: 1-core-storage-volsync-app
+    # - name: 1-core-storage-rook-ceph-cluster
+    - name: vm-jj-1-deps
   postBuild:
     substitute:
-      PVC: "vm-jj-debian-root"
+      PVC: &pvc "vm-jj-secureblue-root"
       SIZE: "55Gi"
       VOLUMEMODE: "Filesystem"
       RUID: &uid "107"
       RGID: *uid
       RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    # - apiVersion: volsync.backube/v1alpha1
+    #   kind: ReplicationSource
+    #   name: "${APPNAME}-data-r2-restic"
+    #   namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: zz-vm-jj-debian
-  namespace: flux-system
+  name: vm-jj-secureblue
+  namespace: &ns vm-jj
   labels:
     wait.flux.home.arpa/disabled: "true"
 spec:
   path: ./kube/deploy/vm/jj/template
-  targetNamespace: "vm-jj"
+  targetNamespace: *ns
   dependsOn:
-    - name: zz-vm-1-kubevirt-app
-    - name: zz-vm-jj-1-deps
-    - name: zz-vm-jj-debian-pvc
+    - name: vm-1-kubevirt-app
+    - name: vm-jj-1-deps
+    - name: vm-jj-secureblue-pvc
   postBuild:
     substitute:
-      VM: "debian"
+      VM: "secureblue"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vm-jj-w11-school-pvc
+  namespace: &ns vm-jj
+  labels: &l
+    app.kubernetes.io/name: ${APPNAME}
+    pvc.home.arpa/volsync: "true"
+spec:
+  path: ./kube/deploy/core/storage/volsync/template
+  targetNamespace: *ns
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    # - name: 1-core-storage-volsync-app
+    # - name: 1-core-storage-rook-ceph-cluster
+    - name: vm-jj-1-deps
+  postBuild:
+    substitute:
+      PVC: &pvc "vm-jj-w11-school-root"
+      SIZE: "55Gi"
+      SC: block
+      SNAP: block
+      ACCESSMODE: ReadWriteOnce
+      SNAP_ACCESSMODE: ReadWriteOnce
+      VOLUMEMODE: "Filesystem"
+      RUID: &uid "107"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    # - apiVersion: volsync.backube/v1alpha1
+    #   kind: ReplicationSource
+    #   name: "${APPNAME}-data-r2-updates-restic"
+    #   namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vm-jj-w11-school
+  namespace: &ns vm-jj
+  labels:
+    wait.flux.home.arpa/disabled: "true"
+spec:
+  path: ./kube/deploy/vm/jj/template
+  targetNamespace: *ns
+  dependsOn:
+    - name: vm-1-kubevirt-app
+    - name: vm-jj-1-deps
+    - name: vm-jj-w11-school-pvc
+  postBuild:
+    substitute:
+      VM: "w11-school"
