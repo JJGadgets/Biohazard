@@ -190,7 +190,7 @@ spec:
         - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
           hostnames: ["${APP_DNS_NTFY:=ntfy}"]
         - ip: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
-          hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER}"]
+          hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"]
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true

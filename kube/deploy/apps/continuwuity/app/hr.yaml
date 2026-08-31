@@ -166,14 +166,14 @@ spec:
                 path: /data/media
               - subPath: backups
                 path: *backup
-      tls:
-        type: secret
-        name: long-domain-tls
-        defaultMode: 0400
-        advancedMounts:
-          app:
-            app:
-              - path: /tls
+      # tls:
+      #   type: secret
+      #   name: long-domain-tls
+      #   defaultMode: 0400
+      #   advancedMounts:
+      #     app:
+      #       app:
+      #         - path: /tls
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
