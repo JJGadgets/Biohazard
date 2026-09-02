@@ -37,6 +37,7 @@ spec:
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://${APP_DNS_TRILIUM}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "JJGadgets Auth"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://jjgadgets.tech/images/favicon.png"
+              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHSCOPE: "openid email profile offline_access"
             envFrom: &envFrom
               - secretRef:
                   name: trilium-secrets
