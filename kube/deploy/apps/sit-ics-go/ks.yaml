@@ -1,0 +1,62 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: sit-ics-go-app
+  namespace: &ns sit-ics-go
+  labels: &l
+    app.kubernetes.io/name: "sit-ics-go"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/sit-ics-go/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: sit-ics-go-pvc
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: sit-ics-go-pvc
+  namespace: &ns sit-ics-go
+  labels: &l
+    app.kubernetes.io/name: sit-ics-go
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "sit-ics-go-data"
+      SIZE: "10Gi"
+      SC: &sc "file"
+      SNAP: *sc
+      ACCESSMODE: "ReadWriteMany"
+      SNAP_ACCESSMODE: "ReadOnlyMany"
+      VS_APP_CURRENT_VERSION: "ghcr.io/ciel-shieru/sit-ics-go:v0.0.6@sha256:5abc225368a7bc94fa0c998b5469d46c6c6e9b983cc29971d5eab2be8f851b82"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: "sit-ics-go-data-r2-updates-restic"
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

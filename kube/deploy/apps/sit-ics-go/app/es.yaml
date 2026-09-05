@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name sit-ics-go-secrets
+  namespace: sit-ics-go
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "sit-ics-go - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        USERNAME: '{{ .USERNAME }}'
+        PASSWORD: '{{ .PASSWORD }}'
+        TOTP_SECRET: '{{ .TOTP_SECRET }}'

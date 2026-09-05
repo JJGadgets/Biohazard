@@ -1,0 +1,155 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app sit-ics-go
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/ciel-shieru/sit-ics-go
+              tag: v0.0.6@sha256:5abc225368a7bc94fa0c998b5469d46c6c6e9b983cc29971d5eab2be8f851b82
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              BROWSER_MODE: remote
+              BROWSER_REMOTE_HOST: sit-ics-go-chromium.sit-ics-go.svc.cluster.local
+              BROWSER_REMOTE_PORT: "80"
+            envFrom: &envFrom
+              - secretRef:
+                  name: sit-ics-go-secrets
+            workingDir: &pvc /data
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "4"
+                memory: "150Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+      chromium:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            image: &img
+              repository: docker.io/chromedp/headless-shell
+              tag: 151.0.7922.109@sha256:2d349b544a1ea6b5b5fd7c0fe99215ff662339c57407ee2e8c0a11af93516b04
+            env: &env
+              TZ: "${CONFIG_TZ}"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                cpu: "4"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 8080
+            protocol: HTTP
+            appProtocol: http
+      chromium:
+        controller: chromium
+        ports:
+          devtools:
+            port: 80
+            targetPort: 9223
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_SIT_ICS_GO:=sit-ics-go}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 80
+    persistence:
+      data:
+        existingClaim: sit-ics-go-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: data
+                path: *pvc
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+    defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid ${APP_UID_SIT_ICS_GO:=1000}
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}
