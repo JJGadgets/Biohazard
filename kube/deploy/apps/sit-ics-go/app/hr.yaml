@@ -29,7 +29,7 @@ spec:
               TZ: "${CONFIG_TZ}"
               BROWSER_MODE: remote
               BROWSER_REMOTE_HOST: sit-ics-go-chromium.sit-ics-go.svc.cluster.local
-              BROWSER_REMOTE_PORT: "80"
+              BROWSER_REMOTE_PORT: &cport 9222
             envFrom: &envFrom
               - secretRef:
                   name: sit-ics-go-secrets
@@ -93,8 +93,7 @@ spec:
         clusterIP: None
         ports:
           devtools:
-            port: 80
-            targetPort: 9222
+            port: *cport
             protocol: HTTP
             appProtocol: http
     route:
