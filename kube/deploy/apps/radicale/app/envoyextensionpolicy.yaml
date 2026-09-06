@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
+# yaml-language-server: $schema=https://crds.jank.ing/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
@@ -26,4 +26,149 @@ spec:
             response_handle:headers():replace(":status", "401")
             response_handle:headers():remove("location")
           end
+        end
+    - type: Inline
+      inline: |
+        local DAV_NS = "DAV:"
+        local CS_NS = "http://calendarserver.org/ns/"
+        local ICAL_NS = "http://apple.com/ns/ical/"
+        local CALDAV_NS = "urn:ietf:params:xml:ns:caldav"
+
+        -- Set the interval Apple should see for the subscription.
+        -- Examples:
+        --   PT1H = 1 hour
+        --   PT6H = 6 hours
+        --   P1D  = 1 day
+        local REFRESH_RATE = "P1D"
+
+        local SUBSCRIPTION_XML =
+            '<supported-calendar-component-set xmlns="urn:ietf:params:xml:ns:caldav">' ..
+                '<comp name="VEVENT"/>' ..
+            '</supported-calendar-component-set>' ..
+            '<refreshrate xmlns="http://apple.com/ns/ical/">' ..
+                REFRESH_RATE ..
+            '</refreshrate>'
+
+        local function is_webcal_subscription_response(body)
+            -- We only expect to modify DAV multistatus responses.
+            if not body:match("<multistatus[%s>]") then
+                return false
+            end
+
+            -- A Radicale VSUBSCRIBED collection is identified by BOTH:
+            --   <CS:subscribed/>
+            --   <CS:source>...</CS:source>
+            --
+            -- Requiring both greatly reduces the chance of touching an ordinary
+            -- calendar collection or another DAV object.
+            if not body:match("<CS:subscribed%s*/?>") then
+                return false
+            end
+
+            if not body:match("<CS:source[%s>]") then
+                return false
+            end
+
+            return true
+        end
+
+        function envoy_on_response(response_handle)
+            local headers = response_handle:headers()
+
+            -- Only modify successful WebDAV multistatus responses.
+            if headers:get(":status") ~= "207" then
+                return
+            end
+
+            -- Optional additional protection: only process XML-ish responses.
+            local content_type = headers:get("content-type") or ""
+            if not content_type:find("xml", 1, true) then
+                return
+            end
+
+            local body = response_handle:body():getBytes(0, response_handle:body():length())
+
+            if body == nil or body == "" then
+                return
+            end
+
+            if not is_webcal_subscription_response(body) then
+                return
+            end
+
+            local modified = false
+
+            -- Process each individual DAV <response> independently.
+            --
+            -- This matters if a PROPFIND returns multiple resources: we only inject
+            -- the Apple properties into the resource that is actually a
+            -- VSUBSCRIBED/Webcal collection.
+            local new_body = body:gsub(
+                "<response>(.-)</response>",
+                function(response_xml)
+                    -- Only modify a response which itself is a subscribed collection.
+                    if not response_xml:match("<CS:subscribed%s*/?>") then
+                        return "<response>" .. response_xml .. "</response>"
+                    end
+
+                    if not response_xml:match("<CS:source[%s>]") then
+                        return "<response>" .. response_xml .. "</response>"
+                    end
+
+                    -- Avoid duplicating the properties if Radicale eventually starts
+                    -- returning them itself.
+                    local has_component_set =
+                        response_xml:match("<[%w_%-]*:?supported%-calendar%-component%-set[%s>]")
+
+                    local has_refresh_rate =
+                        response_xml:match("<[%w_%-]*:?refreshrate[%s>]")
+
+                    local additions = ""
+
+                    if not has_component_set then
+                        additions = additions ..
+                            '<supported-calendar-component-set ' ..
+                            'xmlns="urn:ietf:params:xml:ns:caldav">' ..
+                                '<comp name="VEVENT"/>' ..
+                            '</supported-calendar-component-set>'
+                    end
+
+                    if not has_refresh_rate then
+                        additions = additions ..
+                            '<refreshrate xmlns="http://apple.com/ns/ical/">' ..
+                            REFRESH_RATE ..
+                            '</refreshrate>'
+                    end
+
+                    if additions == "" then
+                        return "<response>" .. response_xml .. "</response>"
+                    end
+
+                    -- Insert into the <prop> element rather than after </propstat>.
+                    --
+                    -- We use the last </prop> within this response. In the normal
+                    -- Radicale PROPFIND layout there is one <prop> per propstat.
+                    local result, count = response_xml:gsub(
+                        "</prop>",
+                        additions .. "</prop>",
+                        1
+                    )
+
+                    if count == 1 then
+                        modified = true
+                        return "<response>" .. result .. "</response>"
+                    end
+
+                    return "<response>" .. response_xml .. "</response>"
+                end
+            )
+
+            if not modified then
+                return
+            end
+
+            response_handle:body():setBytes(new_body)
+
+            -- Body length has changed. Let Envoy calculate the correct length.
+            headers:remove("content-length")
         end
