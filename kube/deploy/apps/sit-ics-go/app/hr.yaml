@@ -30,6 +30,7 @@ spec:
               BROWSER_MODE: remote
               BROWSER_REMOTE_HOST: sit-ics-go-chromium.sit-ics-go.svc.cluster.local
               BROWSER_REMOTE_PORT: &cport 9222
+              BRIGHTSPACE_ENABLED: true
             envFrom: &envFrom
               - secretRef:
                   name: sit-ics-go-secrets
