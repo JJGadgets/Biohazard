@@ -43,7 +43,8 @@ spec:
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
       VS_APP_CURRENT_VERSION: "ghcr.io/ciel-shieru/sit-ics-go:v0.0.9@sha256:642590c81f52ae617128f4cae4f126acc258014e6fb1f57996f389975974790f"
-      RUID: &uid !!str "${APP_UID_SIT_ICS_GO}"
+      RUID: &uid !!str |
+        ${APP_UID_SIT_ICS_GO}
       RGID: *uid
       RFSG: *uid
   healthChecks:
