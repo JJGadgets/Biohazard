@@ -78,7 +78,7 @@ spec:
           opencode:
             image: &img
               repository: ghcr.io/jjgadgets/opencode
-              tag: 1.18.29@sha256:b7d1de7cbce96c06f9399260fa51c926aa780162c6ed7b82ce4962acad82f9f3
+              tag: 1.18.30@sha256:2b6950f2a594bf4eafe1904113ebd76f0e035ed38d06c8100cf9843aca6cacc0
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env:
               <<: *env
