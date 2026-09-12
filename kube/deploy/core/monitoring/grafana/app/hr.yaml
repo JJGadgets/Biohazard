@@ -187,6 +187,14 @@ spec:
             editable: true
             options:
               path: /var/lib/grafana/dashboard/windows
+          - name: llm
+            orgId: 1
+            folder: LLM
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboard/llm
     dashboards:
       default:
         cloudflared:
@@ -366,10 +374,21 @@ spec:
           gnetId: 16523
           revision: 1
           datasource: *DSP
-        windows-node-jakub-pinkas:
-          gnetId:
-          revision: 3
-          datasource: Prometheus
+        # windows-node-jakub-pinkas:
+        #   gnetId:
+        #   revision: 3
+        #   datasource: Prometheus
+      llm:
+        vllm-grafana-net:
+          gnetId: 24756
+          revision: 1
+          datasource: *DSP
+        vllm-performance:
+          url: https://raw.githubusercontent.com/vllm-project/vllm/8d2cff8140eb2c5f6a7b28948c0944d11898d9d2/examples/observability/dashboards/grafana/performance_statistics.json
+          datasource: *DSP
+        vllm-query:
+          url: https://raw.githubusercontent.com/vllm-project/vllm/8d2cff8140eb2c5f6a7b28948c0944d11898d9d2/examples/observability/dashboards/grafana/query_statistics.json
+          datasource: *DSP
     sidecar:
       dashboards:
         enabled: true
