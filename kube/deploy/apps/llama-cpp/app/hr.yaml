@@ -416,7 +416,7 @@ spec:
               <<: [ *env, *qwen3-embedding-model, *qwen3-embedding-env ]
               # llama.cpp config
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 4
+              LLAMA_ARG_N_PARALLEL: 32
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
                 # resourceFieldRef:
