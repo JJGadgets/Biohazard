@@ -159,8 +159,8 @@ spec:
           LLAMA_ARG_ALIAS: &alias rerank
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
           LLAMA_ARG_CTX_SIZE: 32768
-          LLAMA_ARG_BATCH: 4096
-          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_BATCH: 8192
+          LLAMA_ARG_UBATCH: 8192
       gpt-oss-20b:
         model: &gpt-oss-20b-model
           HF_MODEL: ggml-org/gpt-oss-20b-GGUF
