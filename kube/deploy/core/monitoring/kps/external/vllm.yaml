@@ -1,0 +1,18 @@
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: vllm-sinon
+  namespace: monitoring
+spec:
+  scrapeInterval: 1m
+  scrapeTimeout: 5s
+  staticConfigs:
+    - targets:
+        - &sinon "sinon.jj.dhcp.internal:8000" # external Sinon node running LLM
+  metricsPath: "/metrics"
+  relabelings:
+    - sourceLabels: ["__address__"]
+      targetLabel: "instance"
+      regex: *sinon
+      replacement: "sinon:8000"
