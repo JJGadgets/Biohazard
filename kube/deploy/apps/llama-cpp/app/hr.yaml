@@ -122,8 +122,8 @@ spec:
           LLAMA_ARG_MIN_P: "0.0"
           LLAMA_ARG_BATCH: 4096
           LLAMA_ARG_UBATCH: 512
-          LLAMA_ARG_PRESENCE_PENALTY: "0.0"
-          LLAMA_ARG_REPEAT_PENALTY: "1.0"
+          LLAMA_ARG_PRESENCE_PENALTY: "0.5"
+          LLAMA_ARG_REPEAT_PENALTY: "1.03"
           # Qwen 3.6 Preserve Thinking
           LLAMA_CHAT_TEMPLATE_KWARGS: '{"enable_thinking":true,"preserve_thinking":true}'
           # Cache quants
@@ -144,14 +144,23 @@ spec:
           HF_FILE: Qwen3-Embedding-0.6B-Q8_0.gguf
         env: &qwen3-embedding-env
           # Model Params
-          LLAMA_ARG_ALIAS: &alias embeddinggemma
+          LLAMA_ARG_ALIAS: &alias embedding
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
           LLAMA_ARG_CTX_SIZE: 32768
           LLAMA_ARG_BATCH: 4096
           LLAMA_ARG_UBATCH: 2048
-          # Cache quants / VRAM fitting
-          LLAMA_ARG_CACHE_TYPE_K: q8_0
-          LLAMA_ARG_CACHE_TYPE_V: q8_0
+      qwen3-rerank:
+        model: &qwen3-rerank-model
+          HF_MODEL: ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF
+          HF_HASH: a02f48bb4f057028298c21fa033da2b30d7742d5
+          HF_FILE: qwen3-reranker-0.6b-q8_0.gguf
+        env: &qwen3-rerank-env
+          # Model Params
+          LLAMA_ARG_ALIAS: &alias rerank
+          LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
+          LLAMA_ARG_CTX_SIZE: 32768
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
       gpt-oss-20b:
         model: &gpt-oss-20b-model
           HF_MODEL: ggml-org/gpt-oss-20b-GGUF
@@ -219,7 +228,7 @@ spec:
       # gemma4-26b-a4b:
         # type: statefulset
         type: deployment
-        replicas: 1
+        replicas: 0
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
@@ -380,7 +389,7 @@ spec:
       #         HF_FILE: "$(AA_HF_MTP_FILE)"
       embedding:
         type: deployment
-        replicas: 1
+        replicas: 2
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
@@ -407,7 +416,7 @@ spec:
               <<: [ *env, *qwen3-embedding-model, *qwen3-embedding-env ]
               # llama.cpp config
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 2
+              LLAMA_ARG_N_PARALLEL: 4
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
                 # resourceFieldRef:
@@ -417,7 +426,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "2Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
@@ -429,6 +438,57 @@ spec:
             <<: *pull-ct
             env:
               <<: [ *pull-env, *qwen3-embedding-model ]
+      rerank:
+        type: deployment
+        replicas: 2
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            prom.home.arpa/kps: allow
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: "kubernetes.io/hostname"
+                        operator: NotIn
+                        values: [dorothy]
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/ggml-org/llama.cpp
+              tag: server-vulkan@sha256:d02976f3ab959dc5fef26a889a438c3da8f8db6713428db28e4d86d94ea62569
+            command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
+            args:
+            - --rerank
+            - --model
+            - "/models/$(HF_MODEL)/$(HF_FILE)"
+            env:
+              <<: [ *env, *qwen3-rerank-model, *qwen3-rerank-env ]
+              # llama.cpp config
+              # LLAMA_ARG_N_GPU_LAYERS: all
+              LLAMA_ARG_N_PARALLEL: 4
+              LLAMA_ARG_THREADS: 4
+              LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
+                # resourceFieldRef:
+                #   resource: limits.cpu
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+              limits:
+                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+            probes: *probes
+      pull-rerank:
+        type: job
+        pod:
+          labels:
+            egress.home.arpa/internet: allow
+        containers:
+          app:
+            <<: *pull-ct
+            env:
+              <<: [ *pull-env, *qwen3-rerank-model ]
       # lite:
       #   type: deployment
       #   replicas: 1
@@ -488,6 +548,9 @@ spec:
       embedding:
         <<: *ports
         controller: embedding
+      rerank:
+        <<: *ports
+        controller: rerank
     persistence:
       local:
         existingClaim: llama-cpp-local
@@ -510,6 +573,11 @@ spec:
               - subPath: models
                 path: /models
           pull-embedding: *misc
+          rerank: &misc
+            app:
+              - subPath: models
+                path: /models
+          pull-rerank: *misc
           # lite: *misc
           # pull-lite: *misc
       tmp:
@@ -582,3 +650,7 @@ spec:
         <<: *sm
         service:
           identifier: embedding
+      rerank:
+        <<: *sm
+        service:
+          identifier: rerank
