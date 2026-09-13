@@ -389,11 +389,13 @@ spec:
       #         HF_FILE: "$(AA_HF_MTP_FILE)"
       embedding:
         type: deployment
-        replicas: 2
+        replicas: 1
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app:
             image: &img
@@ -419,13 +421,15 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "4Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "5Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
         pod:
           labels:
             egress.home.arpa/internet: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app:
             <<: *pull-ct
@@ -433,11 +437,13 @@ spec:
               <<: [ *pull-env, *qwen3-embedding-model ]
       rerank:
         type: deployment
-        replicas: 2
+        replicas: 1
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app:
             image: &img
@@ -466,13 +472,15 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "4Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "5Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-rerank:
         type: job
         pod:
           labels:
             egress.home.arpa/internet: allow
+          nodeSelector:
+            kubernetes.io/hostname: dorothy
         containers:
           app:
             <<: *pull-ct
@@ -554,9 +562,9 @@ spec:
                 path: "/data/ik_llama/slot-save-path"
           pull: *local
           # pull-mtp: *local
-      misc:
-        existingClaim: llama-cpp-misc
-        advancedMounts:
+      # misc:
+      #   existingClaim: llama-cpp-misc
+      #   advancedMounts:
           embedding: &misc
             app:
               - subPath: models
