@@ -1,0 +1,155 @@
+---
+# yaml-language-server: $schema=https://flux.jank.ing/helmrelease/v2/github/eleboucher/memini/v0.7.28/charts/memini
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app memini
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *app
+  values:
+    controllers:
+      main:
+        type: deployment
+        replicas: 1
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            # authentik.home.arpa/oidc: allow
+            prom.home.arpa/kps: allow
+        containers:
+          main:
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              MEMINI_API_KEYS_FILE: /etc/memini/api-keys.yaml
+              MEMINI_BACKEND: sqlite
+              MEMINI_DEFAULT_NAMESPACE: default
+              MEMINI_EMBED_BASE_URL: http://llama-cpp-embedding.llama.cpp.svc.cluster.local/v1
+              MEMINI_EMBED_MODEL: embedding # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
+              MEMINI_EMBED_DIMS: "1024"
+              MEMINI_EMBED_QUERY_PREFIX: "Instruct: Given a user message, retrieve relevant past memories\nQuery: "
+              MEMINI_EMBED_MAX_CONCURRENCY: 32
+              MEMINI_RECALL_EMBED_TIMEOUT: 15s
+              MEMINI_WRITE_EMBED_TIMEOUT: 30s
+              MEMINI_WRITE_DEDUP_SCORE: "0.80"
+              MEMINI_WRITE_DEDUP_ACTION: coalesce
+              MEMINI_DEDUP_TIERS: episodic,semantic,procedural
+              MEMINI_DEDUP_SIMILARITY: 0.80
+              MEMINI_SHORT_TERM_CAP: 300
+              MEMINI_ASSESS_BATCH: "5"
+              # MEMINI_LLM_BASE_URL: http://litellm.llm:4000/v1
+              # MEMINI_LLM_MODEL: qwen3.8-flash-next
+              # MEMINI_LLM_MAX_TOKENS: "24576"
+              MEMINI_DISTILL_TIMEOUT: 600s
+              MEMINI_ASSESSED_SALIENCE_WEIGHT: "0.6"
+              MEMINI_REEMBED_ON_MODEL_CHANGE: true
+              MEMINI_RERANK: http://llama-cpp-rerank.llama-cpp.svc.cluster.local/v1
+              MEMINI_RERANK_MODEL: rerank
+              MEMINI_RERANK_MAX_CONCURRENCY: 2
+              MEMINI_RERANK_TIMEOUT: 45s
+              MEMINI_PROMOTE_MIN_ACCESS: "10"
+              MEMINI_DEMOTE_AFTER: 72h
+              MEMINI_RERANK_POOL: "5"
+              MEMINI_RERANK_MAX_DOC_CHARS: "4096"
+              MEMINI_TIMEOUT_MS: "55000"
+            envFrom: &envFrom
+              - secretRef:
+                  name: memini-secrets
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "25m"
+              limits:
+                cpu: "4"
+                memory: "250Mi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 0
+                  periodSeconds: 1
+                  failureThreshold: 3600
+      fsck:
+        enabled: true
+        cronjob:
+          schedule: "0 5 * * *"
+        containers:
+          fsck:
+            env:
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: memini
+                    key: MEMINI_API_KEY
+    route:
+      ui:
+        enabled: true
+        hostnames: ["${APP_DNS_MEMINI:=memini}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      data:
+        existingClaim: memini-data
+      api-keys:
+        enabled: true
+        type: secret
+        name: memini-secrets
+        defaultMode: 0400
+    defaultPodOptions:
+      hostAliases:
+        - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
+          hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65532
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        controller: app
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: llama-cpp
+    serviceMonitor:
+      main:
+        enabled: true

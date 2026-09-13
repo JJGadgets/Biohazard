@@ -1,0 +1,39 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name memini-secrets
+  namespace: memini
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "memini - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        MEMINI_API_KEY: '{{ .MEMINI_API_KEY }}' # admin key
+        api-keys.yaml: |
+          keys:
+            - name: biohazard-opencode
+              secret: "{{ .MEMINI_KEY_BIOHAZARD_OPENCODE }}"
+              default_namespace: biohazard-opencode
+            - name: biohazard-pi
+              secret: "{{ .MEMINI_KEY_BIOHAZARD_PI }}"
+              default_namespace: biohazard-pi
+            - name: biohazard-openclaw
+              secret: "{{ .MEMINI_KEY_BIOHAZARD_OPENCLAW }}"
+              default_namespace: biohazard-openclaw
+            - name: biohazard-hermes
+              secret: "{{ .MEMINI_KEY_BIOHAZARD_HERMES }}"
+              default_namespace: biohazard-hermes
+            - name: biohazard
+              secret: "{{ .MEMINI_KEY_BIOHAZARD }}"
+              default_namespace: biohazard

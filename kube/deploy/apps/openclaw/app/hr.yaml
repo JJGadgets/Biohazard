@@ -218,6 +218,9 @@ spec:
                       kubernetes.io/metadata.name: llama-cpp
                 - namespaceSelector:
                     matchLabels:
+                      kubernetes.io/metadata.name: memini
+                - namespaceSelector:
+                    matchLabels:
                       kubernetes.io/metadata.name: searxng
                 - namespaceSelector:
                     matchLabels:
