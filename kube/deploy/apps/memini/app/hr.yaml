@@ -21,6 +21,12 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             # authentik.home.arpa/oidc: allow
             prom.home.arpa/kps: allow
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: &uid 65532
+            runAsGroup: *uid
+            fsGroup: *uid
+            fsGroupChangePolicy: Always
         containers:
           main:
             env: &env
@@ -89,6 +95,13 @@ spec:
         enabled: true
         cronjob:
           schedule: "0 5 * * *"
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: &uid 65532
+            runAsGroup: *uid
+            fsGroup: *uid
+            fsGroupChangePolicy: Always
         containers:
           fsck:
             env:
@@ -128,7 +141,6 @@ spec:
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
-        seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
