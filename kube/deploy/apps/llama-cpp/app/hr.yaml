@@ -641,6 +641,9 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: openclaw
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: memini
     serviceMonitor:
       app: &sm
         service:
