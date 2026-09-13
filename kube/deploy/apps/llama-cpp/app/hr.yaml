@@ -394,14 +394,6 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: "kubernetes.io/hostname"
-                        operator: NotIn
-                        values: [dorothy]
         containers:
           app:
             image: &img
@@ -446,14 +438,6 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             prom.home.arpa/kps: allow
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: "kubernetes.io/hostname"
-                        operator: NotIn
-                        values: [dorothy]
         containers:
           app:
             image: &img
