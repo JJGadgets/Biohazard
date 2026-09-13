@@ -137,8 +137,8 @@ spec:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
     networkpolicies:
-      same-ns:
-        controller: app
+      app:
+        podSelector: {}
         policyTypes: [Ingress, Egress]
         rules:
           ingress:
