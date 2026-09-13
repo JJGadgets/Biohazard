@@ -35,7 +35,7 @@ spec:
               MEMINI_API_KEYS_FILE: /etc/memini/api-keys.yaml
               MEMINI_BACKEND: sqlite
               MEMINI_DEFAULT_NAMESPACE: default
-              MEMINI_EMBED_BASE_URL: http://llama-cpp-embedding.llama.cpp.svc.cluster.local/v1
+              MEMINI_EMBED_BASE_URL: http://llama-cpp-embedding.llama-cpp.svc.cluster.local/v1
               MEMINI_EMBED_MODEL: embedding # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
               MEMINI_EMBED_DIMS: "1024"
               MEMINI_EMBED_QUERY_PREFIX: "Instruct: Given a user message, retrieve relevant past memories\nQuery: "
