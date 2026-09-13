@@ -426,7 +426,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "4Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
@@ -460,7 +460,10 @@ spec:
               tag: server-vulkan@sha256:d02976f3ab959dc5fef26a889a438c3da8f8db6713428db28e4d86d94ea62569
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args:
-            - --rerank
+            - --embedding
+            - --reranking
+            - --pooling
+            - rank
             - --model
             - "/models/$(HF_MODEL)/$(HF_FILE)"
             env:
@@ -477,7 +480,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "3Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "4Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-rerank:
         type: job
