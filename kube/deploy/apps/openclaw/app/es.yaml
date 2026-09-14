@@ -12,6 +12,8 @@ spec:
   dataFrom:
     - extract:
         key: "OpenClaw - ${CLUSTER_NAME}"
+    - extract:
+        key: "memini - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
