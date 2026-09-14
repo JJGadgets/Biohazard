@@ -21,13 +21,6 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             # authentik.home.arpa/oidc: allow
             prom.home.arpa/kps: allow
-          securityContext: &psc
-            runAsNonRoot: true
-            runAsUser: &uid 65532
-            runAsGroup: *uid
-            fsGroup: *uid
-            fsGroupChangePolicy: Always
-            seccompProfile: { type: "RuntimeDefault" }
         containers:
           main:
             env: &env
@@ -96,8 +89,6 @@ spec:
         enabled: true
         cronjob:
           schedule: "0 5 * * *"
-        pod:
-          securityContext: *psc
         containers:
           fsck:
             env:
@@ -130,8 +121,14 @@ spec:
         options:
           - name: ndots
             value: "1"
-      runtimeClassName: gvisor
-      securityContext: *psc
+      runtimeClassName: kata
+      securityContext: &psc
+        runAsNonRoot: true
+        runAsUser: &uid 65532
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
