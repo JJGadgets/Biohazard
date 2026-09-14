@@ -134,7 +134,7 @@ spec:
             targetPort: *http
             protocol: HTTP
             appProtocol: http
-          https-cilium:
+          https-cilium: # TLS terminated by Cilium L7 netpols via Cilium Envoy; used to preserve TLS for connections from in-cluster without allowing access to whole reverse proxy
             <<: *port
             port: 443
     route:
