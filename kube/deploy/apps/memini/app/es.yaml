@@ -19,7 +19,7 @@ spec:
     template:
       type: Opaque
       data:
-        MEMINI_API_KEY: '{{ .MEMINI_API_KEY }}' # admin key
+        MEMINI_API_KEY: '{{ .password }}' # admin key
         api-keys.yaml: |
           keys:
             - name: biohazard-opencode
