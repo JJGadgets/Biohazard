@@ -129,11 +129,14 @@ spec:
         annotations:
           lbipam.cilium.io/ips: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
         ports:
-          http:
+          http: &port
             port: 80
             targetPort: *http
             protocol: HTTP
             appProtocol: http
+          https-cilium:
+            <<: *port
+            port: 443
     route:
       app: # to use an account domain that differs from your Matrix server domain, add a 301 from https://domain.tld/.well-known/matrix/* to https://continuwuity.domain.tld/.well-known/matrix/* and preserve path suffix (the wildcard part), e.g. https://github.com/JJGadgets/jjgadgets.tech/blob/dcbaa6d9e884953fe8e97505cce2b8bfce53a312/static/_redirects#L2
         annotations:
