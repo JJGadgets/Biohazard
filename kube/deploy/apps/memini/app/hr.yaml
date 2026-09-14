@@ -95,8 +95,10 @@ spec:
               MEMINI_API_KEY:
                 valueFrom:
                   secretKeyRef:
-                    name: memini
+                    name: memini-secrets
                     key: MEMINI_API_KEY
+            envFrom: *envFrom
+            securityContext: *sc
     route:
       ui:
         enabled: true
