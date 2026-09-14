@@ -56,6 +56,11 @@ spec:
               ANDROID_HOME: "$(AAA_HOME)/.android-sdk"
               ANDROID_SDK_ROOT: "$(AAA_HOME)/.android-sdk"
               ANDROID_USER_HOME: "$(AAA_HOME)/.android-sdk"
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: openclaw-secrets
+                    key: MEMINI_KEY_BIOHAZARD_OPENCLAW
             envFrom: &envFrom
               - secretRef:
                   name: openclaw-secrets
@@ -83,6 +88,11 @@ spec:
             env:
               <<: *env
               HTTP_PORT: &opencode-http 8081
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: openclaw-secrets
+                    key: MEMINI_KEY_BIOHAZARD_OPENCODE
             envFrom: *envFrom
             workingDir: *pvc
             securityContext: *sc
