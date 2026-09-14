@@ -421,7 +421,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "5Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "7Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
