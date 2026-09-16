@@ -30,7 +30,7 @@ on:
       #   description: Managers that Renovate should use. Comma separated without spaces for multiple.
       #   required: false
   schedule:
-    - cron: "0 * * * *" # every hour
+    - cron: "23 * * * *" # every hour
   push:
     branches: ["main"]
     paths:
