@@ -50,7 +50,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "4"
+                # cpu: "4"
                 memory: "200Mi"
             ports:
               - name: http
@@ -61,7 +61,22 @@ spec:
                 type: HTTP
                 port: http
                 path: /api/health-check
-              readiness: *probe
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 6
+              readiness:
+                <<: *probe
+                spec:
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              startup:
+                <<: *probe
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 10
     service:
       app:
         controller: app
