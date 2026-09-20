@@ -57,6 +57,7 @@ spec:
               ANDROID_HOME: "$(AAA_HOME)/.android-sdk"
               ANDROID_SDK_ROOT: "$(AAA_HOME)/.android-sdk"
               ANDROID_USER_HOME: "$(AAA_HOME)/.android-sdk"
+              OPENCLAW_FS_SAFE_NATIVE_MODE: "off" # 2026.9.5 uses openat2 which isn't supported on gvisor, this falls back to NodeJS exclusive `wx` file creation for lock files
               MEMINI_API_KEY:
                 valueFrom:
                   secretKeyRef:
