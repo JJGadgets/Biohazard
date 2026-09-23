@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: public.ecr.aws/docker/library/caddy
-              tag: 2.11.2-alpine@sha256:fce4f15aad23222c0ac78a1220adf63bae7b94355d5ea28eee53910624acedfa
+              tag: 2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
             env: &env
               TZ: "${CONFIG_TZ}"
             securityContext: &sc
