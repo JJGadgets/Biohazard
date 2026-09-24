@@ -31,6 +31,7 @@ spec:
               BROWSER_REMOTE_HOST: sit-ics-go-chromium.sit-ics-go.svc.cluster.local
               BROWSER_REMOTE_PORT: &cport 9222
               XSITE_ENABLED: true
+              XSITE_QUIZ_ATTEMPT_TRACKING_ENABLED: true
               SERVER_TRUSTED_PROXIES: "${IP_POD_CIDR_INGRESS_V4:=127.0.0.1/32}"
             envFrom: &envFrom
               - secretRef:
