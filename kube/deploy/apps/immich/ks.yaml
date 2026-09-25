@@ -48,7 +48,7 @@ spec:
       SNAP: *sc
       ACCESSMODE: "ReadWriteMany"
       SNAP_ACCESSMODE: "ReadOnlyMany"
-      VS_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5"
+      VS_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v3.2.2@sha256:79cc1623323d5894922686d8743b4780181428f98eecbfb58ce12c41ef02d1ea"
       RUID: !!str &uid |
         ${APP_UID_IMMICH}
       RGID: !!str |
@@ -95,7 +95,7 @@ spec:
       PG_NAME: "home"
       PG_DB_USER: &app "immich"
       PG_APP_NS: *app
-      PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5"
+      PG_APP_CURRENT_VERSION: "ghcr.io/immich-app/immich-server:v3.2.2@sha256:79cc1623323d5894922686d8743b4780181428f98eecbfb58ce12c41ef02d1ea"
   patches:
     - target:
         group: postgresql.cnpg.io
