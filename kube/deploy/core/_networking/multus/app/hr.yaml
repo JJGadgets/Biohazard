@@ -25,7 +25,7 @@ spec:
           01-install-cni-plugins: # NOTE: only required for CNI plugins not in base Talos image, basically anything not bridge, e.g. macvlan, sbr, as well as IPAM plugins (dhcp, static etc) (https://github.com/siderolabs/talos/discussions/10524#discussioncomment-12492587)
             image:
               repository: ghcr.io/home-operations/cni-plugins
-              tag: 1.9.1@sha256:56222d9cf686632f0951103a400adeeec8d982aaf8cbf4d21588da17a41dd228
+              tag: 1.9.1@sha256:e17cc64a81579a163646425d25d2e48065cfb0dc449d2de447b1fd29e9c2ca0f
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
