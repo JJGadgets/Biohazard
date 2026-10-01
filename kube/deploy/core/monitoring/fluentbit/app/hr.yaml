@@ -26,7 +26,7 @@ spec:
           app: &ct
             image: &img
               repository: cr.fluentbit.io/fluent/fluent-bit
-              tag: 4.2.4@sha256:f0d24db349929c1b9fd655384278c687993070c3ba325490f130fae12aa9d60c
+              tag: 5.1.3@sha256:c5542543523c9678398dd78d927c05e8425ec15b038f226b67b3b019b1a70845
             args: ["--config=/config/kubernetes.yaml"]
             env: &env
               TZ: "${CONFIG_TZ}"
