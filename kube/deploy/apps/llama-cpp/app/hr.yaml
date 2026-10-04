@@ -472,7 +472,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "8Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "10Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-rerank:
         type: job
