@@ -12,6 +12,7 @@ spec:
     name: *app
     namespace: *app
   values:
+    clusterDomain: "cluster.local"
     controllers:
       main:
         type: deployment
@@ -35,24 +36,25 @@ spec:
               MEMINI_EMBED_MAX_CONCURRENCY: 32
               MEMINI_RECALL_EMBED_TIMEOUT: 15s
               MEMINI_WRITE_EMBED_TIMEOUT: 30s
-              MEMINI_WRITE_DEDUP_SCORE: "0.80"
+              MEMINI_WRITE_DEDUP_SCORE: "0.90"
               MEMINI_WRITE_DEDUP_ACTION: coalesce
               MEMINI_DEDUP_TIERS: episodic,semantic,procedural
               MEMINI_DEDUP_SIMILARITY: 0.80
               MEMINI_SHORT_TERM_CAP: 300
               MEMINI_ASSESS_BATCH: "5"
-              # MEMINI_LLM_BASE_URL: http://litellm.llm:4000/v1
-              # MEMINI_LLM_MODEL: qwen3.8-flash-next
-              # MEMINI_LLM_MAX_TOKENS: "24576"
+              MEMINI_LLM_BASE_URL: http://sinon.jj.dhcp.internal:8080/v1
+              MEMINI_LLM_MODEL: qwen3.6-35b-a3b
+              MEMINI_LLM_MAX_TOKENS: "65536"
               MEMINI_DISTILL_TIMEOUT: 600s
+              MEMINI_DISTILL_WRITE_FALSE: false
               MEMINI_ASSESSED_SALIENCE_WEIGHT: "0.6"
               MEMINI_REEMBED_ON_MODEL_CHANGE: true
               MEMINI_RERANK: http://llama-cpp-rerank.llama-cpp.svc.cluster.local/v1
               MEMINI_RERANK_MODEL: rerank
               MEMINI_RERANK_MAX_CONCURRENCY: 2
               MEMINI_RERANK_TIMEOUT: 45s
-              MEMINI_PROMOTE_MIN_ACCESS: "10"
-              MEMINI_DEMOTE_AFTER: 72h
+              MEMINI_PROMOTE_MIN_ACCESS: "3"
+              # MEMINI_DEMOTE_AFTER: 72h
               MEMINI_RERANK_POOL: "5"
               MEMINI_RERANK_MAX_DOC_CHARS: "4096"
               MEMINI_TIMEOUT_MS: "55000"
