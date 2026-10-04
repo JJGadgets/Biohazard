@@ -158,9 +158,9 @@ spec:
           # Model Params
           LLAMA_ARG_ALIAS: &alias rerank
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
-          LLAMA_ARG_CTX_SIZE: 32768
-          LLAMA_ARG_BATCH: 8192
-          LLAMA_ARG_UBATCH: 8192
+          LLAMA_ARG_CTX_SIZE: 8192
+          LLAMA_ARG_BATCH: 4096
+          LLAMA_ARG_UBATCH: 2048
       gpt-oss-20b:
         model: &gpt-oss-20b-model
           HF_MODEL: ggml-org/gpt-oss-20b-GGUF
@@ -461,7 +461,7 @@ spec:
               <<: [ *env, *qwen3-rerank-model, *qwen3-rerank-env ]
               # llama.cpp config
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 4
+              LLAMA_ARG_N_PARALLEL: 2
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_LOAD_MODE: mmap
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
@@ -472,7 +472,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "10Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "8Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-rerank:
         type: job
