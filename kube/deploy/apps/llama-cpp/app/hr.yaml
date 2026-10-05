@@ -147,8 +147,8 @@ spec:
           LLAMA_ARG_ALIAS: &alias embedding
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
           LLAMA_ARG_CTX_SIZE: 32768
-          LLAMA_ARG_BATCH: 8192
-          LLAMA_ARG_UBATCH: 4096
+          LLAMA_ARG_BATCH: 6144
+          LLAMA_ARG_UBATCH: 3072
       qwen3-rerank:
         model: &qwen3-rerank-model
           HF_MODEL: ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF
@@ -421,7 +421,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                memory: "8Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
+                memory: "10Gi" # remember to limit cache RAM and context checkpoints to keep RAM low
             probes: *probes
       pull-embedding:
         type: job
