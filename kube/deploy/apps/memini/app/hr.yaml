@@ -22,6 +22,7 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             # authentik.home.arpa/oidc: allow
             prom.home.arpa/kps: allow
+            dns.home.arpa/l7: "true"
         containers:
           main:
             env: &env
