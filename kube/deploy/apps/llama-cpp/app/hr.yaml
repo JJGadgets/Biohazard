@@ -147,8 +147,8 @@ spec:
           LLAMA_ARG_ALIAS: &alias embedding
           LLAMA_ARG_MODEL_ALIAS: "$(LLAMA_ARG_ALIAS)"
           LLAMA_ARG_CTX_SIZE: 32768
-          LLAMA_ARG_BATCH: 4096
-          LLAMA_ARG_UBATCH: 2048
+          LLAMA_ARG_BATCH: 8192
+          LLAMA_ARG_UBATCH: 4096
       qwen3-rerank:
         model: &qwen3-rerank-model
           HF_MODEL: ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF
@@ -410,7 +410,7 @@ spec:
               <<: [ *env, *qwen3-embedding-model, *qwen3-embedding-env ]
               # llama.cpp config
               # LLAMA_ARG_N_GPU_LAYERS: all
-              LLAMA_ARG_N_PARALLEL: 32
+              LLAMA_ARG_N_PARALLEL: 8
               LLAMA_ARG_THREADS: 4
               LLAMA_ARG_LOAD_MODE: mmap
               LLAMA_ARG_MMAP: enabled # enable when using CPU/iGPU, supposedly disable when using only eGPU?
