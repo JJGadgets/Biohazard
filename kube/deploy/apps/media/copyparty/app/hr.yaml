@@ -24,7 +24,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/9001/copyparty-dj
-              tag: 1.20.25@sha256:ea770d039d84679ff0bb6250e29a9b867c1ecfc3038ecea4d8388d68ae974b1e
+              tag: 1.20.25@sha256:d298fbb97257492ab8cc80972afa5dc36bd970f9f1a61e14768268e178a344f5
             args: ["--rproxy=1", "--xff-src=${IP_POD_CIDR_INGRESS_V4}", "--no-robots", "--hist=/cfg/hists", "-v=/w::A"]
             env: &env
               TZ: "${CONFIG_TZ}"
