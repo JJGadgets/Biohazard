@@ -106,7 +106,7 @@ spec:
             image:
               repository: ghcr.io/qwenlm/qwen-code
               tag: 0.25.2@sha256:775a0baabd057fa867d2973662b24d35563ce454f45001fca2a6137e5d5ea7ef
-            command: ["qwen", "serve", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)"]
+            command: ["/usr/local/share/npm-global/bin/qwen", "serve", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)"]
             env:
               <<: *env
               HTTP_PORT: &qwen-http 8083
