@@ -42,6 +42,7 @@ spec:
     substitute:
       PVC: &pvc "openclaw-data"
       SIZE: "15Gi"
+      CACHESIZE: "5Gi"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
