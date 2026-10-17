@@ -27,3 +27,30 @@ spec:
         MEMINI_KEY_BIOHAZARD_OPENCLAW: '{{ .MEMINI_KEY_BIOHAZARD_OPENCLAW }}'
         MEMINI_KEY_BIOHAZARD_OPENCODE: '{{ .MEMINI_KEY_BIOHAZARD_OPENCODE }}'
         OPENCODE_NTFY_PASSWORD: '{{ .OPENCODE_NTFY_PASSWORD }}'
+---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: &name qwen-code-secrets
+  namespace: openclaw
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "Qwen Code - ${CLUSTER_NAME}"
+    # - extract:
+    #     key: "memini - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: *name
+    template:
+      type: Opaque
+      data:
+        QWEN_SERVER_TOKEN: '{{ .password }}'
+        # MEMINI_KEY_BIOHAZARD_OPENCLAW: '{{ .MEMINI_KEY_BIOHAZARD_OPENCLAW }}'
+        # MEMINI_KEY_BIOHAZARD_OPENCODE: '{{ .MEMINI_KEY_BIOHAZARD_OPENCODE }}'
+        # OPENCODE_NTFY_PASSWORD: '{{ .OPENCODE_NTFY_PASSWORD }}'
