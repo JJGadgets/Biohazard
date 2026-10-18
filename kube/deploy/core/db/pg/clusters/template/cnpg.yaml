@@ -25,6 +25,9 @@ spec:
   walStorage:
     size: "${PG_CONFIG_SIZE_WAL:=20Gi}"
     storageClass: "${PG_SC:=local-xfs}"
+  backup:
+    volumeSnapshot:
+      className: "${PG_SC:=local-xfs}"
   # superuserSecret:
   #   name: pg-default-superuser
   postgresql:
