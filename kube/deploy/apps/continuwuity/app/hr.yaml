@@ -115,8 +115,8 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "4"
-                memory: "512Mi"
+                # cpu: "4"
+                memory: "1Gi"
             probes:
               liveness:
                 enabled: true
