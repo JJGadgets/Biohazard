@@ -54,3 +54,9 @@ spec:
         - matchPattern: "wheels.home-assistant.io"
         # HASS Mobile App Push Notifications
         - matchName: "mobile-apps.home-assistant.io"
+    - toCIDRSet:
+        - cidr: "${IP_HUAWEI_E3372:=127.0.0.1}/32" # Huawei LTE
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
