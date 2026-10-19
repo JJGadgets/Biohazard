@@ -37,3 +37,14 @@ spec:
         - matchPattern: "*.duckduckgo.com"
         - matchName: "sinon.internal"
         - matchName: "silverhawk.internal"
+    - toNodes:
+        - matchLabels:
+            kubernetes.io/hostname: sinon
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
