@@ -65,6 +65,10 @@ spec:
               CONTINUWUITY_QUERY_OVER_TCP_ONLY: "true" # Query DNS over TCP only: recommended in containers
               CONTINUWUITY_IP_LOOKUP_STRATEGY: "1" # Remove when IPv6 networking is added to my cluster
               CONTINUWUITY_DNS_TIMEOUT: "60" # Alex has a dynamic DNS which causes issues with old cache entries
+              # Prometheus metrics
+              CONTINUWUITY_ALLOW_PROMETHEUS_METRICS: "true"
+
+
               # HIGHLY RECOMMENDED but OPTIONAL
               # anti Matrix Synapse, we're only interested in Matrix the protocol amongst our community
               # NOTE: this will block joining *spaces* from homeservers that have matrix.org users federated
@@ -77,6 +81,8 @@ spec:
                 ["matrix.org"]
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST: false # NOTE: this is because continuwuity only supports Synapse as trusted key servers
               CONDUWUIT_QUERY_TRUSTED_KEY_SERVERS_FIRST_ON_JOIN: false
+
+
               # ======================================================================
               # BELOW IS NOT REQUIRED FOR ANYBODY YOINKING MY CONFIG
               # these are settings specific to my environment and risk appetite
@@ -138,7 +144,7 @@ spec:
             <<: *port
             port: 443
     route:
-      app: # to use an account domain that differs from your Matrix server domain, add a 301 from https://domain.tld/.well-known/matrix/* to https://continuwuity.domain.tld/.well-known/matrix/* and preserve path suffix (the wildcard part), e.g. https://github.com/JJGadgets/jjgadgets.tech/blob/dcbaa6d9e884953fe8e97505cce2b8bfce53a312/static/_redirects#L2
+      app: &httproute # to use an account domain that differs from your Matrix server domain, add a 301 from https://domain.tld/.well-known/matrix/* to https://continuwuity.domain.tld/.well-known/matrix/* and preserve path suffix (the wildcard part), e.g. https://github.com/JJGadgets/jjgadgets.tech/blob/dcbaa6d9e884953fe8e97505cce2b8bfce53a312/static/_redirects#L2
         annotations:
           external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -150,6 +156,28 @@ spec:
           - name: envoy-external
             namespace: ingress
             sectionName: public
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
+      metrics-block:
+        <<: *httproute
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /_continuwuity/metrics
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  statusCode: 301
+                  path:
+                    type: ReplaceFullPath
+                    replaceFullPath: "/"
     persistence:
       data: # Ceph 3 replicas, a normal pool size
         existingClaim: continuwuity-data
@@ -227,3 +255,13 @@ spec:
                       kubernetes.io/metadata.name: openclaw
           egress:
             - to: [*netpol-uwu]
+    serviceMonitor:
+      app:
+        service:
+          identifier: app
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /_continuwuity/metrics
+            interval: 1m
+            scrapeTimeout: 30s
