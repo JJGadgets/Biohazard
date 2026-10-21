@@ -400,7 +400,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-vulkan@sha256:5a23ea3de52d4004f21f929f7365b97df03db12b946117eeed214337379994a8
+              tag: server-vulkan@sha256:57350ca6eb16ea4470e784499290e703e5ca92219d63b14232ddd0e1556b0856
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args:
             - --embedding
@@ -448,7 +448,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/ggml-org/llama.cpp
-              tag: server-vulkan@sha256:5a23ea3de52d4004f21f929f7365b97df03db12b946117eeed214337379994a8
+              tag: server-vulkan@sha256:57350ca6eb16ea4470e784499290e703e5ca92219d63b14232ddd0e1556b0856
             command: ["taskset", "-c", "0,2,4,6", "/app/llama-server"]
             args:
             - --embedding
