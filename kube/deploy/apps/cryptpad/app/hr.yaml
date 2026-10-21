@@ -113,9 +113,9 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-          - name: envoy-external
-            namespace: ingress
-            sectionName: external
+          # - name: envoy-external # TODO: https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
+          #   namespace: ingress
+          #   sectionName: external
         rules:
           - matches:
               - path:

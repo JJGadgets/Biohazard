@@ -80,9 +80,9 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-          - name: envoy-external
-            namespace: ingress
-            sectionName: public
+          # - name: envoy-external
+          #   namespace: ingress
+          #   sectionName: public
     persistence:
       data:
         existingClaim: out-of-your-element-data
