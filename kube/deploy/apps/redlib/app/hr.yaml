@@ -61,7 +61,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                cpu: "4"
                 memory: "256Mi"
             probes:
               liveness:
@@ -96,6 +96,7 @@ spec:
         options:
           - name: ndots
             value: "1"
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid ${APP_UID_REDLIB:=1000}
