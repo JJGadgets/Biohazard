@@ -14,6 +14,29 @@ The model cache and chat-template PVC use `local-hostpath` and are first
 consumed by workloads pinned to `kubernetes.io/hostname=sinon`. The serving
 pod mounts both staged artifacts read-only.
 
+## Metrics
+
+Prometheus discovery is configured for all three LLMKube metric sources:
+
+- The chart-managed `ServiceMonitor` scrapes controller-manager/operator
+  metrics from the internal metrics Service on port 8443.
+- The namespace-scoped `PodMonitor/llmkube-inference` scrapes each LLMKube
+  inference runtime's `/metrics` endpoint on its `http` port. For llama.cpp,
+  this includes the Prometheus metrics such as prompt/generation tokens,
+  throughput, in-flight requests, and deferred requests.
+- The namespace-scoped `PodMonitor/llmkube-router` scrapes router-proxy
+  metrics on its dedicated `metrics` port (9090), including model-pool
+  residency, swap, and request-hold metrics.
+
+The monitors are labeled `prometheus: kps` for the cluster's KPS instance and
+scrape every 60 seconds to match the Prometheus configuration. The inference
+and router PodMonitors deliberately match only pods in namespace `llmkube`,
+rather than using the upstream chart's any-namespace selector. The controller
+metrics Service uses HTTP on its internal ClusterIP; Cilium permits port 8443
+only from the Prometheus pods in namespace `monitoring`. Runtime and router
+metrics ports are likewise allowed only to the Prometheus pods, while the
+existing router-to-runtime serving path remains unchanged.
+
 ## Adding another swappable model
 
 Add a `Model` and `InferenceService`, include the service in the
@@ -38,9 +61,10 @@ held while the incumbent drains and the requested model loads, up to
   runs as UID 0 with `CHOWN` and `FOWNER`. This is incompatible with Pod
   Security Admission's `restricted` enforcement. To keep operator-managed
   prefetch functional, this namespace enforces `baseline` and retains
-  `restricted` audit/warn labels. The app-owned controller retains explicit hardening, and Cilium policies isolate model
-  downloads from serving workloads. The generated prefetch init is not gVisor
-  isolated until upstream exposes a runtime-class override.
+  `restricted` audit/warn labels. The app-owned controller retains explicit
+  hardening, and Cilium policies isolate model downloads from serving workloads.
+  The generated prefetch init is not gVisor isolated until upstream exposes a
+  runtime-class override.
 - The app-owned controller uses the configured UID and gVisor. Both operator-
   generated model-prefetch jobs currently use the upstream downloader image and
   security settings because LLMKube does not expose per-prefetch UID or runtime
