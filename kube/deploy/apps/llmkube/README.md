@@ -87,4 +87,6 @@ held while the incumbent drains and the requested model loads, up to
   it requires NVIDIA device passthrough.
 
 The router remains an internal ClusterIP service; no external route or
-authentication policy is created here.
+authentication policy is created here. Client Pods must be explicitly opted in
+with the label `ai.internal/llmkube=allow`; without that label Cilium denies
+access to the router API.
