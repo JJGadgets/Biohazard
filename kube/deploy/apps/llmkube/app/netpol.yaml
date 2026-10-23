@@ -99,8 +99,8 @@ spec:
               protocol: TCP
 ---
 # LLMKube v0.10.6+ runs prefetch in a separate Job, labeled
-# app.kubernetes.io/component=model-prefetch. The same selector also covers
-# the app-owned chat-template download Job.
+# app.kubernetes.io/component=model-prefetch. Both the Qwen and chat-template
+# downloads are staged by these operator-managed jobs.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
