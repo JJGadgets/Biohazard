@@ -20,8 +20,7 @@ spec:
         - ports:
             - port: "8081"
               protocol: TCP
-    # The controller metrics endpoint uses HTTP on a ClusterIP Service;
-    # only the in-cluster Prometheus scraper may read it.
+    # Operator metrics are only readable by the KPS Prometheus pods.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
@@ -31,24 +30,8 @@ spec:
             - port: "8443"
               protocol: TCP
   egress:
-    - toEntities:
-        - kube-apiserver
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
-            - port: "6443"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
+    # kube-apiserver access is granted by the shared labelled-egress policy;
+    # the Helm post-renderer adds egress.home.arpa/apiserver=allow to this pod.
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
@@ -69,14 +52,19 @@ spec:
       io.kubernetes.pod.namespace: llmkube
       inference.llmkube.dev/model-router: llmkube-router
   ingress:
-    # Model API ingress is cluster-internal; the router Service is not exposed.
-    - fromEntities:
-        - cluster
+    # Explicit opt-in: only callers labeled ai.internal/llmkube=allow may use
+    # the internal model API. This is not a cluster-wide allow.
+    - fromEndpoints:
+        - matchLabels:
+            ai.internal/llmkube: "allow"
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: "8080"
               protocol: TCP
-    # The operator reads swap-budget status from the proxy's admin listener.
+    # The controller reads the router's metrics/ModelPool state endpoint.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
@@ -87,7 +75,7 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
-    # Prometheus scrapes LLMKube router/model-pool metrics on this listener.
+    # Prometheus scrapes router and model-pool metrics.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
@@ -97,27 +85,19 @@ spec:
             - port: "9090"
               protocol: TCP
   egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
+    # The shared cluster DNS policy already allows DNS; no duplicate rule here.
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/service: qwen3.6-35b-a3b
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "8000"
               protocol: TCP
 ---
 # LLMKube v0.10.6+ stages models in operator-managed prefetch Jobs labeled
-# app.kubernetes.io/component=model-prefetch.
+# app.kubernetes.io/component=model-prefetch. DNS is L7-filtered to the HF
+# domains because this workload class is the only one allowed internet egress.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -135,7 +115,6 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
-    # DNS queries are filtered to the same Hugging Face host allowlist.
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
@@ -160,24 +139,27 @@ spec:
       io.kubernetes.pod.namespace: llmkube
       inference.llmkube.dev/service: qwen3.6-35b-a3b
   ingress:
-    # Client traffic reaches the inference runtime through the model router.
+    # Router requests are the only non-monitoring clients permitted. HTTP L7
+    # rules preserve the API paths the router forwards through this port.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/model-router: llmkube-router
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "8000"
               protocol: TCP
-    # Permit the Prometheus pods to fetch only the Prometheus exposition path;
-    # they cannot use this exception to send inference requests to the runtime.
+          rules:
+            http:
+              - path: "^/.*"
+    # Restrict the monitoring exception to GET /metrics.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
             prometheus: "kps"
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "8000"
               protocol: TCP
           rules:
             http:
