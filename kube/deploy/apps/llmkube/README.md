@@ -38,8 +38,7 @@ held while the incumbent drains and the requested model loads, up to
   runs as UID 0 with `CHOWN` and `FOWNER`. This is incompatible with Pod
   Security Admission's `restricted` enforcement. To keep operator-managed
   prefetch functional, this namespace enforces `baseline` and retains
-  `restricted` audit/warn labels. App-owned controller and chat-template
-  containers retain explicit hardening, and Cilium policies isolate model
+  `restricted` audit/warn labels. The app-owned controller retains explicit hardening, and Cilium policies isolate model
   downloads from serving workloads. The generated prefetch init is not gVisor
   isolated until upstream exposes a runtime-class override.
 - The app-owned controller uses the configured UID and gVisor. Both operator-
