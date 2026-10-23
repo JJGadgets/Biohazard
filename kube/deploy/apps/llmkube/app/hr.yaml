@@ -42,8 +42,23 @@ spec:
             - ALL
       nodeSelector:
         feature.node.kubernetes.io/baremetal: "true"
+    # The metrics service is HTTP only inside the cluster; Cilium restricts
+    # its ingress to the monitoring namespace's Prometheus pods.
     metrics:
-      enabled: false
+      enabled: true
+      secure: false
+      service:
+        type: ClusterIP
+        port: 8443
+    prometheus:
+      serviceMonitor:
+        enabled: true
+        interval: 60s
+        namespace: llmkube
+        additionalLabels:
+          prometheus: kps
+      # Inference and router PodMonitors are app-owned and namespace-scoped in
+      # monitoring.yaml instead of using the chart's any-namespace selectors.
     webhook:
       enabled: false
     networkPolicies:
