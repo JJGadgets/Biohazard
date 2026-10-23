@@ -52,8 +52,10 @@ spec:
   endpointSelector:
     matchExpressions:
       - {key: dns.home.arpa/l7, operator: NotIn, values: ["true"]}
-      # LLMKube prefetch pods have no user-configurable Pod labels. They get
-      # their own narrowly scoped DNS L7 policy in the llmkube namespace.
+      # Reserve this component value for restricted-download workloads: LLMKube
+      # prefetch pods have no user-configurable Pod labels, so they get their own
+      # narrowly scoped DNS L7 policy in the llmkube namespace. Any other workload
+      # using this component label must provide its own DNS egress policy.
       - {key: app.kubernetes.io/component, operator: NotIn, values: ["model-prefetch"]}
   egress:
     - toEndpoints:
