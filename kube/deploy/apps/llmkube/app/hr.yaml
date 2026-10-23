@@ -42,8 +42,8 @@ spec:
             - ALL
       nodeSelector:
         feature.node.kubernetes.io/baremetal: "true"
-    # The metrics service is HTTP only inside the cluster; Cilium restricts
-    # its ingress to the monitoring namespace's Prometheus pods.
+    # Operator metrics, scraped through an internal Service; Cilium restricts
+    # the metrics listener to Prometheus in namespace monitoring.
     metrics:
       enabled: true
       secure: false
@@ -57,12 +57,13 @@ spec:
         namespace: llmkube
         additionalLabels:
           prometheus: kps
-      # Inference and router PodMonitors are app-owned and namespace-scoped in
-      # monitoring.yaml instead of using the chart's any-namespace selectors.
     webhook:
       enabled: false
     networkPolicies:
       enabled: false
+    # Fallback settings only. The Qwen service and chat-template Model use
+    # explicit, app-owned claimName PVCs from pvc.yaml, which override this
+    # operator-managed per-service cache provisioning configuration.
     modelCache:
       enabled: true
       mode: perService
@@ -80,3 +81,6 @@ spec:
               - op: add
                 path: /spec/template/spec/runtimeClassName
                 value: gvisor
+              - op: add
+                path: /spec/template/metadata/labels/egress.home.arpa~1apiserver
+                value: allow
