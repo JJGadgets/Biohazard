@@ -67,9 +67,6 @@ jobs:
       artifact: "${{ steps.split.outputs.artifact }}"
 
   add-comments:
-    # Fork PRs have no access to BOT_APP_ID/BOT_JWT_PRIVATE_KEY. Keep the
-    # validation/diff jobs enabled for forks but skip privileged comment posting.
-    if: github.event.pull_request.head.repo.full_name == github.repository
     name: Flux Diff - Add Comments
     needs: [flux-diff]
     runs-on: ubuntu-latest
