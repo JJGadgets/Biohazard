@@ -12,14 +12,23 @@ spec:
       app.kubernetes.io/instance: llmkube
       control-plane: controller-manager
   ingress:
-    # The health endpoint is the only enabled listener (metrics and the webhook
-    # are disabled). Same-namespace peers are the only Pod sources permitted.
+    # Health probes stay namespace-local.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
       toPorts:
         - ports:
             - port: "8081"
+              protocol: TCP
+    # The controller metrics endpoint uses HTTP on a ClusterIP Service;
+    # only the in-cluster Prometheus scraper may read it.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
+      toPorts:
+        - ports:
+            - port: "8443"
               protocol: TCP
   egress:
     - toEntities:
@@ -78,6 +87,15 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
+    # Prometheus scrapes LLMKube router/model-pool metrics on this listener.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
   egress:
     - toEndpoints:
         - matchLabels:
@@ -98,9 +116,8 @@ spec:
             - port: "8080"
               protocol: TCP
 ---
-# LLMKube v0.10.6+ runs prefetch in a separate Job, labeled
-# app.kubernetes.io/component=model-prefetch. Both the Qwen and chat-template
-# downloads are staged by these operator-managed jobs.
+# LLMKube v0.10.6+ stages models in operator-managed prefetch Jobs labeled
+# app.kubernetes.io/component=model-prefetch.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -143,10 +160,20 @@ spec:
       io.kubernetes.pod.namespace: llmkube
       inference.llmkube.dev/service: qwen3.6-35b-a3b
   ingress:
+    # Client traffic reaches the inference runtime through the model router.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/model-router: llmkube-router
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Scrape /metrics, but do not grant Prometheus model-serving API access.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
       toPorts:
         - ports:
             - port: "8080"
