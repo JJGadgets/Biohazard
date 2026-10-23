@@ -25,29 +25,6 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: llmkube-download
-  namespace: &ns llmkube
-  labels: &l
-    app.kubernetes.io/name: llmkube
-spec:
-  targetNamespace: *ns
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/apps/llmkube/download
-  components:
-    - ../../../core/flux-system/alerts/template/
-  dependsOn:
-    - name: llmkube-app
-      namespace: *ns
-  healthChecks:
-    - apiVersion: batch/v1
-      kind: Job
-      name: llmkube-chat-template-download
-      namespace: *ns
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
   name: llmkube-models
   namespace: &ns llmkube
   labels: &l
@@ -61,6 +38,4 @@ spec:
     - ../../../core/flux-system/alerts/template/
   dependsOn:
     - name: llmkube-app
-      namespace: *ns
-    - name: llmkube-download
       namespace: *ns
