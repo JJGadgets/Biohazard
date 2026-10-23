@@ -1,0 +1,154 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-controller-manager
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+      app.kubernetes.io/name: llmkube
+      app.kubernetes.io/instance: llmkube
+      control-plane: controller-manager
+  ingress:
+    # The health endpoint is the only enabled listener (metrics and the webhook
+    # are disabled). Same-namespace peers are the only Pod sources permitted.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-router-proxy
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+      inference.llmkube.dev/model-router: llmkube-router
+  ingress:
+    # Model API ingress is cluster-internal; the router Service is not exposed.
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # The operator reads swap-budget status from the proxy's admin listener.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            app.kubernetes.io/name: llmkube
+            app.kubernetes.io/instance: llmkube
+            control-plane: controller-manager
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/service: qwen3.6-35b-a3b
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# LLMKube v0.10.6+ runs prefetch in a separate Job, labeled
+# app.kubernetes.io/component=model-prefetch. The same selector also covers
+# the app-owned chat-template download Job.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-model-prefetch
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: model-prefetch
+  egress:
+    - toFQDNs:
+        - matchName: huggingface.co
+        - matchPattern: "*.huggingface.co"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # DNS queries are filtered to the same Hugging Face host allowlist.
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchName: huggingface.co
+              - matchPattern: "*.huggingface.co"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: qwen3-model
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+      inference.llmkube.dev/service: qwen3.6-35b-a3b
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress: []
