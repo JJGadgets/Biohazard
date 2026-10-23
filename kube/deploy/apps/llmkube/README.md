@@ -6,13 +6,18 @@ LLMKube-managed prefetch Jobs at pinned Hugging Face revisions, before the
 serving pod is created. There is no app-owned download Job. The operator's
 prefetch pods are labeled `app.kubernetes.io/component=model-prefetch`; the
 app's Cilium policy allows that workload class only Hugging Face TCP/443 and
-DNS queries for `huggingface.co` and `*.huggingface.co`. The cluster-wide
-generic DNS egress policy excludes this dedicated component so its generic DNS
-allowance cannot override the app-specific DNS rule.
+L7-filtered DNS queries for `huggingface.co` and `*.huggingface.co`. This
+restriction is scoped to the prefetch pods; no shared cluster network policy is
+modified by this app.
 
-The model cache and chat-template PVC use `local-hostpath` and are first
-consumed by workloads pinned to `kubernetes.io/hostname=sinon`. The serving
-pod mounts both staged artifacts read-only.
+The app-owned PVCs in `app/pvc.yaml` are the intended workload storage:
+`llmkube-models` is explicitly selected by the Qwen `InferenceService`,
+`llmkube-templates` by the chat-template `Model`, and `llmkube-runtime-data`
+stores llama.cpp runtime state. All use `local-hostpath`; model prefetch and
+serving are pinned to `kubernetes.io/hostname=sinon`. The serving pod mounts
+the staged model and template artifacts read-only. The chart's
+`modelCache.mode/size/storageClass` settings are fallback provisioning for
+services without an explicit `spec.modelCache.claimName`.
 
 ## Metrics
 
@@ -33,9 +38,11 @@ scrape every 60 seconds to match the Prometheus configuration. The inference
 and router PodMonitors deliberately match only pods in namespace `llmkube`,
 rather than using the upstream chart's any-namespace selector. The controller
 metrics Service uses HTTP on its internal ClusterIP; Cilium permits port 8443
-only from the Prometheus pods in namespace `monitoring`. Runtime and router
-metrics ports are likewise allowed only to the Prometheus pods, while the
-existing router-to-runtime serving path remains unchanged.
+only from the Prometheus pods in namespace `monitoring`. Runtime scrapes are
+limited to `GET /metrics`; the router is the only other allowed runtime caller.
+The router proxy itself accepts model API ingress only from pods explicitly
+labeled `ai.internal/llmkube=allow`. DNS egress for controller and router uses
+the existing cluster default instead of duplicate app-local allow rules.
 
 ## Adding another swappable model
 
@@ -52,6 +59,14 @@ held while the incumbent drains and the requested model loads, up to
   `/v1/embeddings`, and `/v1/rerank`, but does not register
   `/v1/responses`. Request-held swaps therefore work for Chat Completions but
   require an upstream change for the Responses API.
+- The stock NVIDIA GPU Operator setup uses the legacy `nvidia.com/gpu`
+  device-plugin resource, which allocates a number of devices but does not
+  select an individual GPU UUID from an `InferenceService`. The Qwen service
+  requests both NVIDIA GPUs present on `sinon`; `CUDA_DEVICE_ORDER=PCI_BUS_ID`
+  and the existing `CUDA0`/`CUDA1` settings establish their logical order
+  within the allocated devices. Pinning UUIDs on a node with additional GPUs
+  would require enabling NVIDIA DRA with ResourceClaims or configuring
+  per-device extended resources in the cluster's GPU device plugin.
 - The generated ModelRouter proxy hard-codes UID 65532 and has no
   `runtimeClassName` setting in `ModelRouter.spec.proxy`. LLMKube's generated
   prefetch Job also has no CRD field to override its RuntimeClass or downloader
