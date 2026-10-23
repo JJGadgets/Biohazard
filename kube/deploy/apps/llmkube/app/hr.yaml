@@ -15,12 +15,6 @@ spec:
     namespace: llmkube
     controllerManager:
       replicaCount: 1
-      image:
-        repository: ghcr.io/defilantech/llmkube-controller
-        tag: "0.10.7"
-      routerProxy:
-        repository: ghcr.io/defilantech/llmkube-router-proxy
-        tag: "0.10.7"
       initContainer:
         defaultFSGroup: ${APP_UID_LLMKUBE:=65536}
       podSecurityContext:
