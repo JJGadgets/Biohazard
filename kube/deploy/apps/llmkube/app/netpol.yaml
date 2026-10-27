@@ -108,7 +108,7 @@ spec:
     matchLabels:
       app.kubernetes.io/component: model-prefetch
   egress:
-    - toFQDNs:
+    - toFQDNs: &dns
         - matchName: huggingface.co
         - matchPattern: "*.huggingface.co"
         - matchName: hf.co
@@ -126,9 +126,7 @@ spec:
             - port: "53"
               protocol: ANY
           rules:
-            dns:
-              - matchName: huggingface.co
-              - matchPattern: "*.huggingface.co"
+            dns: *dns
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
