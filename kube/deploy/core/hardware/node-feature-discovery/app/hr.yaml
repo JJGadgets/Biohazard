@@ -13,7 +13,20 @@ spec:
     name: *app
     namespace: *ns
   values:
+    master:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Equal"
+          value: ""
+          effect: "NoSchedule"
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
     worker:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
       config:
         core:
           labelSources: ["custom", "cpu", "pci", "usb", "system"]
@@ -50,3 +63,13 @@ spec:
                 - feature: cpu.cpuid
                   matchExpressions:
                     HYPERVISOR: {op: DoesNotExist}
+    gc:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+    topologyUpdater:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
