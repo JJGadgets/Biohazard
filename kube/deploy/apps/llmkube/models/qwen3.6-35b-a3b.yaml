@@ -61,6 +61,8 @@ metadata:
   namespace: llmkube
 spec:
   modelRef: qwen3.6-35b-a3b
+  podLabels:
+    netpol: llmkube-models
   runtime: llamacpp
   image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:8c219fe0367f7e794e3c69da50c5992d474077d60794a218b9e9a3b0c5aed688
   nodeSelector:
@@ -211,50 +213,3 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   startupTimeout: 45m
----
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: ModelPool
-metadata:
-  name: llmkube-router
-  namespace: llmkube
-spec:
-  nodeSelector:
-    kubernetes.io/hostname: sinon
-  gpu: 2
-  swapPolicy: reclaim
-  default: qwen3.6-35b-a3b
-  swapBudget: 900s
-  reclaimAfter: 15m
-  members:
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b
----
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: ModelRouter
-metadata:
-  name: llmkube-router
-  namespace: llmkube
-spec:
-  defaultRouteStrategy: BackendNameMatch
-  defaultRoute: qwen36
-  backends:
-    - name: qwen36
-      displayName: qwen3.6-35b-a3b
-      inferenceServiceRef:
-        name: qwen3.6-35b-a3b
-  rules:
-    - name: qwen36-pool
-      match:
-        models:
-          - qwen3.6-35b-a3b
-          - qwen36
-      route:
-        backends:
-          - qwen36
-        poolActivation: Wait
-  proxy:
-    replicas: 1
-    responseHeaderTimeout: 1200s
-    streamIdleTimeout: 300s
-    nodeSelector:
-      feature.node.kubernetes.io/baremetal: "true"
