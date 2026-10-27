@@ -66,9 +66,9 @@ metadata:
   namespace: llmkube
 spec:
   defaultRouteStrategy: BackendNameMatch
-  defaultRoute: qwen36
+  defaultRoute: qwen3.6-35b-a3b
   backends:
-    - name: qwen36
+    - name: qwen3.6-35b-a3b
       displayName: qwen3.6-35b-a3b
       inferenceServiceRef:
         name: qwen3.6-35b-a3b
@@ -81,14 +81,14 @@ spec:
       inferenceServiceRef:
         name: qwen3-reranker-0.6b
   rules:
-    - name: qwen36-pool
+    - name: qwen3.6-35b-a3b-pool
       match:
         models:
           - qwen3.6-35b-a3b
-          - qwen36
+          - qwen3.6-35b-a3b
       route:
         backends:
-          - qwen36
+          - qwen3.6-35b-a3b
         poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
@@ -108,15 +108,15 @@ spec:
         poolActivation: Wait
   proxy:
     replicas: 1
-    responseHeaderTimeout: 1200s
-    streamIdleTimeout: 300s
+    responseHeaderTimeout: 86400s
+    streamIdleTimeout: 86400s
     nodeSelector:
       feature.node.kubernetes.io/baremetal: "true"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: llmkube-router-proxy
+  name: llmkube # router-proxy
   namespace: llmkube
   labels:
     app.kubernetes.io/name: llmkube

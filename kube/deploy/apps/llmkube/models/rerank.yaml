@@ -64,9 +64,6 @@ spec:
   extraArgs:
     - --load-mode
     - mlock
-  podLabels:
-    prom.home.arpa/kps: allow
-    netpol: llmkube-models
   env:
     - name: TZ
       value: Asia/Singapore
@@ -82,10 +79,10 @@ spec:
       value: PCI_BUS_ID
     - name: LLAMA_ARG_THREADS
       value: "4"
-    - name: LLAMA_ARG_CACHE_TYPE_K
-      value: q8_0
-    - name: LLAMA_ARG_CACHE_TYPE_V
-      value: q8_0
+    # - name: LLAMA_ARG_CACHE_TYPE_K
+    #   value: q8_0
+    # - name: LLAMA_ARG_CACHE_TYPE_V
+    #   value: q8_0
     - name: LLAMA_ARG_CACHE_PROMPT
       value: enabled
     - name: LLAMA_ARG_KV_UNIFIED
@@ -105,6 +102,8 @@ spec:
     capabilities:
       drop:
         - ALL
+      add:
+        - IPC_LOCK
     seccompProfile:
       type: RuntimeDefault
   podSecurityContext:

@@ -61,8 +61,6 @@ metadata:
   namespace: llmkube
 spec:
   modelRef: qwen3.6-35b-a3b
-  podLabels:
-    netpol: llmkube-models
   runtime: llamacpp
   image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:8c219fe0367f7e794e3c69da50c5992d474077d60794a218b9e9a3b0c5aed688
   nodeSelector:
@@ -112,6 +110,8 @@ spec:
     - "0.5"
     - --repeat-penalty
     - "1.0"
+    - --load-mode
+    - "mlock"
     - --fit
     - "off"
     - --split-mode
@@ -210,6 +210,8 @@ spec:
     capabilities:
       drop:
         - ALL
+      add:
+        - IPC_LOCK
     seccompProfile:
       type: RuntimeDefault
   startupTimeout: 45m

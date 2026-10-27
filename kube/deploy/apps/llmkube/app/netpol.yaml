@@ -169,7 +169,6 @@ spec:
   endpointSelector:
     matchLabels:
       io.kubernetes.pod.namespace: llmkube
-      netpol: llmkube-models
       inference.llmkube.dev/runtime: llamacpp
   ingress:
     # Inference requests use plain L4 policy so Cilium Envoy cannot interfere
