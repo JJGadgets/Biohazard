@@ -22,6 +22,8 @@ spec:
         - key: llm.internal
           operator: Exists
           effect: NoSchedule
+      config:
+        extraLabelNs: ["nvidia.com"]
     worker:
       tolerations:
         - key: llm.internal
@@ -63,6 +65,13 @@ spec:
                 - feature: cpu.cpuid
                   matchExpressions:
                     HYPERVISOR: {op: DoesNotExist}
+            - name: "disable-nvidia-toolkit-on-talos"
+              labels:
+                "nvidia.com/gpu.deploy.container-toolkit": "false"
+              matchFeatures:
+                - feature: system.osrelease
+                  matchExpressions:
+                    ID: {op: In, value: ["talos"]}
     gc:
       tolerations:
         - key: llm.internal
