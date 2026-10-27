@@ -13,6 +13,8 @@ spec:
   dataFrom:
     - extract:
         key: ".${CLUSTER_NAME}-vars"
+    - extract:
+        key: "llmkube - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
