@@ -10,6 +10,6 @@ metadata:
     # Keep restricted audit/warn visibility while enforcing baseline in this
     # namespace; app-owned pods still set explicit non-root, read-only-rootfs,
     # no-escalation, dropped-capability, seccomp and network restrictions.
-    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce: privileged # mlock + root initContainer for model download
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
