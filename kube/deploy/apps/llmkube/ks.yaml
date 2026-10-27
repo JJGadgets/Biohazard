@@ -37,5 +37,7 @@ spec:
   components:
     - ../../../core/flux-system/alerts/template/
   dependsOn:
+    - name: nvidia-app
+      namespace: nvidia
     - name: llmkube-app
       namespace: *ns
