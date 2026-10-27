@@ -109,6 +109,12 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -177,6 +183,11 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/model-router: llmkube-router
+        - matchLabels:
+            ai.internal/llmkube: "allow"
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: "8000"
