@@ -63,7 +63,8 @@ spec:
   uBatchSize: 192
   extraArgs:
     - --load-mode
-    - mlock
+    # - mlock
+    - none
   env:
     - name: TZ
       value: Asia/Singapore

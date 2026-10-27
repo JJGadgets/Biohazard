@@ -56,14 +56,15 @@ spec:
     cpu: "10m"
     memory: 1Gi
     memoryLimit: 10Gi
-  contextSize: 32768
-  parallelSlots: 8
+  contextSize: 16384
+  parallelSlots: 6
   flashAttention: true
   batchSize: 384
   uBatchSize: 192
   extraArgs:
     - --load-mode
-    - mlock
+    # - mlock
+    - none
   env:
     - name: TZ
       value: Asia/Singapore
@@ -102,8 +103,8 @@ spec:
     capabilities:
       drop:
         - ALL
-      add:
-        - IPC_LOCK
+      # add:
+      #   - IPC_LOCK
     seccompProfile:
       type: RuntimeDefault
   podSecurityContext:
