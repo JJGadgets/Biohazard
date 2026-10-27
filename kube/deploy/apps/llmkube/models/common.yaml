@@ -68,7 +68,7 @@ spec:
   defaultRouteStrategy: BackendNameMatch
   defaultRoute: qwen3.6-35b-a3b
   backends:
-    - name: qwen3.6-35b-a3b
+    - name: qwen3-6-35b-a3b
       displayName: qwen3.6-35b-a3b
       inferenceServiceRef:
         name: qwen3.6-35b-a3b
@@ -81,14 +81,13 @@ spec:
       inferenceServiceRef:
         name: qwen3-reranker-0.6b
   rules:
-    - name: qwen3.6-35b-a3b-pool
+    - name: qwen3-6-35b-a3b-pool
       match:
         models:
           - qwen3.6-35b-a3b
-          - qwen3.6-35b-a3b
       route:
         backends:
-          - qwen3.6-35b-a3b
+          - qwen3-6-35b-a3b
         poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
