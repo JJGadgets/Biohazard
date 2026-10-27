@@ -25,6 +25,8 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
             prometheus: "kps"
+        - matchLabels:
+            app.kubernetes.io/instance: "victoria"
       toPorts:
         - ports:
             - port: "8443"
@@ -80,6 +82,8 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
             prometheus: "kps"
+        - matchLabels:
+            app.kubernetes.io/instance: "victoria"
       toPorts:
         - ports:
             - port: "9090"
@@ -94,6 +98,21 @@ spec:
         - ports:
             - port: "8000"
               protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "llmkube-router-proxy-egress"
+spec:
+  description: "Allow opt-in pods to egress to llmkube's router-proxy to reach AI models hosted by llmkube."
+  endpointSelector:
+    matchLabels:
+      ai.internal/llmkube: "allow"
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
 ---
 # LLMKube v0.10.6+ stages models in operator-managed prefetch Jobs labeled
 # app.kubernetes.io/component=model-prefetch. DNS is L7-filtered to the HF
@@ -159,6 +178,8 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
             prometheus: "kps"
+        - matchLabels:
+            app.kubernetes.io/instance: "victoria"
       toPorts:
         - ports:
             - port: "8000"
