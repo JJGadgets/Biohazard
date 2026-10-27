@@ -21,6 +21,7 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/oidc: allow
             dns.home.arpa/l7: "true"
+            ai.internal/llmkube: allow
         containers:
           app:
             image: &img
