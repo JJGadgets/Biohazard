@@ -534,6 +534,10 @@ spec:
             enabled: false
         nodePlugin:
           priorityClassName: system-node-critical
+          tolerations:
+            - key: llm.internal
+              operator: Exists
+              effect: NoSchedule
           resources:
             plugin:
               limits:

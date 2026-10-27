@@ -22,6 +22,10 @@ spec:
         pod:
           automountServiceAccountToken: true
           enableServiceLinks: true
+          tolerations:
+            - key: llm.internal
+              operator: Exists
+              effect: NoSchedule
         containers:
           app: &ct
             image: &img
@@ -63,6 +67,11 @@ spec:
           name: *app
       dmesg:
         type: daemonset
+        pod:
+          tolerations:
+            - key: llm.internal
+              operator: Exists
+              effect: NoSchedule
         containers:
           app:
             <<: *ct

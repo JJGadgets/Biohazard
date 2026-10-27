@@ -19,6 +19,13 @@ spec:
     daemonsets:
       labels:
         egress.home.arpa/apiserver: allow
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
     operator:
       labels:
         egress.home.arpa/apiserver: allow
