@@ -1,0 +1,16 @@
+---
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: endeavouros-version-id-from-build-id
+spec:
+  rules:
+    - name: derive-version-id-from-build-id
+      labels:
+        feature.node.kubernetes.io/system-os_release.VERSION_ID: "@system.osrelease.BUILD_ID"
+      matchFeatures:
+        - feature: system.osrelease
+          matchExpressions:
+            ID: {op: In, value: ["endeavouros"]}
+            BUILD_ID: {op: Exists}
+            VERSION_ID: {op: DoesNotExist}

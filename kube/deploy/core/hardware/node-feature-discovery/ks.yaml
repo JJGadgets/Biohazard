@@ -7,3 +7,8 @@ metadata:
 spec:
   path: ./kube/deploy/core/hardware/node-feature-discovery/app
   dependsOn: []
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: node-feature-discovery
+      namespace: kube-system
