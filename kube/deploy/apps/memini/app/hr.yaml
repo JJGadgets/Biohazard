@@ -24,6 +24,7 @@ spec:
             # authentik.home.arpa/oidc: allow
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
+            ai.internal/llmkube: allow
         containers:
           main:
             env: &env
@@ -31,7 +32,7 @@ spec:
               MEMINI_API_KEYS_FILE: /etc/memini/api-keys.yaml
               MEMINI_BACKEND: sqlite
               MEMINI_DEFAULT_NAMESPACE: default
-              MEMINI_EMBED_BASE_URL: http://llmkube-router-proxy.llmkube.svc.cluster.local/v1
+              MEMINI_EMBED_BASE_URL: http://llmkube.llmkube.svc.cluster.local/v1
               MEMINI_EMBED_MODEL: qwen3-embedding-0.6b # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
               MEMINI_EMBED_DIMS: "1024"
               MEMINI_EMBED_QUERY_PREFIX: "Instruct: Given a user message, retrieve relevant past memories\nQuery: "
@@ -51,7 +52,7 @@ spec:
               MEMINI_DISTILL_WRITE_FALSE: false
               MEMINI_ASSESSED_SALIENCE_WEIGHT: "0.6"
               MEMINI_REEMBED_ON_MODEL_CHANGE: true
-              MEMINI_RERANK: http://llmkube-router-proxy.llmkube.svc.cluster.local/v1
+              MEMINI_RERANK: http://llmkube.llmkube.svc.cluster.local/v1
               MEMINI_RERANK_MODEL: qwen3-reranker-0.6b
               MEMINI_RERANK_MAX_CONCURRENCY: 2
               MEMINI_RERANK_TIMEOUT: 45s
