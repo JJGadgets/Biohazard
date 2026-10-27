@@ -41,7 +41,7 @@ spec:
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
-  name: llmkube-router
+  name: llmkube-llm
   namespace: llmkube
 spec:
   nodeSelector:
@@ -66,7 +66,7 @@ metadata:
   namespace: llmkube
 spec:
   defaultRouteStrategy: BackendNameMatch
-  defaultRoute: qwen3.6-35b-a3b
+  defaultRoute: qwen3-6-35b-a3b
   backends:
     - name: qwen3-6-35b-a3b
       displayName: qwen3.6-35b-a3b
