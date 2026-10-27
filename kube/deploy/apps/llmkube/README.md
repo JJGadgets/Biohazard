@@ -1,19 +1,21 @@
 # LLMKube
 
+Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml`, `models/embed.yaml`, and `models/rerank.yaml` keep model-specific resources together.
+
 LLMKube 0.10.7 is installed through its upstream OCI Helm chart and Flux
-HelmRelease. Both the Qwen weights/projector and chat template are fetched by
-LLMKube-managed prefetch Jobs at pinned Hugging Face revisions, before the
-serving pod is created. There is no app-owned download Job. The operator's
+HelmRelease. The Qwen weights/projector, embedding and reranker GGUFs, and
+chat template are fetched by LLMKube-managed prefetch Jobs at pinned Hugging
+Face revisions before the serving pod is created. There is no app-owned download Job. The operator's
 prefetch pods are labeled `app.kubernetes.io/component=model-prefetch`; the
 app's Cilium policy allows that workload class only Hugging Face TCP/443 and
 L7-filtered DNS queries for `huggingface.co` and `*.huggingface.co`. This
 restriction is scoped to the prefetch pods; no shared cluster network policy is
 modified by this app.
 
-The app-owned PVCs in `app/pvc.yaml` are the intended workload storage:
+The app-owned PVCs in `models/common.yaml` are the intended workload storage:
 `llmkube-models` is explicitly selected by the Qwen `InferenceService`,
 `llmkube-templates` by the chat-template `Model`, and `llmkube-runtime-data`
-stores llama.cpp runtime state. All use `local-hostpath`; model prefetch and
+stores llama.cpp runtime state. All use the `local` storage class; model prefetch and
 serving are pinned to `kubernetes.io/hostname=sinon`. The serving pod mounts
 the staged model and template artifacts read-only. The chart's
 `modelCache.mode/size/storageClass` settings are fallback provisioning for
@@ -43,6 +45,37 @@ limited to `GET /metrics`; the router is the only other allowed runtime caller.
 The router proxy itself accepts model API ingress only from pods explicitly
 labeled `ai.internal/llmkube=allow`. DNS egress for controller and router uses
 the existing cluster default instead of duplicate app-local allow rules.
+
+## Embedding and reranking
+
+The Qwen3 Embedding and Qwen3 Reranker services share the existing
+`llmkube-router` ModelPool with Qwen 3.6. Request model `qwen3-embedding-0.6b`
+through `/v1/embeddings` and model `qwen3-reranker-0.6b` through `/v1/rerank`
+using the shared base URL:
+
+`http://llmkube-router-proxy.llmkube.svc.cluster.local/v1`
+
+The app-owned `Service/llmkube-router-proxy` maps port 80 to the router pod's
+port 8080. LLMKube's current ModelRouter API does not expose an independent
+`targetPort`: the controller uses `spec.endpoint.port` for both the generated
+Service port and targetPort, while the generated proxy Deployment binds to 8080.
+Setting `endpoint.port: 80` would therefore point the Service at an unused port
+inside the pod; the alias is retained until upstream adds separate target-port
+support.
+
+Both inference services are pinned to `sinon`, tolerate its
+`llm.internal:NoSchedule` taint, and request both NVIDIA device-plugin GPUs so
+CUDA device 1 remains visible in the pod. `CUDA_DEVICE_ORDER=PCI_BUS_ID` and
+`LLAMA_ARG_DEVICE=CUDA1` select the GTX 1060 for inference. The ModelPool
+serializes the services against the same two-GPU allocation.
+
+The unified Cilium policy selects only pods carrying `netpol: llmkube-models` and `inference.llmkube.dev/runtime: llamacpp`; model API ingress is L4-only, while L7 HTTP filtering remains limited to `GET /metrics`.
+
+The services use llama.cpp's explicit `--load-mode mlock` setting, which keeps
+model pages resident without using mmap. This replaces the deprecated `--mlock`
+flag and avoids setting the older mmap environment variables. The namespace's Pod Security `baseline` enforcement remains intact;
+no `IPC_LOCK` capability is added, so whether the kernel can lock all model
+pages depends on the container runtime's memlock limit.
 
 ## Adding another swappable model
 

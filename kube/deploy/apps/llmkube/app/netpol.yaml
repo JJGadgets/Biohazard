@@ -98,6 +98,17 @@ spec:
         - ports:
             - port: "8000"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/service: qwen3-embedding-0.6b
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/service: qwen3-reranker-0.6b
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -152,16 +163,16 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: qwen3-model
+  name: llmkube-models
   namespace: llmkube
 spec:
   endpointSelector:
     matchLabels:
       io.kubernetes.pod.namespace: llmkube
-      inference.llmkube.dev/service: qwen3.6-35b-a3b
+      inference.llmkube.dev/runtime: llamacpp
   ingress:
-    # Router requests are the only non-monitoring clients permitted. HTTP L7
-    # rules preserve the API paths the router forwards through this port.
+    # Inference requests use plain L4 policy so Cilium Envoy cannot interfere
+    # with long-running HTTP requests, streaming, or application timeouts.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
@@ -170,10 +181,9 @@ spec:
         - ports:
             - port: "8000"
               protocol: TCP
-          rules:
-            http:
-              - path: "^/.*"
-    # Restrict the monitoring exception to GET /metrics.
+            - port: "8080"
+              protocol: TCP
+    # Keep L7 filtering for monitoring scrapes only.
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: monitoring
@@ -183,6 +193,8 @@ spec:
       toPorts:
         - ports:
             - port: "8000"
+              protocol: TCP
+            - port: "8080"
               protocol: TCP
           rules:
             http:
