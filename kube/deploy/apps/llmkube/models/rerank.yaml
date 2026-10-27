@@ -59,8 +59,8 @@ spec:
   contextSize: 8192
   parallelSlots: 2
   flashAttention: true
-  batchSize: 1024
-  uBatchSize: 512
+  batchSize: 384
+  uBatchSize: 192
   extraArgs:
     - --load-mode
     - mlock
