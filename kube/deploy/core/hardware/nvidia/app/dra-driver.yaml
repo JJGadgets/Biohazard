@@ -1,0 +1,49 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: dra-driver-nvidia-gpu
+  namespace: nvidia
+spec:
+  interval: 15m
+  url: oci://registry.k8s.io/dra-driver-nvidia/charts/dra-driver-nvidia-gpu
+  ref:
+    tag: "0.5.1"
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dra-driver-nvidia-gpu
+  namespace: nvidia
+spec:
+  interval: 5m
+  dependsOn:
+    - name: nvidia-gpu-operator
+      namespace: nvidia
+  chartRef:
+    kind: OCIRepository
+    name: dra-driver-nvidia-gpu
+    namespace: nvidia
+  values:
+    nvidiaDriverRoot: /
+    gpuResourcesEnabledOverride: true
+    featureGates:
+      TimeSlicingSettings: true
+    resources:
+      gpus:
+        enabled: true
+      computeDomains:
+        enabled: false
+    kubeletPlugin:
+      nodeSelector:
+        kubernetes.io/hostname: sinon
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule

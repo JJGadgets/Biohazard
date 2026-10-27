@@ -48,43 +48,64 @@ the existing cluster default instead of duplicate app-local allow rules.
 
 ## Embedding and reranking
 
-The Qwen3 Embedding and Qwen3 Reranker services share the existing
-`llmkube-router` ModelPool with Qwen 3.6. Request model `qwen3-embedding-0.6b`
-through `/v1/embeddings` and model `qwen3-reranker-0.6b` through `/v1/rerank`
-using the shared base URL:
+The Qwen3 Embedding and Qwen3 Reranker use independent ModelPools from Qwen
+3.6. `llmkube-llm`, `llmkube-embedding`, and `llmkube-rerank` each manage
+only their own role. A request for one role cannot scale another role to zero;
+future alternatives swap only within their role's pool. Use model IDs
+`qwen3-embedding-0.6b` with `/v1/embeddings` and
+`qwen3-reranker-0.6b` with `/v1/rerank` at:
 
-`http://llmkube-router-proxy.llmkube.svc.cluster.local/v1`
+`http://llmkube.llmkube.svc.cluster.local/v1`
 
-The app-owned `Service/llmkube-router-proxy` maps port 80 to the router pod's
-port 8080. LLMKube's current ModelRouter API does not expose an independent
-`targetPort`: the controller uses `spec.endpoint.port` for both the generated
-Service port and targetPort, while the generated proxy Deployment binds to 8080.
-Setting `endpoint.port: 80` would therefore point the Service at an unused port
-inside the pod; the alias is retained until upstream adds separate target-port
-support.
+The app-owned `Service/llmkube` maps port 80 to the router pod's port 8080.
+LLMKube 0.10.7's generated ModelRouter Service uses the same port for service
+and targetPort, so `endpoint.port: 80` would target an unused pod port; the
+separate alias service remains necessary.
 
-Both inference services are pinned to `sinon`, tolerate its
-`llm.internal:NoSchedule` taint, and request both NVIDIA device-plugin GPUs so
-CUDA device 1 remains visible in the pod. `CUDA_DEVICE_ORDER=PCI_BUS_ID` and
-`LLAMA_ARG_DEVICE=CUDA1` select the GTX 1060 for inference. The ModelPool
-serializes the services against the same two-GPU allocation.
+## GPU allocation: Tesla T4 exclusive, GTX 1060 time-sliced
 
-The unified Cilium policy selects only pods carrying `netpol: llmkube-models` and `inference.llmkube.dev/runtime: llamacpp`; model API ingress is L4-only, while L7 HTTP filtering remains limited to `GET /metrics`.
+The NVIDIA GPU Operator's legacy device-plugin time-slicing config applies to
+every GPU on a node, so it cannot time-slice the GTX 1060 alone. This setup
+disables the legacy device plugin and uses NVIDIA's DRA driver, pinned to chart
+v0.5.1 and restricted to `sinon`.
 
-The services use llama.cpp's explicit `--load-mode mlock` setting, which keeps
-model pages resident without using mmap. This replaces the deprecated `--mlock`
-flag and avoids setting the older mmap environment variables. The namespace's Pod Security `baseline` enforcement remains intact;
-no `IPC_LOCK` capability is added, so whether the kernel can lock all model
-pages depends on the container runtime's memlock limit.
+Two static `ResourceClaim`s in the `llmkube` namespace select full devices by
+their DRA-published product names:
+
+- `llmkube-tesla-t4-exclusive` selects one Tesla T4 and omits sharing config.
+  The LLM pool keeps Qwen at one replica, and a future LLM swap uses this same
+  exclusive claim.
+- `llmkube-gtx1060-time-sliced` selects one GTX 1060 and adds
+  `GpuConfig.sharing.strategy: TimeSlicing`. Qwen, embedding, and reranking
+  reference the same claim, so they can share one physical GPU without giving
+  the smaller model services access to the T4.
+
+The DRA driver's `TimeSlicingSettings` feature gate is Alpha. Time-slicing
+does not provide GPU-memory isolation or throughput guarantees. The claim uses
+the default time-slice interval; no device-plugin replica multiplier is applied
+to the T4. The driver's published time-slicing guide documents claim-scoped
+configuration and CEL device selectors, including selecting a particular GPU.
+
+Qwen requests both DRA claims and stays at one replica; its
+`CUDA_DEVICE_ORDER=PCI_BUS_ID` preserves the existing `CUDA0`/`CUDA1`
+device selection. Embedding and reranking request only the GTX 1060 claim and
+see the single allocated device as `CUDA0`. The latest model tuning from main
+is retained: embedding uses 16K context, 6 parallel slots, batch 384/ubatch
+192; reranking uses 8K context, 2 parallel slots, batch 384/ubatch 192. Both
+retain a `1Gi` memory request.
+
+The unified Cilium policy keeps inference API ingress L4-only, while L7 HTTP
+filtering remains limited to `GET /metrics`. The LLMKube models Kustomization
+depends on `nvidia-app` so the DRA driver and device class reconcile first.
 
 ## Adding another swappable model
 
-Add a `Model` and `InferenceService`, include the service in the
-`ModelPool.spec.members`, then add its backend and model-matching rule to the
-`ModelRouter`. Keep `proxy.replicas: 1`: upstream serializes GPU-slot swaps
-inside one router process. Cross-model requests to `/v1/chat/completions` are
-held while the incumbent drains and the requested model loads, up to
-`swapBudget`; an exhausted budget returns HTTP 503 with `Retry-After`.
+Add a `Model` and `InferenceService`, include the service only in its
+role-specific `ModelPool.spec.members`, then add its backend and matching
+rule to `ModelRouter`. A new LLM must reference both the T4-exclusive and
+GTX1060-time-sliced claims; an alternate embedding or reranker references only
+the GTX claim. Keep `proxy.replicas: 1`: LLMKube serializes swaps within each
+pool, holding requests while a target model loads up to `swapBudget`.
 
 ## Upstream LLMKube limitations in v0.10.7
 

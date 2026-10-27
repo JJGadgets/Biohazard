@@ -15,8 +15,11 @@ spec:
     gpu:
       enabled: true
       vendor: nvidia
-      count: 2
+      count: 1
       layers: 99
+      resourceClaims:
+        - name: gtx1060
+          resourceClaimName: llmkube-gtx1060-time-sliced
   prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
@@ -52,7 +55,7 @@ spec:
     claimName: llmkube-models
     prefetch: true
   resources:
-    gpu: 2
+    gpu: 1
     cpu: "10m"
     memory: 1Gi
     memoryLimit: 10Gi
@@ -75,7 +78,7 @@ spec:
     - name: LLAMA_ARG_MODEL_ALIAS
       value: qwen3-reranker-0.6b
     - name: LLAMA_ARG_DEVICE
-      value: CUDA1
+      value: CUDA0
     - name: CUDA_DEVICE_ORDER
       value: PCI_BUS_ID
     - name: LLAMA_ARG_THREADS

@@ -38,7 +38,7 @@ spec:
     nfd:
       enabled: false
       nodefeaturerules: true
+    # DRA allocates the T4 and GTX 1060 via explicit ResourceClaims.
+    # Disable the legacy device plugin to avoid applying sharing node-wide.
     devicePlugin:
-      config:
-        name: time-slicing-config-all
-        default: any
+      enabled: false

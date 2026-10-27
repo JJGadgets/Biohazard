@@ -38,6 +38,49 @@ spec:
     requests:
       storage: 1Mi
 ---
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim
+metadata:
+  name: llmkube-tesla-t4-exclusive
+  namespace: llmkube
+spec:
+  devices:
+    requests:
+      - name: gpu
+        exactly:
+          count: 1
+          deviceClassName: gpu.nvidia.com
+          selectors:
+            - cel:
+                expression: "device.attributes['gpu.nvidia.com'].productName.lowerAscii().matches('^.*tesla.?t4.*$')"
+---
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim
+metadata:
+  name: llmkube-gtx1060-time-sliced
+  namespace: llmkube
+spec:
+  devices:
+    requests:
+      - name: gpu
+        exactly:
+          count: 1
+          deviceClassName: gpu.nvidia.com
+          selectors:
+            - cel:
+                expression: "device.attributes['gpu.nvidia.com'].productName.lowerAscii().matches('^.*gtx.?1060.*$')"
+    config:
+      - requests: ["gpu"]
+        opaque:
+          driver: gpu.nvidia.com
+          parameters:
+            apiVersion: resource.nvidia.com/v1beta1
+            kind: GpuConfig
+            sharing:
+              strategy: TimeSlicing
+              timeSlicingConfig:
+                interval: Default
+---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
@@ -54,10 +97,40 @@ spec:
   members:
     - inferenceServiceRef:
         name: qwen3.6-35b-a3b
-    # - inferenceServiceRef:
-    #     name: qwen3-embedding-0.6b
-    # - inferenceServiceRef:
-    #     name: qwen3-reranker-0.6b
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelPool
+metadata:
+  name: llmkube-embedding
+  namespace: llmkube
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  gpu: 1
+  swapPolicy: reclaim
+  default: qwen3-embedding-0.6b
+  swapBudget: 900s
+  reclaimAfter: 15m
+  members:
+    - inferenceServiceRef:
+        name: qwen3-embedding-0.6b
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelPool
+metadata:
+  name: llmkube-rerank
+  namespace: llmkube
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  gpu: 1
+  swapPolicy: reclaim
+  default: qwen3-reranker-0.6b
+  swapBudget: 900s
+  reclaimAfter: 15m
+  members:
+    - inferenceServiceRef:
+        name: qwen3-reranker-0.6b
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelRouter
