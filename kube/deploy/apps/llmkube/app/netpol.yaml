@@ -26,6 +26,7 @@ spec:
             io.kubernetes.pod.namespace: monitoring
             prometheus: "kps"
         - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
             app.kubernetes.io/instance: "victoria"
       toPorts:
         - ports:

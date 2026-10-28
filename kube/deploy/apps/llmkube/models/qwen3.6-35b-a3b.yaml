@@ -69,7 +69,6 @@ spec:
     - key: llm.internal
       operator: Exists
       effect: NoSchedule
-  replicas: 1
   endpoint:
     # The ModelRouter fronts this service; keep the runtime on its own port.
     port: 8000
