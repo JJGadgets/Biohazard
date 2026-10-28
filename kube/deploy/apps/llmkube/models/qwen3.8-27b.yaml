@@ -84,7 +84,7 @@ spec:
     cpu: "10m"
     memory: 20Gi
     memoryLimit: 30Gi
-  contextSize: 100000
+  contextSize: 200000
   parallelSlots: 3
   flashAttention: true
   batchSize: 4096
@@ -139,6 +139,8 @@ spec:
       value: "1.0"
     - name: LLAMA_ARG_IMAGE_MIN_TOKENS
       value: "1024"
+    - name: LLAMA_ARG_KV_OFFLOAD
+      value: "disabled"
     - name: LLAMA_ARG_CACHE_RAM
       value: "7168"
     - name: LLAMA_ARG_CTX_CHECKPOINTS
