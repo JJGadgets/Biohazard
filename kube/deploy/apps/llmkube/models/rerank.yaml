@@ -36,7 +36,7 @@ spec:
   modelRef: qwen3-reranker-0.6b
   runtime: llamacpp
   mode: rerank
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:8c219fe0367f7e794e3c69da50c5992d474077d60794a218b9e9a3b0c5aed688
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:4ccae195bf542f7844301ae06891baa32a7551cb16de8428af6e929403d4292c
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
