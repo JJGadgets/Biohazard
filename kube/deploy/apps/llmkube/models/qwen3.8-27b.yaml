@@ -1,0 +1,215 @@
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3.8-27b
+  namespace: llmkube
+spec:
+  # Pin the Hugging Face revision and pre-stage the weights/projector on sinon.
+  # The stock NVIDIA device plugin allocates a count, not individual GPU UUIDs.
+  # This node has two NVIDIA GPUs and the service requests both; CUDA_DEVICE_ORDER
+  # plus CUDA0/CUDA1 assign logical device indices after allocation. Selecting
+  # specific UUIDs would require NVIDIA DRA or per-device plugin resources, which
+  # this cluster does not currently configure.
+  source: hf://Greatjedi/Qwen3.8-27B-Intel-Arc-Tuned-GGUF@73bcd051aa3515a29abf7923fd20e3586def7552
+  files:
+    - Qwen3.8-27B-GSQ-RCO-Intel-Arc-Tuned-MTP-3.7BPW.gguf
+  # mmproj: mmproj-F16.gguf
+  format: gguf
+  quantization: GSQ-RCO-Intel-Arc-Tuned-MTP-3.7BPW
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: cuda
+    gpu:
+      enabled: true
+      vendor: nvidia
+      count: 2
+      layers: 99
+---
+# Use LLMKube's operator-managed prefetch job for the Qwen chat template too.
+# The prefetched file is stored at /models/3dd0cee02aac0569/chat_template.jinja
+# on the llmkube-templates PVC (cache key = SHA256(source)[:16]).
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen-3.8-chat-template
+  namespace: llmkube
+spec:
+  source: hf://froggeric/Qwen-Fixed-Chat-Templates@855bffc49448e299789730ff92c9b8d834d6cc14
+  files:
+    - chat_template.jinja
+  format: custom
+  prefetch: true
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  modelCache:
+    claimName: llmkube-templates
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3.8-27b
+  namespace: llmkube
+spec:
+  modelRef: qwen3.8-27b
+  runtime: llamacpp
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:8c219fe0367f7e794e3c69da50c5992d474077d60794a218b9e9a3b0c5aed688
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  replicas: 1
+  endpoint:
+    # The ModelRouter fronts this service; keep the runtime on its own port.
+    port: 8000
+    type: ClusterIP
+  # Explicitly use the app-owned PVC from app/pvc.yaml. This claim overrides
+  # the chart's operator-managed per-service cache fallback.
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  resources:
+    gpu: 2
+    cpu: "10m"
+    memory: 20Gi
+    memoryLimit: 30Gi
+  contextSize: 100000
+  parallelSlots: 3
+  flashAttention: true
+  batchSize: 4096
+  uBatchSize: 2048
+  extraArgs:
+    - --chat-template-file
+    - /chat-template/9536009ca30ae049/chat_template.jinja
+    - --slot-save-path
+    - /data/llama-cpp/
+    - -sps
+    - "0.5"
+    - --temp
+    - "1.0"
+    - --top-p
+    - "0.95"
+    - --min-p
+    - "0.0"
+    - --top-k
+    - "20"
+    - --presence-penalty
+    - "0.0"
+    - --repeat-penalty
+    - "1.0"
+    - --load-mode
+    - "mlock"
+    - --fit
+    - "off"
+    - --split-mode
+    - none
+    - --main-gpu
+    - "0"
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: LLAMA_OFFLINE
+      value: enabled
+    - name: LLAMA_ARG_ALIAS
+      value: qwen3.8-27b
+    - name: LLAMA_ARG_MODEL_ALIAS
+      value: qwen3.8-27b
+    - name: LLAMA_ARG_TEMPERATURE
+      value: "1.0"
+    - name: LLAMA_ARG_TOP_K
+      value: "20"
+    - name: LLAMA_ARG_TOP_P
+      value: "0.95"
+    - name: LLAMA_ARG_MIN_P
+      value: "0.0"
+    - name: LLAMA_ARG_PRESENCE_PENALTY
+      value: "0.0"
+    - name: LLAMA_ARG_REPEAT_PENALTY
+      value: "1.0"
+    - name: LLAMA_ARG_IMAGE_MIN_TOKENS
+      value: "1024"
+    - name: LLAMA_ARG_CACHE_RAM
+      value: "7168"
+    - name: LLAMA_ARG_CTX_CHECKPOINTS
+      value: "12"
+    - name: LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT
+      value: "16384"
+    - name: LLAMA_ARG_REASONING_PRESERVE
+      value: enabled
+    - name: LLAMA_ARG_THREADS
+      value: "7"
+    - name: LLAMA_CHAT_TEMPLATE_KWARGS
+      value: '{"enable_thinking":true,"preserve_thinking":true}'
+    - name: LLAMA_ARG_DEVICE
+      value: CUDA0
+    - name: MTMD_BACKEND_DEVICE
+      value: CUDA1
+    - name: CUDA_DEVICE_ORDER
+      value: PCI_BUS_ID
+    - name: LLAMA_ARG_CONTEXT_SHIFT
+      value: disabled
+    - name: LLAMA_ARG_CACHE_PROMPT
+      value: enabled
+    - name: LLAMA_ARG_KV_UNIFIED
+      value: enabled
+    - name: LLAMA_ARG_CONT_BATCHING
+      value: enabled
+    - name: LLAMA_ARG_ENDPOINT_METRICS
+      value: enabled
+    - name: LLAMA_ARG_LOG_VERBOSITY
+      value: "4"
+    - name: CUDA_CACHE_PATH
+      value: /tmp/.nv
+  extraVolumes:
+    - name: chat-template
+      persistentVolumeClaim:
+        claimName: llmkube-templates
+        readOnly: true
+    - name: runtime-data
+      persistentVolumeClaim:
+        claimName: llmkube-runtime-data
+    - name: tmp
+      emptyDir:
+        medium: Memory
+        sizeLimit: 4Gi
+  extraVolumeMounts:
+    - name: chat-template
+      mountPath: /chat-template
+      readOnly: true
+    - name: runtime-data
+      mountPath: /data/llama-cpp
+    - name: tmp
+      mountPath: /tmp
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - IPC_LOCK
+    seccompProfile:
+      type: RuntimeDefault
+  startupTimeout: 45m

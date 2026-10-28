@@ -54,10 +54,8 @@ spec:
   members:
     - inferenceServiceRef:
         name: qwen3.6-35b-a3b
-    # - inferenceServiceRef:
-    #     name: qwen3-embedding-0.6b
-    # - inferenceServiceRef:
-    #     name: qwen3-reranker-0.6b
+    - inferenceServiceRef:
+        name: qwen3.8-27b
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelRouter
@@ -72,6 +70,10 @@ spec:
       displayName: qwen3.6-35b-a3b
       inferenceServiceRef:
         name: qwen3.6-35b-a3b
+    - name: qwen3-8-27b
+      displayName: qwen3.8-27b
+      inferenceServiceRef:
+        name: qwen3.8-27b
     - name: qwen3-embedding-0-6b
       displayName: qwen3-embedding-0.6b
       inferenceServiceRef:
@@ -88,6 +90,14 @@ spec:
       route:
         backends:
           - qwen3-6-35b-a3b
+        poolActivation: Wait
+    - name: qwen3-8-27b-pool
+      match:
+        models:
+          - qwen3.8-27b
+      route:
+        backends:
+          - qwen3-8-27b
         poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
