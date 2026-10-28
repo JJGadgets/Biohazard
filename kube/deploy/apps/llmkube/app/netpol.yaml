@@ -42,6 +42,12 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+          matchExpressions:
+            - key: inference.llmkube.dev/runtime
+              operator: Exists
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
