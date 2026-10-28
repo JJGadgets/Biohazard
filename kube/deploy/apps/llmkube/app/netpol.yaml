@@ -100,22 +100,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
-            inference.llmkube.dev/service: qwen3.6-35b-a3b
-      toPorts:
-        - ports:
-            - port: "8000"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: llmkube
-            inference.llmkube.dev/service: qwen3-embedding-0.6b
-        - matchLabels:
-            io.kubernetes.pod.namespace: llmkube
-            inference.llmkube.dev/service: qwen3-reranker-0.6b
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
+            inference.llmkube.dev/runtime: llamacpp
     - toEntities:
         - kube-apiserver
       toPorts:
