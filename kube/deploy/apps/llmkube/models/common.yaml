@@ -63,6 +63,8 @@ metadata:
   name: llmkube-router
   namespace: llmkube
 spec:
+  endpoint:
+    port: 80
   defaultRouteStrategy: BackendNameMatch
   defaultRoute: qwen3-6-35b-a3b
   backends:
