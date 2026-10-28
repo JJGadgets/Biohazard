@@ -119,6 +119,9 @@ spec:
     replicas: 1
     responseHeaderTimeout: 86400s
     streamIdleTimeout: 86400s
+    podLabels:
+      prom.home.arpa/kps: allow
+      egress.home.arpa/apiserver: allow
     nodeSelector:
       feature.node.kubernetes.io/baremetal: "true"
 ---

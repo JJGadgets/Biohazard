@@ -33,6 +33,8 @@ metadata:
   name: qwen3-embedding-0.6b
   namespace: llmkube
 spec:
+  podLabels:
+    prom.home.arpa/kps: allow
   modelRef: qwen3-embedding-0.6b
   runtime: llamacpp
   mode: embedding
