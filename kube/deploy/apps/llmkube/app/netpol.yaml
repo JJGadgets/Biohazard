@@ -190,16 +190,15 @@ spec:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/model-router: llmkube-router
         - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            app.kubernetes.io/name: llmkube
+            app.kubernetes.io/instance: llmkube
+            control-plane: controller-manager
+        - matchLabels:
             ai.internal/llmkube: "allow"
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
-      toPorts:
-        - ports:
-            - port: "8000"
-              protocol: TCP
-            - port: "8080"
-              protocol: TCP
     # Keep L7 filtering for monitoring scrapes only.
     - fromEndpoints:
         - matchLabels:
