@@ -19,6 +19,9 @@ spec:
     automountServiceAccountToken: false
     podLabels:
       prom.home.arpa/kps: "allow"
+    podAnnotations:
+      ipam.cilium.io/ip-pool: ingress
+      ipam.cilium.io/require-pool-match: "true"
     image:
       repository: cloudflare/cloudflared
       tag: 2026.5.2@sha256:12ff5c6992a9863db4da270746af7c244bcaee49353039af8104268a18d6c4f0
