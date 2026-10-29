@@ -101,6 +101,10 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/runtime: llamacpp
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/runtime: generic
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -161,7 +165,12 @@ spec:
   endpointSelector:
     matchLabels:
       io.kubernetes.pod.namespace: llmkube
-      inference.llmkube.dev/runtime: llamacpp
+    matchExpressions:
+      - key: inference.llmkube.dev/runtime
+        operator: In
+        values:
+          - llamacpp
+          - generic
   ingress:
     # Inference requests use plain L4 policy so Cilium Envoy cannot interfere
     # with long-running HTTP requests, streaming, or application timeouts.
