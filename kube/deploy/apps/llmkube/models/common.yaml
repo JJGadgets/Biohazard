@@ -117,6 +117,15 @@ spec:
         backends:
           - qwen3-reranker-0-6b
         poolActivation: Wait
+    - name: auto-pool # use whatever LLM is currently loaded, or load Qwen 3.6 35B A3B if idle and not already loaded
+      match:
+        models:
+          - auto
+      route:
+        backends:
+          - qwen3-6-35b-a3b
+          - qwen3-8-27b
+        poolActivation: IfIdle
   proxy:
     replicas: 1
     responseHeaderTimeout: 86400s
@@ -144,3 +153,19 @@ spec:
       targetPort: 8080
       protocol: TCP
       appProtocol: http
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llmkube-router
+  namespace: llmkube
+spec:
+  hostnames: ["${APP_DNS_LLMKUBE:=llmkube}"]
+  parentRefs:
+    - name: envoy-internal
+      namespace: ingress
+  rules:
+    - backendRefs:
+        - name: llmkube
+          port: 80
