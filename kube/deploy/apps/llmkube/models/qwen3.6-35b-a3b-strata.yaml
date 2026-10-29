@@ -65,6 +65,8 @@ spec:
       value: "1"
     - name: STRATA_BF16_TC
       value: "1"
+    - name: STRATA_XN_F16
+      value: "1"
     # The LLMKube ModelRouter does not forward backend API keys. Restrict the
     # keyless server to known in-cluster Hosts and the Cilium policy below.
     - name: API_KEY
