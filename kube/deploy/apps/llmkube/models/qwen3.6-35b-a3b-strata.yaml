@@ -1,133 +1,133 @@
----
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: InferenceService
-metadata:
-  name: qwen3.6-35b-a3b-strata
-  namespace: llmkube
-spec:
-  podLabels:
-    prom.home.arpa/kps: allow
-  # Reuse the existing GGUF Model and its prefetched/cache-shared artifact set.
-  modelRef: qwen3.6-35b-a3b
-  runtime: generic
-  # The CUDA 12 image supports this mixed-generation Tesla T4 / GTX 1060 host.
-  image: ghcr.io/niko1221/strata:0.2.7-cuda12
-  nodeSelector:
-    kubernetes.io/hostname: sinon
-  tolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
-  endpoint:
-    port: 8080
-    type: ClusterIP
-  modelCache:
-    claimName: llmkube-models
-    prefetch: true
-  # Generic runtimes do not stage by default. Stage the existing GGUF Model
-  # into the read-only /models mount rather than asking Strata to download it.
-  stageModel: true
-  resources:
-    gpu: 2
-    cpu: "10m"
-    memory: 20Gi
-    memoryLimit: 30Gi # required to not OOM kill the tuning
-  env:
-    - name: TZ
-      value: Asia/Singapore
-    - name: FAMILY
-      value: qwen36
-    - name: MODEL
-      value: ud-q4_k_xl
-    - name: MODEL_PATH
-      value: "$(LLMKUBE_MODEL_DIR)"
-    - name: CONTEXT
-      value: "105000"
-    - name: PARALLEL
-      value: "1"
-    # The shared Model also stages mmproj-F16.gguf; keep Strata's vision path enabled.
-    - name: VISION
-      value: "on"
-    # Tune the exact host/model combination once; Strata persists the result
-    # in /data and reuses it on restarts unless RETUNE=1 is requested.
-    - name: TUNE
-      value: quick
-    # Opt into Strata's full bitwise SM75/Turing kernel series. This is gated
-    # by compute capability 7.5 and does not change other GPU architectures.
-    - name: STRATA_SM75_PERF
-      value: "1"
-    # Select the alternative Turing v2 prompt-attention path. Strata documents
-    # it as opt-in and not yet measured on a real SM75 card.
-    - name: STRATA_PA_V2T
-      value: "1"
-    # Additional Turing prompt-path optimizations. These can change floating-
-    # point summation order and therefore may change replies slightly.
-    - name: STRATA_SELECT_SIMT
-      value: "1"
-    - name: STRATA_BF16_TC
-      value: "1"
-    - name: STRATA_XN_F16
-      value: "1"
-    # The LLMKube ModelRouter does not forward backend API keys. Restrict the
-    # keyless server to known in-cluster Hosts and the Cilium policy below.
-    - name: API_KEY
-      value: "none"
-    - name: STRATA_ALLOWED_HOSTS
-      value: "qwen3-6-35b-a3b-strata,qwen3-6-35b-a3b-strata.llmkube.svc.cluster.local"
-    # Use only the T4; keep both GPUs reserved by the ModelPool member.
-    - name: GPU
-      value: "0"
-    - name: CUDA_DEVICE_ORDER
-      value: PCI_BUS_ID
-  extraVolumes:
-    - name: strata-data
-      persistentVolumeClaim:
-        claimName: llmkube-strata-data
-    - name: tmp
-      emptyDir:
-        medium: Memory
-        sizeLimit: 2Gi
-    - name: run
-      emptyDir:
-        medium: Memory
-        sizeLimit: 16Mi
-    - name: shm
-      emptyDir:
-        medium: Memory
-        sizeLimit: 2Gi
-  extraVolumeMounts:
-    - name: strata-data
-      mountPath: /data
-    - name: tmp
-      mountPath: /tmp
-    - name: run
-      mountPath: /run
-    - name: shm
-      mountPath: /dev/shm
-  # Run as APP_UID_LLMKUBE, never as root. GPU character-device permissions
-  # come from the host's NVIDIA device-plugin/containerd configuration.
-  # Only IPC_LOCK is retained for Strata's page-locked host-memory buffers.
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroupChangePolicy: OnRootMismatch
-    seccompProfile:
-      type: RuntimeDefault
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    readOnlyRootFilesystem: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-      # Strata pins large CPU-side expert buffers; this limited capability
-      # substitutes for the Docker image's --ulimit memlock=-1:-1 setting.
-      add:
-        - IPC_LOCK
-    seccompProfile:
-      type: RuntimeDefault
-  startupTimeout: 45m
+# ---
+# apiVersion: inference.llmkube.dev/v1alpha1
+# kind: InferenceService
+# metadata:
+#   name: qwen3.6-35b-a3b-strata
+#   namespace: llmkube
+# spec:
+#   podLabels:
+#     prom.home.arpa/kps: allow
+#   # Reuse the existing GGUF Model and its prefetched/cache-shared artifact set.
+#   modelRef: qwen3.6-35b-a3b
+#   runtime: generic
+#   # The CUDA 12 image supports this mixed-generation Tesla T4 / GTX 1060 host.
+#   image: ghcr.io/niko1221/strata:0.2.7-cuda12
+#   nodeSelector:
+#     kubernetes.io/hostname: sinon
+#   tolerations:
+#     - key: llm.internal
+#       operator: Exists
+#       effect: NoSchedule
+#   endpoint:
+#     port: 8080
+#     type: ClusterIP
+#   modelCache:
+#     claimName: llmkube-models
+#     prefetch: true
+#   # Generic runtimes do not stage by default. Stage the existing GGUF Model
+#   # into the read-only /models mount rather than asking Strata to download it.
+#   stageModel: true
+#   resources:
+#     gpu: 2
+#     cpu: "10m"
+#     memory: 20Gi
+#     memoryLimit: 30Gi # required to not OOM kill the tuning
+#   env:
+#     - name: TZ
+#       value: Asia/Singapore
+#     - name: FAMILY
+#       value: qwen36
+#     - name: MODEL
+#       value: ud-q4_k_xl
+#     - name: MODEL_PATH
+#       value: "$(LLMKUBE_MODEL_DIR)"
+#     - name: CONTEXT
+#       value: "105000"
+#     - name: PARALLEL
+#       value: "1"
+#     # The shared Model also stages mmproj-F16.gguf; keep Strata's vision path enabled.
+#     - name: VISION
+#       value: "on"
+#     # Tune the exact host/model combination once; Strata persists the result
+#     # in /data and reuses it on restarts unless RETUNE=1 is requested.
+#     - name: TUNE
+#       value: quick
+#     # Opt into Strata's full bitwise SM75/Turing kernel series. This is gated
+#     # by compute capability 7.5 and does not change other GPU architectures.
+#     - name: STRATA_SM75_PERF
+#       value: "1"
+#     # Select the alternative Turing v2 prompt-attention path. Strata documents
+#     # it as opt-in and not yet measured on a real SM75 card.
+#     - name: STRATA_PA_V2T
+#       value: "1"
+#     # Additional Turing prompt-path optimizations. These can change floating-
+#     # point summation order and therefore may change replies slightly.
+#     - name: STRATA_SELECT_SIMT
+#       value: "1"
+#     - name: STRATA_BF16_TC
+#       value: "1"
+#     - name: STRATA_XN_F16
+#       value: "1"
+#     # The LLMKube ModelRouter does not forward backend API keys. Restrict the
+#     # keyless server to known in-cluster Hosts and the Cilium policy below.
+#     - name: API_KEY
+#       value: "none"
+#     - name: STRATA_ALLOWED_HOSTS
+#       value: "qwen3-6-35b-a3b-strata,qwen3-6-35b-a3b-strata.llmkube.svc.cluster.local"
+#     # Use only the T4; keep both GPUs reserved by the ModelPool member.
+#     - name: GPU
+#       value: "0"
+#     - name: CUDA_DEVICE_ORDER
+#       value: PCI_BUS_ID
+#   extraVolumes:
+#     - name: strata-data
+#       persistentVolumeClaim:
+#         claimName: llmkube-strata-data
+#     - name: tmp
+#       emptyDir:
+#         medium: Memory
+#         sizeLimit: 2Gi
+#     - name: run
+#       emptyDir:
+#         medium: Memory
+#         sizeLimit: 16Mi
+#     - name: shm
+#       emptyDir:
+#         medium: Memory
+#         sizeLimit: 2Gi
+#   extraVolumeMounts:
+#     - name: strata-data
+#       mountPath: /data
+#     - name: tmp
+#       mountPath: /tmp
+#     - name: run
+#       mountPath: /run
+#     - name: shm
+#       mountPath: /dev/shm
+#   # Run as APP_UID_LLMKUBE, never as root. GPU character-device permissions
+#   # come from the host's NVIDIA device-plugin/containerd configuration.
+#   # Only IPC_LOCK is retained for Strata's page-locked host-memory buffers.
+#   podSecurityContext:
+#     runAsNonRoot: true
+#     runAsUser: ${APP_UID_LLMKUBE:=65536}
+#     runAsGroup: ${APP_UID_LLMKUBE:=65536}
+#     fsGroup: ${APP_UID_LLMKUBE:=65536}
+#     fsGroupChangePolicy: OnRootMismatch
+#     seccompProfile:
+#       type: RuntimeDefault
+#   securityContext:
+#     runAsNonRoot: true
+#     runAsUser: ${APP_UID_LLMKUBE:=65536}
+#     runAsGroup: ${APP_UID_LLMKUBE:=65536}
+#     readOnlyRootFilesystem: true
+#     allowPrivilegeEscalation: false
+#     capabilities:
+#       drop:
+#         - ALL
+#       # Strata pins large CPU-side expert buffers; this limited capability
+#       # substitutes for the Docker image's --ulimit memlock=-1:-1 setting.
+#       add:
+#         - IPC_LOCK
+#     seccompProfile:
+#       type: RuntimeDefault
+#   startupTimeout: 45m
