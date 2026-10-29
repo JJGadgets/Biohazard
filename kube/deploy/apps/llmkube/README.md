@@ -80,6 +80,8 @@ Strata runs as the non-root `APP_UID_LLMKUBE` UID/GID with `fsGroup` on writable
 
 `TUNE=quick` runs Strata's one-time hardware tuning and persists its results in `llmkube-strata-data`. `STRATA_SM75_PERF=1` enables its complete bitwise Turing/SM75 kernel series; `STRATA_SELECT_SIMT=1` and `STRATA_BF16_TC=1` enable additional Turing prompt optimizations that can change floating-point rounding and may change replies. The Q2_0-only fused prompt path is not applicable to `UD-Q4_K_XL`.
 
+Strata deliberately has no Kubernetes memory limit: its upstream Docker documentation warns that the model planner uses host RAM information and the engine can be OOM-killed by an artificially tight cgroup cap. The `20Gi` memory request is scheduling metadata, not a cap.
+
 ## Adding another swappable model
 
 Add a `Model` and `InferenceService`, include the service in the
