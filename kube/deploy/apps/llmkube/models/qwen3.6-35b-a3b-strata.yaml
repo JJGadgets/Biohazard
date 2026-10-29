@@ -31,7 +31,7 @@ spec:
     gpu: 2
     cpu: "10m"
     memory: 20Gi
-    memoryLimit: 30Gi
+    memoryLimit: 30Gi # required to not OOM kill the tuning
   env:
     - name: TZ
       value: Asia/Singapore
@@ -42,7 +42,7 @@ spec:
     - name: MODEL_PATH
       value: "$(LLMKUBE_MODEL_DIR)"
     - name: CONTEXT
-      value: "185000"
+      value: "105000"
     - name: PARALLEL
       value: "1"
     # The shared Model also stages mmproj-F16.gguf; keep Strata's vision path enabled.
