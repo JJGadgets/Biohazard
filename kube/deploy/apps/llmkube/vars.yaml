@@ -25,3 +25,4 @@ spec:
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
         CONFIG_TZ: '{{ .CONFIG_TZ }}'
         APP_UID_LLMKUBE: '{{ .APP_UID_LLMKUBE | default "65536" }}'
+        APP_DNS_LLMKUBE: '{{ .APP_DNS_LLMKUBE }}'
