@@ -1,6 +1,6 @@
 # LLMKube
 
-Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml`, `models/embed.yaml`, and `models/rerank.yaml` keep model-specific resources together.
+Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml` is the llama.cpp backend, `models/qwen3.6-35b-a3b-strata.yaml` is the Strata generic-runtime alternative reusing the same Qwen GGUF `Model`, and `models/embed.yaml` / `models/rerank.yaml` hold the embedding and reranking services.
 
 LLMKube 0.10.7 is installed through its upstream OCI Helm chart and Flux
 HelmRelease. The Qwen weights/projector, embedding and reranker GGUFs, and
@@ -14,10 +14,13 @@ modified by this app.
 
 The app-owned PVCs in `models/common.yaml` are the intended workload storage:
 `llmkube-models` is explicitly selected by the Qwen `InferenceService`,
-`llmkube-templates` by the chat-template `Model`, and `llmkube-runtime-data`
-stores llama.cpp runtime state. All use the `local` storage class; model prefetch and
-serving are pinned to `kubernetes.io/hostname=sinon`. The serving pod mounts
-the staged model and template artifacts read-only. The chart's
+`llmkube-templates` by the chat-template `Model`, `llmkube-runtime-data`
+stores llama.cpp runtime state, and `llmkube-strata-data` stores Strata's own
+prepared model state and tuning results. The PVC requests `1Mi` because the
+`local` hostpath CSI backend does not enforce quotas. Model prefetch and serving
+are pinned to `kubernetes.io/hostname=sinon`. Both backends use LLMKube's
+existing staged GGUF/projector set; Strata does not declare a duplicate model
+source. The chart's
 `modelCache.mode/size/storageClass` settings are fallback provisioning for
 services without an explicit `spec.modelCache.claimName`.
 
@@ -69,13 +72,15 @@ CUDA device 1 remains visible in the pod. `CUDA_DEVICE_ORDER=PCI_BUS_ID` and
 `LLAMA_ARG_DEVICE=CUDA1` select the GTX 1060 for inference. The ModelPool
 serializes the services against the same two-GPU allocation.
 
-The unified Cilium policy selects only pods carrying `netpol: llmkube-models` and `inference.llmkube.dev/runtime: llamacpp`; model API ingress is L4-only, while L7 HTTP filtering remains limited to `GET /metrics`.
+The unified Cilium inference policy selects only LLMKube `llamacpp` and `generic` runtimes; model API ingress is L4-only from the router, controller, and explicitly opted-in callers, while L7 HTTP filtering remains limited to `GET /metrics`. The generic Strata backend is not exposed outside the cluster. Strata's API key is disabled because LLMKube ModelRouter does not forward backend keys, so the Host allowlist and Cilium restrictions are required.
 
-The services use llama.cpp's explicit `--load-mode mlock` setting, which keeps
-model pages resident without using mmap. This replaces the deprecated `--mlock`
-flag and avoids setting the older mmap environment variables. The namespace's Pod Security `baseline` enforcement remains intact;
-no `IPC_LOCK` capability is added, so whether the kernel can lock all model
-pages depends on the container runtime's memlock limit.
+The llama.cpp services use `--load-mode mlock` to keep model pages resident without mmap. This replaces deprecated `--mlock`; the service uses the narrowly required `IPC_LOCK` capability. The namespace's Pod Security `baseline` enforcement remains intact.
+
+Strata runs as the non-root `APP_UID_LLMKUBE` UID/GID with `fsGroup` on writable volumes. Its pod uses a read-only root filesystem, RuntimeDefault seccomp, and no privilege escalation; it drops every capability except `IPC_LOCK`, needed for pinned host memory. The GPU device plugin and containerd provide GPU device permissions without running the engine as root.
+
+`TUNE=quick` runs Strata's one-time hardware tuning and persists its results in `llmkube-strata-data`. `STRATA_SM75_PERF=1` enables its complete bitwise Turing/SM75 kernel series. `STRATA_PA_V2T=1` selects an alternative Turing prompt-attention path that Strata documents as not yet measured on a real SM75 card; `STRATA_SELECT_SIMT=1` and `STRATA_BF16_TC=1` with `STRATA_XN_F16=1` enable additional Turing prompt optimizations that can change floating-point rounding and may change replies. These experimental paths need benchmarking on the T4 before treating them as proven faster. The Q2_0-only fused prompt path is not applicable to `UD-Q4_K_XL`.
+
+Strata deliberately has no Kubernetes memory limit: its upstream Docker documentation warns that the model planner uses host RAM information and the engine can be OOM-killed by an artificially tight cgroup cap. The `20Gi` memory request is scheduling metadata, not a cap.
 
 ## Adding another swappable model
 

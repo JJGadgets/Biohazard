@@ -38,6 +38,19 @@ spec:
     requests:
       storage: 1Mi
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llmkube-strata-data
+  namespace: llmkube
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local
+  resources:
+    requests:
+      storage: 1Mi
+---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
@@ -54,6 +67,8 @@ spec:
   members:
     - inferenceServiceRef:
         name: qwen3.6-35b-a3b
+    - inferenceServiceRef:
+        name: qwen3.6-35b-a3b-strata
     - inferenceServiceRef:
         name: qwen3.8-27b
 ---
@@ -72,6 +87,10 @@ spec:
       displayName: qwen3.6-35b-a3b
       inferenceServiceRef:
         name: qwen3.6-35b-a3b
+    - name: qwen3-6-35b-a3b-strata
+      displayName: qwen3.6-35b-a3b-strata
+      inferenceServiceRef:
+        name: qwen3.6-35b-a3b-strata
     - name: qwen3-8-27b
       displayName: qwen3.8-27b
       inferenceServiceRef:
@@ -92,6 +111,14 @@ spec:
       route:
         backends:
           - qwen3-6-35b-a3b
+        poolActivation: Wait
+    - name: qwen3-6-35b-a3b-strata-pool
+      match:
+        models:
+          - qwen3.6-35b-a3b-strata
+      route:
+        backends:
+          - qwen3-6-35b-a3b-strata
         poolActivation: Wait
     - name: qwen3-8-27b-pool
       match:
