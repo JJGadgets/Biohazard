@@ -55,6 +55,10 @@ spec:
     # by compute capability 7.5 and does not change other GPU architectures.
     - name: STRATA_SM75_PERF
       value: "1"
+    # Select the alternative Turing v2 prompt-attention path. Strata documents
+    # it as opt-in and not yet measured on a real SM75 card.
+    - name: STRATA_PA_V2T
+      value: "1"
     # Additional Turing prompt-path optimizations. These can change floating-
     # point summation order and therefore may change replies slightly.
     - name: STRATA_SELECT_SIMT
