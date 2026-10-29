@@ -158,6 +158,7 @@ spec:
     responseHeaderTimeout: 86400s
     streamIdleTimeout: 86400s
     podLabels:
+      ingress.home.arpa/envoy-internal: allow
       prom.home.arpa/kps: allow
       egress.home.arpa/apiserver: allow
     nodeSelector:
