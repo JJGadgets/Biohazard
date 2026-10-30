@@ -110,7 +110,7 @@ spec:
     - name: LLAMA_ARG_REASONING_PRESERVE
       value: enabled
     - name: LLAMA_ARG_SLOT_SAVE_PATH
-      value: /data/llama-cpp/unsloth-muse-glimmer-30b-ud-q3_k_xl/
+      value: /data/llama-cpp/
     - name: LLAMA_ARG_THREADS
       value: "7"
     - name: LLAMA_CHAT_TEMPLATE_KWARGS
@@ -145,6 +145,7 @@ spec:
         sizeLimit: 4Gi
   extraVolumeMounts:
     - name: runtime-data
+      subPath: unsloth-muse-glimmer-30b-ud-q3_k_xl
       mountPath: /data/llama-cpp
     - name: tmp
       mountPath: /tmp
