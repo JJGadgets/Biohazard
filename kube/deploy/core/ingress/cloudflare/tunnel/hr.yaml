@@ -24,7 +24,7 @@ spec:
       ipam.cilium.io/require-pool-match: "true"
     image:
       repository: cloudflare/cloudflared
-      tag: 2026.5.2@sha256:12ff5c6992a9863db4da270746af7c244bcaee49353039af8104268a18d6c4f0
+      tag: 2026.10.7@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
     args: ['tunnel', '--config', '/etc/cloudflared/config.yaml', '--metrics', '0.0.0.0:9090', 'run']
     service:
       main:
