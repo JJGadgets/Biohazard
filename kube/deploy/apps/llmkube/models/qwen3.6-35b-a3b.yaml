@@ -99,18 +99,6 @@ spec:
     - /data/llama-cpp/
     - -sps
     - "0.5"
-    - --temp
-    - "0.6"
-    - --top-p
-    - "0.95"
-    - --min-p
-    - "0.0"
-    - --top-k
-    - "20"
-    - --presence-penalty
-    - "0.5"
-    - --repeat-penalty
-    - "1.0"
     - --load-mode
     - "mlock"
     - --fit
@@ -150,6 +138,8 @@ spec:
       value: "16384"
     - name: LLAMA_ARG_REASONING_PRESERVE
       value: enabled
+    - name: LLAMA_ARG_SLOT_SAVE_PATH
+      value: /data/llama-cpp/unsloth-qwen3.6-35b-a3b-ud-q4_k_xl/
     - name: LLAMA_ARG_THREADS
       value: "7"
     - name: LLAMA_CHAT_TEMPLATE_KWARGS
