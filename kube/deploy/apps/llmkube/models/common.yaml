@@ -114,6 +114,9 @@ spec:
       match:
         models:
           - qwen3.6-35b-a3b
+          - qwen3.6-35b-a3b-slot-0
+          - qwen3.6-35b-a3b-slot-1
+          - qwen3.6-35b-a3b-slot-2
       route:
         backends:
           - qwen3-6-35b-a3b
@@ -130,6 +133,9 @@ spec:
       match:
         models:
           - qwen3.8-27b
+          - qwen3.8-27b-slot-0
+          - qwen3.8-27b-slot-1
+          - qwen3.8-27b-slot-2
       route:
         backends:
           - qwen3-8-27b
@@ -138,6 +144,9 @@ spec:
       match:
         models:
           - muse-glimmer
+          - muse-glimmer-slot-0
+          - muse-glimmer-slot-1
+          - muse-glimmer-slot-2
       route:
         backends:
           - muse-glimmer
