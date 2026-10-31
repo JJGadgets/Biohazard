@@ -113,6 +113,10 @@ spec:
               HTTP_PORT: &qwen-http 8083
               QWEN_HOME: "/home/openclaw/.qwen"
               QWEN_USAGE_STATISTICS_ENABLED: 0
+              # Limit Qwen Code's internal tool and agent fan-out; this is not a process-wide provider request semaphore.
+              QWEN_CODE_MAX_BACKGROUND_AGENTS: "1"
+              QWEN_CODE_MAX_TOOL_CONCURRENCY: "1"
+              QWEN_CODE_MAX_WORKFLOW_CONCURRENCY: "1"
               # MEMINI_API_KEY:
               #   valueFrom:
               #     secretKeyRef:
