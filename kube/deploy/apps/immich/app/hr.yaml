@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
+              tag: v3.3.5@sha256:485d546a2e31d6a8b4db8423fcba5c109de8c218d93410af115fd1ccfc4352a6
             # command: &cmd ["tini", "--", "node", "/usr/src/app/server/dist/main"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -48,9 +48,7 @@ spec:
               IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local
               MACHINE_LEARNING_HTTP_KEEPALIVE_TIMEOUT_S: "0" # avoid keep-alive to better load balance requests across replicas
               MACHINE_LEARNING_MODEL_TTL: "0" # keep models loaded, for predictable resource requests
-              # default models as of v1.112.1
-              MACHINE_LEARNING_PRELOAD__CLIP: ViT-B-32__openai
-              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION: buffalo_l
+              # ML preload configuration is scoped to the ML controller below.
               AAA_DATABASE_HOST: "pg-home-rw.pg.svc.cluster.local"
               AAA_DATABASE_USERNAME:
                 valueFrom:
@@ -133,10 +131,15 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v2.7.5-openvino@sha256:71cd5a681823c4b818f4b24b3f05816eccc3d085559e7615f695bde77e64f1f2
+              tag: v3.3.5-openvino@sha256:1dbac7f811b51b80c55ee0cf678e0089d3532c798f14a65747d5d7b473a4f9d6
             env:
               <<: *env
               IMMICH_PORT: &ml-port 8080
+              MACHINE_LEARNING_MODEL_REVISION: v2
+              MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__DETECTION: buffalo_l
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__RECOGNITION: buffalo_l
               MACHINE_LEARNING_REQUEST_THREADS:
                 resourceFieldRef:
                   resource: limits.cpu
@@ -165,9 +168,9 @@ spec:
           app: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v2.7.5@sha256:a2501141440f10516d329fdfba2c68082e19eb9ba6016c061ac80d23beadf7f3
-            command: ["huggingface-cli", "download", "--exclude", ".git", "--local-dir"] # Immich ML image installs huggingface-cli
-            args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
+              tag: v3.3.5@sha256:5b28c9352c8374b8a1ed96fbdd8d6755fea6e43510ec43fdf6538aa02ea40f56
+            command: ["hf", "download", "--exclude", ".git", "--revision", "v2", "--local-dir"] # huggingface_hub >=1.0 removed huggingface-cli
+            args: ["/cache/clip/ViT-B-32__openai/v2", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
             env:
               HOME: *mlhome
@@ -184,7 +187,7 @@ spec:
         containers:
           app:
             <<: *ml-model-pull-ct
-            args: ["/cache/facial-recognition/buffalo_l", "immich-app/buffalo_l"]
+            args: ["/cache/facial-recognition/buffalo_l/v2", "immich-app/buffalo_l"]
       redis:
         type: deployment
         replicas: 1
