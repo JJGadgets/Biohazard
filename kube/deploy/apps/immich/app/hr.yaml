@@ -135,7 +135,6 @@ spec:
             env:
               <<: *env
               IMMICH_PORT: &ml-port 8080
-              MACHINE_LEARNING_MODEL_REVISION: v2
               MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-32__openai
               MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-32__openai
               MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__DETECTION: buffalo_l
@@ -169,8 +168,8 @@ spec:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
               tag: v3.3.5@sha256:5b28c9352c8374b8a1ed96fbdd8d6755fea6e43510ec43fdf6538aa02ea40f56
-            command: ["hf", "download", "--exclude", ".git", "--revision", "v2", "--local-dir"] # huggingface_hub >=1.0 removed huggingface-cli
-            args: ["/cache/clip/ViT-B-32__openai/v2", "immich-app/ViT-B-32__openai"]
+            command: ["hf", "download", "--exclude", ".git", "--local-dir"] # huggingface_hub >=1.0 removed huggingface-cli
+            args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
             env:
               HOME: *mlhome
@@ -187,7 +186,7 @@ spec:
         containers:
           app:
             <<: *ml-model-pull-ct
-            args: ["/cache/facial-recognition/buffalo_l/v2", "immich-app/buffalo_l"]
+            args: ["/cache/facial-recognition/buffalo_l", "immich-app/buffalo_l"]
       redis:
         type: deployment
         replicas: 1
