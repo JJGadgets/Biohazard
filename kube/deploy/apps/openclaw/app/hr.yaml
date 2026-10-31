@@ -90,7 +90,7 @@ spec:
             image:
               repository: ghcr.io/jjgadgets/opencode
               tag: 1.18.31@sha256:319e524999a8b7ff3c77af0555d9a2bc149c69ef687ca97c33d97e1a007d1b8c
-            args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
+            args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}", "--workspace", "/home/openclaw/qwen-code-workspace"]
             env:
               <<: *env
               HTTP_PORT: &opencode-http 8081
@@ -113,6 +113,10 @@ spec:
               HTTP_PORT: &qwen-http 8083
               QWEN_HOME: "/home/openclaw/.qwen"
               QWEN_USAGE_STATISTICS_ENABLED: 0
+              # Limit Qwen Code's internal tool and agent fan-out; this is not a process-wide provider request semaphore.
+              QWEN_CODE_MAX_BACKGROUND_AGENTS: "1"
+              QWEN_CODE_MAX_TOOL_CONCURRENCY: "1"
+              QWEN_CODE_MAX_WORKFLOW_CONCURRENCY: "1"
               # MEMINI_API_KEY:
               #   valueFrom:
               #     secretKeyRef:
@@ -205,6 +209,8 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
+          - subPath: qwen-code-workspace # need the mkdir
+            path: "/home/openclaw/qwen-code-workspace" # work around my ~ bare git repo resulting in nested workspace
       misc:
         existingClaim: openclaw-misc
         globalMounts:

@@ -13,6 +13,7 @@ spec:
   trigger:
     manual: "${TRIGGER:=restore-once-bootstrap}"
   restic:
+    restoreAsOf: ${RESTOREASOF:=null}
     repository: "vs-${PVC}-${RESTORE:=r2}-restic"
     copyMethod: "Snapshot"
     volumeSnapshotClassName: "${SNAP:=block}"

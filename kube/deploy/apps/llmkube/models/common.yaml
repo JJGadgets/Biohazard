@@ -51,6 +51,40 @@ spec:
     requests:
       storage: 1Mi
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llmkube # router-proxy
+  namespace: llmkube
+  labels:
+    app.kubernetes.io/name: llmkube
+spec:
+  type: ClusterIP
+  selector:
+    inference.llmkube.dev/model-router: llmkube-router
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+      appProtocol: http
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llmkube-router
+  namespace: llmkube
+spec:
+  hostnames: ["${APP_DNS_LLMKUBE:=llmkube}"]
+  parentRefs:
+    - name: envoy-internal
+      namespace: ingress
+  rules:
+    - backendRefs:
+        - name: llmkube
+          port: 80
+---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
@@ -73,6 +107,10 @@ spec:
         name: qwen3.8-27b
     - inferenceServiceRef:
         name: muse-glimmer
+    - inferenceServiceRef:
+        name: qwen3-omni-thinking
+    - inferenceServiceRef:
+        name: gemma-4-12b
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelRouter
@@ -97,6 +135,18 @@ spec:
       displayName: qwen3.8-27b
       inferenceServiceRef:
         name: qwen3.8-27b
+    - name: muse-glimmer
+      displayName: muse-glimmer
+      inferenceServiceRef:
+        name: muse-glimmer
+    - name: gemma-4-12b
+      displayName: gemma-4-12b
+      inferenceServiceRef:
+        name: gemma-4-12b
+    - name: qwen3-omni-thinking
+      displayName: qwen3-omni-thinking
+      inferenceServiceRef:
+        name: qwen3-omni-thinking
     - name: qwen3-embedding-0-6b
       displayName: qwen3-embedding-0.6b
       inferenceServiceRef:
@@ -105,10 +155,6 @@ spec:
       displayName: qwen3-reranker-0.6b
       inferenceServiceRef:
         name: qwen3-reranker-0.6b
-    - name: muse-glimmer
-      displayName: muse-glimmer
-      inferenceServiceRef:
-        name: muse-glimmer
   rules:
     - name: qwen3-6-35b-a3b-pool
       match:
@@ -151,6 +197,28 @@ spec:
         backends:
           - muse-glimmer
         poolActivation: Wait
+    - name: gemma-4-12b-pool
+      match:
+        models:
+          - gemma-4-12b
+          - gemma-4-12b-slot-0
+          - gemma-4-12b-slot-1
+          - gemma-4-12b-slot-2
+      route:
+        backends:
+          - gemma-4-12b
+        poolActivation: Wait
+    - name: qwen3-omni-thinking-pool
+      match:
+        models:
+          - qwen3-omni-thinking
+          - qwen3-omni-thinking-slot-0
+          - qwen3-omni-thinking-slot-1
+          - qwen3-omni-thinking-slot-2
+      route:
+        backends:
+          - qwen3-omni-thinking
+        poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
         models:
@@ -176,6 +244,7 @@ spec:
           - qwen3-6-35b-a3b
           - qwen3-8-27b
           - muse-glimmer
+          - gemma-4-12b
         poolActivation: IfIdle
   proxy:
     replicas: 1
@@ -187,37 +256,3 @@ spec:
       egress.home.arpa/apiserver: allow
     nodeSelector:
       feature.node.kubernetes.io/baremetal: "true"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: llmkube # router-proxy
-  namespace: llmkube
-  labels:
-    app.kubernetes.io/name: llmkube
-spec:
-  type: ClusterIP
-  selector:
-    inference.llmkube.dev/model-router: llmkube-router
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-      appProtocol: http
----
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: llmkube-router
-  namespace: llmkube
-spec:
-  hostnames: ["${APP_DNS_LLMKUBE:=llmkube}"]
-  parentRefs:
-    - name: envoy-internal
-      namespace: ingress
-  rules:
-    - backendRefs:
-        - name: llmkube
-          port: 80
