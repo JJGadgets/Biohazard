@@ -28,7 +28,7 @@ spec:
     gpu:
       enabled: true
       vendor: nvidia
-      count: 1
+      count: 2
       layers: 99
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -58,7 +58,7 @@ spec:
     claimName: llmkube-models
     prefetch: true
   resources:
-    gpu: 1
+    gpu: 2
     cpu: "10m"
     memory: 20Gi
     memoryLimit: 30Gi
@@ -123,6 +123,8 @@ spec:
       value: '{"enable_thinking":true,"preserve_thinking":true}'
     - name: LLAMA_ARG_DEVICE
       value: CUDA0
+    - name: MTMD_BACKEND_DEVICE
+      value: CUDA1
     - name: CUDA_DEVICE_ORDER
       value: PCI_BUS_ID
     - name: LLAMA_ARG_CONTEXT_SHIFT
