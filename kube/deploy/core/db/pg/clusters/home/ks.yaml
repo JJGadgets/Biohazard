@@ -26,6 +26,7 @@ spec:
       PG_CONFIG_SIZE: "10Gi"
       PG_DUMPALL: !!str "'TRUE'"
       PG_DUMP_FROM: "primary"
+      PG_APP_CURRENT_VERSION: "sha256:00000000000000000000000000000000000000000000000000000"
   patches:
     - target:
         group: postgres-operator.crunchydata.com
