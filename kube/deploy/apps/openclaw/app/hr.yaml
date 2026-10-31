@@ -209,7 +209,7 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
-          - subPath: qwen
+          - subPath: qwen-code-workspace # need the mkdir
             path: "/home/openclaw/qwen-code-workspace" # work around my ~ bare git repo resulting in nested workspace
       misc:
         existingClaim: openclaw-misc
