@@ -31,29 +31,6 @@ spec:
       count: 1
       layers: 99
 ---
-# Use LLMKube's operator-managed prefetch job for the Qwen chat template too.
-# The prefetched file is stored at /models/3dd0cee02aac0569/chat_template.jinja
-# on the llmkube-templates PVC (cache key = SHA256(source)[:16]).
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: Model
-metadata:
-  name: qwen-chat-template
-  namespace: llmkube
-spec:
-  source: hf://froggeric/Qwen-Fixed-Chat-Templates@cc662897c571bc90d74ff9e4c53d682b40eabe20
-  files:
-    - chat_template.jinja
-  format: custom
-  prefetch: true
-  prefetchNodeSelector:
-    kubernetes.io/hostname: sinon
-  prefetchTolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
-  modelCache:
-    claimName: llmkube-templates
----
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
 metadata:
