@@ -30,7 +30,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/paperless-ngx/paperless-ngx
-              tag: 2.20.15@sha256:6c86cad803970ea782683a8e80e7403444c5bf3cf70de63b4d3c8e87500db92f
+              tag: 3.4.1@sha256:1a08d8dfc2b51a08de09652dd86ad4d0c611c362382f944533ad38b73125fbc4
             env:
               PAPERLESS_URL: "https://${APP_DNS_PAPERLESS_NGX}"
               PAPERLESS_PORT: &port 8000
