@@ -58,11 +58,11 @@ spec:
     cpu: "10m"
     memory: 1Gi
     memoryLimit: 10Gi
-  contextSize: 8192
+  contextSize: 4096
   parallelSlots: 2
   flashAttention: true
-  batchSize: 384
-  uBatchSize: 192
+  batchSize: 256
+  uBatchSize: 128
   extraArgs:
     - --load-mode
     # - mlock
