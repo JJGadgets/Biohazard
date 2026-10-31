@@ -61,6 +61,20 @@ spec:
       kind: ReplicationSource
       current: status.latestMoverStatus.result == "Successful"
       failed: status.latestMoverStatus.result == "Failed"
+  patches:
+    - patch: |-
+        apiVersion: volsync.backube/v1alpha1
+        kind: ReplicationDestination
+        metadata:
+          name: "continuwuity-data-bootstrap"
+          namespace: continuwuity
+        spec:
+          restic:
+            restoreAsOf: 2026-05-03T14:00:00+00:00
+      target:
+        group: volsync.backube
+        kind: ReplicationDestination
+        labelSelector: pvc.home.arpa/rdst=continuwuity-data-bootstrap
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
