@@ -109,6 +109,8 @@ spec:
         name: muse-glimmer
     - inferenceServiceRef:
         name: qwen3-omni-thinking
+    - inferenceServiceRef:
+        name: gemma-4-12b
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelRouter
@@ -137,6 +139,10 @@ spec:
       displayName: muse-glimmer
       inferenceServiceRef:
         name: muse-glimmer
+    - name: gemma-4-12b
+      displayName: gemma-4-12b
+      inferenceServiceRef:
+        name: gemma-4-12b
     - name: qwen3-omni-thinking
       displayName: qwen3-omni-thinking
       inferenceServiceRef:
@@ -191,6 +197,17 @@ spec:
         backends:
           - muse-glimmer
         poolActivation: Wait
+    - name: gemma-4-12b-pool
+      match:
+        models:
+          - gemma-4-12b
+          - gemma-4-12b-slot-0
+          - gemma-4-12b-slot-1
+          - gemma-4-12b-slot-2
+      route:
+        backends:
+          - gemma-4-12b
+        poolActivation: Wait
     - name: qwen3-omni-thinking-pool
       match:
         models:
@@ -227,6 +244,7 @@ spec:
           - qwen3-6-35b-a3b
           - qwen3-8-27b
           - muse-glimmer
+          - gemma-4-12b
         poolActivation: IfIdle
   proxy:
     replicas: 1
