@@ -68,7 +68,7 @@ spec:
   batchSize: 16384
   uBatchSize: 8192
   tensorOverrides:
-    - 'blk\.(?:[6-7]|9|10|12|13|15|16|18|19|21|22|24|25|27|28|30|31|33|34|36|37)\.ffn_(?:down|gate|up)_exps\.=CPU'
+    - 'blk\.(?:[6-7]|9|10|12|13|15|16|18|19|21|22|24|25|27|28|[3-4][0-9])\.ffn_(?:down|gate|up)_exps\.=CPU'
   extraArgs:
     - --chat-template-file
     - /chat-template/3dd0cee02aac0569/chat_template.jinja
