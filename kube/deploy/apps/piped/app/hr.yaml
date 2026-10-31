@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/piped-frontend
-              tag: rolling@sha256:365e3ac67d244d75cdbf9834c0a6f31a8485c94409f85a25819d7aff807e5f90
+              tag: rolling@sha256:d1a20cb03f495a4552126c8f02af0582a13055d246eed91180ba799121b4603e
             env: &env
               TZ: "${CONFIG_TZ}"
               BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped}"
@@ -87,7 +87,7 @@ spec:
           main:
             image: &img
               repository: docker.io/1337kavin/piped-proxy
-              tag: latest@sha256:971c93dd66710664584f79fd4773bba086f5ff1123f81cc56cf7b2a74b07550d
+              tag: latest@sha256:a905fb27fae9157c2d6a960c04605379c79bceb0f2a190ab32e982e6f51a9e40
             command: ["/app/piped-proxy"]
             env: *env
             securityContext: *sc

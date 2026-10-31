@@ -1,0 +1,60 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: llmkube-inference
+  namespace: llmkube
+  labels:
+    app.kubernetes.io/name: llmkube
+    prometheus: kps
+spec:
+  selector:
+    matchExpressions:
+      - key: inference.llmkube.dev/service
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - llmkube
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
+      relabelings:
+        - targetLabel: job
+          replacement: llmkube-inference
+        - sourceLabels: [__meta_kubernetes_pod_label_inference_llmkube_dev_service]
+          targetLabel: service
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_pod_label_inference_llmkube_dev_model]
+          targetLabel: model
+        - sourceLabels: [__meta_kubernetes_pod_label_inference_llmkube_dev_runtime]
+          targetLabel: runtime
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: llmkube-router
+  namespace: llmkube
+  labels:
+    app.kubernetes.io/name: llmkube
+    prometheus: kps
+spec:
+  selector:
+    matchExpressions:
+      - key: inference.llmkube.dev/model-router
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - llmkube
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s
+      relabelings:
+        - targetLabel: job
+          replacement: llmkube-router
+        - sourceLabels: [__meta_kubernetes_pod_label_inference_llmkube_dev_model_router]
+          targetLabel: router
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace

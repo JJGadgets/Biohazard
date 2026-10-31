@@ -1,0 +1,223 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llmkube-models
+  namespace: llmkube
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llmkube-templates
+  namespace: llmkube
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llmkube-runtime-data
+  namespace: llmkube
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llmkube-strata-data
+  namespace: llmkube
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local
+  resources:
+    requests:
+      storage: 1Mi
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelPool
+metadata:
+  name: llmkube-llm
+  namespace: llmkube
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  gpu: 2
+  swapPolicy: reclaim
+  default: qwen3.6-35b-a3b
+  swapBudget: 900s
+  reclaimAfter: 15m
+  members:
+    - inferenceServiceRef:
+        name: qwen3.6-35b-a3b
+    # - inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-strata
+    - inferenceServiceRef:
+        name: qwen3.8-27b
+    - inferenceServiceRef:
+        name: muse-glimmer
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelRouter
+metadata:
+  name: llmkube-router
+  namespace: llmkube
+spec:
+  endpoint:
+    port: 80
+  defaultRouteStrategy: BackendNameMatch
+  defaultRoute: qwen3-6-35b-a3b
+  backends:
+    - name: qwen3-6-35b-a3b
+      displayName: qwen3.6-35b-a3b
+      inferenceServiceRef:
+        name: qwen3.6-35b-a3b
+    # - name: qwen3-6-35b-a3b-strata
+    #   displayName: qwen3.6-35b-a3b-strata
+    #   inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-strata
+    - name: qwen3-8-27b
+      displayName: qwen3.8-27b
+      inferenceServiceRef:
+        name: qwen3.8-27b
+    - name: qwen3-embedding-0-6b
+      displayName: qwen3-embedding-0.6b
+      inferenceServiceRef:
+        name: qwen3-embedding-0.6b
+    - name: qwen3-reranker-0-6b
+      displayName: qwen3-reranker-0.6b
+      inferenceServiceRef:
+        name: qwen3-reranker-0.6b
+    - name: muse-glimmer
+      displayName: muse-glimmer
+      inferenceServiceRef:
+        name: muse-glimmer
+  rules:
+    - name: qwen3-6-35b-a3b-pool
+      match:
+        models:
+          - qwen3.6-35b-a3b
+          - qwen3.6-35b-a3b-slot-0
+          - qwen3.6-35b-a3b-slot-1
+          - qwen3.6-35b-a3b-slot-2
+      route:
+        backends:
+          - qwen3-6-35b-a3b
+        poolActivation: Wait
+    # - name: qwen3-6-35b-a3b-strata-pool
+    #   match:
+    #     models:
+    #       - qwen3.6-35b-a3b-strata
+    #   route:
+    #     backends:
+    #       - qwen3-6-35b-a3b-strata
+    #     poolActivation: Wait
+    - name: qwen3-8-27b-pool
+      match:
+        models:
+          - qwen3.8-27b
+          - qwen3.8-27b-slot-0
+          - qwen3.8-27b-slot-1
+          - qwen3.8-27b-slot-2
+      route:
+        backends:
+          - qwen3-8-27b
+        poolActivation: Wait
+    - name: muse-glimmer-pool
+      match:
+        models:
+          - muse-glimmer
+          - muse-glimmer-slot-0
+          - muse-glimmer-slot-1
+          - muse-glimmer-slot-2
+      route:
+        backends:
+          - muse-glimmer
+        poolActivation: Wait
+    - name: qwen3-embedding-0-6b-pool
+      match:
+        models:
+          - qwen3-embedding-0.6b
+      route:
+        backends:
+          - qwen3-embedding-0-6b
+        poolActivation: Wait
+    - name: qwen3-reranker-0-6b-pool
+      match:
+        models:
+          - qwen3-reranker-0.6b
+      route:
+        backends:
+          - qwen3-reranker-0-6b
+        poolActivation: Wait
+    - name: auto-pool # use whatever LLM is currently loaded, or load Qwen 3.6 35B A3B if idle and not already loaded
+      match:
+        models:
+          - auto
+      route:
+        backends:
+          - qwen3-6-35b-a3b
+          - qwen3-8-27b
+          - muse-glimmer
+        poolActivation: IfIdle
+  proxy:
+    replicas: 1
+    responseHeaderTimeout: 86400s
+    streamIdleTimeout: 86400s
+    podLabels:
+      ingress.home.arpa/envoy-internal: allow
+      prom.home.arpa/kps: allow
+      egress.home.arpa/apiserver: allow
+    nodeSelector:
+      feature.node.kubernetes.io/baremetal: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llmkube # router-proxy
+  namespace: llmkube
+  labels:
+    app.kubernetes.io/name: llmkube
+spec:
+  type: ClusterIP
+  selector:
+    inference.llmkube.dev/model-router: llmkube-router
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+      appProtocol: http
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llmkube-router
+  namespace: llmkube
+spec:
+  hostnames: ["${APP_DNS_LLMKUBE:=llmkube}"]
+  parentRefs:
+    - name: envoy-internal
+      namespace: ingress
+  rules:
+    - backendRefs:
+        - name: llmkube
+          port: 80

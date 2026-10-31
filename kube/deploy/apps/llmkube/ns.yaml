@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llmkube
+  labels:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    # LLMKube 0.10.7's generated model-prefetch Job includes model-cache-prep,
+    # which runs as UID 0 with CHOWN/FOWNER. Restricted enforcement rejects it.
+    # Keep restricted audit/warn visibility while enforcing baseline in this
+    # namespace; app-owned pods still set explicit non-root, read-only-rootfs,
+    # no-escalation, dropped-capability, seccomp and network restrictions.
+    pod-security.kubernetes.io/enforce: &pss privileged # mlock + root initContainer for model download
+    pod-security.kubernetes.io/audit: *pss
+    pod-security.kubernetes.io/warn: *pss

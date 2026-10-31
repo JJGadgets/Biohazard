@@ -1,0 +1,208 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-controller-manager
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+      app.kubernetes.io/name: llmkube
+      app.kubernetes.io/instance: llmkube
+      control-plane: controller-manager
+  ingress:
+    # Health probes stay namespace-local.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    # Operator metrics are only readable by the KPS Prometheus pods.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/instance: "victoria"
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+  egress:
+    # kube-apiserver access is granted by the shared labelled-egress policy;
+    # the Helm post-renderer adds egress.home.arpa/apiserver=allow to this pod.
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+          matchExpressions:
+            - key: inference.llmkube.dev/runtime
+              operator: Exists
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-router-proxy
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+      inference.llmkube.dev/model-router: llmkube-router
+  ingress:
+    # Explicit opt-in: only callers labeled ai.internal/llmkube=allow may use
+    # the internal model API. This is not a cluster-wide allow.
+    - fromEndpoints:
+        - matchLabels:
+            ai.internal/llmkube: "allow"
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # The controller reads the router's metrics/ModelPool state endpoint.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            app.kubernetes.io/name: llmkube
+            app.kubernetes.io/instance: llmkube
+            control-plane: controller-manager
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    # Prometheus scrapes router and model-pool metrics.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
+        - matchLabels:
+            app.kubernetes.io/instance: "victoria"
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+  egress:
+    # The shared cluster DNS policy already allows DNS; no duplicate rule here.
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/runtime: llamacpp
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/runtime: generic
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "llmkube-router-proxy-egress"
+spec:
+  description: "Allow opt-in pods to egress to llmkube's router-proxy to reach AI models hosted by llmkube."
+  endpointSelector:
+    matchLabels:
+      ai.internal/llmkube: "allow"
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+---
+# LLMKube v0.10.6+ stages models in operator-managed prefetch Jobs labeled
+# app.kubernetes.io/component=model-prefetch. DNS is L7-filtered to the HF
+# domains because this workload class is the only one allowed internet egress.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-model-prefetch
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: model-prefetch
+  egress:
+    - toFQDNs: &dns
+        - matchName: huggingface.co
+        - matchPattern: "*.huggingface.co"
+        - matchName: hf.co
+        - matchPattern: "*.hf.co"
+        - matchPattern: "*.*.hf.co"
+        - matchPattern: "*.*.*.hf.co"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns: *dns
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-models
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      io.kubernetes.pod.namespace: llmkube
+    matchExpressions:
+      - key: inference.llmkube.dev/runtime
+        operator: In
+        values:
+          - llamacpp
+          - generic
+  ingress:
+    # Inference requests use plain L4 policy so Cilium Envoy cannot interfere
+    # with long-running HTTP requests, streaming, or application timeouts.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            app.kubernetes.io/name: llmkube
+            app.kubernetes.io/instance: llmkube
+            control-plane: controller-manager
+        - matchLabels:
+            ai.internal/llmkube: "allow"
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+    # Keep L7 filtering for monitoring scrapes only.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+            prometheus: "kps"
+        - matchLabels:
+            app.kubernetes.io/instance: "victoria"
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: "^/metrics$"
+  egress: []

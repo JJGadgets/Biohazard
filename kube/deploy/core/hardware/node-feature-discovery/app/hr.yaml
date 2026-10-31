@@ -13,7 +13,22 @@ spec:
     name: *app
     namespace: *ns
   values:
+    master:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Equal"
+          value: ""
+          effect: "NoSchedule"
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+      config:
+        extraLabelNs: ["nvidia.com"]
     worker:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
       config:
         core:
           labelSources: ["custom", "cpu", "pci", "usb", "system"]
@@ -50,3 +65,20 @@ spec:
                 - feature: cpu.cpuid
                   matchExpressions:
                     HYPERVISOR: {op: DoesNotExist}
+            - name: "disable-nvidia-toolkit-on-talos"
+              labels:
+                "nvidia.com/gpu.deploy.container-toolkit": "false"
+              matchFeatures:
+                - feature: system.osrelease
+                  matchExpressions:
+                    ID: {op: In, value: ["talos"]}
+    gc:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+    topologyUpdater:
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule

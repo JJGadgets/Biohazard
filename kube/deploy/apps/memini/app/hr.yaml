@@ -20,6 +20,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
+            ai.internal/llmkube: allow
             # authentik.home.arpa/oidc: allow
             prom.home.arpa/kps: allow
             dns.home.arpa/l7: "true"
@@ -30,11 +31,11 @@ spec:
               MEMINI_API_KEYS_FILE: /etc/memini/api-keys.yaml
               MEMINI_BACKEND: sqlite
               MEMINI_DEFAULT_NAMESPACE: default
-              MEMINI_EMBED_BASE_URL: http://llama-cpp-embedding.llama-cpp.svc.cluster.local/v1
-              MEMINI_EMBED_MODEL: embedding # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
+              MEMINI_EMBED_BASE_URL: http://llmkube.llmkube.svc.cluster.local/v1
+              MEMINI_EMBED_MODEL: qwen3-embedding-0.6b # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
               MEMINI_EMBED_DIMS: "1024"
               MEMINI_EMBED_QUERY_PREFIX: "Instruct: Given a user message, retrieve relevant past memories\nQuery: "
-              MEMINI_EMBED_MAX_CONCURRENCY: 8
+              MEMINI_EMBED_MAX_CONCURRENCY: 4
               MEMINI_RECALL_EMBED_TIMEOUT: 15s
               MEMINI_WRITE_EMBED_TIMEOUT: 30s
               MEMINI_WRITE_DEDUP_SCORE: "0.90"
@@ -50,8 +51,8 @@ spec:
               MEMINI_DISTILL_WRITE_FALSE: false
               MEMINI_ASSESSED_SALIENCE_WEIGHT: "0.6"
               MEMINI_REEMBED_ON_MODEL_CHANGE: true
-              MEMINI_RERANK: http://llama-cpp-rerank.llama-cpp.svc.cluster.local/v1
-              MEMINI_RERANK_MODEL: rerank
+              MEMINI_RERANK: http://llmkube.llmkube.svc.cluster.local/v1
+              MEMINI_RERANK_MODEL: qwen3-reranker-0.6b
               MEMINI_RERANK_MAX_CONCURRENCY: 2
               MEMINI_RERANK_TIMEOUT: 45s
               MEMINI_PROMOTE_MIN_ACCESS: "3"

@@ -1,0 +1,129 @@
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3-reranker-0.6b
+  namespace: llmkube
+spec:
+  source: hf://ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF@a02f48bb4f057028298c21fa033da2b30d7742d5
+  files:
+    - qwen3-reranker-0.6b-q8_0.gguf
+  format: gguf
+  quantization: Q8_0
+  hardware:
+    accelerator: cuda
+    gpu:
+      enabled: true
+      vendor: nvidia
+      count: 2
+      layers: 99
+  prefetch: true
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  modelCache:
+    claimName: llmkube-models
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3-reranker-0.6b
+  namespace: llmkube
+spec:
+  podLabels:
+    prom.home.arpa/kps: allow
+  modelRef: qwen3-reranker-0.6b
+  runtime: llamacpp
+  mode: rerank
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:c1d664830580e1651c1cc8d3bbc161af474800a56a83226e6e22f94bb8ba1c59
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  replicas: 1
+  endpoint:
+    port: 8080
+    path: /v1/rerank
+    type: ClusterIP
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  resources:
+    gpu: 2
+    cpu: "10m"
+    memory: 1Gi
+    memoryLimit: 10Gi
+  contextSize: 8192
+  parallelSlots: 2
+  flashAttention: true
+  batchSize: 384
+  uBatchSize: 192
+  extraArgs:
+    - --load-mode
+    # - mlock
+    - none
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: LLAMA_OFFLINE
+      value: enabled
+    - name: LLAMA_ARG_ALIAS
+      value: qwen3-reranker-0.6b
+    - name: LLAMA_ARG_MODEL_ALIAS
+      value: qwen3-reranker-0.6b
+    - name: LLAMA_ARG_DEVICE
+      value: CUDA1
+    - name: CUDA_DEVICE_ORDER
+      value: PCI_BUS_ID
+    - name: LLAMA_ARG_THREADS
+      value: "4"
+    # - name: LLAMA_ARG_CACHE_TYPE_K
+    #   value: q8_0
+    # - name: LLAMA_ARG_CACHE_TYPE_V
+    #   value: q8_0
+    - name: LLAMA_ARG_CACHE_PROMPT
+      value: enabled
+    - name: LLAMA_ARG_KV_UNIFIED
+      value: enabled
+    - name: LLAMA_ARG_CONT_BATCHING
+      value: enabled
+    - name: LLAMA_ARG_ENDPOINT_METRICS
+      value: enabled
+    - name: LLAMA_ARG_LOG_VERBOSITY
+      value: "4"
+    - name: CUDA_CACHE_PATH
+      value: /tmp/.nv
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - IPC_LOCK
+    seccompProfile:
+      type: RuntimeDefault
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  extraVolumes:
+    - name: tmp
+      emptyDir:
+        medium: Memory
+        sizeLimit: 16Mi
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
