@@ -57,7 +57,7 @@ spec:
     gpu: 2
     cpu: "10m"
     memory: 1Gi
-    memoryLimit: 10Gi
+    memoryLimit: 1Gi
   contextSize: 6144
   parallelSlots: 6
   flashAttention: true
@@ -87,7 +87,7 @@ spec:
     # - name: LLAMA_ARG_CACHE_TYPE_V
     #   value: q8_0
     - name: LLAMA_ARG_CACHE_PROMPT
-      value: enabled
+      value: disabled
     - name: LLAMA_ARG_KV_UNIFIED
       value: enabled
     - name: LLAMA_ARG_CONT_BATCHING

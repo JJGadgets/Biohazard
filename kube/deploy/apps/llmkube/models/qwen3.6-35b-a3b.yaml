@@ -60,8 +60,8 @@ spec:
   resources:
     gpu: 2
     cpu: "10m"
-    memory: 20Gi
-    memoryLimit: 30Gi
+    memory: 26Gi
+    memoryLimit: 26Gi
   contextSize: 185000
   parallelSlots: 3
   flashAttention: true
@@ -108,7 +108,7 @@ spec:
     - name: LLAMA_ARG_IMAGE_MIN_TOKENS
       value: "1024"
     - name: LLAMA_ARG_CACHE_RAM
-      value: "7168"
+      value: "6144"
     - name: LLAMA_ARG_CTX_CHECKPOINTS
       value: "12"
     - name: LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT
