@@ -85,6 +85,7 @@ spec:
         - name: llmkube
           port: 80
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
@@ -112,6 +113,7 @@ spec:
     - inferenceServiceRef:
         name: gemma-4-12b
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelrouter_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelRouter
 metadata:
@@ -155,6 +157,11 @@ spec:
       displayName: qwen3-reranker-0.6b
       inferenceServiceRef:
         name: qwen3-reranker-0.6b
+    - name: apple-foundation-model-3-core-advanced
+      external:
+        model: system
+        provider: openai
+        url: http://silverhawk.internal:1976
   rules:
     - name: qwen3-6-35b-a3b-pool
       match:
@@ -235,6 +242,14 @@ spec:
         backends:
           - qwen3-reranker-0-6b
         poolActivation: Wait
+    - name: apple-foundation-model-3-core-advanced
+      match:
+        models:
+          - apple-foundation-model-3-core-advanced
+      route:
+        backends:
+          - apple-foundation-model-3-core-advanced
+        poolActivation: Wait
     - name: auto-pool # use whatever LLM is currently loaded, or load Qwen 3.6 35B A3B if idle and not already loaded
       match:
         models:
@@ -245,6 +260,7 @@ spec:
           - qwen3-8-27b
           - muse-glimmer
           - gemma-4-12b
+          - apple-foundation-model-3-core-advanced
         poolActivation: IfIdle
   proxy:
     replicas: 1
