@@ -335,7 +335,7 @@ spec:
           app: &pull-ct
             image:
               repository: registry.jjgadgets.tech/jjgadgets/hf
-              tag: 1.15.0@sha256:b94cb083b60c422cf7f90bb3423a6ab85744f53e649517396ed812fddcfb2bf4
+              tag: 1.33.0@sha256:dfd4add3e2bb0d126c0363ade8a6868e90ea99f7db350704507306feda7ee00a
             command: ["hf", "download", "--exclude", ".git"]
             args: ["--local-dir", "/models/$(HF_MODEL)", "--revision", "$(HF_HASH)", "$(HF_MODEL)", "$(HF_FILE)"]
             workingDir: *mlhome
