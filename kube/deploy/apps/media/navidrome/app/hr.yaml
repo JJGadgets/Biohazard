@@ -154,6 +154,15 @@ spec:
         globalMounts:
           - subPath: usr/lib/jellyfin-ffmpeg
             path: /usr/lib/jellyfin-ffmpeg
+      musepack:
+        type: image
+        image:
+          # repository: registry.jjgadgets.tech/jjgadgets/musepack
+          repository: ghcr.io/jjgadgets/musepack
+          tag: r475@sha256:f2fcca8392ac9e4c418e2f750339be5e4bceed599e9b93f4b652896d61bade34
+        globalMounts:
+          - subPath: usr/local/bin
+            path: /musepack
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
