@@ -9,6 +9,7 @@ spec:
   targetNamespace: *ns
   dependsOn:
     - name: vm-1-kubevirt-app
+      namespace: flux-system
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -59,6 +60,7 @@ spec:
   targetNamespace: *ns
   dependsOn:
     - name: vm-1-kubevirt-app
+      namespace: flux-system
     - name: vm-jj-1-deps
     - name: vm-jj-secureblue-pvc
   postBuild:
@@ -121,6 +123,7 @@ spec:
   targetNamespace: *ns
   dependsOn:
     - name: vm-1-kubevirt-app
+      namespace: flux-system
     - name: vm-jj-1-deps
     - name: vm-jj-w11-school-pvc
   postBuild:
