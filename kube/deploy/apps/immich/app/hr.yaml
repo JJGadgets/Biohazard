@@ -251,80 +251,174 @@ spec:
           - backendRefs:
               - identifier: app
                 port: http
-      # external: # TODO: https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
-      #   hostnames: ["${APP_DNS_IMMICH:=immich}"]
-      #   parentRefs:
-      #     - name: envoy-external
-      #       namespace: ingress
-      #       sectionName: external
-      #   rules:
-      #     - matches:
-      #         - path:
-      #             type: PathPrefix
-      #             value: /s/
-      #         - path:
-      #             type: PathPrefix
-      #             value: /share/
-      #         - path:
-      #             type: PathPrefix
-      #             value: /_app/immutable/
-      #           # headers:
-      #           #   - &referer
-      #           #     name: Referer
-      #           #     type: RegularExpression
-      #           #     value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
-      #         - path:
-      #             type: Exact
-      #             value: /_app/env.js
-      #           # headers: [*referer]
-      #         - path:
-      #             type: Exact
-      #             value: /service-worker.js
-      #           # headers: [*referer]
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/shared-links/
-      #           # headers: [*referer]
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/server
-      #           # headers: [*referer]
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/assets
-      #           headers:
-      #             # - *referer
-      #             - &shared-link-cookie
-      #               name: Cookie
-      #               type: RegularExpression
-      #               value: immich_shared_link_token=.*
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/albums
-      #           headers:
-      #             # - *referer
-      #             - *shared-link-cookie
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/download
-      #           headers:
-      #             # - *referer
-      #             - *shared-link-cookie
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/timeline/buckets
-      #           headers:
-      #             # - *referer
-      #             - *shared-link-cookie
-      #         - path:
-      #             type: PathPrefix
-      #             value: /api/timeline/bucket
-      #           headers:
-      #             # - *referer
-      #             - *shared-link-cookie
-      #       backendRefs:
-      #         - identifier: app
-      #           port: http
+      # Public shared-link viewer only. v3.3.5 uses the patched Node 24.22.1 base image.
+      external:
+        hostnames: ["${APP_DNS_IMMICH:=immich}"]
+        parentRefs:
+          - name: envoy-external
+            namespace: ingress
+            sectionName: external
+        rules:
+          # Shared-link pages and static web assets.
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /s/
+                method: GET
+              - path:
+                  type: PathPrefix
+                  value: /share/
+                method: GET
+              - path:
+                  type: PathPrefix
+                  value: /_app/immutable/
+                method: GET
+              - path:
+                  type: Exact
+                  value: /service-worker.js
+                method: GET
+              - path:
+                  type: Exact
+                  value: /custom.css
+                method: GET
+              - path:
+                  type: Exact
+                  value: /feature-panel.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon.ico
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon-16.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon-32.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon-48.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon-96.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /favicon-144.png
+                method: GET
+              - path:
+                  type: Exact
+                  value: /apple-icon-180.png
+                method: GET
+            backendRefs:
+              - identifier: app
+                port: http
+
+          # Public shared-link lookup, public frontend configuration and album timeline.
+          # Immich uses key/slug query parameters; a shared-link Cookie header is not mandatory.
+          - matches:
+              - path:
+                  type: Exact
+                  value: /api/shared-links/me
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/server/config
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/server/features
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/server/media-types
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/public/config
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/timeline/buckets
+                method: GET
+              - path:
+                  type: Exact
+                  value: /api/timeline/bucket
+                method: GET
+
+              # Shared asset metadata.
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                method: GET
+
+              # Thumbnails/previews and original files.
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/(thumbnail|original)$'
+                method: GET
+
+              # Direct video playback and HLS streaming.
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/video/playback$'
+                method: GET
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/video/stream/main\.m3u8$'
+                method: GET
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/video/stream/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[0-9]+/playlist\.m3u8$'
+                method: GET
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/video/stream/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[0-9]+/(?:init\.mp4|seg_[0-9]+\.m4s)$'
+                method: GET
+
+              # Album map data is part of the shared-album viewer.
+              - path:
+                  type: RegularExpression
+                  value: '^/api/albums/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/map-markers$'
+                method: GET
+            backendRefs:
+              - identifier: app
+                port: http
+
+          # Password-protected link login, optional shared-link uploads and downloads.
+          - matches:
+              - path:
+                  type: Exact
+                  value: /api/shared-links/login
+                method: POST
+              - path:
+                  type: Exact
+                  value: /api/assets
+                method: POST
+              - path:
+                  type: Exact
+                  value: /api/download/info
+                method: POST
+              - path:
+                  type: Exact
+                  value: /api/download/archive
+                method: POST
+            backendRefs:
+              - identifier: app
+                port: http
+
+          # End HLS sessions after video playback.
+          - matches:
+              - path:
+                  type: RegularExpression
+                  value: '^/api/assets/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/video/stream/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                method: DELETE
+            backendRefs:
+              - identifier: app
+                port: http
     persistence:
       data:
         existingClaim: immich-data
