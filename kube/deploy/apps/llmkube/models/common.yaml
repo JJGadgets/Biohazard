@@ -270,5 +270,6 @@ spec:
       ingress.home.arpa/envoy-internal: allow
       prom.home.arpa/kps: allow
       egress.home.arpa/apiserver: allow
+      dns.home.arpa/l7: "true"
     nodeSelector:
       feature.node.kubernetes.io/baremetal: "true"
