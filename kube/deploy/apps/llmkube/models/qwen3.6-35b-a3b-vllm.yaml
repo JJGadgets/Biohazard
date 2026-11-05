@@ -62,7 +62,6 @@ spec:
   vllmConfig:
     tensorParallelSize: 1
     maxModelLen: 185000
-    quantization: gptq
     dtype: float16
     kvCacheCustomDtype: int8_per_token_head
     enablePrefixCaching: true
@@ -75,12 +74,16 @@ spec:
   extraArgs:
     - --served-model-name
     - qwen3.6-35b-a3b-vllm
+    - --quantization
+    - humming
     - --attention-backend
     - TRITON_ATTN
     - --cpu-offload-params
     - experts
     - --mm-processor-device
     - cpu
+    - --prefix-caching-hash-algo
+    - sha256_cbor
     - --prefix-match-unit
     - "16"
     - --mamba-cache-mode
