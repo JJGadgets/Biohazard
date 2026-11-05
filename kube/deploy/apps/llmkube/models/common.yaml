@@ -112,6 +112,8 @@ spec:
         name: qwen3-omni-thinking
     - inferenceServiceRef:
         name: gemma-4-12b
+    - inferenceServiceRef:
+        name: lightonocr-3-4b
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelrouter_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -149,6 +151,10 @@ spec:
       displayName: qwen3-omni-thinking
       inferenceServiceRef:
         name: qwen3-omni-thinking
+    - name: lightonocr-3-4b
+      displayName: lightonocr-3-4b
+      inferenceServiceRef:
+        name: lightonocr-3-4b
     - name: qwen3-embedding-0-6b
       displayName: qwen3-embedding-0.6b
       inferenceServiceRef:
@@ -225,6 +231,14 @@ spec:
       route:
         backends:
           - qwen3-omni-thinking
+        poolActivation: Wait
+    - name: lightonocr-3-4b-pool
+      match:
+        models:
+          - lightonocr-3-4b
+      route:
+        backends:
+          - lightonocr-3-4b
         poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
