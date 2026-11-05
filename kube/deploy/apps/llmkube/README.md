@@ -1,6 +1,6 @@
 # LLMKube
 
-Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml` is the llama.cpp backend, `models/qwen3.6-35b-a3b-strata.yaml` is the Strata generic-runtime alternative reusing the same Qwen GGUF `Model`, and `models/embed.yaml` / `models/rerank.yaml` hold the embedding and reranking services.
+Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml` is the llama.cpp backend, `models/qwen3.6-35b-a3b-vllm.yaml` is the GPTQ vLLM backend, `models/qwen3.6-35b-a3b-strata.yaml` is the Strata generic-runtime alternative reusing the same Qwen GGUF `Model`, and `models/embed.yaml` / `models/rerank.yaml` hold the embedding and reranking services.
 
 LLMKube 0.10.7 is installed through its upstream OCI Helm chart and Flux
 HelmRelease. The Qwen weights/projector, embedding and reranker GGUFs, and
@@ -48,6 +48,40 @@ limited to `GET /metrics`; the router is the only other allowed runtime caller.
 The router proxy itself accepts model API ingress only from pods explicitly
 labeled `ai.internal/llmkube=allow`. DNS egress for controller and router uses
 the existing cluster default instead of duplicate app-local allow rules.
+
+## vLLM GPTQ backend
+
+The `qwen3.6-35b-a3b-vllm` Model and InferenceService use the pinned
+`palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4` Hugging Face revision and LLMKube's
+operator-managed prefetch into `llmkube-models`. The model file set includes
+all repository `*.safetensors` and `*.json` files. It reuses the already
+prefetched `qwen-chat-template` Model on `llmkube-templates`; no additional
+download Job or runtime Hugging Face access is required.
+
+The serving image is pinned to the user-selected vLLM nightly digest. Typed
+LLMKube fields configure GPTQ, FP16 weights, the INT8 per-token/head KV cache,
+185K context, three sequences, chunked prefill, prefix caching, GPU memory
+utilization, CPU offload, and Qwen reasoning/tool parsers. The Humming-specific
+flags and template kwargs are passed through `extraArgs`, with the input
+activation quantization JSON supplied through
+`VLLM_HUMMING_INPUT_QUANT_CONFIG`.
+
+The service reserves both NVIDIA GPUs through the device plugin so it occupies
+the same ModelPool allocation as the existing Qwen backend. It sets
+`CUDA_DEVICE_ORDER=PCI_BUS_ID` and `CUDA_VISIBLE_DEVICES=0` to expose only
+the first device to vLLM (the T4 under this node's existing PCI-order
+convention), with tensor parallelism explicitly set to one. Validate that
+device ordering and the expected T4 are still true after any device-plugin or
+node hardware change. The 18Gi memory-backed `/dev/shm` volume mirrors the
+container shared-memory size; only `IPC_LOCK` is retained to support the
+requested pinned host-memory offload. The model cache is mounted read-only,
+while the vLLM cache PVC is writable by UID/GID 2000.
+
+Clients select this backend with model name
+`qwen3.6-35b-a3b-vllm`. The router's internal backend identifier is
+`qwen3-6-35b-a3b-vllm` because the LLMKube RouterBackend CRD restricts that
+field to lowercase alphanumeric characters and hyphens; the public model name
+and InferenceService reference retain the requested dotted identifier.
 
 ## Embedding and reranking
 
