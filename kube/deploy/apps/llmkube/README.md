@@ -66,6 +66,12 @@ backend. Humming-specific flags and template kwargs are passed through
 `extraArgs`, with the input activation quantization JSON supplied through
 `VLLM_HUMMING_INPUT_QUANT_CONFIG`.
 
+LLMKube 0.10.13 marks `cpuOffloadGB` with a `CPUOffloadUnverified` advisory:
+vLLM can accept `--cpu-offload-gb` without actually offloading weights in
+some configurations. Confirm the server logs show the offloader and
+offloaded-parameter counts (or that the model load footprint is reduced)
+before relying on the 16GiB offload budget.
+
 The service reserves both NVIDIA GPUs through the device plugin so it occupies
 the same ModelPool allocation as the existing Qwen backend. It sets
 `CUDA_DEVICE_ORDER=PCI_BUS_ID` and `CUDA_VISIBLE_DEVICES=0` to expose only
