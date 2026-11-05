@@ -9,6 +9,7 @@ spec:
   # safetensors and tokenizer/config JSON files into the shared model PVC.
   source: hf://palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4@00a66983516f8f8057741221277eed4141c9e431
   files:
+    - "model-00001-of-00006.safetensors"
     - "*.safetensors"
     - "*.json"
   format: safetensors
