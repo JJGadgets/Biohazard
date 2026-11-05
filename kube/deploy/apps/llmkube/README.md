@@ -2,7 +2,7 @@
 
 Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml` is the llama.cpp backend, `models/qwen3.6-35b-a3b-vllm.yaml` is the GPTQ vLLM backend, `models/qwen3.6-35b-a3b-strata.yaml` is the Strata generic-runtime alternative reusing the same Qwen GGUF `Model`, and `models/embed.yaml` / `models/rerank.yaml` hold the embedding and reranking services.
 
-LLMKube 0.10.7 is installed through its upstream OCI Helm chart and Flux
+LLMKube 0.10.13 is installed through its upstream OCI Helm chart and Flux
 HelmRelease. The Qwen weights/projector, embedding and reranker GGUFs, and
 chat template are fetched by LLMKube-managed prefetch Jobs at pinned Hugging
 Face revisions before the serving pod is created. There is no app-owned download Job. The operator's
@@ -18,9 +18,8 @@ The app-owned PVCs in `models/common.yaml` are the intended workload storage:
 stores llama.cpp runtime state, and `llmkube-strata-data` stores Strata's own
 prepared model state and tuning results. The PVC requests `1Mi` because the
 `local` hostpath CSI backend does not enforce quotas. Model prefetch and serving
-are pinned to `kubernetes.io/hostname=sinon`. Both backends use LLMKube's
-existing staged GGUF/projector set; Strata does not declare a duplicate model
-source. The chart's
+are pinned to `kubernetes.io/hostname=sinon`. The llama.cpp and Strata backends use the existing staged GGUF/projector set; Strata does not declare a duplicate model
+source. The vLLM backend stages its pinned safetensors snapshot separately. The chart's
 `modelCache.mode/size/storageClass` settings are fallback provisioning for
 services without an explicit `spec.modelCache.claimName`.
 
@@ -59,11 +58,12 @@ prefetched `qwen-chat-template` Model on `llmkube-templates`; no additional
 download Job or runtime Hugging Face access is required.
 
 The serving image is pinned to the user-selected vLLM nightly digest. Typed
-LLMKube fields configure GPTQ, FP16 weights, the INT8 per-token/head KV cache,
+LLMKube fields configure FP16 weights, the INT8 per-token/head KV cache,
 185K context, three sequences, chunked prefill, prefix caching, GPU memory
-utilization, CPU offload, and Qwen reasoning/tool parsers. The Humming-specific
-flags and template kwargs are passed through `extraArgs`, with the input
-activation quantization JSON supplied through
+utilization, CPU offload, and Qwen reasoning/tool parsers. The checkpoint is
+GPTQ Int4; `--quantization humming` selects the requested Humming execution
+backend. Humming-specific flags and template kwargs are passed through
+`extraArgs`, with the input activation quantization JSON supplied through
 `VLLM_HUMMING_INPUT_QUANT_CONFIG`.
 
 The service reserves both NVIDIA GPUs through the device plugin so it occupies
