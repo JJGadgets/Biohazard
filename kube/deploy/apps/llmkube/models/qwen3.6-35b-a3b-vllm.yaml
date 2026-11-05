@@ -1,0 +1,163 @@
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3.6-35b-a3b-vllm
+  namespace: llmkube
+spec:
+  # Pin the exact Hugging Face snapshot and let LLMKube prefetch the selected
+  # safetensors and tokenizer/config JSON files into the shared model PVC.
+  source: hf://palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4@00a66983516f8f8057741221277eed4141c9e431
+  files:
+    - "*.safetensors"
+    - "*.json"
+  format: safetensors
+  quantization: GPTQ-Int4
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: cuda
+    gpu:
+      enabled: true
+      vendor: nvidia
+      count: 2
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3.6-35b-a3b-vllm
+  namespace: llmkube
+spec:
+  podLabels:
+    prom.home.arpa/kps: allow
+  modelRef: qwen3.6-35b-a3b-vllm
+  runtime: vllm
+  image: docker.io/vllm/vllm-openai:nightly-x86_64@sha256:ca3a88497f1793b485cba55b4d9bd6f9127377c3e837130f3f95add8d08e752b
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  endpoint:
+    port: 8000
+    type: ClusterIP
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  resources:
+    gpu: 2
+    cpu: "10m"
+    memory: 20Gi
+    memoryLimit: 24Gi
+  parallelSlots: 3
+  startupTimeout: 45m
+  vllmConfig:
+    tensorParallelSize: 1
+    maxModelLen: 185000
+    dtype: half
+    kvCacheCustomDtype: int8_per_token_head
+    enablePrefixCaching: true
+    enableChunkedPrefill: true
+    maxNumBatchedTokens: 6144
+    gpuMemoryUtilization: 0.95
+    cpuOffloadGB: 16
+    reasoningParser: qwen3
+    toolCallParser: qwen3_xml
+  extraArgs:
+    - --served-model-name
+    - qwen3.6-35b-a3b-vllm
+    - --quantization
+    - humming
+    - --attention-backend
+    - TRITON_ATTN
+    - --cpu-offload-params
+    - experts
+    - --mm-processor-device
+    - cpu
+    - --prefix-caching-hash-algo
+    - sha256_cbor
+    - --prefix-match-unit
+    - "16"
+    - --mamba-cache-mode
+    - align
+    - --gdn-prefill-backend
+    - triton
+    - --moe-backend
+    - humming
+    - --linear-backend
+    - humming
+    - --chat-template
+    - /chat-template/3dd0cee02aac0569/chat_template.jinja
+    - --default-chat-template-kwargs
+    - '{"enable_thinking":true,"preserve_thinking":true}'
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: HOME
+      value: /home/vllm
+    - name: CUDA_DEVICE_ORDER
+      value: PCI_BUS_ID
+    - name: CUDA_VISIBLE_DEVICES
+      value: "0"
+    - name: VLLM_HUMMING_INPUT_QUANT_CONFIG
+      value: '{"dtype":"int8"}'
+    - name: HF_HUB_OFFLINE
+      value: "1"
+    - name: TRANSFORMERS_OFFLINE
+      value: "1"
+    - name: TMPDIR
+      value: /tmp
+    - name: CUDA_CACHE_PATH
+      value: /tmp/.nv
+  extraVolumes:
+    - name: vllm-cache
+      persistentVolumeClaim:
+        claimName: llmkube-vllm-data
+    - name: chat-template
+      persistentVolumeClaim:
+        claimName: llmkube-templates
+        readOnly: true
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 18Gi
+    - name: tmp
+      emptyDir:
+        medium: Memory
+        sizeLimit: 4Gi
+  extraVolumeMounts:
+    - name: vllm-cache
+      mountPath: /home/vllm/.cache/huggingface
+    - name: chat-template
+      mountPath: /chat-template
+      readOnly: true
+    - name: shm
+      mountPath: /dev/shm
+    - name: tmp
+      mountPath: /tmp
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 2000
+    runAsGroup: 2000
+    fsGroup: 2000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 2000
+    runAsGroup: 2000
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - IPC_LOCK
+    seccompProfile:
+      type: RuntimeDefault

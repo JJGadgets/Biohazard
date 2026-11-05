@@ -106,6 +106,10 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: llmkube
             inference.llmkube.dev/runtime: generic
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/runtime: vllm
     - toFQDNs:
         - matchName: "silverhawk.internal"
       toPorts:
@@ -178,6 +182,7 @@ spec:
         values:
           - llamacpp
           - generic
+          - vllm
   ingress:
     # Inference requests use plain L4 policy so Cilium Envoy cannot interfere
     # with long-running HTTP requests, streaming, or application timeouts.
