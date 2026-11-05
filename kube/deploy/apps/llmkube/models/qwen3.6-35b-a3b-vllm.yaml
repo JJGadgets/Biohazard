@@ -135,7 +135,7 @@ spec:
         sizeLimit: 4Gi
   extraVolumeMounts:
     - name: vllm-cache
-      mountPath: /home/vllm/.cache/huggingface
+      mountPath: /home/vllm/.cache
     - name: chat-template
       mountPath: /chat-template
       readOnly: true
