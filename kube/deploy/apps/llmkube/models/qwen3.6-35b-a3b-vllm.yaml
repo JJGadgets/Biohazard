@@ -13,15 +13,12 @@ spec:
     - "*.json"
   format: safetensors
   quantization: GPTQ-Int4
-  prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
     - key: llm.internal
       operator: Exists
       effect: NoSchedule
-  modelCache:
-    claimName: llmkube-models
   hardware:
     accelerator: cuda
     gpu:
