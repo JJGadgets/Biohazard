@@ -59,7 +59,7 @@ spec:
   vllmConfig:
     tensorParallelSize: 1
     maxModelLen: 185000
-    dtype: float16
+    dtype: half
     kvCacheCustomDtype: int8_per_token_head
     enablePrefixCaching: true
     enableChunkedPrefill: true
