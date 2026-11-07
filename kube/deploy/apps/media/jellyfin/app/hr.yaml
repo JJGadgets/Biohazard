@@ -74,9 +74,9 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-          - name: envoy-external
-            namespace: ingress
-            sectionName: external
+          # - name: envoy-external # TODO: patch image against Oct 2026 vulns (PHP, emuhdra CA, NodeJS)
+          #   namespace: ingress
+          #   sectionName: external
     persistence:
       config:
         existingClaim: jellyfin-data

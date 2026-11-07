@@ -52,19 +52,19 @@ spec:
             targetPort: 8080
             protocol: HTTP
             appProtocol: http
-    route:
-      app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hostnames: ["${APP_DNS_GOATCOUNTER:=goatcounter}", "goat-counter-privacy-respecting-tracking.jjgadgets.tech"]
-        parentRefs:
-          - name: envoy-internal
-            namespace: ingress
-            sectionName: internal
-          - name: envoy-external
-            namespace: ingress
-            sectionName: public
+    # route: # TODO: patch image against Oct 2026 vulns (PHP, emuhdra CA, NodeJS)
+    #   app:
+    #     annotations:
+    #       external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+    #       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    #     hostnames: ["${APP_DNS_GOATCOUNTER:=goatcounter}", "goat-counter-privacy-respecting-tracking.jjgadgets.tech"]
+    #     parentRefs:
+    #       - name: envoy-internal
+    #         namespace: ingress
+    #         sectionName: internal
+    #       - name: envoy-external
+    #         namespace: ingress
+    #         sectionName: public
     persistence:
       data:
         existingClaim: goatcounter-data
