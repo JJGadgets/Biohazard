@@ -89,8 +89,8 @@ spec:
       - ecdsa_secp384r1_sha384
       - ecdsa_secp521r1_sha512
       - ed25519
-    clientValidation:
-      optional: true
+    # clientValidation: # TODO: uncomment once CAs have been added, v1.9.3 enforces requirement to reference CAs
+    #   optional: true
   headers:
     enableEnvoyHeaders: false
     disableRateLimitHeaders: true
