@@ -13,7 +13,7 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
-            egress.home.apa/kps: "allow"
+            egress.home.arpa/kps: "allow"
           matchExpressions:
             - key: "io.kubernetes.pod.namespace"
               operator: "Exists"
