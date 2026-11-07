@@ -63,13 +63,14 @@ bpf:
   policyMapMax: 40960 # 2.5x default, Increase Cilium map sizes due to amount of netpols and identities, when BPF map pressure hits 100 endpoint creation starts failing, max dynamic size ratio doesn't increase this
   lbModeAnnotation: true
   lbAlgorithmAnnotation: true
+  datapathMode: veth
 l7Proxy: true # enables L7 netpols (including DNS) via proxy, e.g. Envoy
 socketLB:
   enabled: true # faster and more direct same-node pod routing than tc/tcx # supposed to be default off, but it's enabled anyway if unspecified, and looks fun lol
   hostNamespaceOnly: true # KubeVirt, gvisor and Kata compatibility with k8s services
-enableIPv4BIGTCP: true
-enableIPv6BIGTCP: true
-enableTunnelBIGTCP: true # must be true for Geneve DSR dispatch
+# enableIPv4BIGTCP: true
+# enableIPv6BIGTCP: true
+# enableTunnelBIGTCP: true # must be true for Geneve DSR dispatch # TODO: disabled BIG TCP as a whole due to "pending kernel support"
 bandwidthManager:
   enabled: true
   bbr: true
