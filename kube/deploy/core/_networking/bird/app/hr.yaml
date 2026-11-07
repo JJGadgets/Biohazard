@@ -66,3 +66,7 @@ spec:
         seccompProfile: {type: "RuntimeDefault"}
       dnsPolicy: "ClusterFirstWithHostNet"
       hostNetwork: true
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule

@@ -21,6 +21,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             dns.home.arpa/l7: "true"
+            ai.internal/llmkube: allow
             egress.home.arpa/continuwuity: allow
             egress.home.arpa/ntfy: allow
             egress.home.arpa/github: allow
@@ -105,13 +106,25 @@ spec:
           qwen:
             image:
               repository: ghcr.io/qwenlm/qwen-code
-              tag: 0.25.2@sha256:775a0baabd057fa867d2973662b24d35563ce454f45001fca2a6137e5d5ea7ef
-            command: ["/usr/local/share/npm-global/bin/qwen", "serve", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--allow-origin", "https://${APP_DNS_QWEN_CODE}"]
+              tag: 0.26.4@sha256:01164fc4d4e443591ba22581a19e1e910895ffe290595a7e8cb1a04d1d6da2a5
+            command: ["/usr/local/share/npm-global/bin/qwen", "serve", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--allow-origin", "https://${APP_DNS_QWEN_CODE}", "--workspace", "/home/openclaw/qwen-code-workspace"]
             env:
               <<: *env
               HTTP_PORT: &qwen-http 8083
               QWEN_HOME: "/home/openclaw/.qwen"
               QWEN_USAGE_STATISTICS_ENABLED: 0
+              # Limit Qwen Code's internal tool and agent fan-out; this is not a process-wide provider request semaphore.
+              QWEN_CODE_MAX_BACKGROUND_AGENTS: "1"
+              QWEN_CODE_MAX_TOOL_CONCURRENCY: "1"
+              QWEN_CODE_MAX_WORKFLOW_CONCURRENCY: "1"
+              # Two-hour API/stream timeout defaults (milliseconds) for supported OpenAI-compatible and Anthropic paths.
+              # Explicit modelProviders timeout/streamIdleTimeoutMs values take precedence; native Google GenAI does not consume this API timeout.
+              # Some feature-specific model side queries also have independent hard-coded AbortSignal deadlines.
+              QWEN_CODE_API_TIMEOUT_MS: "7200000"
+              QWEN_STREAM_IDLE_TIMEOUT_MS: "7200000"
+              QWEN_STREAM_MAX_LIFETIME_MS: "7200000"
+              # Two-hour web-fetch LLM summarization timeout; the separate network download timeout remains unchanged.
+              QWEN_WEB_FETCH_PROCESSING_TIMEOUT_MS: "7200000"
               # MEMINI_API_KEY:
               #   valueFrom:
               #     secretKeyRef:
@@ -204,6 +217,8 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
+          - subPath: qwen-code-workspace # need the mkdir
+            path: "/home/openclaw/qwen-code-workspace" # work around my ~ bare git repo resulting in nested workspace
       misc:
         existingClaim: openclaw-misc
         globalMounts:

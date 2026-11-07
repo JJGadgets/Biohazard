@@ -32,7 +32,7 @@ spec:
           app:
             image:
               repository: ghcr.io/coder/code-server
-              tag: 4.141.0@sha256:72ab24b5680ee597dd647b30d82625752f40109b5f61bef90ffbf1ea1f02dbb8
+              tag: 4.145.2@sha256:09565f9e07f5624554e295e8bab0e2fec4a7c533eb3cff459ed6596a4d3d7c1c
             command: ["dumb-init", "/bin/bash", "-c"]
             args: ["/home/linuxbrew/.linuxbrew/sbin/sshd -p 2222 || true; /usr/bin/code-server --auth none --disable-telemetry --user-data-dir /home/coder/.vscode --extensions-dir /home/coder/.vscode --bind-addr 0.0.0.0:8080 --port 8080 /home/coder"]
             env:

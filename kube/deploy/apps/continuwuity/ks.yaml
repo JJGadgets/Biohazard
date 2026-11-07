@@ -47,6 +47,8 @@ spec:
       RUID: &uid "65534"
       RGID: *uid
       RFSG: *uid
+      RESTOREASOF: "2026-10-28T09:00:00+08:00"
+      TRIGGER: restore-backup
   healthChecks:
     - apiVersion: v1
       kind: PersistentVolumeClaim

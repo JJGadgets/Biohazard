@@ -1,21 +1,25 @@
 # LLMKube
 
-LLMKube 0.10.7 is installed through its upstream OCI Helm chart and Flux
-HelmRelease. Both the Qwen weights/projector and chat template are fetched by
-LLMKube-managed prefetch Jobs at pinned Hugging Face revisions, before the
-serving pod is created. There is no app-owned download Job. The operator's
+Model manifests are grouped by responsibility: `models/common.yaml` holds shared storage, pool/router, and the HTTP port-80 alias; `models/qwen3.6-35b-a3b.yaml` is the llama.cpp backend, `models/qwen3.6-35b-a3b-vllm.yaml` is the GPTQ vLLM backend, `models/qwen3.6-35b-a3b-strata.yaml` is the Strata generic-runtime alternative reusing the same Qwen GGUF `Model`, and `models/embed.yaml` / `models/rerank.yaml` hold the embedding and reranking services.
+
+LLMKube 0.10.13 is installed through its upstream OCI Helm chart and Flux
+HelmRelease. The Qwen weights/projector, embedding and reranker GGUFs, and
+chat template are fetched by LLMKube-managed prefetch Jobs at pinned Hugging
+Face revisions before the serving pod is created. There is no app-owned download Job. The operator's
 prefetch pods are labeled `app.kubernetes.io/component=model-prefetch`; the
 app's Cilium policy allows that workload class only Hugging Face TCP/443 and
 L7-filtered DNS queries for `huggingface.co` and `*.huggingface.co`. This
 restriction is scoped to the prefetch pods; no shared cluster network policy is
 modified by this app.
 
-The app-owned PVCs in `app/pvc.yaml` are the intended workload storage:
+The app-owned PVCs in `models/common.yaml` are the intended workload storage:
 `llmkube-models` is explicitly selected by the Qwen `InferenceService`,
-`llmkube-templates` by the chat-template `Model`, and `llmkube-runtime-data`
-stores llama.cpp runtime state. All use `local-hostpath`; model prefetch and
-serving are pinned to `kubernetes.io/hostname=sinon`. The serving pod mounts
-the staged model and template artifacts read-only. The chart's
+`llmkube-templates` by the chat-template `Model`, `llmkube-runtime-data`
+stores llama.cpp runtime state, and `llmkube-strata-data` stores Strata's own
+prepared model state and tuning results. The PVC requests `1Mi` because the
+`local` hostpath CSI backend does not enforce quotas. Model prefetch and serving
+are pinned to `kubernetes.io/hostname=sinon`. The llama.cpp and Strata backends use the existing staged GGUF/projector set; Strata does not declare a duplicate model
+source. The vLLM backend stages its pinned safetensors snapshot separately. The chart's
 `modelCache.mode/size/storageClass` settings are fallback provisioning for
 services without an explicit `spec.modelCache.claimName`.
 
@@ -43,6 +47,80 @@ limited to `GET /metrics`; the router is the only other allowed runtime caller.
 The router proxy itself accepts model API ingress only from pods explicitly
 labeled `ai.internal/llmkube=allow`. DNS egress for controller and router uses
 the existing cluster default instead of duplicate app-local allow rules.
+
+## vLLM GPTQ backend
+
+The `qwen3.6-35b-a3b-vllm` Model and InferenceService use the pinned
+`palmfuture/Qwen3.6-35B-A3B-GPTQ-Int4` Hugging Face revision and LLMKube's
+operator-managed prefetch into `llmkube-models`. The model file set includes
+all repository `*.safetensors` and `*.json` files. It reuses the already
+prefetched `qwen-chat-template` Model on `llmkube-templates`; no additional
+download Job or runtime Hugging Face access is required.
+
+The serving image is pinned to the user-selected vLLM nightly digest. Typed
+LLMKube fields configure FP16 weights, the INT8 per-token/head KV cache,
+185K context, three sequences, chunked prefill, prefix caching, GPU memory
+utilization, CPU offload, and Qwen reasoning/tool parsers. The checkpoint is
+GPTQ Int4; `--quantization humming` selects the requested Humming execution
+backend. Humming-specific flags and template kwargs are passed through
+`extraArgs`, with the input activation quantization JSON supplied through
+`VLLM_HUMMING_INPUT_QUANT_CONFIG`.
+
+LLMKube 0.10.13 marks `cpuOffloadGB` with a `CPUOffloadUnverified` advisory:
+vLLM can accept `--cpu-offload-gb` without actually offloading weights in
+some configurations. Confirm the server logs show the offloader and
+offloaded-parameter counts (or that the model load footprint is reduced)
+before relying on the 16GiB offload budget.
+
+The service reserves both NVIDIA GPUs through the device plugin so it occupies
+the same ModelPool allocation as the existing Qwen backend. It sets
+`CUDA_DEVICE_ORDER=PCI_BUS_ID` and `CUDA_VISIBLE_DEVICES=0` to expose only
+the first device to vLLM (the T4 under this node's existing PCI-order
+convention), with tensor parallelism explicitly set to one. Validate that
+device ordering and the expected T4 are still true after any device-plugin or
+node hardware change. The 18Gi memory-backed `/dev/shm` volume mirrors the
+container shared-memory size; only `IPC_LOCK` is retained to support the
+requested pinned host-memory offload. The model cache is mounted read-only,
+while the vLLM cache PVC is writable by UID/GID 2000.
+
+Clients select this backend with model name
+`qwen3.6-35b-a3b-vllm`. The router's internal backend identifier is
+`qwen3-6-35b-a3b-vllm` because the LLMKube RouterBackend CRD restricts that
+field to lowercase alphanumeric characters and hyphens; the public model name
+and InferenceService reference retain the requested dotted identifier.
+
+## Embedding and reranking
+
+The Qwen3 Embedding and Qwen3 Reranker services share the existing
+`llmkube-router` ModelPool with Qwen 3.6. Request model `qwen3-embedding-0.6b`
+through `/v1/embeddings` and model `qwen3-reranker-0.6b` through `/v1/rerank`
+using the shared base URL:
+
+`http://llmkube-router-proxy.llmkube.svc.cluster.local/v1`
+
+The app-owned `Service/llmkube-router-proxy` maps port 80 to the router pod's
+port 8080. LLMKube's current ModelRouter API does not expose an independent
+`targetPort`: the controller uses `spec.endpoint.port` for both the generated
+Service port and targetPort, while the generated proxy Deployment binds to 8080.
+Setting `endpoint.port: 80` would therefore point the Service at an unused port
+inside the pod; the alias is retained until upstream adds separate target-port
+support.
+
+Both inference services are pinned to `sinon`, tolerate its
+`llm.internal:NoSchedule` taint, and request both NVIDIA device-plugin GPUs so
+CUDA device 1 remains visible in the pod. `CUDA_DEVICE_ORDER=PCI_BUS_ID` and
+`LLAMA_ARG_DEVICE=CUDA1` select the GTX 1060 for inference. The ModelPool
+serializes the services against the same two-GPU allocation.
+
+The unified Cilium inference policy selects only LLMKube `llamacpp` and `generic` runtimes; model API ingress is L4-only from the router, controller, and explicitly opted-in callers, while L7 HTTP filtering remains limited to `GET /metrics`. The generic Strata backend is not exposed outside the cluster. Strata's API key is disabled because LLMKube ModelRouter does not forward backend keys, so the Host allowlist and Cilium restrictions are required.
+
+The llama.cpp services use `--load-mode mlock` to keep model pages resident without mmap. This replaces deprecated `--mlock`; the service uses the narrowly required `IPC_LOCK` capability. The namespace's Pod Security `baseline` enforcement remains intact.
+
+Strata runs as the non-root `APP_UID_LLMKUBE` UID/GID with `fsGroup` on writable volumes. Its pod uses a read-only root filesystem, RuntimeDefault seccomp, and no privilege escalation; it drops every capability except `IPC_LOCK`, needed for pinned host memory. The GPU device plugin and containerd provide GPU device permissions without running the engine as root.
+
+`TUNE=quick` runs Strata's one-time hardware tuning and persists its results in `llmkube-strata-data`. `STRATA_SM75_PERF=1` enables its complete bitwise Turing/SM75 kernel series. `STRATA_PA_V2T=1` selects an alternative Turing prompt-attention path that Strata documents as not yet measured on a real SM75 card; `STRATA_SELECT_SIMT=1` and `STRATA_BF16_TC=1` with `STRATA_XN_F16=1` enable additional Turing prompt optimizations that can change floating-point rounding and may change replies. These experimental paths need benchmarking on the T4 before treating them as proven faster. The Q2_0-only fused prompt path is not applicable to `UD-Q4_K_XL`.
+
+Strata deliberately has no Kubernetes memory limit: its upstream Docker documentation warns that the model planner uses host RAM information and the engine can be OOM-killed by an artificially tight cgroup cap. The `20Gi` memory request is scheduling metadata, not a cap.
 
 ## Adding another swappable model
 

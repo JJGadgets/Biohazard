@@ -19,8 +19,9 @@ spec:
       extract:
         type: cronjob
         cronjob:
-          schedule: "0 * * * *"
+          schedule: "@hourly"
           concurrencyPolicy: "Replace"
+          ttlSecondsAfterFinished: "3600"
         pod:
           automountServiceAccountToken: true
           labels:
@@ -31,7 +32,7 @@ spec:
         initContainers:
           01-extract:
             image:
-              repository: "jank.ing/jjgadgets/k8s-crd-extractor"
+              repository: "registry.jjgadgets.tech/jjgadgets/k8s-crd-extractor"
               tag: "20250627@sha256:a74d4c2059df2215c214664ddc3da9d5f2de4527e606c704f7136248945cc6a6"
             env:
               TZ: "${CONFIG_TZ}"
@@ -44,15 +45,14 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "1000m"
-                memory: "6000Mi"
+                cpu: "4"
+                memory: "150Mi"
         containers:
           rclone-r2: &rclone
             image: &rcimg
-              repository: "jank.ing/jjgadgets/rclone"
-              tag: "1.75.2@sha256:85bafeb7176aee40898477088ac8f069223d4da56a80322dbb1d18ae57941f91"
+              repository: "registry.jjgadgets.tech/jjgadgets/rclone"
+              tag: "1.76.0@sha256:f9a235c3f4aa51c14372b2b7ca81356e55cdf541c949943a4b2205ad64520429"
             args: ["sync", "/.datree/crdSchemas/", "r2:k8s-schemas/", "--progress", "--fast-list", "--checksum"]
             env:
               TZ: "${CONFIG_TZ}"
@@ -60,10 +60,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "1000m"
-                memory: "6000Mi"
+                cpu: "4"
+                memory: "150Mi"
           rclone-rgw:
             <<: *rclone
             args: ["sync", "/.datree/crdSchemas/", "rgw:k8s-schemas-rgw", "--progress", "--fast-list", "--checksum"]
@@ -88,10 +87,9 @@ spec:
             resources:
               requests:
                 cpu: "10m"
-                memory: "128Mi"
               limits:
-                cpu: "2000m"
-                memory: "1024Mi"
+                cpu: "4"
+                memory: "150Mi"
     serviceAccount:
       create: true
       name: *app

@@ -389,6 +389,9 @@ spec:
         vllm-query:
           url: https://raw.githubusercontent.com/vllm-project/vllm/8d2cff8140eb2c5f6a7b28948c0944d11898d9d2/examples/observability/dashboards/grafana/query_statistics.json
           datasource: *DSP
+        llama-server-jory:
+          url: https://raw.githubusercontent.com/joryirving/home-ops/refs/heads/main/kubernetes/apps/base/llm/litellm/dashboard/llama-server.json
+          datasource: *DSP
     sidecar:
       dashboards:
         enabled: true

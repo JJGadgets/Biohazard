@@ -19,3 +19,14 @@ spec:
             io.kubernetes.pod.namespace: *app
     - toFQDNs:
         - matchName: "sinon.jj.dhcp.internal"
+    - toNodes:
+        - matchLabels:
+            kubernetes.io/hostname: sinon
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
