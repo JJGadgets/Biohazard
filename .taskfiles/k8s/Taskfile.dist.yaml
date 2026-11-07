@@ -104,15 +104,6 @@ tasks:
       #- sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"{{.FCMD}} {{.F}} | envsubst | kubectl apply --context {{.C}} -f -\""
       - sops exec-env {{.SECRETS_FILE}} "sops exec-env {{.VARS_FILE}} \"{{.FCMD}} {{.F}} | envsubst | kubectl apply -f -\""
 
-  talos-reboot:
-    aliases: [reboot]
-    desc: Drain target node and `talosctl reboot`, then uncordon rebooted node.
-    vars:
-      NODE: '{{ or .NODE (fail "Missing NODE var to specify target node to reboot!") }}'
-    cmds:
-      - |
-        kubectl drain --delete-emptydir-data --ignore-daemonsets --timeout 0 --skip-wait-for-delete-timeout 1 --grace-period 60 --chunk-size 0 --disable-eviction --pod-selector rook_cluster!=rook-ceph {{.NODE}}; talosctl reboot -m powercycle -n {{.NODE}}; kubectl uncordon {{.NODE}}
-
   cilium-bootstrap-apply:
     aliases: [cilium]
     desc: Bootstrap Cilium onto new cluster, ready for Flux to take over managing Cilium.

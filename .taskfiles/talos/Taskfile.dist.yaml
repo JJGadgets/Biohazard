@@ -68,13 +68,6 @@ tasks:
       #     C: '{{.C | default "biohazard"}}'
       #     APPLY: "1"
 
-  reboot:
-    desc: Reboot nodes based on Kubernetes InternalIP. Assumes only 1 IP in InternalIP, and the IP known to Kubernetes is the same used by `talosctl`.
-    vars:
-      NODE: '{{ or .NODE (fail "Missing `NODE` environment variable!") }}'
-    cmds:
-      - talosctl reboot --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address')
-
   gensecret:
     desc: Generate secrets and push to 1Password
     dir: "/{{.ROOT_DIR}}/kube/clusters/{{.C}}/talos"
@@ -98,3 +91,93 @@ tasks:
       - kubectl drain --delete-emptydir-data --ignore-daemonsets --timeout 0 --skip-wait-for-delete-timeout 1 --grace-period 60 --chunk-size 0 --disable-eviction --pod-selector rook_cluster!=rook-ceph {{.NODE}}
       - sleep 60 # let stuff shutdown properly
       - talosctl upgrade --reboot-mode powercycle --debug --nodes {{.NODE}} --image "$(task t:run C={{.C}} -- genurl installer --node {{.NODE}}.{{.DNS_CLUSTER}} --secure-boot --version {{.VERSION}} 2>/dev/null)"
+      - kubectl uncordon {{.NODE}}
+      - kubectl wait --timeout=3600s --for=jsonpath=.status.ceph.health=HEALTH_OK cephcluster --all --all-namespaces
+
+  reboot:
+    desc: Drain target node and `talosctl reboot`, then uncordon rebooted node. Based on Kubernetes InternalIP. Assumes only 1 IP in InternalIP, and the IP known to Kubernetes is the same used by `talosctl`.
+    vars:
+      NODE: '{{ or .NODE (fail "Missing NODE var to specify target node to reboot!") }}'
+    cmds:
+      - kubectl drain --delete-emptydir-data --ignore-daemonsets --timeout 0 --skip-wait-for-delete-timeout 1 --grace-period 60 --chunk-size 0 --disable-eviction --pod-selector rook_cluster!=rook-ceph {{.NODE}}
+      - talosctl reboot -m powercycle --nodes $(kubectl get nodes {{.NODE}} -o yaml | yq '.status.addresses | map(select(.type == "InternalIP")) | .[].address')
+      - kubectl uncordon {{.NODE}}
+      - kubectl wait --timeout=3600s --for=jsonpath=.status.ceph.health=HEALTH_OK cephcluster --all --all-namespaces
+
+  reboot-all:
+    cmds:
+      - for i in $(kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do task talos:reboot NODE="$i"; done
+
+  # join-systemd: # TODO: unused, may not work
+  #   desc: Bootstrap worker nodes running fat systemd distros to join a Talos cluster
+  #   summary: |
+  #     - See https://github.com/siderolabs/talos/issues/3990 for more info.
+  #     - ensure you do the configuration that's in kubernetes/bootstrap/talos/patches/global manually!
+  #       especially the machine-network and machine-files ones!
+  #   prompt: Wipe existing K8S install from worker node and re-initialize? Will also cause a reboot!
+  #   vars:
+  #     SSH: 'ssh -t {{ or .SSH_HOST (fail "Missing SSH_HOST environment variable!") }} -p {{.SSH_PORT | default "22"}}'
+  #     TALOS: 'talosctl -n {{ or .CP_HOST (fail "Missing CP_HOST environment variable!") }}'
+  #   env:
+  #     TMPDIR:
+  #       sh: mktemp -d
+  #     CLUSTER_DOMAIN:
+  #       sh: 'talosctl -n {{ or .CP_HOST (fail "Missing CP_HOST environment variable!") }} get kubeletconfig -o jsonpath="{.spec.clusterDomain}"'
+  #     CLUSTER_DNS:
+  #       sh: 'talosctl -n {{ or .CP_HOST (fail "Missing CP_HOST environment variable!") }} get kubeletconfig -o jsonpath="{.spec.clusterDNS}"'
+  #     SOCKET_PATH: /var/run/containerd/containerd.sock
+  #   preconditions:
+  #     - 'talosctl --nodes {{ or .CP_HOST (fail "Missing CP_HOST environment variable!") }} get machineconfig'
+  #     - 'ssh {{ or .SSH_HOST (fail "Missing SSH_HOST environment variable!") }} -o ConnectTimeout=1 "exit 0"'
+  #     - 'which kubectl talosctl ssh'
+  #   cmds:
+  #     # remove existing
+  #     - cmd: >
+  #         {{.SSH}} 'systemctl is-active kubelet.service containerd.service 1>/dev/null && sudo systemctl disable kubelet.service containerd.service && sudo reboot && sleep 10'
+  #       ignore_error: true
+  #     - until {{.SSH}} -o ConnectTimeout=1 'exit 0'; do sleep 5; done
+  #     - >
+  #       {{.SSH}} 'sudo find /var/lib/containerd/io.containerd.snapshotter.v1.btrfs/snapshots/ -maxdepth 1 -type d -exec btrfs subvolume delete {} \; ; sudo rm -rf /var/local/openebs /etc/kubernetes /etc/cni /var/lib/cni /opt/cni /var/lib/containerd /var/lib/kubelet'
+  #     # copy files from talos cluster
+  #     - >
+  #       {{.TALOS}} cat /etc/kubernetes/kubeconfig-kubelet > "$TMPDIR/kubelet.conf"
+  #     - >
+  #       {{.TALOS}} cat /etc/kubernetes/bootstrap-kubeconfig > "$TMPDIR/bootstrap-kubelet.conf"
+  #     - >
+  #       {{.TALOS}} cat /etc/kubernetes/pki/ca.crt > $TMPDIR/ca.crt
+  #     - >
+  #       sed -i "/server:/ s|:.*|: https://192.168.20.2:6443|g" "$TMPDIR/kubelet.conf" "$TMPDIR/bootstrap-kubelet.conf"
+  #     - |
+  #       cat > "$TMPDIR/var-lib-kubelet-config.yaml" <<EOT
+  #       kind: KubeletConfiguration
+  #       apiVersion: kubelet.config.k8s.io/v1beta1
+  #       authentication:
+  #         anonymous:
+  #           enabled: false
+  #         webhook:
+  #           enabled: true
+  #         x509:
+  #           clientCAFile: /etc/kubernetes/pki/ca.crt
+  #       authorization:
+  #         mode: Webhook
+  #       clusterDomain: "$CLUSTER_DOMAIN"
+  #       clusterDNS: $CLUSTER_DNS
+  #       runtimeRequestTimeout: "0s"
+  #       cgroupDriver: systemd
+  #       containerRuntimeEndpoint: unix:/$SOCKET_PATH
+  #       EOT
+  #     - |
+  #       cat > "$TMPDIR/kubelet.service.override.conf" <<EOT
+  #       [Service]
+  #       Environment="KUBELET_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --fail-swap-on=false"
+  #       EOT
+  #     - scp -r "$TMPDIR" "nas.servers.internal:$TMPDIR"
+  #     - >
+  #       {{.SSH}} "sudo mkdir -p /etc/kubernetes/pki /var/lib/kubelet /etc/systemd/system/kubelet.service.d/ &&
+  #         sudo mv $TMPDIR/kubelet.conf /etc/kubernetes/kubelet.conf &&
+  #         sudo mv $TMPDIR/bootstrap-kubelet.conf /etc/kubernetes/bootstrap-kubelet.conf &&
+  #         sudo mv $TMPDIR/ca.crt /etc/kubernetes/pki/ca.crt &&
+  #         sudo mv $TMPDIR/var-lib-kubelet-config.yaml /var/lib/kubelet/config.yaml &&
+  #         sudo mv $TMPDIR/kubelet.service.override.conf /etc/systemd/system/kubelet.service.d/override.conf &&
+  #         sudo systemctl daemon-reload &&
+  #         sudo systemctl enable --now containerd.service kubelet.service"
