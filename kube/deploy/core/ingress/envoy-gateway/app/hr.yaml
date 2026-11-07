@@ -18,6 +18,7 @@ spec:
      envoyGateway:
         extensionApis:
           enableEnvoyPatchPolicy: true # NOTE: for zstd
+          enableLua: true
         provider:
           type: Kubernetes
           kubernetes:
