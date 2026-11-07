@@ -125,8 +125,6 @@ spec:
           value: "noindex, nofollow" # anti search engines
         - name: Cache-Control
           value: "no-store" # don't store caches
-        - name: X-Frame-Options
-          value: "SAMEORIGIN"
         - name: X-Content-Type-Options
           value: "nosniff"
         - name: X-XSS-Protection
@@ -144,6 +142,8 @@ spec:
           value: "same-site"
         - name: Cross-Origin-Embedder-Policy
           value: "require-corp"
+        - name: X-Frame-Options
+          value: "SAMEORIGIN"
 ---
 # yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1

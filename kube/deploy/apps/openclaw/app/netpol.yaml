@@ -35,4 +35,16 @@ spec:
         - matchPattern: "*.parallel.ai"
         - matchName: "duckduckgo.com"
         - matchPattern: "*.duckduckgo.com"
-        - matchName: "sinon.jj.dhcp.internal"
+        - matchName: "sinon.internal"
+        - matchName: "silverhawk.internal"
+    - toNodes:
+        - matchLabels:
+            kubernetes.io/hostname: sinon
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP

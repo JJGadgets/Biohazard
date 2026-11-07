@@ -44,26 +44,3 @@ spec:
         ${APP_UID_SOFT_SERVE}
       RFSG: !!str |
         ${APP_UID_SOFT_SERVE}
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: soft-serve-db
-  namespace: flux-system
-  labels: &l
-    prune.flux.home.arpa/enabled: "true"
-    db.home.arpa/pg: "pg-default"
-    app.kubernetes.io/name: "soft-serve"
-spec:
-  commonMetadata:
-    labels: *l
-  path: ./kube/deploy/core/db/pg/clusters/template/pguser
-  targetNamespace: "pg"
-  dependsOn:
-    - name: 1-core-db-pg-clusters-default
-    - name: 1-core-secrets-es-k8s
-  postBuild:
-    substitute:
-      PG_NAME: "default"
-      PG_DB_USER: "softserve"
-      PG_APP_NS: "soft-serve"

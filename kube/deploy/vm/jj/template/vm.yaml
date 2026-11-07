@@ -17,12 +17,17 @@ spec:
         vm.home.arpa: "jj"
         vm.home.arpa/os: "linux"
         vm.home.arpa/jj: "${VM}"
+        ingress.home.arpa/jjgadgets: "allow"
+        egress.home.arpa/internet: "allow"
     spec:
       hostname: "jj-${VM}"
       networks:
         - name: "main"
           pod:
             vmNetworkCIDR: "${IP_KUBEVIRT_JJ_CIDR_V4}"
+        # - name: "vlan"
+        #   multus:
+        #     networkName: "vm-jj"
       volumes:
         - name: "root"
           persistentVolumeClaim:
@@ -35,10 +40,13 @@ spec:
           interfaces:
             - name: "main"
               masquerade: {}
-              ports:
-                - name: "tailscale"
-                  port: 41641
-                  protocol: "UDP"
+            #   ports:
+            #     - name: "tailscale"
+            #       port: 41641
+            #       protocol: "UDP"
+            # - name: "main"
+            #   bridge: {}
+            #   macAddress: "${MAC}"
           autoattachInputDevice: true
           inputs:
             - name: "tablet1"

@@ -255,7 +255,7 @@ require("lazy").setup({
       "mason-org/mason-lspconfig.nvim",
       opts = {
         automatic_installation = true,
-        ensure_installed = { "yamlls", "jsonls", "jsonls", "taplo", "helm_ls", "lua_ls", "dockerls", "vtsls", "ruff", "basedpyright", "elixirls", "clangd", "nil_ls", "gopls", "bashls", "fish_lsp" },
+        ensure_installed = { "yamlls", "jsonls", "jsonls", "taplo", "helm_ls", "lua_ls", "dockerls", "vtsls", "ruff", "basedpyright", "elixirls", "clangd", "nil_ls", "gopls", "bashls", "fish_lsp", "kotlin_lsp" },
         automatic_enable = {
           exclude = {
             "yamlls"
@@ -511,6 +511,7 @@ vim.lsp.config('dockerls', {capabilities = caps(),})
 vim.lsp.config('vtsls', {capabilities = caps(),})
 vim.lsp.config('ruff', {capabilities = caps(),})
 vim.lsp.config('basedpyright', {capabilities = caps(),})
+vim.lsp.config('kotlin_lsp', {capabilities = caps(),})
 if vim.fn.executable('elixir') then vim.lsp.config('elixirls', {capabilities = caps(),}) end
 vim.lsp.config('clangd', {
   capabilities = caps(),

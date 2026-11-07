@@ -49,37 +49,32 @@ spec:
           app:
             image: &img
               repository: ghcr.io/goauthentik/server
-              tag: 2026.5.5@sha256:50a833c48a714709f15d4f8846ec6b81a41d0d6a6bd2975087dfed3000d0d72e
+              tag: 2026.5.8@sha256:0ab5658f7f4963f2964cffe0963fa1ef2fa84c21a259489d6fdded789d82492e
             args: [server]
             env: &env
               TZ: "${CONFIG_TZ}"
               # PostgreSQL
-              AUTHENTIK_POSTGRESQL__HOST: &pghost "pg-authentik-ha.authentik.svc.cluster.local"
-                # valueFrom:
-                #   secretKeyRef:
-                #     name: pg-authentik-pguser-authentik
-                #     # key: pgbouncer-host
-                #     key: host
+              AUTHENTIK_POSTGRESQL__HOST: &pghost pg-authentik-rw.authentik.svc.cluster.local
               AUTHENTIK_POSTGRESQL__PORT: &pgport
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     #key: pgbouncer-port
                     key: port
               AUTHENTIK_POSTGRESQL__NAME: &pgname
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: dbname
               AUTHENTIK_POSTGRESQL__USER: &pguser
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: user
               AUTHENTIK_POSTGRESQL__PASSWORD: &pgpass
                 valueFrom:
                   secretKeyRef:
-                    name: pg-authentik-pguser-authentik
+                    name: pg-authentik-app
                     key: password
               AUTHENTIK_POSTGRESQL__SSLMODE: &pgssl require # used to be verify-ca because I thought verify-full was mTLS... and now it's causing tls.Config needs serverName or insecureSkipVerify log errors
               AUTHENTIK_POSTGRESQL__SSLROOTCERT: &pgca /secrets/pg/ca.crt
@@ -244,7 +239,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/ldap
-              tag: 2026.5.5@sha256:7d824417388cad82cf298368e22220195649d0dc1e3224071ec30616e9440c0b
+              tag: 2026.5.8@sha256:cee7a3bf4868c823281a24a49b0c9615f9f9742fb27f85af476a4dc287c39bac
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -285,7 +280,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/radius
-              tag: 2026.5.5@sha256:c713fbcbc7a6a9555d260b796830319682700fb207dda1bb1fc0368c6a1cbf80
+              tag: 2026.5.8@sha256:21fa80dfba1fbf0116d9a51df9e553b1de40d354b7e3abf21132f574e8a6cc11
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -328,7 +323,7 @@ spec:
             image:
               <<: *img
               repository: ghcr.io/goauthentik/rac
-              tag: 2026.5.5@sha256:7ccd6c5e45eb3ae45e7d7392bd25899c4d1ff601f6d630bfab7528236328aba7
+              tag: 2026.5.8@sha256:9323a16a66884503f4db2d79a5bc859befbc9858c7b69f1f8c9c91d346791c27
             env:
               AUTHENTIK_HOST: "https://${APP_DNS_AUTHENTIK}"
               AUTHENTIK_TOKEN:
@@ -500,12 +495,10 @@ spec:
     persistence:
       pg-ca:
         type: secret
-        #name: pg-authentik-pgbouncer
-        name: pg-authentik-cluster-cert
+        name: pg-authentik-ca
         defaultMode: 0400
         globalMounts:
           - subPath: ca.crt
-            #subPath: pgbouncer-frontend.ca-roots
             path: *pgca
       tls:
         type: secret

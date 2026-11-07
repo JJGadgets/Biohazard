@@ -1,0 +1,80 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: llmkube
+  namespace: llmkube
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: llmkube
+    namespace: llmkube
+  values:
+    namespace: llmkube
+    controllerManager:
+      replicaCount: 1
+      initContainer:
+        defaultFSGroup: ${APP_UID_LLMKUBE:=65536}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: ${APP_UID_LLMKUBE:=65536}
+        runAsGroup: ${APP_UID_LLMKUBE:=65536}
+        fsGroup: ${APP_UID_LLMKUBE:=65536}
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: ${APP_UID_LLMKUBE:=65536}
+        runAsGroup: ${APP_UID_LLMKUBE:=65536}
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      nodeSelector:
+        feature.node.kubernetes.io/baremetal: "true"
+    # Operator metrics, scraped through an internal Service; Cilium restricts
+    # the metrics listener to Prometheus in namespace monitoring.
+    metrics:
+      enabled: true
+      secure: false
+      service:
+        type: ClusterIP
+        port: 8443
+    prometheus:
+      serviceMonitor:
+        enabled: true
+        interval: 60s
+        namespace: llmkube
+        additionalLabels:
+          prometheus: kps
+    webhook:
+      enabled: false
+    networkPolicies:
+      enabled: false
+    # Fallback settings only. The Qwen service and chat-template Model use
+    # explicit, app-owned claimName PVCs from pvc.yaml, which override this
+    # operator-managed per-service cache provisioning configuration.
+    modelCache:
+      enabled: true
+      mode: perService
+      size: 500Gi
+      storageClass: local-hostpath
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: llmkube-controller-manager
+            patch: |
+              - op: add
+                path: /spec/template/spec/runtimeClassName
+                value: gvisor
+              - op: add
+                path: /spec/template/metadata/labels/egress.home.arpa~1apiserver
+                value: allow

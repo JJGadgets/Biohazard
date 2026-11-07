@@ -41,12 +41,13 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "openclaw-data"
-      SIZE: "10Gi"
+      SIZE: "15Gi"
+      CACHESIZE: "5Gi"
       SC: &sc "block"
       SNAP: *sc
       ACCESSMODE: &am "ReadWriteOnce"
       SNAP_ACCESSMODE: *am
-      VS_APP_CURRENT_VERSION: "ghcr.io/openclaw/openclaw:2026.7.1@sha256:6a31d44b2944e7adcd2b582bf6fb463111264ebca97a0201795b799135bd102c"
+      VS_APP_CURRENT_VERSION: "ghcr.io/openclaw/openclaw:2026.9.5@sha256:ea298b62be8955d3ef750e2004a610dd90c3a30e5f9886e5d654d78a0c573218"
       RUID: &uid "1000" # upstream `node` user
       RGID: *uid
       RFSG: *uid

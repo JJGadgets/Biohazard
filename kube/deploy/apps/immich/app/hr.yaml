@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/immich-app/immich-server
-              tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
+              tag: v3.3.6@sha256:e1981983b1c13f6024b57d72e7ecae3342eed1581201ab09fb248932d86c593a
             # command: &cmd ["tini", "--", "node", "/usr/src/app/server/dist/main"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -44,18 +44,23 @@ spec:
               IMMICH_SERVER_URL: &svcURL http://immich-app.immich.svc.cluster.local
               REDIS_HOSTNAME: immich-redis.immich.svc.cluster.local
               REDIS_PORT: "6379"
-              DB_VECTOR_EXTENSION: pgvector # I couldn't really care less for worser machine learning, over half my library is screenshots
+              DB_VECTOR_EXTENSION: vectorchord
               IMMICH_MACHINE_LEARNING_URL: http://immich-ml.immich.svc.cluster.local
               MACHINE_LEARNING_HTTP_KEEPALIVE_TIMEOUT_S: "0" # avoid keep-alive to better load balance requests across replicas
               MACHINE_LEARNING_MODEL_TTL: "0" # keep models loaded, for predictable resource requests
-              # default models as of v1.112.1
-              MACHINE_LEARNING_PRELOAD__CLIP: ViT-B-32__openai
-              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION: buffalo_l
-              DB_URL:
+              # ML preload configuration is scoped to the ML controller below.
+              AAA_DATABASE_HOST: "pg-home-rw.pg.svc.cluster.local"
+              AAA_DATABASE_USERNAME:
                 valueFrom:
                   secretKeyRef:
-                    name: pg-home-pguser-immich-fixed
-                    key: pgbouncer-uri-sslmode
+                    name: &pgsec "pg-home-pguser-immich-cnpg"
+                    key: "username"
+              AAA_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "password"
+              DB_URL: "postgresql://$(AAA_DATABASE_USERNAME):$(AAA_DATABASE_PASSWORD)@$(AAA_DATABASE_HOST):5432/$(AAA_DATABASE_USERNAME)?sslmode=verify-ca&sslrootcert=/secrets/pg/ca.crt"
               CPU_CORES:
                 resourceFieldRef:
                   resource: limits.cpu
@@ -126,10 +131,15 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v2.7.5-openvino@sha256:71cd5a681823c4b818f4b24b3f05816eccc3d085559e7615f695bde77e64f1f2
+              tag: v3.3.6-openvino@sha256:035c30de002da9d4d4ae3872107bb9d8e195ead1c1f9fd470a2b0149ed37aec1
             env:
               <<: *env
               IMMICH_PORT: &ml-port 8080
+              MACHINE_LEARNING_MODEL_REVISION: v2
+              MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__CLIP__VISUAL: ViT-B-32__openai
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__DETECTION: buffalo_l
+              MACHINE_LEARNING_PRELOAD__FACIAL_RECOGNITION__RECOGNITION: buffalo_l
               MACHINE_LEARNING_REQUEST_THREADS:
                 resourceFieldRef:
                   resource: limits.cpu
@@ -158,9 +168,9 @@ spec:
           app: &ml-model-pull-ct
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v2.7.5@sha256:a2501141440f10516d329fdfba2c68082e19eb9ba6016c061ac80d23beadf7f3
-            command: ["huggingface-cli", "download", "--exclude", ".git", "--local-dir"] # Immich ML image installs huggingface-cli
-            args: ["/cache/clip/ViT-B-32__openai", "immich-app/ViT-B-32__openai"]
+              tag: v3.3.6@sha256:14367bfb374b8576ddf49abd67c5ca0190a4c7fcf6303cdad65d7f7bf1a50bc2
+            command: ["hf", "download", "--exclude", ".git", "--revision", "v2", "--local-dir"] # huggingface_hub >=1.0 removed huggingface-cli
+            args: ["/cache/clip/ViT-B-32__openai/v2", "immich-app/ViT-B-32__openai"]
             workingDir: &mlhome "/cache"
             env:
               HOME: *mlhome
@@ -177,7 +187,7 @@ spec:
         containers:
           app:
             <<: *ml-model-pull-ct
-            args: ["/cache/facial-recognition/buffalo_l", "immich-app/buffalo_l"]
+            args: ["/cache/facial-recognition/buffalo_l/v2", "immich-app/buffalo_l"]
       redis:
         type: deployment
         replicas: 1
@@ -185,7 +195,7 @@ spec:
           app:
             image:
               repository: "public.ecr.aws/docker/library/redis"
-              tag: "8.8.0@sha256:234c902a2db49461a129e2d4aeff85b28cf20187ed274a67f6e50995fa713c7b"
+              tag: "8.10.3@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53"
             command: ["redis-server", "--save", "''", "--appendonly", "no"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
             resources:
@@ -241,80 +251,80 @@ spec:
           - backendRefs:
               - identifier: app
                 port: http
-      external:
-        hostnames: ["${APP_DNS_IMMICH:=immich}"]
-        parentRefs:
-          - name: envoy-external
-            namespace: ingress
-            sectionName: external
-        rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /s/
-              - path:
-                  type: PathPrefix
-                  value: /share/
-              - path:
-                  type: PathPrefix
-                  value: /_app/immutable/
-                # headers:
-                #   - &referer
-                #     name: Referer
-                #     type: RegularExpression
-                #     value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
-              - path:
-                  type: Exact
-                  value: /_app/env.js
-                # headers: [*referer]
-              - path:
-                  type: Exact
-                  value: /service-worker.js
-                # headers: [*referer]
-              - path:
-                  type: PathPrefix
-                  value: /api/shared-links/
-                # headers: [*referer]
-              - path:
-                  type: PathPrefix
-                  value: /api/server
-                # headers: [*referer]
-              - path:
-                  type: PathPrefix
-                  value: /api/assets
-                headers:
-                  # - *referer
-                  - &shared-link-cookie
-                    name: Cookie
-                    type: RegularExpression
-                    value: immich_shared_link_token=.*
-              - path:
-                  type: PathPrefix
-                  value: /api/albums
-                headers:
-                  # - *referer
-                  - *shared-link-cookie
-              - path:
-                  type: PathPrefix
-                  value: /api/download
-                headers:
-                  # - *referer
-                  - *shared-link-cookie
-              - path:
-                  type: PathPrefix
-                  value: /api/timeline/buckets
-                headers:
-                  # - *referer
-                  - *shared-link-cookie
-              - path:
-                  type: PathPrefix
-                  value: /api/timeline/bucket
-                headers:
-                  # - *referer
-                  - *shared-link-cookie
-            backendRefs:
-              - identifier: app
-                port: http
+      # external: # TODO: https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
+      #   hostnames: ["${APP_DNS_IMMICH:=immich}"]
+      #   parentRefs:
+      #     - name: envoy-external
+      #       namespace: ingress
+      #       sectionName: external
+      #   rules:
+      #     - matches:
+      #         - path:
+      #             type: PathPrefix
+      #             value: /s/
+      #         - path:
+      #             type: PathPrefix
+      #             value: /share/
+      #         - path:
+      #             type: PathPrefix
+      #             value: /_app/immutable/
+      #           # headers:
+      #           #   - &referer
+      #           #     name: Referer
+      #           #     type: RegularExpression
+      #           #     value: "^https:\\/\\/${APP_DNS_IMMICH}\\/s(?:hare)*\\/.*"
+      #         - path:
+      #             type: Exact
+      #             value: /_app/env.js
+      #           # headers: [*referer]
+      #         - path:
+      #             type: Exact
+      #             value: /service-worker.js
+      #           # headers: [*referer]
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/shared-links/
+      #           # headers: [*referer]
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/server
+      #           # headers: [*referer]
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/assets
+      #           headers:
+      #             # - *referer
+      #             - &shared-link-cookie
+      #               name: Cookie
+      #               type: RegularExpression
+      #               value: immich_shared_link_token=.*
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/albums
+      #           headers:
+      #             # - *referer
+      #             - *shared-link-cookie
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/download
+      #           headers:
+      #             # - *referer
+      #             - *shared-link-cookie
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/timeline/buckets
+      #           headers:
+      #             # - *referer
+      #             - *shared-link-cookie
+      #         - path:
+      #             type: PathPrefix
+      #             value: /api/timeline/bucket
+      #           headers:
+      #             # - *referer
+      #             - *shared-link-cookie
+      #       backendRefs:
+      #         - identifier: app
+      #           port: http
     persistence:
       data:
         existingClaim: immich-data

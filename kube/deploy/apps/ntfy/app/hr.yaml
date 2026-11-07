@@ -23,7 +23,7 @@ spec:
           app:
             image: &img
               repository: p.jank.me/binwiederhier/ntfy
-              tag: v2.25.0@sha256:cfbbb1bac9196cb711e29ef0ac4adaeb033be6235f1df857705dc39c14384a1d
+              tag: v2.37.2@sha256:1875ddcf815c8a3c981d6d78c67a93452d0abba79b1ab9520b1f5f5238902bd7
             command: ["ntfy", "serve"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -60,7 +60,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "2"
+                cpu: "4"
                 memory: "150Mi"
             probes:
               liveness:

@@ -18,6 +18,7 @@ spec:
         replicas: 1
         pod:
           labels:
+            # AGENTS: for allowlisting pods for existing NetworkPolicies, uncomment where necessary, else delete. remember principle of least privilege, do not grant network access if an app does not require it.
             ingress.home.arpa/envoy-internal: allow
             # db.home.arpa/pg: pg-default
             # s3.home.arpa/store: "rgw-${CLUSTER_NAME}"
@@ -31,6 +32,8 @@ spec:
               tag: ${IMAGETAG}
             env: &env
               TZ: "${CONFIG_TZ}"
+              # AGENTS: CRUD where appropriate, these envs are all example values
+              EXAMPLE_ENV: test
               _APPNAME_DATABASE_SOURCE:
                 valueFrom:
                   secretKeyRef:
@@ -59,12 +62,13 @@ spec:
                 cpu: "10m"
               limits:
                 cpu: "4"
-                memory: "512Mi"
+                memory: "250Mi"
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+              # AGENTS: uncomment if app uses database (including SQLite) and thus may need time to run database migrations
               # startup:
               #   enabled: true
               #   spec:
@@ -80,7 +84,8 @@ spec:
             targetPort: 8080
             protocol: HTTP
             appProtocol: http
-      # expose: # uncomment if LoadBalancer service needed
+      # AGENTS: uncomment if LoadBalancer service needed
+      # expose:
       #   primary: false
       #   controller: app
       #   type: LoadBalancer
@@ -102,6 +107,7 @@ spec:
       #       protocol: UDP
     route:
       app:
+        # AGENTS: uncomment if app is to be exposed to external/public via FQDN
         # annotations:
         #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
         #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
@@ -110,7 +116,8 @@ spec:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-        # rules: # uncomment if advanced routing needed or multiple service backends specified
+        # AGENTS: uncomment if advanced routing needed or multiple service backends specified
+        # rules:
         #   - matches:
         #       - path:
         #           type: PathPrefix
@@ -121,7 +128,8 @@ spec:
         #   - backendRefs:
         #       - identifier: app
         #         port: 80
-    persistence: # delete entries where not necessary
+    # AGENTS: delete entries where not necessary
+    persistence:
       data:
         existingClaim: ${APPNAME}-data
         advancedMounts:
@@ -170,21 +178,32 @@ spec:
     #       server.toml: |
     #         key = value
     defaultPodOptions:
-      # hostAliases: # uncomment if authentik OIDC is used
+      # AGENTS: uncomment if authentik OIDC is used, else delete
+      # hostAliases:
       #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
       #     hostnames: ["${APP_DNS_AUTHENTIK:=authentik}"]
       dnsConfig:
         options:
           - name: ndots
             value: "1"
-      # hostUsers: true
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: &uid ${APP_UID_APPNAME:=1000}
+      # AGENTS: START if
+      # delete whichever version is unused
+      # EITHER THIS, if internal-only app (most apps are)
       hostUsers: false
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000
+      # OR THIS, uncomment if external/public facing as determined by gateway class or if service LoadBalancer is used, or if internal-only app BUT non-standard mounts are used like NFS because hostUsers requires idmap support
+      # runtimeClassName: gvisor
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: &uid ${APP_UID_APPNAME:=1000}
+      # OR THIS, uncomment if app cannot use additional sandboxing methods, such as if GPUs or other /dev devices are passed through to the app using resources or hostPath
+      # hostUsers: true
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: &uid ${APP_UID_APPNAME:=1000}
+      # END if
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
@@ -198,12 +217,16 @@ spec:
                     operator: DoesNotExist
     networkpolicies:
       same-ns:
-        # either
-        controller: app
-        # or
+        # AGENTS: either this for specific controller within HelmRelease
+        # controller: app
+        # or this for whole namespace
         podSelector: {}
         # end
         policyTypes: [Ingress, Egress]
         rules:
-          ingress: [from: [{podSelector: {}}]]
-          egress: [to: [{podSelector: {}}]]
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}

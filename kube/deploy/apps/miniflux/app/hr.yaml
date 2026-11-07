@@ -23,7 +23,7 @@ spec:
         pod:
           labels:
             ingress.home.arpa/nginx-internal: allow
-            db.home.arpa/pg: pg-default
+            db.home.arpa/pg: pg-home
             authentik.home.arpa/oidc: allow
             egress.home.arpa/internet: allow
             # egress.home.arpa/discord: allow
@@ -32,7 +32,7 @@ spec:
           main:
             image: &img
               repository: ghcr.io/miniflux/miniflux
-              tag: "2.3.2-distroless@sha256:e2a2d2939d79687315385749c0ebcda0a1e8220e02c7e4f41f0e55cba2fbf1b7"
+              tag: "2.3.5-distroless@sha256:c826edc9c2284a8181e297d22a5ade1482bd9a8a4beabb2b6356bd22ce731310"
             env:
               TZ: "${CONFIG_TZ}"
               BASE_URL: "https://${APP_DNS_MINIFLUX}"
@@ -42,11 +42,18 @@ spec:
               OAUTH2_REDIRECT_URL: https://${APP_DNS_MINIFLUX}/oauth2/oidc/callback
               OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://${APP_DNS_AUTH}/application/o/miniflux/
               OAUTH2_USER_CREATION: "1"
-              DATABASE_URL:
+              AAA_DATABASE_HOST: "pg-home-rw.pg.svc.cluster.local"
+              AAA_DATABASE_USERNAME:
                 valueFrom:
                   secretKeyRef:
-                    name: &pgsec "pg-default-pguser-miniflux"
-                    key: "pgbouncer-uri"
+                    name: &pgsec "pg-home-pguser-miniflux-cnpg"
+                    key: "username"
+              AAA_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *pgsec
+                    key: "password"
+              DATABASE_URL: "postgresql://$(AAA_DATABASE_USERNAME):$(AAA_DATABASE_PASSWORD)@$(AAA_DATABASE_HOST):5432/$(AAA_DATABASE_USERNAME)"
             envFrom: &envFrom
               - secretRef:
                   name: miniflux-secrets

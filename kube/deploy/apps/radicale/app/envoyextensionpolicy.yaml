@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
+# yaml-language-server: $schema=https://crds.jank.ing/gateway.envoyproxy.io/envoyextensionpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
@@ -26,4 +26,129 @@ spec:
             response_handle:headers():replace(":status", "401")
             response_handle:headers():remove("location")
           end
+        end
+    - type: Inline
+      inline: |
+        local REFRESH_RATE = "P1D"
+
+        local function is_webcal_subscription_response(response_xml)
+            -- Radicale VSUBSCRIBED resource:
+            --   <CS:subscribed/>
+            --   <CS:source>...</CS:source>
+            --
+            -- Requiring both prevents ordinary CalDAV collections from matching.
+            return
+                response_xml:match("<CS:subscribed[%s/>]") ~= nil and
+                response_xml:match("<CS:source[%s>]") ~= nil
+        end
+
+        local function inject_properties(response_xml)
+            if not is_webcal_subscription_response(response_xml) then
+                return response_xml, false
+            end
+
+            local additions = ""
+
+            -- Apple asks for this exact CalDAV property.
+            if not response_xml:match(
+                "<C:supported%-calendar%-component%-set[%s/>]"
+            ) then
+                additions = additions ..
+                    '<C:supported-calendar-component-set ' ..
+                        'xmlns:C="urn:ietf:params:xml:ns:caldav">' ..
+                        '<C:comp name="VEVENT"/>' ..
+                    '</C:supported-calendar-component-set>'
+            end
+
+            -- Apple asks for this exact Apple property.
+            if not response_xml:match(
+                "<ICAL:refreshrate[%s>]"
+            ) then
+                additions = additions ..
+                    '<ICAL:refreshrate ' ..
+                        'xmlns:ICAL="http://apple.com/ns/ical/">' ..
+                        REFRESH_RATE ..
+                    '</ICAL:refreshrate>'
+            end
+
+            if additions == "" then
+                return response_xml, false
+            end
+
+            -- Add immediately before </prop>.
+            --
+            -- Radicale's response has:
+            --   <propstat>
+            --     <prop> ... </prop>
+            --     <status>...</status>
+            --   </propstat>
+            --
+            local modified, count = response_xml:gsub(
+                "</prop>",
+                additions .. "</prop>",
+                1
+            )
+
+            if count ~= 1 then
+                return response_xml, false
+            end
+
+            return modified, true
+        end
+
+        function envoy_on_response(response_handle)
+            local headers = response_handle:headers()
+
+            -- Only WebDAV multistatus responses.
+            if headers:get(":status") ~= "207" then
+                return
+            end
+
+            local content_type = headers:get("content-type") or ""
+
+            -- Radicale normally returns application/xml or text/xml here.
+            -- Don't touch unrelated 207 responses.
+            if not (
+                content_type:find("xml", 1, true) or
+                content_type == ""
+            ) then
+                return
+            end
+
+            local body_buffer = response_handle:body()
+            local body = body_buffer:getBytes(0, body_buffer:length())
+
+            if body == nil or body == "" then
+                return
+            end
+
+            -- Additional safety check: this must be a DAV multistatus.
+            if not body:match("<multistatus[%s>]") then
+                return
+            end
+
+            local modified = false
+
+            -- Handle each DAV <response> independently.
+            local new_body = body:gsub(
+                "<response>(.-)</response>",
+                function(response_xml)
+                    local result, changed = inject_properties(response_xml)
+
+                    if changed then
+                        modified = true
+                    end
+
+                    return "<response>" .. result .. "</response>"
+                end
+            )
+
+            if not modified then
+                return
+            end
+
+            body_buffer:setBytes(new_body)
+
+            -- Body size changed; don't leave Radicale's old Content-Length.
+            headers:remove("content-length")
         end

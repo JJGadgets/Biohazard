@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/home-operations/plex
-              tag: 1.43.3.10828@sha256:0c0b6899339503af17cb190b25af6acf10f0030e2820985e16ee14ef428f49d7
+              tag: 1.43.5.11079@sha256:06ef0fc23e9af9bbaf284c3f27972f94e703d13d6f745edeb6818fcbebf6c673
             env: &env
               TZ: "${CONFIG_TZ}"
               PLEX_ADVERTISE_URL: "https://${APP_DNS_PLEX}:443" # ,http://${APP_IP_PLEX}:32400"
@@ -149,6 +149,7 @@ spec:
         options:
           - name: ndots
             value: "1"
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 6969

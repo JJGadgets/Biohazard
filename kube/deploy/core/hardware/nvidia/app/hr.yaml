@@ -19,15 +19,26 @@ spec:
     daemonsets:
       labels:
         egress.home.arpa/apiserver: allow
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
     operator:
       labels:
         egress.home.arpa/apiserver: allow
     driver:
       enabled: false
     toolkit:
-      enabled: false
+      enabled: true
     hostPaths:
       driverInstallDir: /usr/local
     nfd:
       enabled: false
       nodefeaturerules: true
+    devicePlugin:
+      config:
+        name: time-slicing-config-all
+        default: any

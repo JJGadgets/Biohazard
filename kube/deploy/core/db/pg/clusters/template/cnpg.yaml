@@ -18,13 +18,13 @@ spec:
   instances: ${PG_REPLICAS:=2}
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie@sha256:802cb43a4d482acf1037b418e421c865b16959ba22e07f16fc003e06cb21084c
   primaryUpdateStrategy: unsupervised # let k8s handle upgrades
-  # primaryUpdateMethod: restart # prefer downtime of image download from registry instead of switching primary instance (promote a standby instance to primary) when current primary pod is updated
+  primaryUpdateMethod: switchover
   storage:
     size: "${PG_CONFIG_SIZE:=10Gi}"
-    storageClass: "${PG_SC:=block}"
+    storageClass: "${PG_SC:=local-xfs}"
   walStorage:
     size: "${PG_CONFIG_SIZE_WAL:=20Gi}"
-    storageClass: "${PG_SC:=block}"
+    storageClass: "${PG_SC:=local-xfs}"
   # superuserSecret:
   #   name: pg-default-superuser
   postgresql:
@@ -129,3 +129,27 @@ spec:
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
   target: prefer-standby
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/postgresql.cnpg.io/backup_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: "pg-${PG_APP_NAME:0:40}-v${PG_APP_CURRENT_VERSION#*@sha256:?????????????????????????????????????????????????????}-barman"
+  namespace: "${PG_APP_NS}"
+spec:
+  method: plugin
+  cluster:
+    name: "pg-${PG_APP_NAME}"
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/postgresql.cnpg.io/backup_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: "pg-${PG_APP_NAME:0:40}-v${PG_APP_CURRENT_VERSION#*@sha256:?????????????????????????????????????????????????????}-vosnap"
+  namespace: "${PG_APP_NS}"
+spec:
+  method: volumeSnapshot
+  cluster:
+    name: "pg-${PG_APP_NAME}"

@@ -1,0 +1,41 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: llmkube-app
+  namespace: &ns llmkube
+  labels: &l
+    app.kubernetes.io/name: llmkube
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/llmkube/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: llmkube
+      namespace: *ns
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: llmkube-models
+  namespace: &ns llmkube
+  labels: &l
+    app.kubernetes.io/name: llmkube
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *l
+  path: ./kube/deploy/apps/llmkube/models
+  components:
+    - ../../../core/flux-system/alerts/template/
+  dependsOn:
+    - name: llmkube-app
+      namespace: *ns

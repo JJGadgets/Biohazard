@@ -79,7 +79,7 @@ spec:
           99-de-escalate-netpols:
             image:
               repository: registry.k8s.io/kubectl
-              tag: v1.36.2@sha256:b0d792e0d8dfb9bb1b922b78b23137e2a34bb6f9667640353a9d2aadd1fd7761
+              tag: v1.37.2@sha256:fe049faa65ae483ac200009a949a68fa4c9985daea12c9cb1195c9c7965301fc
             command: ["kubectl", "label", "pods", "--namespace", "$(POD_NS)", "$(POD_NAME)", "egress.home.arpa/github-", "egress.home.arpa/apiserver-"]
             env:
               POD_NAME:
@@ -105,22 +105,28 @@ spec:
             appProtocol: http
     route:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+        # annotations:
+        #   external-dns.alpha.kubernetes.io/target: "${DNS_CF:=cf}"
+        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
         hostnames: ["${APP_DNS_CRYPTPAD:=cryptpad}", "${APP_DNS_CRYPTPAD_SAFE:=cryptpad}"]
         parentRefs:
           - name: envoy-internal
             namespace: ingress
             sectionName: internal
-          - name: envoy-external
-            namespace: ingress
-            sectionName: external
+          # - name: envoy-external # TODO: https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
+          #   namespace: ingress
+          #   sectionName: external
         rules:
           - matches:
               - path:
                   type: PathPrefix
                   value: /cryptpad_websocket
+            filters:
+              - type: ResponseHeaderModifier
+                responseHeaderModifier:
+                  set:
+                    - name: Cross-Origin-Opener-Policy
+                      value: unsafe-none
             backendRefs:
               - identifier: app
                 port: *ws

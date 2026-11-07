@@ -19,9 +19,9 @@ spec:
           "ipam": {
             "type": "static",
             "routes": [
-              { "dst": "0.0.0.0/0", "gw": "${IP_ROUTER_VLAN_MEDIA}" },
-              { "dst": "${IP_VLAN_MEDIA_CIDR}", "gw": "${IP_ROUTER_VLAN_MEDIA}" },
-              { "dst": "224.0.0.0/4", "gw": "${IP_ROUTER_VLAN_MEDIA}" }
+              { "dst": "0.0.0.0/0", "gw": "${IP_ROUTER_VLAN_MEDIA:=127.0.0.1}" },
+              { "dst": "${IP_VLAN_MEDIA_CIDR:=127.0.0.1/32}", "gw": "${IP_ROUTER_VLAN_MEDIA:=127.0.0.1}" },
+              { "dst": "224.0.0.0/4", "gw": "${IP_ROUTER_VLAN_MEDIA:=127.0.0.1}" }
             ]
           }
         },

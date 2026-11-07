@@ -28,7 +28,7 @@ spec:
           app:
             image: &img
               repository: ghcr.io/kiwix/kiwix-tools
-              tag: 3.8.2@sha256:40ab5f450231836321d6a1e417006033db5883f883d08e85b246d2ecf8840a75
+              tag: 3.8.2@sha256:2914a200ff64e0861c82733010eb7583d17334dde4d7248b9d9aa7b2f7b5a36d
             command: ["/usr/bin/dumb-init", "--", "/bin/sh", "-c", "/usr/local/bin/kiwix-serve --address=$(IP) --port=$(PORT) --nodatealiases $(find /data -type f -iname '*.zim')"]
             env: &env
               TZ: "${CONFIG_TZ}"
@@ -61,11 +61,11 @@ spec:
             reloader.stakater.com/auto: "false"
           labels:
             egress.home.arpa/internet: allow
-        initContainers:
+        containers:
           download: &dl-ct
             image:
               repository: nixery.dev/wget
-              tag: latest@sha256:53cc0c35ce001da444dc4543b99ebc72813410bc9182d3ec1ee81e41a1228b5b
+              tag: latest@sha256:0dbe7b911357295de25a9e569eecaebb35a9f10885d4077139c5cf98fbe5719b
               pullPolicy: Always
             # command: ["wget", "-O", "/data/$(ZIM)", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]
             command: ["wget", "--output-document=/data/$(ZIM).zim", "https://download.kiwix.org/zim/$(CAT)/$(ZIM).zim"]

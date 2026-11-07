@@ -21,6 +21,9 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             dns.home.arpa/l7: "true"
+            ai.internal/llmkube: allow
+            egress.home.arpa/continuwuity: allow
+            egress.home.arpa/ntfy: allow
             egress.home.arpa/github: allow
             egress.home.arpa/cloudflare: allow
             egress.home.arpa/apiserver: allow
@@ -31,27 +34,41 @@ spec:
           resources:
             requests:
               cpu: "10m"
+              memory: "2Gi"
             limits:
               cpu: "4"
-              memory: "2Gi"
+              memory: "10Gi"
         containers:
           app:
             image: &img
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.7.1@sha256:6a31d44b2944e7adcd2b582bf6fb463111264ebca97a0201795b799135bd102c
+              tag: 2026.9.5@sha256:ea298b62be8955d3ef750e2004a610dd90c3a30e5f9886e5d654d78a0c573218
             env: &env
               TZ: "${CONFIG_TZ}"
               OPENCLAW_LOG_LEVEL: debug
               BROWSER_WS_ENDPOINT: "ws://localhost:9222"
-              HOME: &pvc /home/openclaw
+              AAA_HOME: &pvc /home/openclaw
+              HOME: *pvc
               OPENCLAW_HOME: *pvc
-              GOPATH: "$(HOME)/go"
+              GOPATH: "$(AAA_HOME)/go"
               OPENCLAW_GATEWAY_PORT: &http 8080
-              PATH: "$(HOME)/.local/bin:$(HOME)/.local/share/mise/shims:$(HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              PATH: "$(AAA_HOME)/.local/bin:$(AAA_HOME)/.local/share/mise/shims:$(AAA_HOME)/.local/go/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               TERM: xterm-256color
+              GRADLE_USER_HOME: "$(AAA_HOME)/.gradle"
+              ANDROID_HOME: "$(AAA_HOME)/.android-sdk"
+              ANDROID_SDK_ROOT: "$(AAA_HOME)/.android-sdk"
+              ANDROID_USER_HOME: "$(AAA_HOME)/.android-sdk"
+              OPENCLAW_FS_SAFE_NATIVE_MODE: "off" # 2026.9.5 uses openat2 which isn't supported on gvisor, this falls back to NodeJS exclusive `wx` file creation for lock files
+              OPENCODE_ENABLE_EXA: "1"
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: openclaw-secrets
+                    key: MEMINI_KEY_BIOHAZARD_OPENCLAW
             envFrom: &envFrom
-              - secretRef:
+              - &ocSecrets
+                secretRef:
                   name: openclaw-secrets
             # workingDir: *pvc # NOTE: DO NOT enable this, as the entrypoint uses a relative path by default
             securityContext: &sc
@@ -70,15 +87,53 @@ spec:
                   periodSeconds: 1
                   failureThreshold: 3600
           opencode:
-            image: &img
-              repository: ghcr.io/anomalyco/opencode
-              tag: 1.18.3@sha256:c2d5d6398df72aac85cb1bdc8f900c71a9b75a33fb7c0a76dc1484e4b126e41e
-            command: ["/usr/local/bin/opencode"]
+            image:
+              repository: ghcr.io/jjgadgets/opencode
+              tag: 1.18.31@sha256:319e524999a8b7ff3c77af0555d9a2bc149c69ef687ca97c33d97e1a007d1b8c
             args: ["web", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--cors", "${APP_DNS_OPENCODE:=opencode}"]
             env:
               <<: *env
               HTTP_PORT: &opencode-http 8081
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: openclaw-secrets
+                    key: MEMINI_KEY_BIOHAZARD_OPENCODE
             envFrom: *envFrom
+            workingDir: *pvc
+            securityContext: *sc
+            probes: *probes
+          qwen:
+            image:
+              repository: ghcr.io/qwenlm/qwen-code
+              tag: 0.26.4@sha256:01164fc4d4e443591ba22581a19e1e910895ffe290595a7e8cb1a04d1d6da2a5
+            command: ["/usr/local/share/npm-global/bin/qwen", "serve", "--hostname", "0.0.0.0", "--port", "$(HTTP_PORT)", "--allow-origin", "https://${APP_DNS_QWEN_CODE}", "--workspace", "/home/openclaw/qwen-code-workspace"]
+            env:
+              <<: *env
+              HTTP_PORT: &qwen-http 8083
+              QWEN_HOME: "/home/openclaw/.qwen"
+              QWEN_USAGE_STATISTICS_ENABLED: 0
+              # Limit Qwen Code's internal tool and agent fan-out; this is not a process-wide provider request semaphore.
+              QWEN_CODE_MAX_BACKGROUND_AGENTS: "1"
+              QWEN_CODE_MAX_TOOL_CONCURRENCY: "1"
+              QWEN_CODE_MAX_WORKFLOW_CONCURRENCY: "1"
+              # Two-hour API/stream timeout defaults (milliseconds) for supported OpenAI-compatible and Anthropic paths.
+              # Explicit modelProviders timeout/streamIdleTimeoutMs values take precedence; native Google GenAI does not consume this API timeout.
+              # Some feature-specific model side queries also have independent hard-coded AbortSignal deadlines.
+              QWEN_CODE_API_TIMEOUT_MS: "7200000"
+              QWEN_STREAM_IDLE_TIMEOUT_MS: "7200000"
+              QWEN_STREAM_MAX_LIFETIME_MS: "7200000"
+              # Two-hour web-fetch LLM summarization timeout; the separate network download timeout remains unchanged.
+              QWEN_WEB_FETCH_PROCESSING_TIMEOUT_MS: "7200000"
+              # MEMINI_API_KEY:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: openclaw-secrets
+              #       key: MEMINI_KEY_BIOHAZARD_QWEN
+            envFrom:
+              - *ocSecrets
+              - secretRef:
+                  name: qwen-code-secrets
             workingDir: *pvc
             securityContext: *sc
             probes: *probes
@@ -91,7 +146,7 @@ spec:
               - "sh"
               - "-c"
               - |
-                while [ ! -z "$(pgrep node)" ] || [ ! -s $(HOME)/.openclaw/openclaw.json ]; do
+                while [ ! -z "$(pgrep node)" ] || [ ! -s $(AAA_HOME)/.openclaw/openclaw.json ]; do
                   echo 'OpenClaw has not been setup, please exec to this container and run `openclaw setup` for the app to startup!';
                   sleep 60;
                 done;
@@ -114,6 +169,14 @@ spec:
             targetPort: *opencode-http
             protocol: HTTP
             appProtocol: http
+      qwen:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: *qwen-http
+            protocol: HTTP
+            appProtocol: http
     route:
       app: &route
         hostnames: ["${APP_DNS_OPENCLAW:=openclaw}"]
@@ -133,6 +196,13 @@ spec:
           - backendRefs:
               - identifier: opencode
                 port: http
+      qwen:
+        <<: *route
+        hostnames: ["${APP_DNS_QWEN_CODE:=qwen}"]
+        rules:
+          - backendRefs:
+              - identifier: qwen
+                port: http
     persistence:
       # config:
       #   type: configMap
@@ -147,6 +217,8 @@ spec:
         globalMounts:
           - subPath: data
             path: *pvc
+          - subPath: qwen-code-workspace # need the mkdir
+            path: "/home/openclaw/qwen-code-workspace" # work around my ~ bare git repo resulting in nested workspace
       misc:
         existingClaim: openclaw-misc
         globalMounts:
@@ -162,6 +234,8 @@ spec:
             path: /home/openclaw/.local/share/mise
           - subPath: gradle
             path: /home/openclaw/.gradle
+          - subPath: cache
+            path: /home/openclaw/.cache
       tmp:
         type: emptyDir
         medium: Memory
@@ -181,6 +255,11 @@ spec:
         options:
           - name: ndots
             value: "1"
+      hostAliases:
+        - ip: "${APP_IP_NTFY_MX:=127.0.0.1}"
+          hostnames: ["${APP_DNS_NTFY:=ntfy}"]
+        - ip: "${APP_IP_CONTINUWUITY:=127.0.0.1}"
+          hostnames: ["${APP_DNS_CONTINUWUITY:=continuwuity}", "${APP_DNS_CONTINUWUITY_SERVER:=continuwuity}"]
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
@@ -206,6 +285,9 @@ spec:
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: llama-cpp
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: memini
                 - namespaceSelector:
                     matchLabels:
                       kubernetes.io/metadata.name: searxng

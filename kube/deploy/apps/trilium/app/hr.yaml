@@ -20,12 +20,14 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             authentik.home.arpa/oidc: allow
+            dns.home.arpa/l7: "true"
+            ai.internal/llmkube: allow
         containers:
           app:
             image: &img
               repository: ghcr.io/triliumnext/trilium
-              tag: v0.104.0@sha256:8e053aa58a90c1690106a324a4692690ba0491c21ae40485b4051e2911df9489
-            command: ["node", "./main.cjs"]
+              tag: v0.106.1@sha256:d87d810fdcb549db65710a40933acaa16bc75c9426a9164c547f7ba95592941b
+            command: ["node", "./main.mjs"]
             env: &env
               TZ: "${CONFIG_TZ}"
               TRILIUM_GENERAL_INSTANCE_NAME: "${CLUSTER_NAME:=k8s}"
@@ -36,6 +38,7 @@ spec:
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://${APP_DNS_TRILIUM}"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "JJGadgets Auth"
               TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERICON: "https://jjgadgets.tech/images/favicon.png"
+              TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHSCOPE: "openid email profile offline_access"
             envFrom: &envFrom
               - secretRef:
                   name: trilium-secrets
@@ -48,7 +51,7 @@ spec:
               requests:
                 cpu: "10m"
               limits:
-                cpu: "1"
+                # cpu: "4"
                 memory: "200Mi"
             ports:
               - name: http
@@ -59,7 +62,22 @@ spec:
                 type: HTTP
                 port: http
                 path: /api/health-check
-              readiness: *probe
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 6
+              readiness:
+                <<: *probe
+                spec:
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              startup:
+                <<: *probe
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 10
     service:
       app:
         controller: app

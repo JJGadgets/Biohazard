@@ -38,25 +38,21 @@ spec:
               PUBLIC_URL: "http://${APP_IP_REACTIVE_RESUME}:3000"
               PUBLIC_SERVER_URL: "http://${APP_IP_REACTIVE_RESUME}:3100"
               STORAGE_URL_PREFIX: "https://${APP_DNS_RGW_S3}/reactive-resume-media"
-              POSTGRES_HOST:
-                valueFrom:
-                  secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "host"
+              POSTGRES_HOST: "pg-home-rw.pg.svc.cluster.local"
               POSTGRES_DB:
                 valueFrom:
                   secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "dbname"
+                    name: "pg-home-pguser-reactive-resume-cnpg"
+                    key: "username"
               POSTGRES_USER:
                 valueFrom:
                   secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
-                    key: "user"
+                    name: "pg-home-pguser-reactive-resume-cnpg"
+                    key: "username"
               POSTGRES_PASSWORD:
                 valueFrom:
                   secretKeyRef:
-                    name: "pg-home-pguser-reactive-resume"
+                    name: "pg-home-pguser-reactive-resume-cnpg"
                     key: "password"
               SECRET_KEY:
                 valueFrom:
@@ -154,8 +150,7 @@ spec:
       config:
         enabled: false
     defaultPodOptions:
-      automountServiceAccountToken: false
-      enableServiceLinks: false
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: false
         runAsUser: &uid 0

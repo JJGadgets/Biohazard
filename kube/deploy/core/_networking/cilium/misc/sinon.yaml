@@ -1,0 +1,13 @@
+---
+# yaml-language-server: $schema=https://crds.jank.ing/cilium.io/ciliumnodeconfig_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNodeConfig
+metadata:
+  name: sinon
+  namespace: kube-system
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/hostname: sinon
+  defaults:
+    devices: enp0s31f6
