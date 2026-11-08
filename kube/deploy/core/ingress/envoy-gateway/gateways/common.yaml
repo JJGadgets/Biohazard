@@ -14,7 +14,8 @@ spec:
     kubernetes:
       envoyDaemonSet:
         container:
-          imageRepository: mirror.gcr.io/envoyproxy/envoy
+          #imageRepository: mirror.gcr.io/envoyproxy/envoy
+          image: mirror.gcr.io/envoyproxy/envoy:distroless-v1.39.6
           resources:
             requests:
               cpu: 30m
