@@ -50,12 +50,12 @@ spec:
     - name: MODEL_PATH
       value: "$(LLMKUBE_MODEL_DIR)"
     - name: CONTEXT
-      value: "105000"
+      value: "150000"
     - name: PARALLEL
       value: "1"
     # The shared Model also stages mmproj-F16.gguf; keep Strata's vision path enabled.
     - name: VISION
-      value: "on"
+      value: "off"
     # Tune the exact host/model combination once; Strata persists the result
     # in /data and reuses it on restarts unless RETUNE=1 is requested.
     - name: TUNE
