@@ -32,7 +32,7 @@ spec:
         initContainers:
           01-extract:
             image:
-              repository: "registry.jjgadgets.tech/jjgadgets/k8s-crd-extractor"
+              repository: "ghcr.io/jjgadgets/k8s-crd-extractor"
               tag: "20250627@sha256:a74d4c2059df2215c214664ddc3da9d5f2de4527e606c704f7136248945cc6a6"
             env:
               TZ: "${CONFIG_TZ}"
@@ -51,7 +51,7 @@ spec:
         containers:
           rclone-r2: &rclone
             image: &rcimg
-              repository: "registry.jjgadgets.tech/jjgadgets/rclone"
+              repository: "ghcr.io/jjgadgets/rclone"
               tag: "1.76.0@sha256:f9a235c3f4aa51c14372b2b7ca81356e55cdf541c949943a4b2205ad64520429"
             args: ["sync", "/.datree/crdSchemas/", "r2:k8s-schemas/", "--progress", "--fast-list", "--checksum"]
             env:
