@@ -19,7 +19,7 @@ spec:
   modelRef: qwen3.6-35b-a3b
   runtime: generic
   # The CUDA 12 image supports this mixed-generation Tesla T4 / GTX 1060 host.
-  image: ghcr.io/niko1221/strata:0.2.7-cuda12
+  image: ghcr.io/niko1221/strata:0.2.13-cuda12@sha256:ba9635f6eb11319286253e52e348983ae85ea60ded6230a664a8f16be27fccdc
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
