@@ -12,6 +12,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: *app
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: openclaw
   egress:
     # same namespace
     - toEndpoints:

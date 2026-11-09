@@ -35,7 +35,7 @@ spec:
         - matchPattern: "*.parallel.ai"
         - matchName: "duckduckgo.com"
         - matchPattern: "*.duckduckgo.com"
-        - matchName: "sinon.internal"
+        # - matchName: "sinon.internal"
         - matchName: "silverhawk.internal"
     - toNodes:
         - matchLabels:
@@ -48,3 +48,15 @@ spec:
               protocol: TCP
             - port: "8000"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: trilium
+            app.kubernetes.io/name: trilium
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              - path: "/mcp"
+              - path: "/mcp/.*"
