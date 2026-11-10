@@ -71,8 +71,10 @@ metadata:
   namespace: llmkube
   labels:
     app.kubernetes.io/name: llmkube
+  annotations:
+    lbipam.cilium.io/ips: "${APP_IP_LLMKUBE:=127.0.0.1}"
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     inference.llmkube.dev/model-router: llmkube-router
   ports:
@@ -313,5 +315,6 @@ spec:
       prom.home.arpa/kps: allow
       egress.home.arpa/apiserver: allow
       dns.home.arpa/l7: "true"
+      ingress.home.arpa/jjgadgets: allow
     nodeSelector:
       feature.node.kubernetes.io/baremetal: "true"
