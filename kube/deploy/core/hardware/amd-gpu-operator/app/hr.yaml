@@ -26,10 +26,6 @@ spec:
       installCRDs: false
     controllerManager:
       manager:
-        image:
-          repository: docker.io/rocm/gpu-operator
-          tag: v1.5.1@sha256:572243df68701bd9f239820966ac333b75bf02182cb930ab7ef4bcc9232948e8
-        imagePullPolicy: IfNotPresent
     deviceConfig:
       spec:
         selector:
@@ -38,15 +34,11 @@ spec:
         driver:
           enable: false
           blacklist: false
-        commonConfig:
-          initContainerImage: docker.io/library/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
         devicePlugin:
           enableDevicePlugin: false
           enableNodeLabeller: false
         draDriver:
           enable: true
-          image: docker.io/rocm/k8s-gpu-dra-driver:v1.0.1@sha256:f173c8e78bc819e2b8adc15192afefaf69a11307d49fca5382bda82885975830
-          imagePullPolicy: IfNotPresent
           tolerations:
             - key: llm.internal
               operator: Exists
@@ -54,8 +46,6 @@ spec:
         metricsExporter:
           enable: true
           serviceType: ClusterIP
-          image: docker.io/rocm/device-metrics-exporter:v1.5.1@sha256:cbef5772c435d648ebd6de705517c4978efdb4b5650952c6797cc2bf15af747a
-          imagePullPolicy: IfNotPresent
           tolerations:
             - key: llm.internal
               operator: Exists
@@ -67,3 +57,15 @@ spec:
     draDriver:
       deviceClass:
         create: true
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: ".*-gpu-operator-charts-controller-manager$"
+            patch: |-
+              - op: add
+                path: /spec/template/metadata/labels/egress.home.arpa~apiserver
+                value: "true"
