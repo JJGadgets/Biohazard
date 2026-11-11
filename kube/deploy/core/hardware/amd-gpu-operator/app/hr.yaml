@@ -39,8 +39,13 @@ spec:
         devicePlugin:
           enableDevicePlugin: false
           enableNodeLabeller: false
+          tolerations:
+            - key: llm.internal
+              operator: Exists
+              effect: NoSchedule
         draDriver:
           enable: true
+          image: docker.io/rocm/k8s-gpu-dra-driver:v1.0.1
           tolerations:
             - key: llm.internal
               operator: Exists
