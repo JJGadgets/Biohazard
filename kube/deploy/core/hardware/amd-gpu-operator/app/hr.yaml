@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: amd-gpu-operator
   namespace: amd-gpu-operator
+  labels:
+    egress.home.arpa/apiserver: allow
 spec:
   interval: 1h
   chart:
@@ -64,8 +66,12 @@ spec:
               group: apps
               version: v1
               kind: Deployment
-              name: ".*-gpu-operator-charts-controller-manager$"
-            patch: |-
+            patch: &patch |-
               - op: add
                 path: /spec/template/metadata/labels/egress.home.arpa~apiserver
                 value: "true"
+          - target:
+              group: batch
+              version: v1
+              kind: Job
+            patch: *patch
