@@ -2,7 +2,7 @@
 
 Install AMD GPU Operator v1.5.1 and DRA v1.0.1 with a version-pinned
 Helm chart and digest-pinned images. AMD's controller, privileged DRA
-plugin and metrics-exporter are restricted to the `kube-amd-gpu`
+plugin and metrics-exporter are restricted to the `amd-gpu-operator`
 namespace; Radiance is still non-root and least privileged.
 
 The existing NFD installs the AMD GPU NodeFeatureRule matching PCI

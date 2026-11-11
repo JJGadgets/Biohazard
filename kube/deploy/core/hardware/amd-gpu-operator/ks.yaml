@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   path: ./kube/deploy/core/hardware/amd-gpu-operator/app
-  targetNamespace: kube-amd-gpu
+  targetNamespace: amd-gpu-operator
   dependsOn:
     - name: 1-core-hardware-node-feature-discovery-app
       namespace: flux-system
@@ -14,4 +14,4 @@ spec:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: amd-gpu-operator
-      namespace: kube-amd-gpu
+      namespace: amd-gpu-operator
