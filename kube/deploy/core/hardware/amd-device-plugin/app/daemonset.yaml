@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: amd-r9700-device-plugin
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: amd-r9700-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: amd-r9700-device-plugin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: amd-r9700-device-plugin
+    spec:
+      # Avoid accidentally presenting an unrelated AMD GPU on another host.
+      nodeSelector:
+        kubernetes.io/hostname: sinon
+        kubernetes.io/arch: amd64
+      automountServiceAccountToken: false
+      priorityClassName: system-node-critical
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: amd-r9700-device-plugin
+          image: docker.io/squat/generic-device-plugin:f7c3291@sha256:5f6c12bcd803ac7c60a0a63b8948bd78c6f42da20ad302573518c8b71d4a02f3
+          args:
+            - --device
+            # The named render alias MUST be verified to point to the R9700
+            # before this DaemonSet is started (see README.md).
+            - |
+              name: amd-r9700-shared
+              groups:
+                - count: 2
+                  paths:
+                    - path: /dev/kfd
+                    - path: /dev/dri/r9700-render
+          resources:
+            requests:
+              cpu: 25m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            privileged: false
+            runAsUser: 0
+            runAsGroup: 0
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: kubelet-device-plugins
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: kfd
+              mountPath: /dev/kfd
+              readOnly: true
+            - name: amd-render
+              mountPath: /dev/dri/r9700-render
+              readOnly: true
+      volumes:
+        - name: kubelet-device-plugins
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+            type: Directory
+        - name: kfd
+          hostPath:
+            path: /dev/kfd
+            type: CharDevice
+        - name: amd-render
+          hostPath:
+            path: /dev/dri/r9700-render
+            type: CharDevice

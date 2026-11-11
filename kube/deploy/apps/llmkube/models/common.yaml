@@ -160,6 +160,12 @@ spec:
       displayName: qwen3.8-27b
       inferenceServiceRef:
         name: qwen3.8-27b
+    # The public qwen3.8-27b ID routes to the dedicated AMD Radiance backend.
+    # Backend names cannot contain dots under the ModelRouter CRD schema.
+    - name: qwen3-8-27b-radiance
+      displayName: qwen3.8-27b-radiance
+      inferenceServiceRef:
+        name: qwen3.8-27b-radiance
     - name: muse-glimmer
       displayName: muse-glimmer
       inferenceServiceRef:
@@ -217,10 +223,18 @@ spec:
         backends:
           - qwen3-6-35b-a3b-vllm
         poolActivation: Wait
-    - name: qwen3-8-27b-pool
+    - name: qwen3-8-27b-radiance
       match:
         models:
           - qwen3.8-27b
+      route:
+        backends:
+          - qwen3-8-27b-radiance
+    # Keep the pre-existing NVIDIA llama.cpp service callable by its own alias.
+    - name: qwen3-8-27b-pool
+      match:
+        models:
+          - qwen3.8-27b-llamacpp
           - qwen3.8-27b-slot-0
           - qwen3.8-27b-slot-1
           - qwen3.8-27b-slot-2
@@ -301,6 +315,7 @@ spec:
         backends:
           - qwen3-6-35b-a3b
           - qwen3-6-35b-a3b-vllm
+          - qwen3-8-27b-radiance
           - qwen3-8-27b
           - muse-glimmer
           - gemma-4-12b

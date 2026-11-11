@@ -168,3 +168,84 @@ The router remains an internal ClusterIP service; no external route or
 authentication policy is created here. Client Pods must be explicitly opted in
 with the label `ai.internal/llmkube=allow`; without that label Cilium denies
 access to the router API.
+
+## Qwen3.8-27B on Radiance / Radeon AI PRO R9700
+
+`qwen3.8-27b-radiance` is an independent LLMKube `generic` runtime on
+`sinon`; it **does not** join the `llmkube-llm` NVIDIA ModelPool. The
+ModelRouter matches the public model ID `qwen3.8-27b` to this service, while
+the former NVIDIA llama.cpp service remains accessible with the
+`qwen3.8-27b-llamacpp` alias. The router backend identifier is
+`qwen3-8-27b-radiance` because its CRD disallows dots.
+
+The pinned, operator-prefetched
+`StillDeadcode/qwen3.8-27b-mxfp4` Radiance container uses the original
+`Qwen/Qwen3.8-27B` base model with AMD Quark MXFP4 quantization, **not** a
+fine-tune. Its prepacked artifact contains a DFlash2 drafter, but speculative
+decoding is explicitly disabled. Radiance 1.17.0 uses one R9700 (`--tp 1`),
+200,000 maximum context tokens per request, 10 scheduling sequences, FP8 E4M3
+KV with per-sequence/head scales, 96 MiB GPU headroom, and a 6 GiB host prefix
+cache. These are **not** a promise that ten 200K requests can be resident at
+once; inspect Radiance's startup capacity receipt and monitor preemptions.
+The `--vision-tower-placement ram` option keeps the vision encoder weights in
+host RAM but still runs its kernels on the GPU; Radiance does not expose a
+CPU-only vision-kernel placement mode. The existing prefetched
+`qwen-chat-template` Model/volume is mounted read-only; template kwargs enable
+and preserve thinking.
+
+### AMD device-plugin prerequisites and isolation
+
+The `amd-device-plugin` Flux deployment uses the upstream
+`squat/generic-device-plugin` (image digest pinned). Unlike AMD's privileged
+DRA controller or HAMi's privileged hook-installing plugin, it has **no
+privileged mode, host networking or Linux capabilities**. The kubelet socket
+directory still requires UID 0 for registration: **the plugin itself cannot
+run as an unprivileged UID without a separately managed writable kubelet
+socket directory**. The serving Radiance process runs as the non-root
+`APP_UID_LLMKUBE`, drops all capabilities, has a read-only root FS and
+RuntimeDefault seccomp. No `IPC_LOCK` or unrestricted device hostPath is
+granted to Radiance. Containerd already has
+`device_ownership_from_security_context=true` in the Talos cluster config.
+
+**Fail-closed host prerequisite:** on `sinon`, create the stable character
+device alias `/dev/dri/r9700-render` to the **R9700's** DRM render node using
+a host-managed udev rule keyed to the verified AMD PCI device. Do not guess
+a `renderD128` index: other GPUs coexist on this host. The DaemonSet mounts
+only that alias, `/dev/kfd`, and the kubelet device-plugin socket directory.
+With no verified alias the plugin pod cannot start and no AMD device is
+advertised. This change intentionally does not modify a different Talos
+cluster's machine configuration. Verify the node and device identity before
+marking this PR ready for production.
+
+The plugin advertises two `devic.es/amd-r9700-shared` logical allocations for
+the same hardware, so another pod can request that resource without
+`privileged: true`. This **does not provide GPU memory isolation**: Radiance
+uses nearly all available VRAM, and a co-tenant can OOM when it competes for
+memory. Do not place untrusted workloads on the shared GPU. The host device
+permissions must be checked on the live node and the plugin is a host
+component rather than a rootless process.
+
+The model is pinned to `sinon` to reuse `llmkube-models` and
+`llmkube-templates`, both local node-bound claims. If the AMD card is on a
+different node, adapt node affinity **and both cache volumes** before
+deploying. The model server has no internet egress under the LLMKube Cilium
+policy; only the operator-managed prefetch Jobs fetch Hugging Face files.
+
+### Verification before rollout
+
+1. Confirm `/dev/kfd`, `/dev/dri/r9700-render`, R9700 VRAM (32 GiB),
+   `sinon` RAM (32 GiB), Talos ROCm-compatible `amdgpu` driver and
+   `device_ownership_from_security_context=true`.
+2. Verify `kubectl describe node sinon` advertises
+   `devic.es/amd-r9700-shared: 2` and that the GPU-only, non-root
+   diagnostics pod can open *only* the injected character devices.
+3. Confirm the Radiance image's `io_uring`, NUMA and pinned-host-memory
+   syscalls work under `RuntimeDefault`; upstream Compose uses
+   `seccomp=unconfined`. If blocked, provide a host-approved narrow
+   seccomp profile instead of silently weakening all syscall filtering.
+4. Check the Model prefetch, read-only chat-template mount, `/health`,
+   `/v1/models`, Prometheus metrics, multimodal image input, reasoning
+   preservation, and router `qwen3.8-27b` dispatch.
+5. Stress-test ten parallel sessions at realistic context lengths and check
+   GPU OOM, memory-cgroup use (< 26 GiB), GPU headroom and prefix-cache
+   admission. Do not infer 10 x 200K residency from the CLI limits.
