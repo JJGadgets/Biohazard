@@ -59,19 +59,40 @@ spec:
     draDriver:
       deviceClass:
         create: true
+  postRenderStrategy: combined
   postRenderers:
     - kustomize:
         patches:
+          # AMD GPU Operator controller-manager pods
           - target:
               group: apps
               version: v1
               kind: Deployment
-            patch: &patch |-
-              - op: add
-                path: /spec/template/metadata/labels/egress.home.arpa~apiserver
-                value: "true"
+              name: ".*-gpu-operator-charts-controller-manager$"
+            patch: |-
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: ignored
+              spec:
+                template:
+                  metadata:
+                    labels:
+                      egress.home.arpa/apiserver: "allow"
+
+          # All Job pods rendered by this Helm chart
           - target:
               group: batch
               version: v1
               kind: Job
-            patch: *patch
+            patch: |-
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: ignored
+              spec:
+                template:
+                  metadata:
+                    labels:
+                      egress.home.arpa/apiserver: "allow"
+
