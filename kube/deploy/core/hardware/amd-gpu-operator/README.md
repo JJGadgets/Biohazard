@@ -11,6 +11,11 @@ AMDGPU kernel driver and disables KMM/driver installation, traditional
 AMD device plugin, node labeller, hardware partitioning, test runner
 and auto-remediation.
 
+The named ResourceClaim selects only an unpartitioned AMD GPU with PCI
+ID 0x7551, to avoid accidentally allocating a different Radeon/Instinct
+GPU as the cluster evolves. Confirm the DRA ResourceSlice advertises
+that exact deviceID before allowing reconciliation.
+
 LLMKube uses the fixed namespaced
 `llmkube/qwen3.8-27b-radiance` ResourceClaim to allocate one GPU.
 This claim may be used by additional trusted pods **in llmkube**.
