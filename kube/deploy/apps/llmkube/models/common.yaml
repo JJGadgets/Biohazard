@@ -104,7 +104,39 @@ spec:
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
 metadata:
-  name: llmkube-llm
+  name: sinon-tesla-t4
+  namespace: llmkube
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  gpu: 1
+  swapPolicy: reclaim
+  default: qwen3.6-35b-a3b
+  swapBudget: 900s
+  reclaimAfter: 15m
+  members:
+    - inferenceServiceRef:
+        name: qwen3.6-35b-a3b
+    - inferenceServiceRef:
+        name: qwen3.6-35b-a3b-vllm
+    - inferenceServiceRef:
+        name: qwen3.6-35b-a3b-strata
+    - inferenceServiceRef:
+        name: qwen3.8-27b
+    - inferenceServiceRef:
+        name: muse-glimmer
+    - inferenceServiceRef:
+        name: qwen3-omni-thinking
+    - inferenceServiceRef:
+        name: gemma-4-12b
+    - inferenceServiceRef:
+        name: lightonocr-3-4b
+---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelPool
+metadata:
+  name: sinon-r9700
   namespace: llmkube
 spec:
   nodeSelector:
@@ -116,21 +148,7 @@ spec:
   reclaimAfter: 15m
   members:
     - inferenceServiceRef:
-        name: qwen3.6-35b-a3b
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-vllm
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-strata
-    - inferenceServiceRef:
         name: qwen3.8-27b-radiance
-    - inferenceServiceRef:
-        name: muse-glimmer
-    - inferenceServiceRef:
-        name: qwen3-omni-thinking
-    - inferenceServiceRef:
-        name: gemma-4-12b
-    - inferenceServiceRef:
-        name: lightonocr-3-4b
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelrouter_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -228,7 +246,6 @@ spec:
       route:
         backends:
           - qwen3-8-27b-radiance
-    # Keep the pre-existing NVIDIA llama.cpp service callable by its own alias.
     - name: qwen3-8-27b-pool
       match:
         models:
