@@ -168,3 +168,81 @@ The router remains an internal ClusterIP service; no external route or
 authentication policy is created here. Client Pods must be explicitly opted in
 with the label `ai.internal/llmkube=allow`; without that label Cilium denies
 access to the router API.
+
+## Qwen3.8-27B on Radiance / Radeon AI PRO R9700
+
+`qwen3.8-27b-radiance` is an independent LLMKube `generic` runtime on
+`sinon`; it **does not** join the `llmkube-llm` NVIDIA ModelPool. The
+ModelRouter matches the public model ID `qwen3.8-27b` to this service, while
+the former NVIDIA llama.cpp service remains accessible with the
+`qwen3.8-27b-llamacpp` alias. The router backend identifier is
+`qwen3-8-27b-radiance` because its CRD disallows dots.
+
+The pinned, operator-prefetched
+`StillDeadcode/qwen3.8-27b-mxfp4` Radiance container uses the original
+`Qwen/Qwen3.8-27B` base model with AMD Quark MXFP4 quantization, **not** a
+fine-tune. Its prepacked artifact contains a DFlash2 drafter, but speculative
+decoding is explicitly disabled. Radiance 1.17.0 uses one R9700 (`--tp 1`),
+200,000 maximum context tokens per request, 10 scheduling sequences, FP8 E4M3
+KV with per-sequence/head scales, 96 MiB GPU headroom, and a 6 GiB host prefix
+cache. These are **not** a promise that ten 200K requests can be resident at
+once; inspect Radiance's startup capacity receipt and monitor preemptions.
+The `--vision-tower-placement ram` option keeps the vision encoder weights in
+host RAM but still runs its kernels on the GPU; Radiance does not expose a
+CPU-only vision-kernel placement mode. The existing prefetched
+`qwen-chat-template` Model/volume is mounted read-only; template kwargs enable
+and preserve thinking.
+
+### AMD GPU Operator and DRA
+
+The `amd-gpu-operator` Flux component replaces `squat/generic-device-plugin`.
+It deploys AMD GPU Operator **v1.5.1** and the AMD DRA driver **v1.0.1**
+(not `amd.com/gpu` device-plugin scheduling), with pinned SHA-256 container
+digests and the AMD metrics exporter. The operator's NodeFeatureRule labels
+R9700/R9700S (PCI `1002:7551`); `sinon` is the only managed GPU node.
+Talos remains in control of AMDGPU drivers: KMM, operator-managed driver
+installation/upgrades, auto-remediation, and hardware partition management
+are disabled. Existing NFD is reused. No host DRM render alias is needed.
+
+Only the dedicated `kube-amd-gpu` namespace permits privileged operator
+operands. **Radiance itself remains non-root**, with dropped Linux capabilities,
+read-only root filesystem, no privilege escalation and RuntimeDefault seccomp.
+Verify ROCm 7.13+, amdgpu 6.19+, CDI-enabled containerd and the existing
+`device_ownership_from_security_context=true` setting.
+
+The `llmkube/qwen3.8-27b-radiance` fixed DRA `ResourceClaim` is attached
+to Radiance via `Model.spec.hardware.gpu.resourceClaims`; multiple trusted
+pods **in llmkube** may reference it to access the same R9700. The GPU
+is **not** partitioned or memory/compute-isolated. Because Kubernetes
+ResourceClaims are namespace-scoped, other namespaces **cannot directly
+reference this claim**. AMD DRA v1.0.1 does not publish unpartitioned R9700
+devices with `allowMultipleAllocations`, so separate claims in different
+namespaces cannot allocate this single full GPU simultaneously. Thus direct
+cross-namespace device-sharing remains **unsupported** by this operator
+configuration; accessing the shared Radiance service through LLMKube's router
+from other namespaces is supported with the existing Cilium policies.
+AMD's R9700 release support explicitly lists device-plugin scheduling
+and metrics, **not hardware-validated DRA**.
+
+The model and template PVCs remain node-local to `sinon`. The inference
+server retains 200K context, 10 slots, FP8 KV, 6GiB host prefix cache,
+26Gi memory request/limit, and a single dedicated R9700. Do not interpret
+10 slots as ten fully resident 200K contexts or schedule competing
+memory-intensive workloads.
+
+### Validation before production
+
+1. Verify `sinon` has PCI `1002:7551`, ROCm 7.13+, amdgpu 6.19+, the
+   device files, 32 GiB VRAM and 32 GiB host RAM.
+2. Verify `gpu.amd.com` DeviceClass and `ResourceSlices` are published
+   for the R9700; confirm the `llmkube` ResourceClaim gets allocated
+   and `amd.com/gpu` device plugin is not deployed.
+3. Test two trusted **llmkube-namespace** Pods using the same named
+   claim, and non-root ROCm device access. Do not claim this works across
+   namespaces without a compatible future driver.
+4. Test RuntimeDefault seccomp with Radiance's io_uring/NUMA calls,
+   probes, chat template and preserve_thinking, vision, ModelRouter
+   qwen3.8-27b dispatch, GPU memory pressure and ten-way parallelism.
+5. Verify AMDGPU is Talos-managed, privileged access is confined to
+   kube-amd-gpu, and expand the abbreviated model revision `60bd413`
+   to an independently verified complete SHA prior to production rollout.

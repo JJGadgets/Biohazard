@@ -39,3 +39,5 @@ spec:
   dependsOn:
     - name: llmkube-app
       namespace: *ns
+    - name: 1-core-hardware-amd-gpu-operator-app
+      namespace: flux-system

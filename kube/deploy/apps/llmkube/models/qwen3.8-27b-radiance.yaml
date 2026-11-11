@@ -1,0 +1,185 @@
+---
+# One named DRA claim supports multiple trusted Pods within llmkube, not
+# cross-namespace claims (Kubernetes ResourceClaims are namespace-scoped).
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim
+metadata:
+  name: qwen3.8-27b-radiance
+  namespace: llmkube
+spec:
+  devices:
+    requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.amd.com
+          allocationMode: ExactCount
+          count: 1
+          selectors:
+            - cel:
+                # Fail closed if a different AMD GPU is added to the cluster.
+                # R9700, R9700S and R9600D share PCI device ID 0x7551.
+                expression: >-
+                  device.attributes["gpu.amd.com"].type == "amdgpu" &&
+                  device.attributes["gpu.amd.com"].deviceID == "0x7551"
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3.8-27b-radiance
+  namespace: llmkube
+spec:
+  # This is AMD Quark MXFP4 quantization of the original base model, not a finetune.
+  # The .rad contains an optional DFlash2 drafter; runtime flags disable it.
+  source: hf://StillDeadcode/qwen3.8-27b-mxfp4@60bd413
+  files:
+    - qwen3.8-27b-mxfp4.rad
+  format: custom
+  quantization: MXFP4
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: rocm
+    gpu:
+      enabled: true
+      vendor: amd
+      count: 1
+      # DRA owns placement; the existing claim can be shared within llmkube.
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: qwen3.8-27b-radiance
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3.8-27b-radiance
+  namespace: llmkube
+spec:
+  podLabels:
+    prom.home.arpa/kps: allow
+  modelRef: qwen3.8-27b-radiance
+  runtime: generic
+  # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
+  image: docker.io/stilldeadcode/radiance:1.17.0@sha256:6fb0e99bfb862e17cc15cb7b2f116c7dbdc831df59f82456a0691122e6cf5330
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  endpoint:
+    port: 8000
+    type: ClusterIP
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  stageModel: true
+  resources:
+    gpu: 1
+    cpu: "2"
+    memory: 26Gi
+    memoryLimit: 26Gi
+  parallelSlots: 10
+  startupTimeout: 45m
+  # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
+  args:
+    - --model
+    - "$(LLMKUBE_MODEL_PATH)"
+    - --served-model-name
+    - qwen3.8-27b-radiance
+    - --host
+    - 0.0.0.0
+    - --port
+    - "8000"
+    - --tp
+    - "1"
+    - --max-model-len
+    - "200000"
+    - --max-num-seqs
+    - "10"
+    - --kv-cache-dtype
+    - fp8
+    - --num-speculative-tokens
+    - "0"
+    # Leave only the recommended kernel/driver headroom; reserve the rest for
+    # model weights and paged FP8 KV in Radiance's automatic placement planner.
+    - --gpu-headroom-mib
+    - "96"
+    # Radiance uses MiB for the pinned CPU-side conversation KV cache.
+    - --prefix-cache-mib
+    - "6144"
+    # CPU-resident multimodal tower, with GPU execution of vision kernels.
+    - --vision-tower-placement
+    - ram
+    - --override-chat-template
+    - /chat-template/3dd0cee02aac0569/chat_template.jinja
+    - --chat-template-kwargs
+    - '{"enable_thinking":true,"preserve_thinking":true}'
+    - --no-cors
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: HOME
+      value: /tmp
+    - name: XDG_CACHE_HOME
+      value: /tmp
+    - name: HF_HUB_OFFLINE
+      value: "1"
+    - name: TMPDIR
+      value: /tmp
+  extraVolumes:
+    - name: chat-template
+      persistentVolumeClaim:
+        claimName: llmkube-templates
+        readOnly: true
+    - name: tmp
+      emptyDir:
+        sizeLimit: 1Gi
+  extraVolumeMounts:
+    - name: chat-template
+      mountPath: /chat-template
+      readOnly: true
+    - name: tmp
+      mountPath: /tmp
+  probeOverrides:
+    startup:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 270
+    readiness:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 30
+      timeoutSeconds: 5
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
