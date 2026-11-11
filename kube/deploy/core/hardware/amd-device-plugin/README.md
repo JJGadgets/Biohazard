@@ -35,3 +35,7 @@ The Radiance service is intentionally pinned to the existing `sinon` local
 model/template PVCs. Verify the R9700 and both claims are actually on that
 node. If not, migrate all three together rather than swapping a node label
 on only one manifest.
+
+The plugin's CDI/device-plugin allocation maps the verified R9700 character
+device into the pod as `/dev/dri/renderD128` for normal ROCm enumeration.
+That in-container name must not be mistaken for a host GPU index.

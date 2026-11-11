@@ -249,3 +249,11 @@ policy; only the operator-managed prefetch Jobs fetch Hugging Face files.
 5. Stress-test ten parallel sessions at realistic context lengths and check
    GPU OOM, memory-cgroup use (< 26 GiB), GPU headroom and prefix-cache
    admission. Do not infer 10 x 200K residency from the CLI limits.
+
+The Hugging Face model revision is pinned to verified abbreviated commit
+`60bd413` (the repository file browser displays this commit). Before
+reconciliation, resolve and record its complete immutable commit SHA to avoid
+ambiguity if the prefix is ever reused. Do **not** substitute an inferred SHA.
+The GPU device-plugin maps the verified host render alias to the standard
+`/dev/dri/renderD128` path inside the container; this is a *container*
+path, not a guess about the host render index.
