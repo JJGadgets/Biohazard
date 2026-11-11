@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: rocm-gpu-operator
+  namespace: flux-system
+spec:
+  interval: 1h
+  timeout: 3m0s
+  url: https://rocm.github.io/gpu-operator

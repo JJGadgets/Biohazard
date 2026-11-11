@@ -193,67 +193,56 @@ CPU-only vision-kernel placement mode. The existing prefetched
 `qwen-chat-template` Model/volume is mounted read-only; template kwargs enable
 and preserve thinking.
 
-### AMD device-plugin prerequisites and isolation
+### AMD GPU Operator and DRA
 
-The `amd-device-plugin` Flux deployment uses the upstream
-`squat/generic-device-plugin` (image digest pinned). Unlike AMD's privileged
-DRA controller or HAMi's privileged hook-installing plugin, it has **no
-privileged mode, host networking or Linux capabilities**. The kubelet socket
-directory still requires UID 0 for registration: **the plugin itself cannot
-run as an unprivileged UID without a separately managed writable kubelet
-socket directory**. The serving Radiance process runs as the non-root
-`APP_UID_LLMKUBE`, drops all capabilities, has a read-only root FS and
-RuntimeDefault seccomp. No `IPC_LOCK` or unrestricted device hostPath is
-granted to Radiance. Containerd already has
-`device_ownership_from_security_context=true` in the Talos cluster config.
+The `amd-gpu-operator` Flux component replaces `squat/generic-device-plugin`.
+It deploys AMD GPU Operator **v1.5.1** and the AMD DRA driver **v1.0.1**
+(not `amd.com/gpu` device-plugin scheduling), with pinned SHA-256 container
+digests and the AMD metrics exporter. The operator's NodeFeatureRule labels
+R9700/R9700S (PCI `1002:7551`); `sinon` is the only managed GPU node.
+Talos remains in control of AMDGPU drivers: KMM, operator-managed driver
+installation/upgrades, auto-remediation, and hardware partition management
+are disabled. Existing NFD is reused. No host DRM render alias is needed.
 
-**Fail-closed host prerequisite:** on `sinon`, create the stable character
-device alias `/dev/dri/r9700-render` to the **R9700's** DRM render node using
-a host-managed udev rule keyed to the verified AMD PCI device. Do not guess
-a `renderD128` index: other GPUs coexist on this host. The DaemonSet mounts
-only that alias, `/dev/kfd`, and the kubelet device-plugin socket directory.
-With no verified alias the plugin pod cannot start and no AMD device is
-advertised. This change intentionally does not modify a different Talos
-cluster's machine configuration. Verify the node and device identity before
-marking this PR ready for production.
+Only the dedicated `kube-amd-gpu` namespace permits privileged operator
+operands. **Radiance itself remains non-root**, with dropped Linux capabilities,
+read-only root filesystem, no privilege escalation and RuntimeDefault seccomp.
+Verify ROCm 7.13+, amdgpu 6.19+, CDI-enabled containerd and the existing
+`device_ownership_from_security_context=true` setting.
 
-The plugin advertises two `devic.es/amd-r9700-shared` logical allocations for
-the same hardware, so another pod can request that resource without
-`privileged: true`. This **does not provide GPU memory isolation**: Radiance
-uses nearly all available VRAM, and a co-tenant can OOM when it competes for
-memory. Do not place untrusted workloads on the shared GPU. The host device
-permissions must be checked on the live node and the plugin is a host
-component rather than a rootless process.
+The `llmkube/qwen3.8-27b-radiance` fixed DRA `ResourceClaim` is attached
+to Radiance via `Model.spec.hardware.gpu.resourceClaims`; multiple trusted
+pods **in llmkube** may reference it to access the same R9700. The GPU
+is **not** partitioned or memory/compute-isolated. Because Kubernetes
+ResourceClaims are namespace-scoped, other namespaces **cannot directly
+reference this claim**. AMD DRA v1.0.1 does not publish unpartitioned R9700
+devices with `allowMultipleAllocations`, so separate claims in different
+namespaces cannot allocate this single full GPU simultaneously. Thus direct
+cross-namespace device-sharing remains **unsupported** by this operator
+configuration; accessing the shared Radiance service through LLMKube's router
+from other namespaces is supported with the existing Cilium policies.
+AMD's R9700 release support explicitly lists device-plugin scheduling
+and metrics, **not hardware-validated DRA**.
 
-The model is pinned to `sinon` to reuse `llmkube-models` and
-`llmkube-templates`, both local node-bound claims. If the AMD card is on a
-different node, adapt node affinity **and both cache volumes** before
-deploying. The model server has no internet egress under the LLMKube Cilium
-policy; only the operator-managed prefetch Jobs fetch Hugging Face files.
+The model and template PVCs remain node-local to `sinon`. The inference
+server retains 200K context, 10 slots, FP8 KV, 6GiB host prefix cache,
+26Gi memory request/limit, and a single dedicated R9700. Do not interpret
+10 slots as ten fully resident 200K contexts or schedule competing
+memory-intensive workloads.
 
-### Verification before rollout
+### Validation before production
 
-1. Confirm `/dev/kfd`, `/dev/dri/r9700-render`, R9700 VRAM (32 GiB),
-   `sinon` RAM (32 GiB), Talos ROCm-compatible `amdgpu` driver and
-   `device_ownership_from_security_context=true`.
-2. Verify `kubectl describe node sinon` advertises
-   `devic.es/amd-r9700-shared: 2` and that the GPU-only, non-root
-   diagnostics pod can open *only* the injected character devices.
-3. Confirm the Radiance image's `io_uring`, NUMA and pinned-host-memory
-   syscalls work under `RuntimeDefault`; upstream Compose uses
-   `seccomp=unconfined`. If blocked, provide a host-approved narrow
-   seccomp profile instead of silently weakening all syscall filtering.
-4. Check the Model prefetch, read-only chat-template mount, `/health`,
-   `/v1/models`, Prometheus metrics, multimodal image input, reasoning
-   preservation, and router `qwen3.8-27b` dispatch.
-5. Stress-test ten parallel sessions at realistic context lengths and check
-   GPU OOM, memory-cgroup use (< 26 GiB), GPU headroom and prefix-cache
-   admission. Do not infer 10 x 200K residency from the CLI limits.
-
-The Hugging Face model revision is pinned to verified abbreviated commit
-`60bd413` (the repository file browser displays this commit). Before
-reconciliation, resolve and record its complete immutable commit SHA to avoid
-ambiguity if the prefix is ever reused. Do **not** substitute an inferred SHA.
-The GPU device-plugin maps the verified host render alias to the standard
-`/dev/dri/renderD128` path inside the container; this is a *container*
-path, not a guess about the host render index.
+1. Verify `sinon` has PCI `1002:7551`, ROCm 7.13+, amdgpu 6.19+, the
+   device files, 32 GiB VRAM and 32 GiB host RAM.
+2. Verify `gpu.amd.com` DeviceClass and `ResourceSlices` are published
+   for the R9700; confirm the `llmkube` ResourceClaim gets allocated
+   and `amd.com/gpu` device plugin is not deployed.
+3. Test two trusted **llmkube-namespace** Pods using the same named
+   claim, and non-root ROCm device access. Do not claim this works across
+   namespaces without a compatible future driver.
+4. Test RuntimeDefault seccomp with Radiance's io_uring/NUMA calls,
+   probes, chat template and preserve_thinking, vision, ModelRouter
+   qwen3.8-27b dispatch, GPU memory pressure and ten-way parallelism.
+5. Verify AMDGPU is Talos-managed, privileged access is confined to
+   kube-amd-gpu, and expand the abbreviated model revision `60bd413`
+   to an independently verified complete SHA prior to production rollout.

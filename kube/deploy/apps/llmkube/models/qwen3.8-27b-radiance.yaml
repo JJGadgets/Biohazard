@@ -1,4 +1,23 @@
 ---
+# One named DRA claim supports multiple trusted Pods within llmkube, not
+# cross-namespace claims (Kubernetes ResourceClaims are namespace-scoped).
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim
+metadata:
+  name: qwen3.8-27b-radiance
+  namespace: llmkube
+spec:
+  devices:
+    requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.amd.com
+          allocationMode: ExactCount
+          count: 1
+          selectors:
+            - cel:
+                expression: 'device.attributes["gpu.amd.com"].type == "amdgpu"'
+---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
@@ -24,8 +43,10 @@ spec:
       enabled: true
       vendor: amd
       count: 1
-      # Two logical resources backed by one R9700; no other GPU is injected.
-      resourceName: devic.es/amd-r9700-shared
+      # DRA owns placement; the existing claim can be shared within llmkube.
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: qwen3.8-27b-radiance
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
