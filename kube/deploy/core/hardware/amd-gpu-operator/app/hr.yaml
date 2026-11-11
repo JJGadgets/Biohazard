@@ -63,12 +63,11 @@ spec:
   postRenderers:
     - kustomize:
         patches:
-          # AMD GPU Operator controller-manager pods
+          # All Deployment pods
           - target:
               group: apps
               version: v1
               kind: Deployment
-              name: ".*-gpu-operator-charts-controller-manager$"
             patch: |-
               apiVersion: apps/v1
               kind: Deployment
@@ -79,8 +78,22 @@ spec:
                   metadata:
                     labels:
                       egress.home.arpa/apiserver: "allow"
-
-          # All Job pods rendered by this Helm chart
+          # All DaemonSet pods
+          - target:
+              group: apps
+              version: v1
+              kind: DaemonSet
+            patch: |-
+              apiVersion: apps/v1
+              kind: DaemonSet
+              metadata:
+                name: ignored
+              spec:
+                template:
+                  metadata:
+                    labels:
+                      egress.home.arpa/apiserver: "allow"
+          # All Job pods, including Helm hooks
           - target:
               group: batch
               version: v1
@@ -95,4 +108,3 @@ spec:
                   metadata:
                     labels:
                       egress.home.arpa/apiserver: "allow"
-
