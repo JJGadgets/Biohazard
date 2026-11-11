@@ -6,5 +6,5 @@ metadata:
   labels:
     # AMD host-facing DRA and metrics operands require privileged access.
     pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: restricted
-    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
