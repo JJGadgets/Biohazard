@@ -17,6 +17,10 @@ spec:
         name: rocm-gpu-operator
         namespace: flux-system
   values:
+    crds:
+      defaultCR:
+        install: true
+        upgrade: true
     node-feature-discovery:
       enabled: false
     installdefaultNFDRule: true
