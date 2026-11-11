@@ -109,9 +109,9 @@ metadata:
 spec:
   nodeSelector:
     kubernetes.io/hostname: sinon
-  gpu: 2
+  gpu: 1
   swapPolicy: reclaim
-  default: qwen3.6-35b-a3b
+  default: qwen3.8-27b-radiance
   swapBudget: 900s
   reclaimAfter: 15m
   members:
@@ -122,7 +122,7 @@ spec:
     - inferenceServiceRef:
         name: qwen3.6-35b-a3b-strata
     - inferenceServiceRef:
-        name: qwen3.8-27b
+        name: qwen3.8-27b-radiance
     - inferenceServiceRef:
         name: muse-glimmer
     - inferenceServiceRef:
@@ -160,8 +160,6 @@ spec:
       displayName: qwen3.8-27b
       inferenceServiceRef:
         name: qwen3.8-27b
-    # The public qwen3.8-27b ID routes to the dedicated AMD Radiance backend.
-    # Backend names cannot contain dots under the ModelRouter CRD schema.
     - name: qwen3-8-27b-radiance
       displayName: qwen3.8-27b-radiance
       inferenceServiceRef:
