@@ -392,6 +392,9 @@ spec:
         llama-server-jory:
           url: https://raw.githubusercontent.com/joryirving/home-ops/refs/heads/main/kubernetes/apps/base/llm/litellm/dashboard/llama-server.json
           datasource: *DSP
+        radiance:
+          url: https://codeberg.org/StillDeadcode/radiance/raw/tag/v1.17.0/deploy/grafana/radiance.json
+          datasource: *DSP
     sidecar:
       dashboards:
         enabled: true
