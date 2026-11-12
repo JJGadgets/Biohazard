@@ -149,6 +149,10 @@ spec:
   members:
     - inferenceServiceRef:
         name: qwen3.8-27b-radiance
+    - inferenceServiceRef:
+        name: qwen3.8-27b-pro-radiance
+    - inferenceServiceRef:
+        name: qwen3.8-27b-context-radiance
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelrouter_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -182,6 +186,14 @@ spec:
       displayName: qwen3.8-27b-radiance
       inferenceServiceRef:
         name: qwen3.8-27b-radiance
+    - name: qwen3-8-27b-pro-radiance
+      displayName: qwen3.8-27b-pro-radiance
+      inferenceServiceRef:
+        name: qwen3.8-27b-pro-radiance
+    - name: qwen3-8-27b-context-radiance
+      displayName: qwen3.8-27b-context-radiance
+      inferenceServiceRef:
+        name: qwen3.8-27b-context-radiance
     - name: muse-glimmer
       displayName: muse-glimmer
       inferenceServiceRef:
@@ -246,10 +258,29 @@ spec:
       route:
         backends:
           - qwen3-8-27b-radiance
-    - name: qwen3-8-27b-pool
+          - qwen3-8-27b-pro-radiance
+          - qwen3-8-27b-context-radiance
+        poolActivation: IfIdle
+    - name: qwen3-8-27b-pro-radiance
       match:
         models:
-          - qwen3.8-27b-llamacpp
+          - qwen3.8-27b-pro
+      route:
+        backends:
+          - qwen3-8-27b-pro-radiance
+        poolActivation: Wait
+    - name: qwen3-8-27b-context-radiance
+      match:
+        models:
+          - qwen3.8-27b-context
+      route:
+        backends:
+          - qwen3-8-27b-context-radiance
+        poolActivation: Wait
+    - name: qwen3-8-27b-llama-cpp
+      match:
+        models:
+          - qwen3.8-27b-llama.cpp
           - qwen3.8-27b-slot-0
           - qwen3.8-27b-slot-1
           - qwen3.8-27b-slot-2

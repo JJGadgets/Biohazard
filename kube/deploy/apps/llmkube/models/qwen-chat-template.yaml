@@ -21,3 +21,23 @@ spec:
       effect: NoSchedule
   modelCache:
     claimName: llmkube-templates
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen-sharp-chat-template
+  namespace: llmkube
+spec:
+  source: hf://peculiar-ragdoll/Qwen-Sharp-Chat-Templates@6a78b888557f8c9987f51bca98d02d8f69682044 # ffba7aa4ee3093e1
+  files:
+    - chat_template.jinja
+  format: custom
+  prefetch: true
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  modelCache:
+    claimName: llmkube-templates
