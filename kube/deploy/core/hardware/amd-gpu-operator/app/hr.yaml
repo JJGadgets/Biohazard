@@ -49,7 +49,7 @@ spec:
               effect: NoSchedule
         draDriver:
           enable: true
-          image: ghcr.io/jjgadgets/amd-gpu-dra-driver:1.0.1@sha256:36eb93ad7a1db3e908bda914f25577c716e0665e58874431764c94aa9198fe2b # PR #117 not merged in a release yet
+          image: ghcr.io/dsluo/k8s-gpu-dra-driver:v1.0.1-pr117@sha256:69ecc3641fab308ece56bdf129b25c5c46af3f9b57ca4e07fb2c9a565396c847 # PR #117 not merged in a release yet
           tolerations:
             - key: llm.internal
               operator: Exists
