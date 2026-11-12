@@ -2,7 +2,7 @@
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
-  name: qwen3.6-35b-a3b
+  name: qwen3.6-35b-a3b-gguf
   namespace: llmkube
 spec:
   # Pin the Hugging Face revision and pre-stage the weights/projector on sinon.
@@ -34,12 +34,12 @@ spec:
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
 metadata:
-  name: qwen3.6-35b-a3b
+  name: qwen3.6-35b-a3b-llama.cpp
   namespace: llmkube
 spec:
   podLabels:
     prom.home.arpa/kps: allow
-  modelRef: qwen3.6-35b-a3b
+  modelRef: qwen3.6-35b-a3b-gguf
   runtime: llamacpp
   image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:17934f68b6efc68671800735f25e209b489f47b610cfbb5c0a5c30965b54023c
   nodeSelector:
@@ -58,7 +58,7 @@ spec:
     claimName: llmkube-models
     prefetch: true
   resources:
-    gpu: 2
+    gpu: 1
     cpu: "10m"
     memory: 26Gi
     memoryLimit: 26Gi
@@ -123,8 +123,10 @@ spec:
       value: '{"enable_thinking":true,"preserve_thinking":true}'
     - name: LLAMA_ARG_DEVICE
       value: CUDA0
-    - name: MTMD_BACKEND_DEVICE
-      value: CUDA1
+    - name: LLAMA_ARG_MMPROJ_OFFLOAD
+      value: disabled
+    # - name: MTMD_BACKEND_DEVICE
+    #   value: CUDA1
     - name: CUDA_DEVICE_ORDER
       value: PCI_BUS_ID
     - name: LLAMA_ARG_CONTEXT_SHIFT
