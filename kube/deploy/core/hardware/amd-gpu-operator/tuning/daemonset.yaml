@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: r9700-tuning
+  namespace: amd-gpu-operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: r9700-tuning
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: r9700-tuning
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: sinon
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      initContainers:
+        - name: tune
+          image: docker.io/library/busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+          securityContext:
+            privileged: true
+            readOnlyRootFilesystem: true
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              gpu=/gpu
+              [ "$(cat "$gpu/vendor")" = 0x1002 ] && [ "$(cat "$gpu/device")" = 0x7551 ] || { echo 'Unexpected PCI device' >&2; exit 1; }
+              od=$gpu/pp_od_clk_voltage
+              fan=$gpu/gpu_od/fan_ctrl/fan_target_temperature
+              mode=$gpu/power_dpm_force_performance_level
+              for file in "$od" "$fan" "$mode"; do
+                [ -w "$file" ] || { echo "Missing or unwritable control: $file; check amdgpu overdrive support" >&2; exit 1; }
+              done
+              cap=
+              for hwmon in "$gpu"/hwmon/hwmon*; do
+                if [ -r "$hwmon/name" ] && [ "$(cat "$hwmon/name")" = amdgpu ] && [ -w "$hwmon/power1_cap" ]; then
+                  [ -z "$cap" ] || { echo 'Multiple amdgpu power controls found' >&2; exit 1; }
+                  cap=$hwmon/power1_cap
+                fi
+              done
+              [ -n "$cap" ] || { echo 'Missing amdgpu power control' >&2; exit 1; }
+              min=$(cat "$(dirname "$cap")/power1_cap_min")
+              max=$(cat "$(dirname "$cap")/power1_cap_max")
+              [ "$min" -le 250000000 ] && [ "$max" -ge 250000000 ] || { echo "250 W outside power cap range: $min..$max microwatts" >&2; exit 1; }
+              echo manual > "$mode"
+              echo 'vo -75' > "$od"
+              echo c > "$od"
+              echo 70 > "$fan"
+              echo c > "$fan"
+              echo 250000000 > "$cap"
+              [ "$(cat "$cap")" = 250000000 ] || { echo 'Power cap readback mismatch' >&2; exit 1; }
+              awk '/^OD_VDDGFX_OFFSET:$/ { if (getline && $0 == "-75mV") found=1 } END { exit !found }' "$od" || { echo 'Voltage offset readback mismatch' >&2; exit 1; }
+              awk '/^FAN_TARGET_TEMPERATURE:$/ { if (getline && $0 == "70") found=1 } END { exit !found }' "$fan" || { echo 'Fan target readback mismatch' >&2; exit 1; }
+              echo 'Applied R9700 settings; voltage and fan control readback:'
+              cat "$od" "$fan" "$cap"
+          volumeMounts:
+            - name: gpu-sysfs
+              mountPath: /gpu
+      containers:
+        - name: pause
+          image: docker.io/library/busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+          command: ["/bin/sleep", "infinity"]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+      volumes:
+        - name: gpu-sysfs
+          hostPath:
+            path: /sys/bus/pci/devices/0000:03:00.0
+            type: Directory
