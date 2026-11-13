@@ -23,7 +23,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: toolhive-mcp
-  namespace: &ns toolhive
+  namespace: &ns mcp
   labels: &l
     app.kubernetes.io/name: "toolhive"
 spec:
@@ -34,6 +34,8 @@ spec:
   dependsOn:
     - name: crds
       namespace: flux-system
+    - name: toolhive-app
+      namespace: toolhive
     # - name: toolhive-db
     # - name: toolhive-pvc
 # ---

@@ -3,9 +3,11 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServerEntry
 metadata:
-  name: grafana
+  name: trilium
+  namespace: mcp
 spec:
   remoteUrl: http://trilium.trilium.svc.cluster.local/mcp
   transport: streamable-http
+  allowPrivateEndpoint: true
   groupRef:
     name: mcp

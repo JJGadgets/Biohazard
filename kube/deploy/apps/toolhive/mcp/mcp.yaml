@@ -42,6 +42,11 @@ spec:
   outgoingAuth:
     source: discovered
   podTemplateSpec:
+    metadata:
+      labels:
+        ingress.home.arpa/envoy-internal: allow
+        ai.internal/llmkube: allow
+        egress.home.arpa/apiserver: allow
     spec:
       containers:
         - name: vmcp
@@ -64,3 +69,6 @@ spec:
   #     key: password
   #     name: toolhive-config-redis
   #   provider: redis
+  telemetryConfigRef:
+    name: mcp
+    serviceName: vmcp-mcp

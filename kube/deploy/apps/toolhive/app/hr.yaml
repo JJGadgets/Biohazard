@@ -7,14 +7,25 @@ metadata:
   namespace: *app
 spec:
   interval: 1h
+  dependsOn:
+    - name: toolhive-operator-crds
+      namespace: toolhive
   chartRef:
     kind: OCIRepository
     name: *app
     namespace: *app
   values:
     operator:
+      # security
       podLabels:
         egress.home.arpa/apiserver: allow
+      features:
+        storageVersionMigrator: false
+      rbac:
+        scope: namespace
+        allowedNamespaces:
+          - mcp
+      # other stuff
       replicaCount: 1
       resources:
         requests:

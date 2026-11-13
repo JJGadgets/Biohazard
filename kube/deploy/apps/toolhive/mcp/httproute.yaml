@@ -11,6 +11,10 @@ spec:
     - name: envoy-internal
       namespace: ingress
   rules:
-    - backendRefs:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /mcp
+      backendRefs:
         - name: vmcp-mcp
           port: 4483
