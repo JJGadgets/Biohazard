@@ -41,7 +41,7 @@ spec:
   postBuild:
     substitute:
       PVC: &pvc "openclaw-data"
-      SIZE: "15Gi"
+      SIZE: "20Gi"
       CACHESIZE: "5Gi"
       SC: &sc "block"
       SNAP: *sc
