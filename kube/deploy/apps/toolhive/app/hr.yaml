@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app toolhive
+  namespace: *app
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: *app
+    namespace: *app
+  values:
+    operator:
+      podLabels:
+        egress.home.arpa/apiserver: allow
+      replicaCount: 1
+      resources:
+        requests:
+          cpu: 50m
+        limits:
+          cpu: 4
+          memory: 400Mi
+      gc:
+        gomemlimit: 300MiB
+        gogc: 75
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: toolhive-operator-crds
+  namespace: toolhive
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: toolhive-operator-crds
+    namespace: toolhive
