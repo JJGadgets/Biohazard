@@ -57,6 +57,10 @@ kind: InferenceService
 metadata:
   name: qwen3.8-27b-radiance
   namespace: llmkube
+  annotations:
+    inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
+    inference.llmkube.dev/idle-metric-threshold: "0"
+    inference.llmkube.dev/idle-metric-path: "/metrics"
 spec:
   podLabels:
     prom.home.arpa/kps: allow
@@ -90,6 +94,7 @@ spec:
     idleTimeoutSeconds: 900
   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
   args:
+    - --live # log tokens per second
     - --model
     - "$(LLMKUBE_MODEL_PATH)"
     - --served-model-name
@@ -207,6 +212,10 @@ kind: InferenceService
 metadata:
   name: qwen3.8-27b-pro-radiance
   namespace: llmkube
+  annotations:
+    inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
+    inference.llmkube.dev/idle-metric-threshold: "0"
+    inference.llmkube.dev/idle-metric-path: "/metrics"
 spec:
   podLabels:
     prom.home.arpa/kps: allow
@@ -232,7 +241,7 @@ spec:
     cpu: "2"
     memory: 26Gi
     memoryLimit: 26Gi
-  parallelSlots: 10
+  parallelSlots: 6
   startupTimeout: 45m
   # Roll only when vllm:num_requests_running is 0, else after 15 min.
   rolloutPolicy:
@@ -251,7 +260,7 @@ spec:
     - --tp
     - "1"
     - --max-model-len
-    - "262144"
+    - "200000"
     - --max-num-seqs
     - "6"
     - --kv-cache-dtype
@@ -383,6 +392,10 @@ kind: InferenceService
 metadata:
   name: qwen3.8-27b-context-radiance
   namespace: llmkube
+  annotations:
+    inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
+    inference.llmkube.dev/idle-metric-threshold: "0"
+    inference.llmkube.dev/idle-metric-path: "/metrics"
 spec:
   podLabels:
     prom.home.arpa/kps: allow
