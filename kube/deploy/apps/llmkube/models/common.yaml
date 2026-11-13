@@ -99,38 +99,38 @@ spec:
     - backendRefs:
         - name: llmkube
           port: 80
----
-# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: ModelPool
-metadata:
-  name: sinon-tesla-t4
-  namespace: llmkube
-spec:
-  nodeSelector:
-    kubernetes.io/hostname: sinon
-  gpu: 1
-  swapPolicy: reclaim
-  # default: qwen3.6-35b-a3b
-  swapBudget: 900s
-  reclaimAfter: 15m
-  members:
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-llama.cpp
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-vllm
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-strata
-    - inferenceServiceRef:
-        name: qwen3.8-27b
-    - inferenceServiceRef:
-        name: muse-glimmer
-    - inferenceServiceRef:
-        name: qwen3-omni-thinking
-    - inferenceServiceRef:
-        name: gemma-4-12b
-    - inferenceServiceRef:
-        name: lightonocr-3-4b
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
+# apiVersion: inference.llmkube.dev/v1alpha1
+# kind: ModelPool
+# metadata:
+#   name: sinon-tesla-t4
+#   namespace: llmkube
+# spec:
+#   nodeSelector:
+#     kubernetes.io/hostname: sinon
+#   gpu: 1
+#   swapPolicy: reclaim
+#   # default: qwen3.6-35b-a3b
+#   swapBudget: 900s
+#   reclaimAfter: 15m
+#   members:
+#     - inferenceServiceRef:
+#         name: qwen3.6-35b-a3b-llama.cpp
+#     - inferenceServiceRef:
+#         name: qwen3.6-35b-a3b-vllm
+#     - inferenceServiceRef:
+#         name: qwen3.6-35b-a3b-strata
+#     - inferenceServiceRef:
+#         name: qwen3.8-27b
+#     - inferenceServiceRef:
+#         name: muse-glimmer
+#     - inferenceServiceRef:
+#         name: qwen3-omni-thinking
+#     - inferenceServiceRef:
+#         name: gemma-4-12b
+#     - inferenceServiceRef:
+#         name: lightonocr-3-4b
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -153,8 +153,8 @@ spec:
         name: qwen3.8-27b-pro-radiance
     - inferenceServiceRef:
         name: qwen3.8-27b-context-radiance
-    - inferenceServiceRef:
-        name: qwen3.6-35b-a3b-llama.cpp
+    # - inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-llama.cpp
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelrouter_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -166,24 +166,8 @@ spec:
   endpoint:
     port: 80
   defaultRouteStrategy: BackendNameMatch
-  defaultRoute: qwen3-6-35b-a3b
+  defaultRoute: qwen3-8-27b-radiance
   backends:
-    - name: qwen3-6-35b-a3b
-      displayName: qwen3.6-35b-a3b
-      inferenceServiceRef:
-        name: qwen3.6-35b-a3b-llama.cpp
-    - name: qwen3-6-35b-a3b-strata
-      displayName: qwen3.6-35b-a3b-strata
-      inferenceServiceRef:
-        name: qwen3.6-35b-a3b-strata
-    - name: qwen3-6-35b-a3b-vllm
-      displayName: qwen3.6-35b-a3b-vllm
-      inferenceServiceRef:
-        name: qwen3.6-35b-a3b-vllm
-    - name: qwen3-8-27b
-      displayName: qwen3.8-27b
-      inferenceServiceRef:
-        name: qwen3.8-27b
     - name: qwen3-8-27b-radiance
       displayName: qwen3.8-27b-radiance
       inferenceServiceRef:
@@ -196,22 +180,34 @@ spec:
       displayName: qwen3.8-27b-context-radiance
       inferenceServiceRef:
         name: qwen3.8-27b-context-radiance
-    - name: muse-glimmer
-      displayName: muse-glimmer
+    - name: muse-glimmer-radiance
+      displayName: muse-glimmer-radiance
       inferenceServiceRef:
-        name: muse-glimmer
-    - name: gemma-4-12b
-      displayName: gemma-4-12b
-      inferenceServiceRef:
-        name: gemma-4-12b
-    - name: qwen3-omni-thinking
-      displayName: qwen3-omni-thinking
-      inferenceServiceRef:
-        name: qwen3-omni-thinking
-    - name: lightonocr-3-4b
-      displayName: lightonocr-3-4b
-      inferenceServiceRef:
-        name: lightonocr-3-4b
+        name: muse-glimmer-radiance
+    # - name: qwen3-6-35b-a3b
+    #   displayName: qwen3.6-35b-a3b
+    #   inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-llama.cpp
+    # - name: qwen3-6-35b-a3b-strata
+    #   displayName: qwen3.6-35b-a3b-strata
+    #   inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-strata
+    # - name: qwen3-6-35b-a3b-vllm
+    #   displayName: qwen3.6-35b-a3b-vllm
+    #   inferenceServiceRef:
+    #     name: qwen3.6-35b-a3b-vllm
+    # - name: gemma-4-12b
+    #   displayName: gemma-4-12b
+    #   inferenceServiceRef:
+    #     name: gemma-4-12b
+    # - name: qwen3-omni-thinking
+    #   displayName: qwen3-omni-thinking
+    #   inferenceServiceRef:
+    #     name: qwen3-omni-thinking
+    # - name: lightonocr-3-4b
+    #   displayName: lightonocr-3-4b
+    #   inferenceServiceRef:
+    #     name: lightonocr-3-4b
     - name: qwen3-embedding-0-6b
       displayName: qwen3-embedding-0.6b
       inferenceServiceRef:
@@ -226,33 +222,6 @@ spec:
         provider: openai
         url: http://silverhawk.internal:1976
   rules:
-    - name: qwen3-6-35b-a3b-pool
-      match:
-        models:
-          - qwen3.6-35b-a3b
-          - qwen3.6-35b-a3b-slot-0
-          - qwen3.6-35b-a3b-slot-1
-          - qwen3.6-35b-a3b-slot-2
-      route:
-        backends:
-          - qwen3-6-35b-a3b
-        poolActivation: Wait
-    # - name: qwen3-6-35b-a3b-strata-pool
-    #   match:
-    #     models:
-    #       - qwen3.6-35b-a3b-strata
-    #   route:
-    #     backends:
-    #       - qwen3-6-35b-a3b-strata
-    #     poolActivation: Wait
-    - name: qwen3-6-35b-a3b-vllm-pool
-      match:
-        models:
-          - qwen3.6-35b-a3b-vllm
-      route:
-        backends:
-          - qwen3-6-35b-a3b-vllm
-        poolActivation: Wait
     - name: qwen3-8-27b-radiance
       match:
         models:
@@ -279,18 +248,7 @@ spec:
         backends:
           - qwen3-8-27b-context-radiance
         poolActivation: Wait
-    - name: qwen3-8-27b-llama-cpp
-      match:
-        models:
-          - qwen3.8-27b-llama.cpp
-          - qwen3.8-27b-slot-0
-          - qwen3.8-27b-slot-1
-          - qwen3.8-27b-slot-2
-      route:
-        backends:
-          - qwen3-8-27b
-        poolActivation: Wait
-    - name: muse-glimmer-pool
+    - name: muse-glimmer-radiance
       match:
         models:
           - muse-glimmer
@@ -299,38 +257,65 @@ spec:
           - muse-glimmer-slot-2
       route:
         backends:
-          - muse-glimmer
+          - muse-glimmer-radiance
         poolActivation: Wait
-    - name: gemma-4-12b-pool
-      match:
-        models:
-          - gemma-4-12b
-          - gemma-4-12b-slot-0
-          - gemma-4-12b-slot-1
-          - gemma-4-12b-slot-2
-      route:
-        backends:
-          - gemma-4-12b
-        poolActivation: Wait
-    - name: qwen3-omni-thinking-pool
-      match:
-        models:
-          - qwen3-omni-thinking
-          - qwen3-omni-thinking-slot-0
-          - qwen3-omni-thinking-slot-1
-          - qwen3-omni-thinking-slot-2
-      route:
-        backends:
-          - qwen3-omni-thinking
-        poolActivation: Wait
-    - name: lightonocr-3-4b-pool
-      match:
-        models:
-          - lightonocr-3-4b
-      route:
-        backends:
-          - lightonocr-3-4b
-        poolActivation: Wait
+    # - name: qwen3-6-35b-a3b-pool
+    #   match:
+    #     models:
+    #       - qwen3.6-35b-a3b
+    #       - qwen3.6-35b-a3b-slot-0
+    #       - qwen3.6-35b-a3b-slot-1
+    #       - qwen3.6-35b-a3b-slot-2
+    #   route:
+    #     backends:
+    #       - qwen3-6-35b-a3b
+    #     poolActivation: Wait
+    # - name: qwen3-6-35b-a3b-strata-pool
+    #   match:
+    #     models:
+    #       - qwen3.6-35b-a3b-strata
+    #   route:
+    #     backends:
+    #       - qwen3-6-35b-a3b-strata
+    #     poolActivation: Wait
+    # - name: qwen3-6-35b-a3b-vllm-pool
+    #   match:
+    #     models:
+    #       - qwen3.6-35b-a3b-vllm
+    #   route:
+    #     backends:
+    #       - qwen3-6-35b-a3b-vllm
+    #     poolActivation: Wait
+    # - name: gemma-4-12b-pool
+    #   match:
+    #     models:
+    #       - gemma-4-12b
+    #       - gemma-4-12b-slot-0
+    #       - gemma-4-12b-slot-1
+    #       - gemma-4-12b-slot-2
+    #   route:
+    #     backends:
+    #       - gemma-4-12b
+    #     poolActivation: Wait
+    # - name: qwen3-omni-thinking-pool
+    #   match:
+    #     models:
+    #       - qwen3-omni-thinking
+    #       - qwen3-omni-thinking-slot-0
+    #       - qwen3-omni-thinking-slot-1
+    #       - qwen3-omni-thinking-slot-2
+    #   route:
+    #     backends:
+    #       - qwen3-omni-thinking
+    #     poolActivation: Wait
+    # - name: lightonocr-3-4b-pool
+    #   match:
+    #     models:
+    #       - lightonocr-3-4b
+    #   route:
+    #     backends:
+    #       - lightonocr-3-4b
+    #     poolActivation: Wait
     - name: qwen3-embedding-0-6b-pool
       match:
         models:
@@ -361,12 +346,10 @@ spec:
           - auto
       route:
         backends:
-          - qwen3-6-35b-a3b
-          - qwen3-6-35b-a3b-vllm
-          - qwen3-8-27b
-          - muse-glimmer
-          - gemma-4-12b
-          - apple-foundation-model-3-core-advanced
+          - qwen3-8-27b-radiance
+          - qwen3-8-27b-pro-radiance
+          - qwen3-8-27b-context-radiance
+          - muse-glimmer-radiance
         poolActivation: IfIdle
   proxy:
     replicas: 1

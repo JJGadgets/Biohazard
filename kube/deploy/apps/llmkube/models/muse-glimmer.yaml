@@ -2,7 +2,7 @@
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
-  name: muse-glimmer
+  name: muse-glimmer-radiance
   namespace: llmkube
 spec:
   # Pin the Hugging Face revision and pre-stage the weights/projector on sinon.
@@ -11,12 +11,12 @@ spec:
   # plus CUDA0/CUDA1 assign logical device indices after allocation. Selecting
   # specific UUIDs would require NVIDIA DRA or per-device plugin resources, which
   # this cluster does not currently configure.
-  source: hf://unsloth/Muse-Glimmer-30B-GGUF@faa5b025c584459c13febfa5c59883516710ae39
+  source: hf://DustinEwan/muse-glimmer-30b-nvfp4-dflash-fp4@b437d2bcc7594e1d7ed5b30cbee8c505d176437a
   files:
-    - Muse-Glimmer-30B-UD-Q3_K_XL.gguf
+    - muse-glimmer-30b-nvfp4-dflash-fp4.rad
   # mmproj: mmproj-Muse-Glimmer-30B-Q8_0.gguf
-  format: gguf
-  quantization: UD-Q3_K_XL
+  format: custom
+  quantization: nvfp4-dflash-fp4
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
@@ -24,24 +24,28 @@ spec:
       operator: Exists
       effect: NoSchedule
   hardware:
-    accelerator: cuda
+    accelerator: rocm
     gpu:
       enabled: true
-      vendor: nvidia
-      count: 2
-      layers: 99
+      vendor: amd
+      count: 1
+      # DRA owns placement; the existing claim can be shared within llmkube.
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: r9700
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
 metadata:
-  name: muse-glimmer
+  name: muse-glimmer-radiance
   namespace: llmkube
 spec:
   podLabels:
     prom.home.arpa/kps: allow
-  modelRef: muse-glimmer
-  runtime: llamacpp
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:d154fba060de774527c436ffecf74a64444874bfae2ad57b4be8faa7c52fb40c
+  modelRef: muse-glimmer-radiance
+  runtime: generic
+  # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
+  image: docker.io/stilldeadcode/radiance:1.17.0@sha256:6fb0e99bfb862e17cc15cb7b2f116c7dbdc831df59f82456a0691122e6cf5330
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
@@ -49,106 +53,102 @@ spec:
       operator: Exists
       effect: NoSchedule
   endpoint:
-    # The ModelRouter fronts this service; keep the runtime on its own port.
     port: 8000
     type: ClusterIP
-  # Explicitly use the app-owned PVC from app/pvc.yaml. This claim overrides
-  # the chart's operator-managed per-service cache fallback.
   modelCache:
     claimName: llmkube-models
     prefetch: true
+  stageModel: true
   resources:
-    gpu: 2
-    cpu: "10m"
-    memory: 20Gi
-    memoryLimit: 30Gi
-  contextSize: 131072
-  parallelSlots: 3
-  flashAttention: true
-  batchSize: 4096
-  uBatchSize: 2048
-  extraArgs:
-    - -sps
-    - "0.5"
-    - --load-mode
-    - "mlock"
-    - --fit
-    - "off"
-    - --split-mode
-    - none
-    - --main-gpu
-    - "0"
+    gpu: 1
+    cpu: "2"
+    memory: 26Gi
+    memoryLimit: 26Gi
+  parallelSlots: 10
+  startupTimeout: 45m
+  # Roll only when vllm:num_requests_running is 0, else after 15 min.
+  rolloutPolicy:
+    waitForIdle: true
+    idleTimeoutSeconds: 900
+  # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
+  args:
+    - --live # log tokens per second
+    - --model
+    - "$(LLMKUBE_MODEL_PATH)"
+    - --served-model-name
+    - muse-glimmer-radiance
+    - --host
+    - 0.0.0.0
+    - --port
+    - "8000"
+    - --tp
+    - "1"
+    - --max-model-len
+    - "131072"
+    - --max-num-seqs
+    - "10"
+    - --kv-cache-dtype
+    - fp8
+    - --num-speculative-tokens
+    - "0" # TODO: test this out, starting with 3
+    # Leave only the recommended kernel/driver headroom; reserve the rest for
+    # model weights and paged FP8 KV in Radiance's automatic placement planner.
+    - --gpu-headroom-mib
+    - "96"
+    # Radiance uses MiB for the pinned CPU-side conversation KV cache.
+    - --prefix-cache-mib
+    - "12288"
+    # CPU-resident multimodal tower, with GPU execution of vision kernels.
+    - --vision-tower-placement
+    - ram
+    - --chat-template-kwargs
+    - '{"preserve_thinking":true}'
+    - --no-cors
+    - --temp
+    - "1.0"
+    - --top-k
+    - "64"
+    - --top-p
+    - "0.95"
+    - --min-p
+    - "0.0"
+    - --presence-penalty
+    - "0.0"
+    - --repetition-penalty
+    - "1.0"
+    - --reasoning-effort
+    - medium
   env:
     - name: TZ
       value: Asia/Singapore
-    - name: LLAMA_OFFLINE
-      value: enabled
-    - name: LLAMA_ARG_ALIAS
-      value: muse-glimmer
-    - name: LLAMA_ARG_MODEL_ALIAS
-      value: muse-glimmer
-    - name: LLAMA_ARG_TEMPERATURE
-      value: "1.0"
-    - name: LLAMA_ARG_TOP_K
-      value: "64"
-    - name: LLAMA_ARG_TOP_P
-      value: "0.95"
-    - name: LLAMA_ARG_MIN_P
-      value: "0.0"
-    - name: LLAMA_ARG_PRESENCE_PENALTY
-      value: "0.0"
-    - name: LLAMA_ARG_REPEAT_PENALTY
-      value: "1.0"
-    - name: LLAMA_ARG_IMAGE_MIN_TOKENS
-      value: "1024"
-    - name: LLAMA_ARG_CACHE_RAM
-      value: "7168"
-    - name: LLAMA_ARG_CTX_CHECKPOINTS
-      value: "12"
-    - name: LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT
-      value: "16384"
-    - name: LLAMA_ARG_REASONING_PRESERVE
-      value: enabled
-    - name: LLAMA_ARG_SLOT_SAVE_PATH
-      value: /data/llama-cpp/
-    - name: LLAMA_ARG_THREADS
-      value: "7"
-    - name: LLAMA_CHAT_TEMPLATE_KWARGS
-      value: '{"enable_thinking":true,"preserve_thinking":true}'
-    - name: LLAMA_ARG_DEVICE
-      value: CUDA0
-    - name: MTMD_BACKEND_DEVICE
-      value: CUDA1
-    - name: CUDA_DEVICE_ORDER
-      value: PCI_BUS_ID
-    - name: LLAMA_ARG_CONTEXT_SHIFT
-      value: disabled
-    - name: LLAMA_ARG_CACHE_PROMPT
-      value: enabled
-    - name: LLAMA_ARG_KV_UNIFIED
-      value: enabled
-    - name: LLAMA_ARG_CONT_BATCHING
-      value: enabled
-    - name: LLAMA_ARG_ENDPOINT_METRICS
-      value: enabled
-    - name: LLAMA_ARG_LOG_VERBOSITY
-      value: "4"
-    - name: CUDA_CACHE_PATH
-      value: /tmp/.nv
-  extraVolumes:
-    - name: runtime-data
-      persistentVolumeClaim:
-        claimName: llmkube-runtime-data
-    - name: tmp
-      emptyDir:
-        medium: Memory
-        sizeLimit: 4Gi
-  extraVolumeMounts:
-    - name: runtime-data
-      subPath: unsloth-muse-glimmer-30b-ud-q3_k_xl
-      mountPath: /data/llama-cpp
-    - name: tmp
-      mountPath: /tmp
+    - name: HOME
+      value: /tmp
+    - name: XDG_CACHE_HOME
+      value: /tmp
+    - name: HF_HUB_OFFLINE
+      value: "1"
+    - name: TMPDIR
+      value: /tmp
+  probeOverrides:
+    startup:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 270
+    readiness:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 30
+      timeoutSeconds: 5
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: ${APP_UID_LLMKUBE:=65536}
@@ -170,4 +170,3 @@ spec:
         - IPC_LOCK
     seccompProfile:
       type: RuntimeDefault
-  startupTimeout: 45m

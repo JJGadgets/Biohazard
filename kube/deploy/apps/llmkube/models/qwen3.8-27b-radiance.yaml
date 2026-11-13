@@ -1,27 +1,4 @@
 ---
-# One named DRA claim supports multiple trusted Pods within llmkube, not
-# cross-namespace claims (Kubernetes ResourceClaims are namespace-scoped).
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaim
-metadata:
-  name: qwen3.8-27b-radiance
-  namespace: llmkube
-spec:
-  devices:
-    requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.amd.com
-          allocationMode: ExactCount
-          count: 1
-          selectors:
-            - cel:
-                # Fail closed if a different AMD GPU is added to the cluster.
-                # R9700, R9700S and R9600D share PCI device ID 0x7551.
-                expression: >-
-                  device.attributes["gpu.amd.com"].type == "amdgpu" &&
-                  device.attributes["gpu.amd.com"].deviceID == "0x7551"
----
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
@@ -50,7 +27,7 @@ spec:
       # DRA owns placement; the existing claim can be shared within llmkube.
       resourceClaims:
         - name: gpu
-          resourceClaimName: qwen3.8-27b-radiance
+          resourceClaimName: r9700
 ---
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
@@ -249,6 +226,7 @@ spec:
     idleTimeoutSeconds: 900
   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
   args:
+    - --live # log tokens per second
     - --model
     - "$(LLMKUBE_MODEL_PATH)"
     - --served-model-name
@@ -429,6 +407,7 @@ spec:
     idleTimeoutSeconds: 900
   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
   args:
+    - --live # log tokens per second
     - --model
     - "$(LLMKUBE_MODEL_PATH)"
     - --served-model-name
