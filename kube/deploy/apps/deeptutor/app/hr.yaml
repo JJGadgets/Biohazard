@@ -72,27 +72,6 @@ spec:
                     port: 3782
                   periodSeconds: 10
                   timeoutSeconds: 5
-        initContainers:
-          bootstrap:
-            image: *img
-            command:
-              - /bin/sh
-              - -euc
-              - |
-                mkdir -p /app/data/user/settings
-                for name in model_catalog.json system.json; do
-                  dest="/app/data/user/settings/$name"
-                  if [ ! -s "$dest" ]; then
-                    install -m 0600 "/bootstrap/$name" "$dest"
-                  fi
-                done
-            securityContext: *sc
-            resources:
-              requests:
-                cpu: "10m"
-                memory: 64Mi
-              limits:
-                memory: 256Mi
     service:
       app:
         controller: app
@@ -116,16 +95,6 @@ spec:
           app:
             app:
               - path: /app/data
-            bootstrap:
-              - path: /app/data
-      bootstrap:
-        type: configMap
-        name: deeptutor-bootstrap
-        advancedMounts:
-          app:
-            bootstrap:
-              - path: /bootstrap
-                readOnly: true
       tmp:
         type: emptyDir
         medium: Memory
