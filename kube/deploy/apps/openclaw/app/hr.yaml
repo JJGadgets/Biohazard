@@ -60,7 +60,7 @@ spec:
               ANDROID_HOME: "$(AAA_HOME)/.android-sdk"
               ANDROID_SDK_ROOT: "$(AAA_HOME)/.android-sdk"
               ANDROID_USER_HOME: "$(AAA_HOME)/.android-sdk"
-              OPENCLAW_FS_SAFE_NATIVE_MODE: "off" # 2026.9.5 uses openat2 which isn't supported on gvisor, this falls back to NodeJS exclusive `wx` file creation for lock files
+              OPENCLAW_FS_SAFE_NATIVE_MODE: "auto" # 2026.9.5 uses openat2 which isn't supported on gvisor, `off` falls back to NodeJS exclusive `wx` file creation for lock files. 2026.11.3 uses a newer fs-safe mode that can auto fallback if openat2 fails but also enforces fs-safe usage for stuff like attaching PDFs which breaks when this is off, hence now `auto`
               OPENCODE_ENABLE_EXA: "1"
               MEMINI_API_KEY:
                 valueFrom:
