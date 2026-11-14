@@ -24,7 +24,7 @@ spec:
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1001
+        runAsUser: &uid 1001 # upstream `sage` user
         runAsGroup: *uid
         fsGroup: *uid
         seccompProfile:
