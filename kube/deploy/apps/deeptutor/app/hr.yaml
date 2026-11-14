@@ -21,6 +21,7 @@ spec:
           labels:
             ingress.home.arpa/envoy-internal: allow
             ai.internal/llmkube: allow
+            egress.internal/toolhive: allow
         containers:
           app:
             image: &img
