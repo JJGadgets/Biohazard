@@ -1,0 +1,184 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app deeptutor
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        strategy: Recreate # The single replica exclusively owns its RWO data PVC
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ai.internal/llmkube: allow
+        containers:
+          app:
+            image: &img
+              repository: ghcr.io/hkuds/deeptutor
+              tag: 1.7.2@sha256:9b8b21ea8861434868ba20adf70966ad9dce193c507c2dcceffbe57264306da8
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              DEEPTUTOR_WORKSPACE_ROOT: /app/data/user/workspace
+              DEEPTUTOR_WORKSPACE_ALLOWED_ROOTS: /app/data/user/workspace
+              PYTHONDONTWRITEBYTECODE: "1"
+            securityContext: &sc
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: "100m"
+                memory: 512Mi
+              limits:
+                cpu: "4"
+                memory: 4Gi
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/ready
+                    port: 8001
+                  periodSeconds: 10
+                  failureThreshold: 60
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/ready
+                    port: 8001
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 3782
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+        initContainers:
+          bootstrap:
+            image: *img
+            command:
+              - /bin/sh
+              - -euc
+              - |
+                mkdir -p /app/data/user/settings
+                for name in model_catalog.json system.json; do
+                  dest="/app/data/user/settings/$name"
+                  if [ ! -s "$dest" ]; then
+                    install -m 0600 "/bootstrap/$name" "$dest"
+                  fi
+                done
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 3782
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_DEEPTUTOR:=deeptutor}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+    persistence:
+      data:
+        existingClaim: deeptutor-data
+        advancedMounts:
+          app:
+            app:
+              - path: /app/data
+            bootstrap:
+              - path: /app/data
+      bootstrap:
+        type: configMap
+        name: deeptutor-bootstrap
+        advancedMounts:
+          app:
+            bootstrap:
+              - path: /bootstrap
+                readOnly: true
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 512Mi
+        globalMounts:
+          - path: /tmp
+      home:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - path: /home/deeptutor
+      run:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 32Mi
+        globalMounts:
+          - path: /run
+      logs:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - path: /var/log
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 1000
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: "RuntimeDefault" }
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}
