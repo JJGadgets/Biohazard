@@ -1,5 +1,6 @@
 # Open Notebook (cluster biohazard)
 
+- **Helm chart:** bjw-s-labs `app-template` `5.0.1`, defined in `app/chart.yaml` following `kube/templates/test`; app-specific chart source instead of the legacy shared-component/substitution pattern.
 - **App:** [Open Notebook v1.15.1](https://github.com/lfnovo/open-notebook/releases/tag/v1.15.1), pinned by its published OCI digest.
 - **DB:** official SurrealDB v2 (immutable OCI digest), embedded as a sidecar in the **same pod**, bound to loopback only. The upstream single-container image is deprecated; this arrangement instead follows the separate-DB deployment architecture without advertising a DB Service.
 - **Storage:** `open-notebook-data` (20Gi Ceph RBD `block`, RWO, VolSync enabled). The app and database mount distinct directories under one claim. `Recreate` strategy ensures one RocksDB writer. **Important:** live file-level VolSync/Restic backups of RocksDB are not application-consistent. Verify database recoverability from snapshots and implement a quiesced/native database export strategy before relying on them for disaster recovery. Keep database and encryption-key backups together in a protected recovery procedure.
