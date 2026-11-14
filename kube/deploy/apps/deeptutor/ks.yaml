@@ -1,0 +1,66 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: deeptutor-app
+  namespace: &ns deeptutor
+  labels: &labels
+    app.kubernetes.io/name: deeptutor
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *labels
+  path: ./kube/deploy/apps/deeptutor/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+    - ../../../core/ingress/envoy-gateway/forward-auth/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: deeptutor-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "4.6.2"
+      AUTH_ROUTE: deeptutor-app
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: deeptutor-pvc
+  namespace: &ns deeptutor
+  labels:
+    app.kubernetes.io/name: deeptutor
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc "deeptutor-data"
+      SIZE: "20Gi"
+      SC: &sc "block"
+      SNAP: *sc
+      ACCESSMODE: &access "ReadWriteOnce"
+      SNAP_ACCESSMODE: *access
+      VS_APP_CURRENT_VERSION: "ghcr.io/hkuds/deeptutor:1.7.2@sha256:9b8b21ea8861434868ba20adf70966ad9dce193c507c2dcceffbe57264306da8"
+      RUID: &uid "1000"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: deeptutor-data-r2-updates-restic
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.conditions.filter(s, s.status == "False").all(s, s.reason == "WaitingForManual" || s.reason == "WaitingForSchedule") && status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"
