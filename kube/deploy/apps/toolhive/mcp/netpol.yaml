@@ -14,13 +14,34 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: toolhive
-  egress:
-    - toEndpoints:
+    - fromEndpoints:
         - matchLabels:
-            mcp.internal/toolhive: allow
+            egress.internal/toolhive: allow
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            ingress.internal/toolhive: allow
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: &app toolhive-vmcp-mcp-ingress-in-cluster
+spec:
+  endpointSelector:
+    matchLabels:
+      ingress.internal/toolhive: allow
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+            app.kubernetes.io/instance: mcp
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 apiVersion: cilium.io/v2
@@ -30,7 +51,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      mcp.internal/toolhive: allow
+      egress.internal/toolhive: allow
   ingress:
     - fromEndpoints:
         - matchLabels:

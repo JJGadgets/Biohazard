@@ -22,7 +22,7 @@ spec:
             authentik.home.arpa/oidc: allow
             dns.home.arpa/l7: "true"
             ai.internal/llmkube: allow
-            mcp.internal/toolhive: allow
+            internal.internal/toolhive: allow
         containers:
           app:
             image: &img
