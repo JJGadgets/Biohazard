@@ -24,7 +24,15 @@ data:
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger("open-notebook-mcp")
     
-    mcp = FastMCP("open-notebook-mcp")
+    # FastMCP 1.28.1 takes HTTP settings in the constructor, not run().
+    mcp = FastMCP(
+        "open-notebook-mcp",
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8000")),
+        streamable_http_path=os.getenv("MCP_PATH", "/mcp"),
+        stateless_http=os.getenv("STATELESS_HTTP", "1") == "1",
+        json_response=os.getenv("JSON_RESPONSE", "1") == "1",
+    )
     
     # -----------------------------
     # Configuration and Constants
@@ -1303,20 +1311,8 @@ data:
             return
     
         # Streamable HTTP (prod/remote)
-        host = os.getenv("HOST", "127.0.0.1")
-        port = int(os.getenv("PORT", "8000"))
-        path = os.getenv("MCP_PATH", "/mcp")
-        stateless_http = os.getenv("STATELESS_HTTP", "1") == "1"
-        json_response = os.getenv("JSON_RESPONSE", "1") == "1"
-    
-        mcp.run(
-            transport="streamable-http",
-            host=host,
-            port=port,
-            path=path,
-            stateless_http=stateless_http,
-            json_response=json_response,
-        )
+
+        mcp.run(transport="streamable-http")
     
     if __name__ == "__main__":
         main()
