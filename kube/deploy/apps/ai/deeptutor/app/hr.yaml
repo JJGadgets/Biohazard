@@ -27,7 +27,6 @@ spec:
             image: &img
               repository: ghcr.io/hkuds/deeptutor
               tag: 1.7.2@sha256:9b8b21ea8861434868ba20adf70966ad9dce193c507c2dcceffbe57264306da8
-            command: ["/bin/sh", "-c", "sleep 600"]
             env: &env
               TZ: "${CONFIG_TZ}"
               DEEPTUTOR_WORKSPACE_ROOT: /app/data/user/workspace
