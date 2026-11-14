@@ -47,6 +47,7 @@ spec:
         ingress.home.arpa/envoy-internal: allow
         ai.internal/llmkube: allow
         egress.home.arpa/apiserver: allow
+        dns.home.arpa/l7: "true"
     spec:
       containers:
         - name: vmcp
