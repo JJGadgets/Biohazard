@@ -52,8 +52,8 @@ spec:
   endpointSelector:
     matchLabels:
       egress.internal/toolhive: allow
-  ingress:
-    - fromEndpoints:
+  egress:
+    - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: virtualmcpserver
             app.kubernetes.io/instance: mcp
