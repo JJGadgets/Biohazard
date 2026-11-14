@@ -4,13 +4,13 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: &app deeptutor
-  namespace: *app
+  namespace: &ns ai
 spec:
   interval: 5m
   chartRef:
     kind: OCIRepository
-    name: app-template
-    namespace: *app
+    name: *app
+    namespace: *ns
   values:
     controllers:
       app:
@@ -39,11 +39,10 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: "100m"
-                memory: 512Mi
+                cpu: "10m"
               limits:
                 cpu: "4"
-                memory: 4Gi
+                memory: 1Gi
             probes:
               startup:
                 enabled: true
@@ -72,6 +71,21 @@ spec:
                     port: 3782
                   periodSeconds: 10
                   timeoutSeconds: 5
+        initContainers:
+          bootstrap:
+            image: *img
+            command:
+              - /bin/sh
+              - -euc
+              - |
+                mkdir -p /app/data/user/settings
+                for name in model_catalog.json system.json; do
+                  dest="/app/data/user/settings/$name"
+                  if [ ! -s "$dest" ]; then
+                    install -m 0600 "/bootstrap/$name" "$dest"
+                  fi
+                done
+            securityContext: *sc
     service:
       app:
         controller: app
@@ -91,10 +105,17 @@ spec:
     persistence:
       data:
         existingClaim: deeptutor-data
+        globalMounts:
+          - subPath: data
+            path: /app/data
+      bootstrap:
+        type: configMap
+        name: deeptutor-bootstrap
         advancedMounts:
           app:
-            app:
-              - path: /app/data
+            bootstrap:
+              - path: /bootstrap
+                readOnly: true
       tmp:
         type: emptyDir
         medium: Memory
@@ -104,21 +125,16 @@ spec:
       home:
         type: emptyDir
         medium: Memory
-        sizeLimit: 64Mi
+        sizeLimit: 100Mi
         globalMounts:
-          - path: /home/deeptutor
-      run:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 32Mi
-        globalMounts:
-          - path: /run
-      logs:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 64Mi
-        globalMounts:
-          - path: /var/log
+          - subPath: home
+            path: /home/deeptutor
+          - subPath: web-next-cache
+            path: /app/web/.next/cache
+          - subPath: run
+            path: /run
+          - subPath: log
+            path: /var/log
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false

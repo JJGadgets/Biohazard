@@ -3,8 +3,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: app-template
-  namespace: deeptutor
+  name: deep-tutor
+  namespace: ai
 spec:
   url: oci://ghcr.io/bjw-s-labs/helm/app-template
   ref:
