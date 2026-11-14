@@ -6,8 +6,23 @@ metadata:
   name: trilium
   namespace: mcp
 spec:
+  groupRef:
+    name: mcp
   remoteUrl: http://trilium.trilium.svc.cluster.local/mcp
   transport: streamable-http
   allowPrivateEndpoint: true
-  groupRef:
-    name: mcp
+  externalAuthConfigRef:
+    name: trilium
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpexternalauthconfig_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: trilium
+  namespace: mcp
+spec:
+  type: bearerToken
+  bearerToken:
+    tokenSecretRef:
+      name: toolhive-secrets
+      key: trilium
