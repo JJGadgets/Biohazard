@@ -41,7 +41,7 @@ spec:
               PAPERLESS_TASK_WORKERS:
                 resourceFieldRef:
                   resource: limits.cpu
-              PAPERLESS_REDIS: "unix:///sockets/redis.sock"
+              PAPERLESS_REDIS: "redis://127.0.0.1:6379"
               PAPERLESS_CONSUMPTION_DIR: &consume "/data/consume"
               PAPERLESS_DATA_DIR: &pvc "/data/data" # including PVC
               PAPERLESS_EXPORT_DIR: &export "/data/export"
@@ -83,7 +83,7 @@ spec:
             image:
               repository: "public.ecr.aws/docker/library/redis"
               tag: "8.4.0-bookworm@sha256:c22af04bb576503bf16b3e34a1fd2fd82de0f765afd866d2e380145e0af30d78"
-            command: ["redis-server", "--save", "''", "--appendonly", "no", "--port", "0", "--bind", "127.0.0.1", "--unixsocket", "/sockets/redis.sock", "--unixsocketperm", "700"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
+            command: ["redis-server", "--save", "''", "--appendonly", "no", "--bind", "127.0.0.1"] # save and appendonly options forcibly disable RDB and AOF persistence entirely
             securityContext: *sc
       tika:
         type: deployment

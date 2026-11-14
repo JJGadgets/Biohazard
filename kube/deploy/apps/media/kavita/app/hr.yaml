@@ -44,6 +44,12 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 3600
+                  initialDelaySeconds: 5
     service:
       app:
         controller: app

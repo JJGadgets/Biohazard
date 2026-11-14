@@ -86,7 +86,7 @@ spec:
           COMPROMISED_PASSWORD_CHECK: true
           DISABLE_REGISTRATION: true
           FEED_RETENTION: 3
-          hibernate.connection.url: jdbc:postgresql://{{ .username }}:{{ .password }}@pg-home.rw.svc.local:5432
+          hibernate.connection.url: jdbc:postgresql://{{ .username }}:{{ .password }}@pg-home.rw.svc.local:5432/
           hibernate.connection.username: {{ .username }}
           hibernate.connection.password: {{ .password }}
           SENTRY_DSN:

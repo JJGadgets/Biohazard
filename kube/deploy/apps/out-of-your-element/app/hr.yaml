@@ -34,7 +34,7 @@ spec:
               tag: v3.8@sha256:1953af56289d471d8bc523cb3634fc8a0ae5536580fdb1044b589da01aa4268b
             env: &env
               TZ: "${CONFIG_TZ}"
-              # OOYE_DATADIR: /data
+              OOYE_DATADIR: /data
             securityContext: &sc
               readOnlyRootFilesystem: false # SQLite DB can't open without this because its rootfs is a dir in the image
               allowPrivilegeEscalation: false
