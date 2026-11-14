@@ -353,6 +353,17 @@ spec:
           - qwen3-8-27b-context-radiance
           - muse-glimmer-radiance
         poolActivation: IfIdle
+    - name: auto-vision-pool # use whatever vision-capable LLM is currently loaded, or load Qwen 3.8 27B Pro if idle and not already loaded. this pool exists to only allow requests to route to vision-capable models.
+      match:
+        models:
+          - auto-vision
+      route:
+        backends:
+          - qwen3-8-27b-pro-radiance
+          - qwen3-8-27b-radiance
+          - qwen3-8-27b-context-radiance
+          - muse-glimmer-radiance
+        poolActivation: IfIdle
   proxy:
     replicas: 1
     responseHeaderTimeout: 86400s
