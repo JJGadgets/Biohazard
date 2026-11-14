@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.0.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -16,50 +16,29 @@ spec:
       app:
         type: deployment
         replicas: 1
-        strategy: Recreate
+        strategy: Recreate # The single replica exclusively owns its RWO data PVC
         pod:
           labels:
             ingress.home.arpa/envoy-internal: allow
             ai.internal/llmkube: allow
-        initContainers:
-          bootstrap:
-            image: &image
+        containers:
+          app:
+            image: &img
               repository: ghcr.io/hkuds/deeptutor
               tag: 1.7.2@sha256:9b8b21ea8861434868ba20adf70966ad9dce193c507c2dcceffbe57264306da8
-            command:
-              - /bin/sh
-              - -euc
-              - |
-                mkdir -p /app/data/user/settings
-                for name in model_catalog.json system.json; do
-                  dest="/app/data/user/settings/$name"
-                  if [ ! -s "$dest" ]; then
-                    install -m 0600 "/bootstrap/$name" "$dest"
-                  fi
-                done
-            securityContext: &secure
+            env: &env
+              TZ: "${CONFIG_TZ}"
+              DEEPTUTOR_WORKSPACE_ROOT: /app/data/user/workspace
+              DEEPTUTOR_WORKSPACE_ALLOWED_ROOTS: /app/data/user/workspace
+              PYTHONDONTWRITEBYTECODE: "1"
+            securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               capabilities:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                memory: 256Mi
-        containers:
-          app:
-            image: *image
-            env:
-              TZ: "${CONFIG_TZ}"
-              DEEPTUTOR_WORKSPACE_ROOT: /app/data/user/workspace
-              DEEPTUTOR_WORKSPACE_ALLOWED_ROOTS: /app/data/user/workspace
-              PYTHONDONTWRITEBYTECODE: "1"
-            securityContext: *secure
-            resources:
-              requests:
-                cpu: 100m
+                cpu: "100m"
                 memory: 512Mi
               limits:
                 cpu: "4"
@@ -92,6 +71,27 @@ spec:
                     port: 3782
                   periodSeconds: 10
                   timeoutSeconds: 5
+        initContainers:
+          bootstrap:
+            image: *img
+            command:
+              - /bin/sh
+              - -euc
+              - |
+                mkdir -p /app/data/user/settings
+                for name in model_catalog.json system.json; do
+                  dest="/app/data/user/settings/$name"
+                  if [ ! -s "$dest" ]; then
+                    install -m 0600 "/bootstrap/$name" "$dest"
+                  fi
+                done
+            securityContext: *sc
+            resources:
+              requests:
+                cpu: "10m"
+                memory: 64Mi
+              limits:
+                memory: 256Mi
     service:
       app:
         controller: app
@@ -111,8 +111,12 @@ spec:
     persistence:
       data:
         existingClaim: deeptutor-data
-        globalMounts:
-          - path: /app/data
+        advancedMounts:
+          app:
+            app:
+              - path: /app/data
+            bootstrap:
+              - path: /app/data
       bootstrap:
         type: configMap
         name: deeptutor-bootstrap
@@ -148,19 +152,18 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      runtimeClassName: gvisor
       dnsConfig:
         options:
           - name: ndots
             value: "1"
+      runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
         runAsUser: &uid 1000
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: OnRootMismatch
-        seccompProfile:
-          type: RuntimeDefault
+        seccompProfile: { type: "RuntimeDefault" }
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -168,3 +171,14 @@ spec:
               - matchExpressions:
                   - key: "fuckoff.home.arpa/{{ .Release.Name }}"
                     operator: DoesNotExist
+    networkpolicies:
+      same-ns:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        rules:
+          ingress:
+            - from:
+                - podSelector: {}
+          egress:
+            - to:
+                - podSelector: {}

@@ -3,6 +3,13 @@
 Internal-only, Authentik forward-auth-protected DeepTutor with gVisor, Restricted
 Pod Security, a single non-root replica, and a VolSync-backed `block` PVC.
 
+The app manifests follow `kube/templates/test/` (app-template chart `5.0.1`,
+app-local `app/chart.yaml`, Flux PVC metadata and namespace-scoped network
+policy). No `app/es.yaml` is deployed because DeepTutor does not require
+application-specific credentials; the only required variable is loaded
+through `vars.yaml`. gVisor is retained for isolation rather than switching
+to the template's alternative user-namespace runtime.
+
 ## Before enabling
 
 1. In 1Password create `deeptutor - ${CLUSTER_NAME}` containing
