@@ -40,6 +40,7 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
+            io.kubernetes.pod.namespace: mcp
             app.kubernetes.io/name: virtualmcpserver
             app.kubernetes.io/instance: mcp
 ---
@@ -55,5 +56,10 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
+            io.kubernetes.pod.namespace: mcp
             app.kubernetes.io/name: virtualmcpserver
             app.kubernetes.io/instance: mcp
+      toPorts:
+        - ports:
+            - port: "4483"
+              protocol: TCP

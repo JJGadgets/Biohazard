@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: sagemath
+  namespace: mcp
+spec:
+  image: ghcr.io/xbp-europe/sagemath-mcp:v0.10.1@sha256:aa439c2ab55a0e4e5b7772460fbc74b6ebf15178a571aeed409d8dfebe991336
+  transport: streamable-http
+  mcpPort: 8314
+  groupRef:
+    name: mcp-tools
+  resourceOverrides:
+    proxyDeployment:
+      podTemplateMetadataOverrides:
+        labels:
+          egress.home.arpa/apiserver: allow
+          ingress.internal/toolhive: allow
+  podTemplateSpec:
+    spec:
+      runtimeClassName: gvisor
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65536
+        runAsGroup: 65536
+        fsGroup: 65536
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mcp
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65536
+            runAsGroup: 65536
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+            limits:
+              cpu: "4"
+              memory: 2Gi
+          volumeMounts:
+            - name: tmp
+              subPath: tmp
+              mountPath: /tmp
+            - name: home
+              subPath: home
+              mountPath: /home/sage/.sage
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
