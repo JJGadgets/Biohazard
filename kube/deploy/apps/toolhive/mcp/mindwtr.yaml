@@ -1,0 +1,87 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: mindwtr
+  namespace: mcp
+spec:
+  image: ghcr.io/jjgadgets/mindwtr-mcp:1.1.14@sha256:5f9ab6d2cc01bbd63623091957950bee837dfcac69592eae619ff7b0cfe1c9f1
+  transport: streamable-http
+  mcpPort: 8722
+  groupRef:
+    name: mcp
+  externalAuthConfigRef:
+    name: mindwtr
+  env:
+    - name: MINDWTR_MCP_CLOUD_URL
+      value: "http://mindwtr-cloud.mindwtr.svc.cluster.local"
+    - name: MINDWTR_MCP_CLOUD_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: toolhive-secrets
+          key: MINDWTR_MCP_CLOUD_TOKEN
+    - name: MINDWTR_MCP_HTTP_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: toolhive-secrets
+          key: MINDWTR_MCP_HTTP_TOKEN
+  resourceOverrides:
+    proxyDeployment:
+      podTemplateMetadataOverrides:
+        labels:
+          egress.home.arpa/apiserver: allow
+          ingress.internal/toolhive: allow
+  podTemplateSpec:
+    spec:
+      runtimeClassName: gvisor
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65532
+        runAsGroup: *uid
+        fsGroup: *uid
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mcp
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: *uid
+            runAsGroup: *uid
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+            limits:
+              cpu: "4"
+              memory: 150Mi
+          volumeMounts:
+            - name: tmp
+              subPath: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 50Mi
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpexternalauthconfig_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: trilium
+  namespace: mcp
+spec:
+  type: bearerToken
+  bearerToken:
+    tokenSecretRef:
+      name: toolhive-secrets
+      key: MINDWTR_MCP_HTTP_TOKEN

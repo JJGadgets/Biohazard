@@ -20,4 +20,7 @@ spec:
       type: Opaque
       data:
         trilium: 'Bearer {{ .trilium }}'
+        MINDWTR_MCP_CLOUD_TOKEN: '{{ .MINDWTR_MCP_CLOUD_TOKEN }}'
+        MINDWTR_MCP_HTTP_TOKEN: '{{ .MINDWTR_MCP_HTTP_TOKEN }}'
+        MINDWTR_MCP_HTTP_TOKEN_BEARER: 'Bearer {{ .MINDWTR_MCP_HTTP_TOKEN }}'
 
