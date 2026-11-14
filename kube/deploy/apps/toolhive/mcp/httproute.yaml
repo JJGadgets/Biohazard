@@ -49,8 +49,8 @@ spec:
       kind: HTTPRoute
       name: *app
   connection:
-    bufferLimit: 8Mi
+    bufferLimit: 100Mi
   tcpKeepalive: {}
   timeout:
     http:
-      requestTimeout: "120s"
+      requestTimeout: "0s"
