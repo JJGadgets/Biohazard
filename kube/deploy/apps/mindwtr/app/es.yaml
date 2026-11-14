@@ -12,6 +12,8 @@ spec:
   dataFrom:
     - extract:
         key: "mindwtr - ${CLUSTER_NAME}"
+    - extract:
+        key: "mindwtr-mcp - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
@@ -19,5 +21,5 @@ spec:
     template:
       type: Opaque
       data:
-        MINDWTR_CLOUD_AUTH_TOKENS: '{{ .password }}'
-        MINDWTR_CLOUD_CORS_ORIGIN: 'https://{{ .APP_DNS_MINDWTR }}'
+        MINDWTR_CLOUD_AUTH_TOKENS: '{{ .password }},{{ .MINDWTR_MCP_CLOUD_TOKEN }}'
+        MINDWTR_CLOUD_CORS_ORIGIN: 'https://{{ .APP_DNS_MINDWTR }}/sync,https://{{ .APP_DNS_MINDWTR_CLOUD }}'

@@ -12,6 +12,8 @@ spec:
   dataFrom:
     - extract:
         key: "ToolHive - ${CLUSTER_NAME}"
+    - extract:
+        key: "mindwtr-mcp - ${CLUSTER_NAME}"
   target:
     creationPolicy: Owner
     deletionPolicy: Retain
