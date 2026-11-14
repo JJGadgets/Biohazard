@@ -12,8 +12,8 @@ spec:
     labels: *l
   path: ./kube/deploy/apps/ai/deeptutor/app
   components:
-    - ../../../core/flux-system/alerts/template/
-    - ../../../core/ingress/envoy-gateway/forward-auth/
+    - ../../../../core/flux-system/alerts/template/
+    - ../../../../core/ingress/envoy-gateway/forward-auth/
   dependsOn:
     - name: crds
       namespace: flux-system
