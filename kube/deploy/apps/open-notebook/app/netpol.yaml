@@ -1,0 +1,21 @@
+---
+# Only ToolHive's specifically labelled adapter may call the notebook API directly.
+# Browser access is through the cluster-wide labelled Envoy internal policy.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: open-notebook-mcp-ingress
+  namespace: open-notebook
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: open-notebook
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: mcp
+            egress.internal/open-notebook: allow
+      toPorts:
+        - ports:
+            - port: "5055"
+              protocol: TCP

@@ -1,0 +1,67 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: open-notebook-app
+  namespace: &ns open-notebook
+  labels: &labels
+    app.kubernetes.io/name: open-notebook
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *labels
+  path: ./kube/deploy/apps/open-notebook/app
+  components:
+    - ../../../core/flux-system/alerts/template/
+    - ../../../../repos/flux/helm-oci/app-template/
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: open-notebook-pvc
+  postBuild:
+    substitute:
+      APP_TEMPLATE: "4.6.2"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: open-notebook-pvc
+  namespace: &ns open-notebook
+  labels: &labels
+    app.kubernetes.io/name: open-notebook
+    pvc.home.arpa/volsync: "true"
+spec:
+  targetNamespace: *ns
+  commonMetadata:
+    labels: *labels
+  path: ./kube/deploy/core/storage/volsync/template
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  postBuild:
+    substitute:
+      PVC: &pvc open-notebook-data
+      SIZE: "20Gi"
+      CACHESIZE: "5Gi"
+      SC: &storage "block"
+      SNAP: *storage
+      ACCESSMODE: &mode "ReadWriteOnce"
+      SNAP_ACCESSMODE: *mode
+      VS_APP_CURRENT_VERSION: "ghcr.io/lfnovo/open-notebook:1.15.1@sha256:e4e18f12653df5bf48674b7b187c4252be52238b4d706330fd30d9b177b95812"
+      RUID: &uid "65532"
+      RGID: *uid
+      RFSG: *uid
+  healthChecks:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: *pvc
+      namespace: *ns
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      name: open-notebook-data-r2-updates-restic
+      namespace: *ns
+  healthCheckExprs:
+    - apiVersion: volsync.backube/v1alpha1
+      kind: ReplicationSource
+      current: status.latestMoverStatus.result == "Successful"
+      failed: status.latestMoverStatus.result == "Failed"

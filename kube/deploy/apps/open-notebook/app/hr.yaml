@@ -1,0 +1,213 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app open-notebook
+  namespace: *app
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: *app
+  values:
+    controllers:
+      app:
+        type: deployment
+        replicas: 1
+        strategy: Recreate # one RocksDB writer and a single ReadWriteOnce PVC
+        pod:
+          labels:
+            ingress.home.arpa/envoy-internal: allow
+            ai.internal/llmkube: allow
+            dns.home.arpa/l7: "true"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 5Gi
+        containers:
+          app:
+            image:
+              repository: ghcr.io/lfnovo/open-notebook
+              tag: 1.15.1@sha256:e4e18f12653df5bf48674b7b187c4252be52238b4d706330fd30d9b177b95812
+            env:
+              TZ: "${CONFIG_TZ}"
+              # The frontend forwards /api/* to localhost:5055; no external API port.
+              API_URL: "https://${APP_DNS_OPEN_NOTEBOOK}"
+              CORS_ORIGINS: "https://${APP_DNS_OPEN_NOTEBOOK}"
+              INTERNAL_API_URL: "http://127.0.0.1:5055"
+              SURREAL_URL: "ws://127.0.0.1:8000/rpc"
+              SURREAL_USER: root
+              SURREAL_NAMESPACE: open_notebook
+              SURREAL_DATABASE: open_notebook
+              OPEN_NOTEBOOK_WORKER_MAX_TASKS: "1"
+              ESPERANTO_LLM_TIMEOUT: "540"
+              ESPERANTO_EMBEDDING_TIMEOUT: "180"
+              LOGURU_LEVEL: INFO
+              # Deprecated compatibility fallback. Complete the database-backed
+              # model registration from the UI (see README.md).
+              OPENAI_COMPATIBLE_BASE_URL: "http://llmkube-router-proxy.llmkube.svc.cluster.local/v1"
+              OPENAI_COMPATIBLE_API_KEY: "local-router-no-auth"
+            envFrom:
+              - secretRef:
+                  name: open-notebook-secrets
+            securityContext: &containerSecurity
+              privileged: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            ports:
+              - name: http
+                containerPort: 8502
+              - name: api
+                containerPort: 5055
+            resources:
+              requests:
+                cpu: 25m
+                memory: 512Mi
+              limits:
+                cpu: "4"
+                memory: 4Gi
+            probes:
+              liveness: &appProbe
+                enabled: true
+                type: HTTP
+                port: api
+                path: /health
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 6
+              readiness:
+                <<: *appProbe
+                spec:
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              startup:
+                <<: *appProbe
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 180
+                  timeoutSeconds: 5
+          db:
+            image:
+              repository: docker.io/surrealdb/surrealdb
+              tag: v2@sha256:e5d7387e3727bbe2f7cd6d869e48cd34777272258572ead37c9656b25f745723
+            args:
+              - start
+              - --log
+              - info
+              - --bind
+              - "127.0.0.1:8000"
+              - --user
+              - root
+              - --pass
+              - "$(SURREAL_PASSWORD)"
+              - "rocksdb:/mydata/mydatabase.db"
+            env:
+              SURREAL_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: open-notebook-secrets
+                    key: SURREAL_PASSWORD
+            securityContext: *containerSecurity
+            ports:
+              - name: surrealdb
+                containerPort: 8000
+            resources:
+              requests:
+                cpu: 20m
+                memory: 128Mi
+              limits:
+                cpu: "2"
+                memory: 1Gi
+    service:
+      app:
+        controller: app
+        ports:
+          http:
+            port: 80
+            targetPort: 8502
+            protocol: HTTP
+            appProtocol: http
+      api:
+        controller: app
+        ports:
+          http:
+            port: 5055
+            targetPort: 5055
+            protocol: HTTP
+            appProtocol: http
+    route:
+      app:
+        hostnames: ["${APP_DNS_OPEN_NOTEBOOK:=open-notebook}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 80
+    persistence:
+      data:
+        existingClaim: open-notebook-data
+        advancedMounts:
+          app:
+            app:
+              - subPath: notebook-data
+                path: /app/data
+            db:
+              - subPath: surreal-data
+                path: /mydata
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /tmp
+      logs:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 32Mi
+        advancedMounts:
+          app:
+            app:
+              - path: /var/log/supervisor
+      frontend-cache:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 128Mi
+        advancedMounts:
+          app:
+            app:
+              - path: /app/frontend/.next/cache
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      runtimeClassName: gvisor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: &uid 65532
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "fuckoff.home.arpa/{{ .Release.Name }}"
+                    operator: DoesNotExist
