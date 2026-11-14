@@ -48,6 +48,12 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 3600
+                  initialDelaySeconds: 5
     service:
       app:
         controller: app
@@ -85,12 +91,18 @@ spec:
             path: /logs
           - subPath: tessdata
             path: /usr/share/tessdata
-          - subPath: localbin
-            path: /usr/local/bin
+          # - subPath: localbin
+          #   path: /usr/local/bin
           - subPath: homedir
             path: /home/stirlingpdfuser
           - subPath: defaultWebUIConfigs
             path: /app/./pipeline/defaultWebUIConfigs
+          - subPath: customFiles
+            path: /customFiles
+          - subPath: pipeline
+            path: /pipeline
+          - subPath: storage
+            path: /storage
     defaultPodOptions:
       # hostAliases:
       #   - ip: "${APP_IP_AUTHENTIK:=127.0.0.1}"
@@ -102,7 +114,7 @@ spec:
       runtimeClassName: gvisor
       securityContext:
         runAsNonRoot: true
-        runAsUser: &uid 1000 # upstream `stirlingpdfuser` user
+        runAsUser: &uid 1001 # upstream `stirlingpdfuser` user
         runAsGroup: *uid
         fsGroup: *uid
         fsGroupChangePolicy: Always
