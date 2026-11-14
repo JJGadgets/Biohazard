@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "services": {
+    "llm": {
+      "active_profile_id": "llmkube-llm",
+      "active_model_id": "llmkube-pro",
+      "profiles": [
+        {
+          "id": "llmkube-llm",
+          "name": "llmkube Qwen3.8",
+          "binding": "custom",
+          "api_format": "openai_chat",
+          "wire_api": "chat_completions",
+          "base_url": "http://llmkube.llmkube.svc.cluster.local/v1",
+          "api_key": "sk-no-key-required",
+          "models": [
+            {
+              "id": "llmkube-pro",
+              "name": "Qwen3.8 27B Pro",
+              "model": "qwen3.8-27b-pro",
+              "capabilities": {
+                "tools": true,
+                "vision": true,
+                "reasoning": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "task": {
+      "active_profile_id": "llmkube-task",
+      "active_model_id": "llmkube-task-pro",
+      "profiles": [
+        {
+          "id": "llmkube-task",
+          "name": "llmkube Task",
+          "binding": "custom",
+          "api_format": "openai_chat",
+          "wire_api": "chat_completions",
+          "base_url": "http://llmkube.llmkube.svc.cluster.local/v1",
+          "api_key": "sk-no-key-required",
+          "models": [
+            {
+              "id": "llmkube-task-pro",
+              "name": "Qwen3.8 27B Pro",
+              "model": "qwen3.8-27b-pro",
+              "capabilities": {
+                "tools": true,
+                "vision": true,
+                "reasoning": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "embedding": {
+      "active_profile_id": "llmkube-embedding",
+      "active_model_id": "llmkube-embedding-qwen",
+      "profiles": [
+        {
+          "id": "llmkube-embedding",
+          "name": "llmkube Embeddings",
+          "binding": "vllm",
+          "base_url": "http://llmkube.llmkube.svc.cluster.local/v1/embeddings",
+          "api_key": "sk-no-key-required",
+          "models": [
+            {
+              "id": "llmkube-embedding-qwen",
+              "name": "Qwen3 Embedding 0.6B",
+              "model": "qwen3-embedding-0.6b",
+              "dimension": 1024,
+              "send_dimensions": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
