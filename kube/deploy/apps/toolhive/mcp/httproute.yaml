@@ -18,3 +18,21 @@ spec:
       backendRefs:
         - name: vmcp-mcp
           port: 4483
+---
+# yaml-language-server: $schema=https://crds.jjgadgets.tech/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: &app mcp
+  namespace: *app
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: mcp
+  authorization:
+    defaultAction: Deny
+    rules:
+      - action: Allow
+        principal:
+          clientCIDRs: ["${IP_JJ_V4:=127.0.0.1/32}"]
