@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/external-secrets.io/externalsecret_v1.json
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
@@ -21,6 +22,8 @@ spec:
     template:
       type: Opaque
       data:
+        # Core cluster-wide vars
         CLUSTER_NAME: "${CLUSTER_NAME:=biohazard}"
-        CONFIG_TZ: "{{ .CONFIG_TZ }}"
-        APP_DNS_DEEPTUTOR: "{{ .APP_DNS_DEEPTUTOR }}"
+        CONFIG_TZ: '{{ .CONFIG_TZ }}'
+        # App specific
+        APP_DNS_DEEPTUTOR: '{{ .APP_DNS_DEEPTUTOR }}'
