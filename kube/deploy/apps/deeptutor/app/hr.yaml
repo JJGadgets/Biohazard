@@ -18,8 +18,6 @@ spec:
         replicas: 1
         strategy: Recreate
         pod:
-          annotations:
-            reloader.stakater.com/auto: "true"
           labels:
             ingress.home.arpa/envoy-internal: allow
             ai.internal/llmkube: allow
@@ -33,7 +31,7 @@ spec:
               - -euc
               - |
                 mkdir -p /app/data/user/settings
-                for name in model_catalog.json llamaindex.json system.json; do
+                for name in model_catalog.json system.json; do
                   dest="/app/data/user/settings/$name"
                   if [ ! -s "$dest" ]; then
                     install -m 0600 "/bootstrap/$name" "$dest"
@@ -57,7 +55,6 @@ spec:
               TZ: "${CONFIG_TZ}"
               DEEPTUTOR_WORKSPACE_ROOT: /app/data/user/workspace
               DEEPTUTOR_WORKSPACE_ALLOWED_ROOTS: /app/data/user/workspace
-              DEEPTUTOR_RERANK_URL: http://llmkube.llmkube.svc.cluster.local/v1/rerank
               PYTHONDONTWRITEBYTECODE: "1"
             securityContext: *secure
             resources:
@@ -123,10 +120,6 @@ spec:
           app:
             bootstrap:
               - path: /bootstrap
-                readOnly: true
-            app:
-              - path: /app/deeptutor/services/rag/pipelines/llamaindex/rerank.py
-                subPath: rerank.py
                 readOnly: true
       tmp:
         type: emptyDir

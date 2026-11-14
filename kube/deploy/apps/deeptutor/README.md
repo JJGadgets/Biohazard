@@ -10,8 +10,7 @@ Pod Security, a single non-root replica, and a VolSync-backed `block` PVC.
 2. Ensure the Authentik Envoy forward-auth outpost permits the chosen
    internal hostname. The gateway route is `deeptutor-app`.
 3. Confirm the `llmkube` router currently serves model IDs
-   `qwen3.8-27b-pro`, `qwen3-embedding-0.6b`, and
-   `qwen3-reranker-0.6b`, through
+   `qwen3.8-27b-pro` and `qwen3-embedding-0.6b` through
    `http://llmkube.llmkube.svc.cluster.local/v1`.
 4. Confirm the Pod is permitted by the existing ingress/egress cluster policies:
    `ingress.home.arpa/envoy-internal=allow` and
@@ -20,7 +19,7 @@ Pod Security, a single non-root replica, and a VolSync-backed `block` PVC.
 ## Bootstrap and persistence
 
 A non-root init container seeds `/app/data/user/settings/model_catalog.json`,
-`llamaindex.json`, and `system.json` **only if they do not exist**.
+and `system.json` **only if they do not exist**.
 The full `/app/data` tree is backed up (including credentials, databases,
 sessions, workspaces, knowledge bases, and system state). Subsequent UI edits
 survive restarts, but editing the seeded ConfigMap does **not** overwrite
@@ -31,27 +30,22 @@ llmkube does not expose `/v1/responses`. Embeddings use the full
 `/v1/embeddings` URL and 1024-dimensional Qwen3 vectors; changing the
 embedding model or dimensions requires reindexing knowledge bases.
 
-## Remote reranking compatibility adapter
+## Retrieval without reranking
 
-Upstream DeepTutor v1.7.2 supports **local** SentenceTransformers
-CrossEncoder reranking only; it has no external HTTP rerank provider. To avoid
-silently loading a local CPU model or discarding reranking, this deployment
-mounts a version-specific `rerank.py` ConfigMap over its LlamaIndex
-reranker module, using the existing llama.cpp `/v1/rerank` API.
+DeepTutor v1.7.2 defaults to an empty `reranker_model`, which disables
+the optional reranking stage. LlamaIndex continues to retrieve passages
+using vector or hybrid BM25/vector retrieval, with no extra model downloads
+and no custom Python code mounted into the application. Other core tutor
+features remain available.
 
-The adapter:
-- Targets exactly the internal llmkube rerank URL and pinned model ID.
-- Bounds HTTP time (90 s) and response size (1 MiB).
-- Validates each returned index and score before reordering source nodes.
-- Logs a warning and preserves upstream first-stage retrieval ordering if
-  the router/model is unavailable or replies with malformed data.
-- Only applies to **LlamaIndex** knowledge bases; other RAG engines do not
-  automatically share this reranker.
-
-This overlay depends on DeepTutor's v1.7.2 internal `rerank_nodes` interface.
-Review/retest it before updating the DeepTutor image. Remove it once an upstream
-remote reranker API is available. The Reloader pod annotation restarts on
-ConfigMap changes because the file is mounted as a subPath.
+DeepTutor's native cross-encoder reranking is deliberately not configured:
+it supports local SentenceTransformers models rather than the llmkube
+HTTP reranking endpoint. This removes the maintenance burden and upgrade
+risk of patching internal DeepTutor modules. If upgrading an existing
+deployment, check the persisted
+`/app/data/user/settings/llamaindex.json` and clear
+`reranker_model` if it was previously set; bootstrap settings never
+overwrite existing PVC files.
 
 ## Security
 
@@ -69,12 +63,10 @@ not download optional dependencies or external models at runtime.
 
 - Verify both backend `/health/ready` and frontend `/` respond inside
   the Pod; only the frontend is published through the internal Gateway.
-- Check the DeepTutor provider settings show the three configured model IDs.
-  Test chat, embedding, and an actual LlamaIndex KB retrieval. Confirm the
-  router receives a `POST /v1/rerank` call and the sorted result order changes.
-- Ingest a small KB; verify vectors are 1024-wide, then exercise retrieval.
-  If the rerank API is unavailable, check the warning logs: DeepTutor continues
-  with embedding-ranked hits, not CPU reranking.
+- Check the DeepTutor provider settings show the two configured model IDs.
+  Test chat, embeddings, and a LlamaIndex KB retrieval without reranking.
+- Ingest a small KB; verify vectors are 1024-wide, then exercise vector
+  and/or hybrid BM25/vector retrieval.
 - Confirm an unauthenticated request to the internal Gateway is denied or
   redirected by Authentik, and no path through the Service is exposed publicly.
 - Validate the effective `HelmRelease`, ConfigMap, Secret and PVC with
