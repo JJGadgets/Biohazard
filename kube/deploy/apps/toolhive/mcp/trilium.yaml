@@ -22,7 +22,9 @@ metadata:
   namespace: mcp
 spec:
   type: bearerToken
-  bearerToken:
-    tokenSecretRef:
-      name: toolhive-secrets
-      key: trilium
+  headerForward:
+    addHeadersFromSecret:
+      - headerName: Authorization
+        valueSecretRef:
+          name: toolhive-secrets
+          key: triliumAuthorization
