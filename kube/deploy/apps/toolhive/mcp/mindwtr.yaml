@@ -16,16 +16,13 @@ spec:
   env:
     - name: MINDWTR_MCP_CLOUD_URL
       value: "http://mindwtr-cloud.mindwtr.svc.cluster.local"
-    - name: MINDWTR_MCP_CLOUD_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: toolhive-secrets
-          key: MINDWTR_MCP_CLOUD_TOKEN
-    - name: MINDWTR_MCP_HTTP_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: toolhive-secrets
-          key: MINDWTR_MCP_HTTP_TOKEN
+  secrets:
+    - name: mindwtr-mcp
+      key: MINDWTR_MCP_CLOUD_TOKEN
+      targetEnvName: MINDWTR_MCP_CLOUD_TOKEN
+    - name: mindwtr-mcp
+      key: MINDWTR_MCP_HTTP_TOKEN
+      targetEnvName: MINDWTR_MCP_HTTP_TOKEN
   resourceOverrides:
     proxyDeployment:
       podTemplateMetadataOverrides:
