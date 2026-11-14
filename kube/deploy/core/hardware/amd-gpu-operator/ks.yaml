@@ -15,3 +15,20 @@ spec:
       kind: HelmRelease
       name: amd-gpu-operator
       namespace: amd-gpu-operator
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1-core-hardware-amd-gpu-operator-tuning
+  namespace: flux-system
+spec:
+  path: ./kube/deploy/core/hardware/amd-gpu-operator/tuning
+  targetNamespace: amd-gpu-operator
+  dependsOn:
+    - name: 1-core-hardware-amd-gpu-operator-app
+      namespace: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: DaemonSet
+      name: r9700-tuning
+      namespace: amd-gpu-operator
