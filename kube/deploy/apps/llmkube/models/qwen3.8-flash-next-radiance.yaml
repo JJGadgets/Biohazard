@@ -193,7 +193,7 @@ spec:
     fsGroup: ${APP_UID_LLMKUBE:=65536}
     fsGroupChangePolicy: OnRootMismatch
     seccompProfile:
-      type: RuntimeDefault
+      type: Unconfined # io_uring needs this
   securityContext:
     runAsNonRoot: true
     runAsUser: ${APP_UID_LLMKUBE:=65536}
@@ -204,7 +204,7 @@ spec:
       drop:
         - ALL
     seccompProfile:
-      type: RuntimeDefault
+      type: Unconfined
 ---
 apiVersion: v1
 kind: ConfigMap
