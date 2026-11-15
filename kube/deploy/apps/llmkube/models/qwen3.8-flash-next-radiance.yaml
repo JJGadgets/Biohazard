@@ -228,9 +228,7 @@ data:
         max-model-len: 8192
         max-num-seqs: 1
         max-num-batched-tokens: 1024
-        kv-cache-dtype: k6_v4
-        state-cache-dtype: f16
-        attn-prefill-fp8: both
+        kv-cache-dtype: i8
         num-speculative-tokens: 0
         prefix-cache-mib: 0
         placement: expert_tiered
