@@ -1,0 +1,173 @@
+---
+# Qwen3.8-Flash-Next : the complete 92 GB GGUF includes the SSD-backed
+# PLE/n-gram table. Strata prepares its smaller native pack separately in /data.
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3.8-flash-next-strata
+  namespace: llmkube
+spec:
+  # Identical pin to Strata setup.py HF_REVISIONS; it verifies the model SHA256.
+  # File SHA256: 7aa36d15131d255179ab6c87fa9c9f81a0b541fc9e81e959d4c3e29eb20feb5f
+  source: hf://agentionai/Qwen3.8-Flash-Next-Gyro-GGUF@257c95704b87e99d12e4b1cbd65794837009d587
+  files:
+    - Qwen3.8-Flash-Next-Gyro-M-TQ2_0.gguf
+    - mtp-Qwen3.8-Flash-Next-draft.gguf
+  mmproj: mmproj-F16.gguf
+  format: gguf
+  quantization: Gyro-M-TQ2_0
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: rocm
+    gpu:
+      enabled: true
+      vendor: amd
+      count: 1
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: r9700
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3.8-flash-next-strata
+  namespace: llmkube
+  annotations:
+    # Strata's /metrics defaults to JSON without an explicit format.
+    inference.llmkube.dev/idle-metric: "vllm:num_requests_running"
+    inference.llmkube.dev/idle-metric-path: "/metrics?format=prometheus"
+    inference.llmkube.dev/idle-metric-threshold: "0"
+spec:
+  podLabels:
+    prom.home.arpa/kps: allow
+  modelRef: qwen3.8-flash-next-strata
+  runtime: generic
+  # Upstream Strata's gfx120x HIP build; pin both release and image digest.
+  image: ghcr.io/niko1221/strata:0.2.13-rocm-gfx120x@sha256:c68ebd4ecbf73f7f450bea4a60bbc014be83d78c9fbfbdc16df6f553cb442235
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  endpoint:
+    port: 8080
+    type: ClusterIP
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  # Read-only staged model; pack, MTP and tuning state stay on the /data PVC.
+  stageModel: true
+  resources:
+    gpu: 1
+    cpu: "10m"
+    memory: 20Gi
+    # Deliberately no memoryLimit: Strata sizes host expert residency against
+    # MemAvailable, and upstream warns a cgroup limit can cause false-fit OOMs.
+  parallelSlots: 1
+  startupTimeout: 180m
+  rolloutPolicy:
+    waitForIdle: true
+    idleTimeoutSeconds: 7200
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: FAMILY
+      value: gyro
+    - name: MODEL
+      value: Gyro-M
+    - name: MODEL_PATH
+      value: "$(LLMKUBE_MODEL_DIR)"
+    - name: CONTEXT
+      value: "180000"
+    - name: PARALLEL
+      value: "1"
+    - name: VISION
+      value: "off" # Preserve VRAM for 180K context/expert cache.
+    - name: KV
+      value: int8 # 8-bit integer KV. Strata does not currently implement FP8 KV.
+    - name: GPU
+      value: "0" # DRA makes the single R9700 the only visible HIP device.
+    - name: TUNE
+      value: quick # One-time, retained on /data across model swaps.
+    - name: STRATA_PLE_AUTO_RAM
+      value: "1" # Always stream the 28.8 GB PLE table from local SSD.
+    - name: STRATA_RESIDENT_HEADROOM_GIB
+      value: "8" # Avoid consuming the host's remaining 32 GB RAM.
+    # - name: PRESET
+    #   value: qwen3-8-flash-next-r9700
+    # ModelRouter has no configured backend credential injection: restrict the
+    # unauthenticated backend using namespace Cilium policy + Host allowlist.
+    - name: API_KEY
+      value: none
+    - name: STRATA_ALLOWED_HOSTS
+      value: "llmkube,${APP_DNS_LLMKUBE:=llmkube},qwen3-8-flash-next-strata,qwen3-8-flash-next-strata.llmkube.svc,qwen3-8-flash-next-strata.llmkube.svc.cluster.local,qwen3.8-flash-next-strata,qwen3.8-flash-next-strata.llmkube.svc.cluster.local"
+  extraVolumes:
+    - name: strata-data
+      persistentVolumeClaim:
+        claimName: llmkube-strata-data
+    - name: tmp
+      emptyDir:
+        sizeLimit: 2Gi
+    - name: run
+      emptyDir:
+        sizeLimit: 16Mi
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 2Gi
+  extraVolumeMounts:
+    - name: strata-data
+      mountPath: /data
+    - name: tmp
+      mountPath: /tmp
+    - name: run
+      mountPath: /run
+    - name: shm
+      mountPath: /dev/shm
+  probeOverrides:
+    startup:
+      httpGet:
+        path: /health
+        port: 8080
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 1080
+    readiness:
+      httpGet:
+        path: /health
+        port: 8080
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      httpGet:
+        path: /health
+        port: 8080
+      periodSeconds: 30
+      timeoutSeconds: 5
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - IPC_LOCK
+    seccompProfile:
+      type: RuntimeDefault

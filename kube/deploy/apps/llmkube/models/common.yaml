@@ -155,6 +155,8 @@ spec:
     - inferenceServiceRef:
         name: qwen3.8-flash-next-radiance
     - inferenceServiceRef:
+        name: qwen3.8-flash-next-strata
+    - inferenceServiceRef:
         name: muse-glimmer-radiance
     # - inferenceServiceRef:
     #     name: qwen3.6-35b-a3b-llama.cpp
@@ -187,6 +189,10 @@ spec:
       displayName: qwen3.8-flash-next
       inferenceServiceRef:
         name: qwen3.8-flash-next-radiance
+    - name: qwen3-8-flash-next-strata
+      displayName: qwen3.8-flash-next
+      inferenceServiceRef:
+        name: qwen3.8-flash-next-strata
     - name: muse-glimmer-radiance
       displayName: muse-glimmer
       inferenceServiceRef:
@@ -261,7 +267,8 @@ spec:
           - qwen3.8-flash-next
       route:
         backends:
-          - qwen3-8-flash-next-radiance
+          - qwen3-8-flash-next-strata
+          # - qwen3-8-flash-next-radiance
         poolActivation: Wait
     - name: muse-glimmer
       match:
@@ -364,6 +371,7 @@ spec:
           - qwen3-8-27b-radiance
           - qwen3-8-27b-pro-radiance
           - qwen3-8-27b-context-radiance
+          - qwen3-8-flash-next-strata
           - qwen3-8-flash-next-radiance
           - muse-glimmer-radiance
         poolActivation: IfIdle
