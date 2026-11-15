@@ -246,3 +246,58 @@ memory-intensive workloads.
 5. Verify AMDGPU is Talos-managed, privileged access is confined to
    kube-amd-gpu, and expand the abbreviated model revision `60bd413`
    to an independently verified complete SHA prior to production rollout.
+
+## Qwen3.8 Flash Next Gyro-M on the Radeon AI PRO R9700
+
+The model `qwen3.8-flash-next-gyro-m` is a separate **text-only** Strata
+generic-runtime `InferenceService`, selected through ModelRouter using the
+same public model ID. It is included in the existing sticky `sinon-r9700`
+ModelPool and the text-only `auto` rule. It is deliberately excluded from
+`auto-vision`, because the picture reader is disabled to preserve VRAM.
+
+- Strata's official gfx120x HIP container is pinned to release 0.2.13 and its
+  OCI digest; the GGUF is pinned to the agentionai revision used by Strata.
+  Its expected SHA-256 is recorded in the Model manifest.
+- The one R9700 is allocated through the existing `llmkube/r9700` DRA claim.
+  Context is **180,000**, `PARALLEL=1`, and `KV=int8`. **INT8 is not
+  FP8:** Strata exposes INT8, K8V4, Q4_0, FP16, but does not expose FP8 KV.
+  Passing `fp8` to Strata would not be a valid configuration.
+- Gyro-M needs about 35 GB of GPU+system memory for weights; it does **not**
+  all fit in 32 GB VRAM. Strata's automatic expert cache fills the available
+  R9700 memory, and uncached experts fall back to host RAM or SSD. The 28.8 GB
+  n-gram/PLE table stays on the node's **local SSD**. `STRATA_PLE_AUTO_RAM=0`
+  prevents it consuming the host's scarce system RAM.
+- Vision is off. Strata's automatic MTP draft is retained for decode speed;
+  `TUNE=quick` does a one-time tune stored in `llmkube-strata-data`.
+  Architecture-specific, unmeasured HIP optimizations are intentionally left
+  at their upstream defaults. System-RAM headroom is 6 GiB to reduce host OOM
+  risk when Strata is sharing the 32 GB DDR4 machine with Kubernetes.
+- LLMKube's prefetch Job downloads the 92 GB GGUF into `llmkube-models`.
+  Strata writes only its prepared pack/draft/tuning state to
+  `llmkube-strata-data`. **Important:** on first start Strata independently
+  downloads the separately pinned MTP source and prepares its draft model.
+  The `llmkube-strata-gyro-m-preparation` Cilium policy restricts outbound
+  HTTPS/DNS to Hugging Face and **only this backend's pod**. Other inference
+  pods retain zero egress. If full inference-pod offline operation becomes
+  mandatory, pre-stage all of Strata's MTP preparation inputs to `/data`
+  with a dedicated preparation Job and remove this policy.
+- Strata backend authentication is disabled solely because ModelRouter does
+  not inject backend-specific API credentials. The backend is only accessible
+  through the existing internal-only Cilium ingress policy; Strata's
+  `STRATA_ALLOWED_HOSTS` further limits accepted Host headers. Do not expose
+  its ClusterIP outside this trusted network path.
+
+**Before relying on this service:** verify the generated DRA mount includes
+`/dev/kfd` and the R9700 render node accessible to non-root UID; check that
+the source SHA and 92 GB file are correctly prefetched; verify SSD free space
+for both the original GGUF and its prepared pack/MTP; verify 180K context
+capacity, full-length prompt recall, OOM pressure, and that Strata reports
+exactly one HIP GPU and one parallel slot. Validate that Strata's `/metrics`
+exposes `vllm:num_requests_running` when `format=prometheus` is selected.
+If the `RuntimeDefault` seccomp profile prevents ROCm buffer pinning, fix
+the specific syscall restriction rather than broadly making the model
+privileged or allowing arbitrary host devices.
+
+No R9700 180K benchmark, actual OOM ceiling or successful startup is claimed
+until measured on `sinon`; numerical capacity and throughput depend on how
+many experts the automatic cache retains.
