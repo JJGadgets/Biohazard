@@ -1,0 +1,28 @@
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3.8-flash-next-radiance
+  namespace: llmkube
+spec:
+  source: hf://StillDeadcode/qwen3.8-next-flash-iqr-v4@679c943216e5a33da5f458b5da378586219e874b
+  files:
+    - qwen3.8-next-flash-iqr-v4.rad
+  format: custom
+  quantization: IQR-V4-4bit
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: rocm
+    gpu:
+      enabled: true
+      vendor: amd
+      count: 1
+      # DRA owns placement; the existing claim can be shared within llmkube.
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: r9700
