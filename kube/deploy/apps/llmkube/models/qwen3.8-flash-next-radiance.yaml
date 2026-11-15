@@ -62,7 +62,7 @@ spec:
     gpu: 1
     cpu: "2"
     memory: 26Gi
-    memoryLimit: 29Gi
+    memoryLimit: 26Gi
   parallelSlots: 1
   startupTimeout: 45m
   # Roll only when vllm:num_requests_running is 0, else after 15 min.
@@ -231,6 +231,7 @@ data:
         kv-cache-dtype: i8
         num-speculative-tokens: 0
         prefix-cache-mib: 0
+        host-pool-mib: 20480
         placement: expert_tiered
         weights-disk-tier: true
         ngram-placement: disk
