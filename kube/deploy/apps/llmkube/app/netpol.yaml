@@ -218,3 +218,38 @@ spec:
               - method: GET
                 path: "^/metrics$"
   egress: []
+---
+# The LLMKube model prefetch Job downloads the pinned 92 GB GGUF. Strata must
+# separately obtain the MTP draft model during first-start preparation.
+# Only the opt-in Strata pod receives HF egress, not other inference backends.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: llmkube-strata-gyro-m-preparation
+  namespace: llmkube
+spec:
+  endpointSelector:
+    matchLabels:
+      llmkube.home.arpa/gyro-m-preparation: "true"
+  egress:
+    - toFQDNs: &strataHfDomains
+        - matchName: huggingface.co
+        - matchPattern: "*.huggingface.co"
+        - matchName: hf.co
+        - matchPattern: "*.hf.co"
+        - matchPattern: "*.*.hf.co"
+        - matchPattern: "*.*.*.hf.co"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns: *strataHfDomains

@@ -155,6 +155,8 @@ spec:
     - inferenceServiceRef:
         name: qwen3.8-flash-next-radiance
     - inferenceServiceRef:
+        name: qwen3.8-flash-next-gyro-m-strata
+    - inferenceServiceRef:
         name: muse-glimmer-radiance
     # - inferenceServiceRef:
     #     name: qwen3.6-35b-a3b-llama.cpp
@@ -187,6 +189,10 @@ spec:
       displayName: qwen3.8-flash-next
       inferenceServiceRef:
         name: qwen3.8-flash-next-radiance
+    - name: qwen3-8-flash-next-gyro-m-strata
+      displayName: qwen3.8-flash-next-gyro-m
+      inferenceServiceRef:
+        name: qwen3.8-flash-next-gyro-m-strata
     - name: muse-glimmer-radiance
       displayName: muse-glimmer
       inferenceServiceRef:
@@ -262,6 +268,14 @@ spec:
       route:
         backends:
           - qwen3-8-flash-next-radiance
+        poolActivation: Wait
+    - name: qwen3-8-flash-next-gyro-m
+      match:
+        models:
+          - qwen3.8-flash-next-gyro-m
+      route:
+        backends:
+          - qwen3-8-flash-next-gyro-m-strata
         poolActivation: Wait
     - name: muse-glimmer
       match:
@@ -365,6 +379,7 @@ spec:
           - qwen3-8-27b-pro-radiance
           - qwen3-8-27b-context-radiance
           - qwen3-8-flash-next-radiance
+          - qwen3-8-flash-next-gyro-m-strata
           - muse-glimmer-radiance
         poolActivation: IfIdle
     - name: auto-vision-pool # use whatever vision-capable LLM is currently loaded, or load Qwen 3.8 27B Pro if idle and not already loaded. this pool exists to only allow requests to route to vision-capable models.
