@@ -142,10 +142,9 @@ spec:
   nodeSelector:
     kubernetes.io/hostname: sinon
   gpu: 1
-  swapPolicy: reclaim
-  default: qwen3.8-27b-radiance
+  swapPolicy: sticky
+  default: qwen3.8-27b-pro-radiance
   swapBudget: 900s
-  reclaimAfter: 15m
   members:
     - inferenceServiceRef:
         name: qwen3.8-27b-radiance
