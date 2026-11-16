@@ -204,7 +204,7 @@ spec:
       restartPolicy: Never
       automountServiceAccountToken: false
       enableServiceLinks: false
-      runtimeClassName: gvisor
+      # runtimeClassName: gvisor
 
       nodeSelector:
         kubernetes.io/hostname: sinon
