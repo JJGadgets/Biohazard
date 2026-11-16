@@ -1,248 +1,248 @@
----
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: Model
-metadata:
-  name: qwen3.8-flash-next-radiance
-  namespace: llmkube
-spec:
-  source: hf://StillDeadcode/qwen3.8-next-flash-iqr-v4@679c943216e5a33da5f458b5da378586219e874b
-  files:
-    - qwen3.8-next-flash-iqr-v4.rad
-  format: custom
-  quantization: IQR-V4-4bit
-  prefetchNodeSelector:
-    kubernetes.io/hostname: sinon
-  prefetchTolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
-  hardware:
-    accelerator: rocm
-    gpu:
-      enabled: true
-      vendor: amd
-      count: 1
-      # DRA owns placement; the existing claim can be shared within llmkube.
-      resourceClaims:
-        - name: gpu
-          resourceClaimName: r9700
----
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: InferenceService
-metadata:
-  name: qwen3.8-flash-next-radiance
-  namespace: llmkube
-  annotations:
-    inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
-    inference.llmkube.dev/idle-metric-threshold: "0"
-    inference.llmkube.dev/idle-metric-path: "/metrics"
-spec:
-  podLabels:
-    prom.home.arpa/kps: allow
-  podAnnotations:
-    fluentbit.io/parser: "logfmt"
-  modelRef: qwen3.8-flash-next-radiance
-  runtime: generic
-  # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
-  image: docker.io/stilldeadcode/radiance:2.0.0@sha256:5ee52dc14c77a4e7756cc8a1baed000f579b306ad0c9f2e470c3a00f94de5f5e
-  nodeSelector:
-    kubernetes.io/hostname: sinon
-  tolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
-  endpoint:
-    port: 8000
-    type: ClusterIP
-  modelCache:
-    claimName: llmkube-models
-    prefetch: true
-  stageModel: true
-  resources:
-    gpu: 1
-    cpu: "2"
-    memory: 26Gi
-    memoryLimit: 26Gi
-  parallelSlots: 1
-  startupTimeout: 45m
-  # Roll only when vllm:num_requests_running is 0, else after 15 min.
-  rolloutPolicy:
-    waitForIdle: true
-    idleTimeoutSeconds: 900
-  # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
-  args:
-    - --config
-    - /config/config.yaml
-  # args:
-  #   - --live # log tokens per second
-  #   - --model
-  #   - "$(LLMKUBE_MODEL_PATH)"
-  #   - --served-model-name
-  #   - qwen3.8-flash-next-radiance
-  #   - --host
-  #   - 0.0.0.0
-  #   - --port
-  #   - "8000"
-  #   - --tp
-  #   - "1"
-  #   - --max-model-len
-  #   - "8192"
-  #   - --max-num-seqs
-  #   - "1"
-  #   - --max-num-batched-tokens
-  #   - "1024"
-  #   - --kv-cache-dtype
-  #   - k6_v4
-  #   - --state-cache-dtype
-  #   - f16
-  #   - --attn-prefill-fp8
-  #   - both
-  #   - --num-speculative-tokens
-  #   - "0" # TODO: test this out, starting with 3
-  #   # Leave only the recommended kernel/driver headroom; reserve the rest for
-  #   # model weights and paged FP8 KV in Radiance's automatic placement planner.
-  #   - --gpu-headroom-mib
-  #   - "24"
-  #   - --prefix-cache-mib
-  #   - "0"
-  #   - --host-headroom-mib
-  #   - "1024"
-  #   - --placement
-  #   - expert_tiered
-  #   - --weights-disk-tier # because not all MoE routed weights can fit in either VRAM or RAM
-  #   - --ngram-placement
-  #   - disk
-  #   - --embedding-placement
-  #   - ram
-  #   - --mm-max-patches
-  #   - "0" # disable mmproj
-  #   - --override-chat-template
-  #   - /chat-template/ffba7aa4ee3093e1/chat_template.jinja
-  #   - --chat-template-kwargs
-  #   - '{"preserve_thinking":true}'
-  #   - --no-cors
-  #   - --temp
-  #   - "1.0"
-  #   - --top-k
-  #   - "20"
-  #   - --top-p
-  #   - "0.95"
-  #   - --min-p
-  #   - "0.0"
-  #   - --presence-penalty
-  #   - "0.0"
-  #   - --repetition-penalty
-  #   - "1.0"
-  #   - --reasoning-effort
-  #   - medium
-  env:
-    - name: TZ
-      value: Asia/Singapore
-    - name: HOME
-      value: /tmp
-    - name: XDG_CACHE_HOME
-      value: /tmp
-    - name: HF_HUB_OFFLINE
-      value: "1"
-    - name: TMPDIR
-      value: /tmp
-  extraVolumes:
-    - name: chat-template
-      persistentVolumeClaim:
-        claimName: llmkube-templates
-        readOnly: true
-    - name: tmp
-      emptyDir:
-        sizeLimit: 1Gi
-    - name: config
-      configMap:
-        name: qwen3.8-flash-next-radiance
-  extraVolumeMounts:
-    - name: chat-template
-      mountPath: /chat-template
-      readOnly: true
-    - name: tmp
-      mountPath: /tmp
-    - name: config
-      subPath: config.yaml
-      mountPath: /config/config.yaml
-  probeOverrides:
-    startup:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 10
-      timeoutSeconds: 5
-      failureThreshold: 270
-    readiness:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 10
-      timeoutSeconds: 5
-    liveness:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 30
-      timeoutSeconds: 5
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroupChangePolicy: OnRootMismatch
-    seccompProfile:
-      type: Unconfined # io_uring needs this
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    readOnlyRootFilesystem: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: Unconfined
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: qwen3.8-flash-next-radiance
-  namespace: llmkube
-data:
-  config.yaml: |
-    server:
-      live: true
-      host: 0.0.0.0
-      port: 8000
-      no-cors: true
-    memory:
-      gpu-headroom-mib: 24
-      host-headroom-mib: 1024
-    models:
-      qwen3.8-flash-next-radiance:
-        model: /models/5032f393ab544bdf/qwen3.8-next-flash-iqr-v4.rad
-        tp: 1
-        max-model-len: 8192
-        max-num-seqs: 1
-        max-num-batched-tokens: 1024
-        kv-cache-dtype: i8
-        num-speculative-tokens: 0
-        prefix-cache-mib: 0
-        host-pool-mib: 20480
-        placement: expert_tiered
-        weights-disk-tier: true
-        ngram-placement: disk
-        embedding-placement: ram
-        mm-max-patches: 0
-        override-chat-template: /chat-template/ffba7aa4ee3093e1/chat_template.jinja
-        chat-template-kwargs: {"preserve_thinking":true}
-        temp: 1.0
-        top-k: 20
-        top-p: 0.95
-        min-p: 0.0
-        presence-penalty: 0.0
-        repetition-penalty: 1.0
-        reasoning-effort: medium
+# ---
+# apiVersion: inference.llmkube.dev/v1alpha1
+# kind: Model
+# metadata:
+#   name: qwen3.8-flash-next-radiance
+#   namespace: llmkube
+# spec:
+#   source: hf://StillDeadcode/qwen3.8-next-flash-iqr-v4@679c943216e5a33da5f458b5da378586219e874b
+#   files:
+#     - qwen3.8-next-flash-iqr-v4.rad
+#   format: custom
+#   quantization: IQR-V4-4bit
+#   prefetchNodeSelector:
+#     kubernetes.io/hostname: sinon
+#   prefetchTolerations:
+#     - key: llm.internal
+#       operator: Exists
+#       effect: NoSchedule
+#   hardware:
+#     accelerator: rocm
+#     gpu:
+#       enabled: true
+#       vendor: amd
+#       count: 1
+#       # DRA owns placement; the existing claim can be shared within llmkube.
+#       resourceClaims:
+#         - name: gpu
+#           resourceClaimName: r9700
+# ---
+# apiVersion: inference.llmkube.dev/v1alpha1
+# kind: InferenceService
+# metadata:
+#   name: qwen3.8-flash-next-radiance
+#   namespace: llmkube
+#   annotations:
+#     inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
+#     inference.llmkube.dev/idle-metric-threshold: "0"
+#     inference.llmkube.dev/idle-metric-path: "/metrics"
+# spec:
+#   podLabels:
+#     prom.home.arpa/kps: allow
+#   podAnnotations:
+#     fluentbit.io/parser: "logfmt"
+#   modelRef: qwen3.8-flash-next-radiance
+#   runtime: generic
+#   # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
+#   image: docker.io/stilldeadcode/radiance:2.0.0@sha256:5ee52dc14c77a4e7756cc8a1baed000f579b306ad0c9f2e470c3a00f94de5f5e
+#   nodeSelector:
+#     kubernetes.io/hostname: sinon
+#   tolerations:
+#     - key: llm.internal
+#       operator: Exists
+#       effect: NoSchedule
+#   endpoint:
+#     port: 8000
+#     type: ClusterIP
+#   modelCache:
+#     claimName: llmkube-models
+#     prefetch: true
+#   stageModel: true
+#   resources:
+#     gpu: 1
+#     cpu: "2"
+#     memory: 26Gi
+#     memoryLimit: 26Gi
+#   parallelSlots: 1
+#   startupTimeout: 45m
+#   # Roll only when vllm:num_requests_running is 0, else after 15 min.
+#   rolloutPolicy:
+#     waitForIdle: true
+#     idleTimeoutSeconds: 900
+#   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
+#   args:
+#     - --config
+#     - /config/config.yaml
+#   # args:
+#   #   - --live # log tokens per second
+#   #   - --model
+#   #   - "$(LLMKUBE_MODEL_PATH)"
+#   #   - --served-model-name
+#   #   - qwen3.8-flash-next-radiance
+#   #   - --host
+#   #   - 0.0.0.0
+#   #   - --port
+#   #   - "8000"
+#   #   - --tp
+#   #   - "1"
+#   #   - --max-model-len
+#   #   - "8192"
+#   #   - --max-num-seqs
+#   #   - "1"
+#   #   - --max-num-batched-tokens
+#   #   - "1024"
+#   #   - --kv-cache-dtype
+#   #   - k6_v4
+#   #   - --state-cache-dtype
+#   #   - f16
+#   #   - --attn-prefill-fp8
+#   #   - both
+#   #   - --num-speculative-tokens
+#   #   - "0" # TODO: test this out, starting with 3
+#   #   # Leave only the recommended kernel/driver headroom; reserve the rest for
+#   #   # model weights and paged FP8 KV in Radiance's automatic placement planner.
+#   #   - --gpu-headroom-mib
+#   #   - "24"
+#   #   - --prefix-cache-mib
+#   #   - "0"
+#   #   - --host-headroom-mib
+#   #   - "1024"
+#   #   - --placement
+#   #   - expert_tiered
+#   #   - --weights-disk-tier # because not all MoE routed weights can fit in either VRAM or RAM
+#   #   - --ngram-placement
+#   #   - disk
+#   #   - --embedding-placement
+#   #   - ram
+#   #   - --mm-max-patches
+#   #   - "0" # disable mmproj
+#   #   - --override-chat-template
+#   #   - /chat-template/ffba7aa4ee3093e1/chat_template.jinja
+#   #   - --chat-template-kwargs
+#   #   - '{"preserve_thinking":true}'
+#   #   - --no-cors
+#   #   - --temp
+#   #   - "1.0"
+#   #   - --top-k
+#   #   - "20"
+#   #   - --top-p
+#   #   - "0.95"
+#   #   - --min-p
+#   #   - "0.0"
+#   #   - --presence-penalty
+#   #   - "0.0"
+#   #   - --repetition-penalty
+#   #   - "1.0"
+#   #   - --reasoning-effort
+#   #   - medium
+#   env:
+#     - name: TZ
+#       value: Asia/Singapore
+#     - name: HOME
+#       value: /tmp
+#     - name: XDG_CACHE_HOME
+#       value: /tmp
+#     - name: HF_HUB_OFFLINE
+#       value: "1"
+#     - name: TMPDIR
+#       value: /tmp
+#   extraVolumes:
+#     - name: chat-template
+#       persistentVolumeClaim:
+#         claimName: llmkube-templates
+#         readOnly: true
+#     - name: tmp
+#       emptyDir:
+#         sizeLimit: 1Gi
+#     - name: config
+#       configMap:
+#         name: qwen3.8-flash-next-radiance
+#   extraVolumeMounts:
+#     - name: chat-template
+#       mountPath: /chat-template
+#       readOnly: true
+#     - name: tmp
+#       mountPath: /tmp
+#     - name: config
+#       subPath: config.yaml
+#       mountPath: /config/config.yaml
+#   probeOverrides:
+#     startup:
+#       httpGet:
+#         path: /health
+#         port: 8000
+#       periodSeconds: 10
+#       timeoutSeconds: 5
+#       failureThreshold: 270
+#     readiness:
+#       httpGet:
+#         path: /health
+#         port: 8000
+#       periodSeconds: 10
+#       timeoutSeconds: 5
+#     liveness:
+#       httpGet:
+#         path: /health
+#         port: 8000
+#       periodSeconds: 30
+#       timeoutSeconds: 5
+#   podSecurityContext:
+#     runAsNonRoot: true
+#     runAsUser: ${APP_UID_LLMKUBE:=65536}
+#     runAsGroup: ${APP_UID_LLMKUBE:=65536}
+#     fsGroup: ${APP_UID_LLMKUBE:=65536}
+#     fsGroupChangePolicy: OnRootMismatch
+#     seccompProfile:
+#       type: Unconfined # io_uring needs this
+#   securityContext:
+#     runAsNonRoot: true
+#     runAsUser: ${APP_UID_LLMKUBE:=65536}
+#     runAsGroup: ${APP_UID_LLMKUBE:=65536}
+#     readOnlyRootFilesystem: true
+#     allowPrivilegeEscalation: false
+#     capabilities:
+#       drop:
+#         - ALL
+#     seccompProfile:
+#       type: Unconfined
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: qwen3.8-flash-next-radiance
+#   namespace: llmkube
+# data:
+#   config.yaml: |
+#     server:
+#       live: true
+#       host: 0.0.0.0
+#       port: 8000
+#       no-cors: true
+#     memory:
+#       gpu-headroom-mib: 24
+#       host-headroom-mib: 1024
+#     models:
+#       qwen3.8-flash-next-radiance:
+#         model: /models/5032f393ab544bdf/qwen3.8-next-flash-iqr-v4.rad
+#         tp: 1
+#         max-model-len: 8192
+#         max-num-seqs: 1
+#         max-num-batched-tokens: 1024
+#         kv-cache-dtype: i8
+#         num-speculative-tokens: 0
+#         prefix-cache-mib: 0
+#         host-pool-mib: 20480
+#         placement: expert_tiered
+#         weights-disk-tier: true
+#         ngram-placement: disk
+#         embedding-placement: ram
+#         mm-max-patches: 0
+#         override-chat-template: /chat-template/ffba7aa4ee3093e1/chat_template.jinja
+#         chat-template-kwargs: {"preserve_thinking":true}
+#         temp: 1.0
+#         top-k: 20
+#         top-p: 0.95
+#         min-p: 0.0
+#         presence-penalty: 0.0
+#         repetition-penalty: 1.0
+#         reasoning-effort: medium
