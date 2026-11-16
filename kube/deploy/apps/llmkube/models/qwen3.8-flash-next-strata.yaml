@@ -181,3 +181,164 @@ spec:
         - IPC_LOCK
     seccompProfile:
       type: RuntimeDefault
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3-8-flash-next-mtp-prepare
+  namespace: llmkube
+  labels:
+    app.kubernetes.io/name: strata-mtp-prepare
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 28800
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: strata-mtp-prepare
+        # Reuse the existing llmkube-model-prefetch Cilium policy.
+        app.kubernetes.io/component: model-prefetch
+
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      runtimeClassName: gvisor
+
+      nodeSelector:
+        kubernetes.io/hostname: sinon
+
+      tolerations:
+        - key: llm.internal
+          operator: Exists
+          effect: NoSchedule
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: ${APP_UID_LLMKUBE:=65536}
+        runAsGroup: ${APP_UID_LLMKUBE:=65536}
+        fsGroup: ${APP_UID_LLMKUBE:=65536}
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: prepare
+          # Matches the existing Strata InferenceService.
+          image: ghcr.io/niko1221/strata:0.2.13-rocm-gfx120x@sha256:c68ebd4ecbf73f7f450bea4a60bbc014be83d78c9fbfbdc16df6f553cb442235
+          imagePullPolicy: IfNotPresent
+
+          # Bypass the serving entrypoint.
+          # Run the image's bundled, version-matched preparation tools.
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              set -eu
+
+              ROOT=/opt/strata/terminal
+              PY="$ROOT/python/bin/python3"
+              MTP=/data/Strata-data/mtp
+              RT="$MTP/rt"
+
+              # Published SHA-256s from upstream Strata benchmarks.
+              verify_runtime() {
+                printf '%s\n' \
+                  '09398406be61f1f54c93861f449e48b8df0bfccbc9ec9b2b7636775a6ea9244f  experts.bin' \
+                  'c724dc0b0822ada5d2977bf5beabaa64ea2e0045b67ca656329070a  dense.bin' \
+                  '991456cf4eb266eb8a888c349e548d11bc640f5dbd9149439aa9786af0f732fd  dense.txt' \
+                  'b1e1d3a7a9e4bf862dcd5923ce661fb59bbd07907e594df5cf86a62ac235cb91  draft_vocab.bin' \
+                  | sha256sum -c -
+              }
+
+              mkdir -p "$MTP"
+
+              # Idempotent: accept only a complete, verified runtime.
+              if [ -e "$RT" ]; then
+                if [ -d "$RT" ] && (cd "$RT" && verify_runtime); then
+                  echo 'Verified MTP runtime already present.'
+                  exit 0
+                fi
+                echo 'Existing MTP runtime failed verification; refusing to overwrite.' >&2
+                exit 1
+              fi
+
+              # Download approximately 5.2 GB of the original Qwen
+              # checkpoint's MTP tensors (not the full BF16 model).
+              "$PY" "$ROOT/tools/mtp_fetch.py" fetch \
+                --out "$MTP"
+
+              # Verify all 31 tensors against Strata's pinned SHA-256s.
+              "$PY" "$ROOT/tools/mtp_fetch.py" verify \
+                --out "$MTP"
+
+              # Quantize the MTP experts to Q2_0.
+              "$PY" "$ROOT/tools/mtp_pack.py" \
+                --src "$MTP" \
+                --experts q2_0 \
+                --out "$MTP/mtp-q2_0.gguf"
+
+              # Prepare separately to prevent publishing partial files.
+              stage="$(mktemp -d "$MTP/.rt-preparing.XXXXXXXX")"
+              trap 'rm -rf "$stage"' EXIT
+
+              "$PY" "$ROOT/tools/mtp_rt.py" \
+                --gguf "$MTP/mtp-q2_0.gguf" \
+                --out "$stage"
+
+              cp "$ROOT/data/draft_vocab.bin" \
+                "$stage/draft_vocab.bin"
+
+              # Refuse to publish unexpected conversion outputs.
+              (cd "$stage" && verify_runtime)
+
+              # Atomic publication on the same filesystem.
+              mv -T -- "$stage" "$RT"
+              trap - EXIT
+
+              echo 'MTP runtime ready: /data/Strata-data/mtp/rt'
+
+          env:
+            - name: STRATA_MTP_REVISION
+              value: de4b8e4d43b917e7706784d8bb445c9af86a3540
+            - name: STRATA_ALLOW_UNPINNED
+              value: "0"
+            - name: STRATA_GGUF_PY
+              value: /opt/strata/seed/third_party/llama.cpp/gguf-py
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: PYTHONNOUSERSITE
+              value: "1"
+            - name: TMPDIR
+              value: /tmp
+
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 6Gi
+
+          volumeMounts:
+            - name: strata-data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: strata-data
+          persistentVolumeClaim:
+            claimName: llmkube-strata-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
