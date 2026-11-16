@@ -99,6 +99,25 @@ spec:
     - backendRefs:
         - name: llmkube
           port: 80
+---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: ModelPool
+metadata:
+  name: sinon-embed
+  namespace: llmkube
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  gpu: 1
+  swapPolicy: sticky
+  default: qwen3-embedding-4b
+  swapBudget: 900s
+  members:
+    - inferenceServiceRef:
+        name: qwen3-embedding-4b
+    - inferenceServiceRef:
+        name: qwen3-embedding-0.6b
 # ---
 # # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
 # apiVersion: inference.llmkube.dev/v1alpha1
@@ -225,6 +244,10 @@ spec:
       displayName: qwen3-embedding-0.6b
       inferenceServiceRef:
         name: qwen3-embedding-0.6b
+    - name: qwen3-embedding-4b
+      displayName: qwen3-embedding-4b
+      inferenceServiceRef:
+        name: qwen3-embedding-4b
     - name: qwen3-reranker-0-6b
       displayName: qwen3-reranker-0.6b
       inferenceServiceRef:
@@ -345,6 +368,14 @@ spec:
       route:
         backends:
           - qwen3-embedding-0-6b
+        poolActivation: Wait
+    - name: qwen3-embedding-4b-pool
+      match:
+        models:
+          - qwen3-embedding-4b
+      route:
+        backends:
+          - qwen3-embedding-4b
         poolActivation: Wait
     - name: qwen3-reranker-0-6b-pool
       match:
