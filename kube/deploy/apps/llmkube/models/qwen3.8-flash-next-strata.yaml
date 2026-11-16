@@ -67,7 +67,8 @@ spec:
     gpu: 1
     cpu: "10m"
     memory: 20Gi
-    # Deliberately no memoryLimit: Strata sizes host expert residency against
+    memoryLimit: 99Gi
+    # Deliberately high memoryLimit: Strata sizes host expert residency against
     # MemAvailable, and upstream warns a cgroup limit can cause false-fit OOMs.
   parallelSlots: 1
   startupTimeout: 180m
@@ -93,6 +94,10 @@ spec:
       value: int8 # 8-bit integer KV. Strata does not currently implement FP8 KV.
     - name: GPU
       value: "0" # DRA makes the single R9700 the only visible HIP device.
+    - name: STRATA_ENGINE_BACKEND
+      value: hip
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: void
     - name: TUNE
       value: quick # One-time, retained on /data across model swaps.
     - name: STRATA_PLE_AUTO_RAM
