@@ -91,11 +91,11 @@ spec:
     - --kv-cache-dtype
     - fp8
     - --num-speculative-tokens
-    - "0" # TODO: test this out, starting with 3
+    - "3" # TODO: test this out, starting with 3
     # Leave only the recommended kernel/driver headroom; reserve the rest for
     # model weights and paged FP8 KV in Radiance's automatic placement planner.
     - --gpu-headroom-mib
-    - "96"
+    - "50"
     # Radiance uses MiB for the pinned CPU-side conversation KV cache.
     - --prefix-cache-mib
     - "12288"
@@ -242,7 +242,7 @@ spec:
     - --tp
     - "1"
     - --max-model-len
-    - "200000"
+    - "180000"
     - --max-num-seqs
     - "6"
     - --kv-cache-dtype
@@ -250,11 +250,11 @@ spec:
     - --state-cache-dtype
     - f32
     - --num-speculative-tokens
-    - "0"
+    - "3"
     # Leave only the recommended kernel/driver headroom; reserve the rest for
     # model weights and paged FP8 KV in Radiance's automatic placement planner.
     - --gpu-headroom-mib
-    - "96"
+    - "50"
     # Radiance uses MiB for the pinned CPU-side conversation KV cache.
     - --prefix-cache-mib
     - "12288"
