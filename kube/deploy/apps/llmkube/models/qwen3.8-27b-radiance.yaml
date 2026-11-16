@@ -63,8 +63,8 @@ spec:
   resources:
     gpu: 1
     cpu: "2"
-    memory: 26Gi
-    memoryLimit: 26Gi
+    memory: 24Gi
+    memoryLimit: 24Gi
   parallelSlots: 10
   startupTimeout: 45m
   # Roll only when vllm:num_requests_running is 0, else after 15 min.
@@ -220,8 +220,8 @@ spec:
   resources:
     gpu: 1
     cpu: "2"
-    memory: 26Gi
-    memoryLimit: 26Gi
+    memory: 24Gi
+    memoryLimit: 24Gi
   parallelSlots: 6
   startupTimeout: 45m
   # Roll only when vllm:num_requests_running is 0, else after 15 min.
@@ -403,8 +403,8 @@ spec:
   resources:
     gpu: 1
     cpu: "2"
-    memory: 26Gi
-    memoryLimit: 26Gi
+    memory: 24Gi
+    memoryLimit: 24Gi
   parallelSlots: 10
   startupTimeout: 45m
   # Roll only when vllm:num_requests_running is 0, else after 15 min.
