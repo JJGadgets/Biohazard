@@ -32,6 +32,7 @@ spec:
         - name: gpu
           resourceClaimName: r9700
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/inferenceservice_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: InferenceService
 metadata:
@@ -89,7 +90,7 @@ spec:
     - name: PARALLEL
       value: "1"
     - name: VISION
-      value: "off" # Preserve VRAM for 180K context/expert cache.
+      value: "off" # or "cpu" # Preserve VRAM for 180K context/expert cache.
     - name: KV
       value: int8 # 8-bit integer KV. Strata does not currently implement FP8 KV.
     - name: GPU
@@ -112,6 +113,9 @@ spec:
       value: none
     - name: STRATA_ALLOWED_HOSTS
       value: "llmkube,${APP_DNS_LLMKUBE:=llmkube},qwen3-8-flash-next-strata,qwen3-8-flash-next-strata.llmkube.svc,qwen3-8-flash-next-strata.llmkube.svc.cluster.local,qwen3.8-flash-next-strata,qwen3.8-flash-next-strata.llmkube.svc.cluster.local"
+  extraArgs:
+    - --draft-model
+    - /models/a27213d0a2171c21/mtp-Qwen3.8-Flash-Next-draft.gguf
   extraVolumes:
     - name: strata-data
       persistentVolumeClaim:
