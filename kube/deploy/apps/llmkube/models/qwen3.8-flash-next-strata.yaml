@@ -113,7 +113,7 @@ spec:
       value: none
     - name: STRATA_ALLOWED_HOSTS
       value: "llmkube,${APP_DNS_LLMKUBE:=llmkube},qwen3-8-flash-next-strata,qwen3-8-flash-next-strata.llmkube.svc,qwen3-8-flash-next-strata.llmkube.svc.cluster.local,qwen3.8-flash-next-strata,qwen3.8-flash-next-strata.llmkube.svc.cluster.local"
-  extraArgs:
+  args:
     - --draft-model
     - /models/a27213d0a2171c21/mtp-Qwen3.8-Flash-Next-draft.gguf
   extraVolumes:
