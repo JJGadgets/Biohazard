@@ -98,7 +98,7 @@ spec:
     - "50"
     # Radiance uses MiB for the pinned CPU-side conversation KV cache.
     - --prefix-cache-mib
-    - "12288"
+    - "16384"
     # CPU-resident multimodal tower, with GPU execution of vision kernels.
     - --vision-tower-placement
     - ram
@@ -257,7 +257,7 @@ spec:
     - "50"
     # Radiance uses MiB for the pinned CPU-side conversation KV cache.
     - --prefix-cache-mib
-    - "12288"
+    - "16384"
     - --placement
     - all_vram
     - --embedding-placement
