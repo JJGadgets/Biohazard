@@ -32,8 +32,8 @@ spec:
               MEMINI_BACKEND: sqlite
               MEMINI_DEFAULT_NAMESPACE: default
               MEMINI_EMBED_BASE_URL: http://llmkube.llmkube.svc.cluster.local/v1
-              MEMINI_EMBED_MODEL: qwen3-embedding-0.6b # Qwen3-Embedding-0.6B, 1024-dim, 32k ctx
-              MEMINI_EMBED_DIMS: "1024"
+              MEMINI_EMBED_MODEL: qwen3-embedding-4b # Qwen3-Embedding-4B, 2560-dim, 16k ctx
+              MEMINI_EMBED_DIMS: "2560"
               MEMINI_EMBED_QUERY_PREFIX: "Instruct: Given a user message, retrieve relevant past memories\nQuery: "
               MEMINI_EMBED_MAX_CONCURRENCY: 4
               MEMINI_RECALL_EMBED_TIMEOUT: 15s
