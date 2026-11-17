@@ -45,7 +45,6 @@ spec:
     - key: llm.internal
       operator: Exists
       effect: NoSchedule
-  replicas: 1
   endpoint:
     port: 8080
     path: /v1/embeddings
@@ -174,7 +173,6 @@ spec:
     - key: llm.internal
       operator: Exists
       effect: NoSchedule
-  replicas: 1
   endpoint:
     port: 8080
     path: /v1/embeddings
