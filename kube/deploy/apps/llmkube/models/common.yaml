@@ -100,6 +100,24 @@ spec:
         - name: llmkube
           port: 80
 ---
+# yaml-language-server: $schema=https://kube-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: &app llmkube-router
+  namespace: llmkube
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: *app
+  connection:
+    bufferLimit: 1000Mi
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: "0s"
+---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/modelpool_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: ModelPool
@@ -399,8 +417,8 @@ spec:
           - auto
       route:
         backends:
-          - qwen3-8-27b-radiance
           - qwen3-8-27b-pro-radiance
+          - qwen3-8-27b-radiance
           - qwen3-8-27b-context-radiance
           - qwen3-8-flash-next-strata
           # - qwen3-8-flash-next-radiance
