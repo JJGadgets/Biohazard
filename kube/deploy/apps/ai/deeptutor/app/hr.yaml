@@ -22,6 +22,8 @@ spec:
             ingress.home.arpa/envoy-internal: allow
             ai.internal/llmkube: allow
             egress.internal/toolhive: allow
+            egress.internal/telegram: allow
+            egress.home.arpa/discord: allow
         containers:
           app:
             image: &img
