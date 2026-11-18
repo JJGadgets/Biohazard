@@ -293,8 +293,8 @@ spec:
     - "16384"
     - --placement
     - all_vram
-    - --embedding-placement
-    - vram
+    # - --embedding-placement
+    # - vram
     # CPU-resident multimodal tower, with GPU execution of vision kernels.
     - --vision-tower-placement
     - vram
