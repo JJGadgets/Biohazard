@@ -1,0 +1,52 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: pr-reviewer-secrets
+  namespace: pr-reviewer
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "pr-reviewer - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: pr-reviewer-secrets
+    template:
+      engineVersion: v2
+      type: Opaque
+      data:
+        private-key.pem: '{{ .GITHUB_APP_PRIVATE_KEY }}'
+        model-key: '{{ .MODEL_API_KEY }}'
+        dsn: '{{ .POSTGRES_DSN }}'
+---
+# Identifiers are not credentials. A distinct Secret provides just these
+# values to Flux postBuild, so sensitive PEM/DSN/API-key values cannot be
+# inadvertently substituted into rendered HelmRelease manifests.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: pr-reviewer-ids
+  namespace: pr-reviewer
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: 1p
+  dataFrom:
+    - extract:
+        key: "pr-reviewer - ${CLUSTER_NAME}"
+  target:
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    name: pr-reviewer-ids
+    template:
+      engineVersion: v2
+      type: Opaque
+      data:
+        PR_REVIEWER_GITHUB_APP_ID: '{{ .GITHUB_APP_ID }}'
+        PR_REVIEWER_GITHUB_INSTALLATION_ID: '{{ .GITHUB_INSTALLATION_ID }}'

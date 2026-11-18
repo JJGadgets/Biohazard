@@ -1,0 +1,49 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pr-reviewer-config
+  namespace: pr-reviewer
+  labels:
+    app.kubernetes.io/name: pr-reviewer
+spec:
+  targetNamespace: pr-reviewer
+  path: ./kube/deploy/apps/pr-reviewer/config
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+  healthChecks:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: pr-reviewer-secrets
+      namespace: pr-reviewer
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: pr-reviewer-ids
+      namespace: pr-reviewer
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pr-reviewer-app
+  namespace: pr-reviewer
+  labels:
+    app.kubernetes.io/name: pr-reviewer
+    # This Kustomization uses only the public GitHub App IDs from its
+    # dedicated Secret for Flux substitution, not the global secrets.
+    substitution.flux.home.arpa/disabled: "true"
+spec:
+  targetNamespace: pr-reviewer
+  path: ./kube/deploy/apps/pr-reviewer/app
+  dependsOn:
+    - name: crds
+      namespace: flux-system
+    - name: pr-reviewer-config
+      namespace: pr-reviewer
+    - name: 1-core-db-pg-clusters-home
+      namespace: flux-system
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: pr-reviewer-ids
+        optional: false

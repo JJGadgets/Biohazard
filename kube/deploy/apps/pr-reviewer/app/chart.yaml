@@ -1,0 +1,13 @@
+---
+# The upstream chart is shipped in Git, not as a published OCI chart.
+# Pin the source to the SAME commit used for both published OCI images.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: pr-reviewer-chart
+  namespace: pr-reviewer
+spec:
+  interval: 1h
+  url: https://github.com/misospace/pr-reviewer-action.git
+  ref:
+    commit: 1799b9f750a28764b0afc441a7e840acbfe50137
