@@ -70,6 +70,12 @@ spec:
           matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
+        # Upstream PR-reviewer Kubernetes worker Jobs have a fixed
+        # managed-by label and cannot be annotated via Helm pod values.
+        # Narrow the exception to these ephemeral workers only.
+        - matchLabels:
+            io.kubernetes.pod.namespace: pr-reviewer
+            app.kubernetes.io/managed-by: pr-reviewer-action
       toPorts:
         - ports:
             - port: "8080"
