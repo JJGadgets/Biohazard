@@ -1,0 +1,11 @@
+---
+# The current worker contract expects a local providers JSON file.
+# No external evidence commands or MCP tools execute by default.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pr-reviewer-evidence
+  namespace: pr-reviewer
+data:
+  providers.json: |
+    {"providers":[]}

@@ -1,0 +1,54 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pr-reviewer-controller
+  namespace: pr-reviewer
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: pr-reviewer
+      app.kubernetes.io/instance: pr-reviewer
+  ingress: []
+  egress:
+    # The controller needs GitHub App reads/writes and fetches PR sources.
+    # The shared labelled policies independently permit pg-home and the
+    # Kubernetes API only for the controller's opt-in pod labels.
+    - toFQDNs:
+        - matchName: api.github.com
+        - matchName: github.com
+        - matchPattern: "*.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pr-reviewer-worker
+  namespace: pr-reviewer
+spec:
+  # The upstream Kubernetes executor hardcodes this label on Job pods;
+  # it does not copy chart controller labels onto the worker.
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: pr-reviewer-action
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: llmkube
+            inference.llmkube.dev/model-router: llmkube-router
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.github.com
+        - matchName: github.com
+        - matchPattern: "*.githubusercontent.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

@@ -1,0 +1,187 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pr-reviewer
+  namespace: pr-reviewer
+spec:
+  interval: 5m
+  timeout: 15m
+  chart:
+    spec:
+      chart: ./deploy/charts/pr-reviewer
+      version: "0.1.0"
+      sourceRef:
+        kind: GitRepository
+        name: pr-reviewer-chart
+        namespace: pr-reviewer
+      reconcileStrategy: Revision
+  values:
+    controller:
+      enabled: true
+      instanceConfig: |-
+        version: 1
+        unknown-profile-policy: reject
+        forges:
+          - name: github
+            kind: github
+            endpoint: https://api.github.com
+            credential: github-app
+        model-profiles:
+          - name: primary
+            endpoint: http://llmkube.llmkube.svc.cluster.local/v1
+            api-format: openai
+            credential: model-key
+            model: auto
+            context-tokens: 180000
+        default-model-profile: primary
+        executor-profiles:
+          - name: k8s-jobs
+            kind: kubernetes
+            max-reviews: 1
+            kubernetes:
+              image: ghcr.io/misospace/pr-reviewer-worker@sha256:bae9e1c5e05daeba841db2c12e7ba770b1c46380698505059a8f04909802de63
+              args: []
+              namespace: pr-reviewer
+              service-account: pr-reviewer-worker
+              ttl-seconds-after-finished: 1800
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 512Mi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+              volumes:
+                - claim: pr-reviewer-runs
+                  controller-root: /var/lib/pr-reviewer/runs
+                - claim: pr-reviewer-workspace
+                  controller-root: /var/lib/pr-reviewer/cache
+        default-executor-profile: k8s-jobs
+        evidence-profiles:
+          - name: default
+            providers-file: /var/lib/pr-reviewer/cache/evidence-providers.json
+        default-evidence-profile: default
+        namespace-policies: []
+        adoption:
+          mode: allowlist
+          allowlist: [JJGadgets/Biohazard]
+          discovered-default: adopt
+        queue:
+          max-concurrent-reviews: 1
+
+      controlPlaneUrlExistingSecret:
+        name: pr-reviewer-secrets
+        key: dsn
+
+      # Outbound-only GitHub reconciliation. NO webhook receiver, Service,
+      # HTTPRoute, external load balancer, or GitHub ARC runner required.
+      webhook:
+        enabled: false
+      reconcile:
+        enabled: true
+        intervalMs: 300000
+        repos: [JJGadgets/Biohazard]
+        githubInstallationId: "${PR_REVIEWER_GITHUB_INSTALLATION_ID}"
+      forgeAuth:
+        platform: github
+        github:
+          appId: "${PR_REVIEWER_GITHUB_APP_ID}"
+          appPrivateKeyExistingSecret:
+            name: pr-reviewer-secrets
+            key: private-key.pem
+      credentials:
+        model-key:
+          existingSecret:
+            name: pr-reviewer-secrets
+            key: model-key
+      admin:
+        enabled: false
+        dashboard: false
+
+      defaultPodOptions:
+        automountServiceAccountToken: false
+        enableServiceLinks: false
+        runtimeClassName: gvisor
+        dnsConfig:
+          options:
+            - name: ndots
+              value: "1"
+
+      controllers:
+        main:
+          type: deployment
+          replicas: 1
+          strategy: Recreate
+          pod:
+            labels:
+              db.home.arpa/pg: pg-home
+              egress.home.arpa/apiserver: allow
+          initContainers:
+            evidence-config:
+              image:
+                repository: ghcr.io/misospace/pr-reviewer-controller
+                tag: sha-1799b9f750a28764b0afc441a7e840acbfe50137
+                digest: sha256:0abfb5f2c8179089fea7f92d6ff310e8962b7676621f10fc09a4440835c5d946
+              command: [node, -e]
+              args:
+                - "require('node:fs').copyFileSync('/evidence-src/providers.json', '/var/lib/pr-reviewer/cache/evidence-providers.json')"
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+                readOnlyRootFilesystem: true
+          containers:
+            main:
+              image:
+                repository: ghcr.io/misospace/pr-reviewer-controller
+                tag: sha-1799b9f750a28764b0afc441a7e840acbfe50137
+                digest: sha256:0abfb5f2c8179089fea7f92d6ff310e8962b7676621f10fc09a4440835c5d946
+                pullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+
+      service:
+        webhook:
+          enabled: false
+
+      persistence:
+        durable-state:
+          existingClaim: pr-reviewer-state
+        runs:
+          existingClaim: pr-reviewer-runs
+        workspace-cache:
+          existingClaim: pr-reviewer-workspace
+        evidence-src:
+          type: configMap
+          name: pr-reviewer-evidence
+          globalMounts:
+            - path: /evidence-src
+              readOnly: true
+
+    workerExecutor:
+      mode: kubernetes
+      namespace: pr-reviewer
+      serviceAccount:
+        create: true
+        name: pr-reviewer-worker
+      rbac:
+        create: true
+      image:
+        repository: ghcr.io/misospace/pr-reviewer-worker
+        tag: sha-1799b9f750a28764b0afc441a7e840acbfe50137
+      volumeClaims: []
+      ttlSecondsAfterFinished: 1800
+
+    # The upstream generic NetworkPolicy permits arbitrary HTTPS egress
+    # and omits this cluster's internal HTTP model port. Replace it with
+    # explicit namespace-scoped Cilium policies below.
+    networkPolicy:
+      enabled: false
+    serviceMonitor:
+      enabled: false

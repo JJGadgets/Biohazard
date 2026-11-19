@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pr-reviewer-state
+  namespace: pr-reviewer
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: block
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Controller and ephemeral worker Jobs may run on different nodes.
+# Both must see the same paths; use a shared CephFS RWX claim.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pr-reviewer-runs
+  namespace: pr-reviewer
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: file
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pr-reviewer-workspace
+  namespace: pr-reviewer
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: file
+  resources:
+    requests:
+      storage: 20Gi
