@@ -424,7 +424,7 @@ spec:
       egress.internal/telegram: allow
   egress:
     - toFQDNs: &dns
-        - matchName: "api.telegram.com"
+        - matchName: "api.telegram.org"
       toPorts:
         - ports:
             - port: "443"
