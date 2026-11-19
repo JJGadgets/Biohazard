@@ -32,6 +32,34 @@ spec:
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
+  name: qwen3.8-27b-iq5r-v4-radiance
+  namespace: llmkube
+spec:
+  source: hf://StillDeadcode/qwen3.8-27b-iqr-v4@e5f1b3ef70741d705a64a28b852acf3fcefcead7
+  files:
+    - qwen3.8-27b-iq5r-v4.rad
+  format: custom
+  quantization: IQ5R-V4
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  hardware:
+    accelerator: rocm
+    gpu:
+      enabled: true
+      vendor: amd
+      count: 1
+      # DRA owns placement; the existing claim can be shared within llmkube.
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: r9700
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
   name: qwen3.8-27b-swift-m2xfp4-radiance
   namespace: llmkube
 spec:
@@ -73,7 +101,7 @@ spec:
     prom.home.arpa/kps: allow
   podAnnotations:
     fluentbit.io/parser: "logfmt"
-  modelRef: qwen3.8-27b-radiance
+  modelRef: qwen3.8-27b-swift-m2xfp4-radiance
   runtime: generic
   # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
   image: docker.io/stilldeadcode/radiance:1.17.0@sha256:6fb0e99bfb862e17cc15cb7b2f116c7dbdc831df59f82456a0691122e6cf5330
@@ -121,7 +149,9 @@ spec:
     - --kv-cache-dtype
     - fp8
     - --num-speculative-tokens
-    - "3" # TODO: test this out, starting with 3
+    - "auto"
+    - --draft-short-from
+    - "3"
     # Leave only the recommended kernel/driver headroom; reserve the rest for
     # model weights and paged FP8 KV in Radiance's automatic placement planner.
     - --gpu-headroom-mib
@@ -231,7 +261,7 @@ spec:
   podAnnotations:
     fluentbit.io/parser: "logfmt"
   # modelRef: qwen3.8-27b-radiance
-  modelRef: qwen3.8-27b-swift-m2xfp4-radiance
+  modelRef: qwen3.8-27b-iq5r-v4-radiance
   runtime: generic
   # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
   image: docker.io/stilldeadcode/radiance:1.17.0@sha256:6fb0e99bfb862e17cc15cb7b2f116c7dbdc831df59f82456a0691122e6cf5330
@@ -280,10 +310,10 @@ spec:
     - bf16
     - --state-cache-dtype
     - f32
-    # - --num-speculative-tokens
+    - --num-speculative-tokens
+    - "auto"
+    # - --draft-short-from
     # - "3"
-    - --draft-short-from
-    - "3"
     # Leave only the recommended kernel/driver headroom; reserve the rest for
     # model weights and paged FP8 KV in Radiance's automatic placement planner.
     - --gpu-headroom-mib
