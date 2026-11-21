@@ -18,7 +18,8 @@ spec:
   podMetricsEndpoints:
     - port: http
       path: /metrics
-      interval: 60s
+      interval: 10s
+      scrapeTimeout: 8s
       relabelings:
         - targetLabel: job
           replacement: llmkube-inference
