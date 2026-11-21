@@ -138,7 +138,7 @@ spec:
     waitForIdle: true
     idleTimeoutSeconds: 900
   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
-  args:
+  # args:
     # - --live # log tokens per second
     # - --model
     # - "$(LLMKUBE_MODEL_PATH)"
