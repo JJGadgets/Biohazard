@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/model_v1alpha1.json
 # Qwen3.8-Flash-Next : the complete 92 GB GGUF includes the SSD-backed
 # PLE/n-gram table. Strata prepares its smaller native pack separately in /data.
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -11,12 +12,12 @@ spec:
   # File SHA256: 7aa36d15131d255179ab6c87fa9c9f81a0b541fc9e81e959d4c3e29eb20feb5f
   source: hf://agentionai/Qwen3.8-Flash-Next-Gyro-GGUF@257c95704b87e99d12e4b1cbd65794837009d587
   files:
-    # - Qwen3.8-Flash-Next-Gyro-M-TQ2_0-noPLE.gguf
-    - Qwen3.8-Flash-Next-Gyro-L-TQ3_0-noPLE.gguf
+    - Qwen3.8-Flash-Next-Gyro-M-TQ2_0-noPLE.gguf
+    # - Qwen3.8-Flash-Next-Gyro-L-TQ3_0-noPLE.gguf
     - mtp-Qwen3.8-Flash-Next-draft.gguf
   mmproj: mmproj-F16.gguf
   format: gguf
-  quantization: Gyro-L-TQ3_0
+  quantization: Gyro-M-TQ2_0
   prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
@@ -34,6 +35,7 @@ spec:
         - name: gpu
           resourceClaimName: r9700
 ---
+# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/model_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
