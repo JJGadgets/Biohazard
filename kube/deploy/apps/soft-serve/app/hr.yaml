@@ -24,6 +24,7 @@ spec:
             #db.home.arpa/pg: "pg-default"
             ingress.home.arpa/world: "allow"
             ingress.home.arpa/cluster: "allow"
+            egress.home.arpa/github: allow
         containers:
           main:
             image: &img
