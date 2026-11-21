@@ -1,0 +1,146 @@
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen3-tts-12hz-1.7b
+  namespace: llmkube
+spec:
+  source: hf://ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF@ca27d74bc954b73dadab5b71ca265d87fc861a7c
+  files:
+    - Qwen3-TTS-12Hz-1.7B-Base-Q8_0.gguf
+  mmproj: mmproj-Qwen3-TTS-12Hz-1.7B-Base-Q8_0.gguf
+  fileSha256:
+    Qwen3-TTS-12Hz-1.7B-Base-Q8_0.gguf: ac7931aeb2e7aad1a6ed6602d353a5679c9d096b18ce8204ac730a8408d572e1
+    mmproj-Qwen3-TTS-12Hz-1.7B-Base-Q8_0.gguf: 6fd65188839bcd6ecc91b277ad471e22a0edfada4699a0fe82f1165c18cfcce2
+  format: gguf
+  quantization: Q8_0
+  hardware:
+    accelerator: cuda
+    gpu:
+      enabled: true
+      vendor: nvidia
+      count: 1
+      layers: 99
+  prefetch: true
+  prefetchNodeSelector:
+    kubernetes.io/hostname: sinon
+  prefetchTolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  modelCache:
+    claimName: llmkube-models
+---
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen3-tts-12hz-1.7b
+  namespace: llmkube
+spec:
+  podLabels:
+    prom.home.arpa/kps: allow
+  modelRef: qwen3-tts-12hz-1.7b
+  runtime: llamacpp
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12-b12602@sha256:26f89ebd3bf17a5ecf6caee62bdabfa55abea3058150879f6f07b1fc786baa2d
+  # The NVIDIA plugin hands out a shared GPU slot on sinon. Check the GPU
+  # visible inside the serving container before loading any model weights.
+  command:
+    - /bin/sh
+    - -c
+    - |-
+      if ! gpu_name=$(nvidia-smi --query-gpu=name --format=csv,noheader); then
+        printf 'Could not identify the allocated NVIDIA GPU.\n' >&2
+        exit 1
+      fi
+      if [ "$gpu_name" != 'Tesla T4' ]; then
+        printf 'Expected exactly one Tesla T4, found: %s\n' "$gpu_name" >&2
+        exit 1
+      fi
+      exec /app/llama-server "$@"
+    - llama-server
+  nodeSelector:
+    kubernetes.io/hostname: sinon
+  tolerations:
+    - key: llm.internal
+      operator: Exists
+      effect: NoSchedule
+  replicas: 1
+  endpoint:
+    port: 8080
+    path: /v1/audio/speech
+    type: ClusterIP
+  modelCache:
+    claimName: llmkube-models
+    prefetch: true
+  resources:
+    gpu: 1
+    cpu: "10m"
+    memory: 6Gi
+    memoryLimit: 6Gi
+  contextSize: 4096
+  parallelSlots: 1
+  flashAttention: true
+  batchSize: 256
+  uBatchSize: 128
+  extraArgs:
+    - --load-mode
+    # - mlock
+    - none
+  env:
+    - name: TZ
+      value: Asia/Singapore
+    - name: LLAMA_ARG_OFFLINE
+      value: enabled
+    - name: LLAMA_ARG_ALIAS
+      value: qwen3-tts-12hz-1.7b
+    - name: LLAMA_ARG_DEVICE
+      value: CUDA0
+    - name: CUDA_DEVICE_ORDER
+      value: PCI_BUS_ID
+    - name: LLAMA_ARG_THREADS
+      value: "4"
+    # - name: LLAMA_ARG_CACHE_TYPE_K
+    #   value: q8_0
+    # - name: LLAMA_ARG_CACHE_TYPE_V
+    #   value: q8_0
+    - name: LLAMA_ARG_CACHE_PROMPT
+      value: disabled
+    - name: LLAMA_ARG_KV_UNIFIED
+      value: enabled
+    - name: LLAMA_ARG_CONT_BATCHING
+      value: enabled
+    - name: LLAMA_ARG_ENDPOINT_METRICS
+      value: enabled
+    - name: LLAMA_ARG_LOG_VERBOSITY
+      value: "4"
+    - name: CUDA_CACHE_PATH
+      value: /tmp/.nv
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      # add:
+      #   - IPC_LOCK
+    seccompProfile:
+      type: RuntimeDefault
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: ${APP_UID_LLMKUBE:=65536}
+    runAsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroup: ${APP_UID_LLMKUBE:=65536}
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  extraVolumes:
+    - name: tmp
+      emptyDir:
+        medium: Memory
+        sizeLimit: 16Mi
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
