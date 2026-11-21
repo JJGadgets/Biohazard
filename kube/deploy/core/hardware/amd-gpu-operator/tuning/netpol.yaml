@@ -1,0 +1,16 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: r9700-tuning-deny
+  namespace: amd-gpu-operator
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: r9700-tuning
+  ingressDeny:
+    - fromEntities:
+        - all
+  egressDeny:
+    - toEntities:
+        - all

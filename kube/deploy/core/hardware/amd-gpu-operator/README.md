@@ -37,3 +37,33 @@ Sources:
 - https://github.com/ROCm/gpu-operator/releases/tag/v1.5.1
 - https://github.com/ROCm/k8s-gpu-dra-driver/releases/tag/v1.0.1
 - https://kubernetes.io/docs/concepts/resource-management/dynamic-resource-allocation/dra-api/
+
+## R9700 startup tuning
+
+A DaemonSet runs a privileged init container on `sinon` at pod startup. It
+checks PCI address `0000:03:00.0` is AMD device `1002:7551`, then sets a
+-75 mV voltage offset, 70°C automatic fan target, and 250 W power cap. The
+init container logs the resulting driver readback; its unprivileged companion
+keeps the pod alive without polling. A GPU or driver reset after startup may
+reset settings; restart the pod to apply them again.
+
+The supplied sysfs inventory did not expose `pp_od_clk_voltage` or
+`gpu_od/fan_ctrl/fan_target_temperature`. The init container will fail until
+the driver exposes both controls (including any required overdrive kernel
+configuration). Check init-container logs and validate the reported settings
+and GPU stability on the hardware before relying on them. A failed write can
+leave earlier settings applied; investigate the logs before retrying.
+
+The voltage and fan controls follow the [kernel AMDGPU documentation](https://docs.kernel.org/gpu/amdgpu/thermal.html).
+
+The driver must support voltage offsets and the automatic fan-target interface
+for this card, and its firmware must expose ranges including the requested
+values. AMDGPU OverDrive uses bit `0x4000` in `amdgpu.ppfeaturemask`. If the
+interfaces are absent, inspect the running mask at
+`/sys/module/amdgpu/parameters/ppfeaturemask`, preserve its other bits, and
+set bit `0x4000` in the Talos kernel command line (for example, the upstream
+Linux default `0xfff7bfff` becomes `amdgpu.ppfeaturemask=0xfff7ffff`). The
+actual running mask and hardware support must be checked on `sinon`; this
+repository does not configure that node's boot parameters. Reboot after any
+boot-parameter change and confirm the interfaces and their advertised ranges
+before reconciliation. See the kernel's [feature mask definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/amd/include/amd_shared.h).
