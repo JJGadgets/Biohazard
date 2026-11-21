@@ -21,7 +21,7 @@ spec:
     - name: navidrome-pvc
   postBuild:
     substitute:
-      APP_TEMPLATE: 4.4.0
+      APP_TEMPLATE: 4.6.2
       CHART_NAME: *app
       AUTH_ROUTE: navidrome-app
 ---
