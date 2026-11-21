@@ -138,6 +138,9 @@ spec:
     waitForIdle: true
     idleTimeoutSeconds: 900
   # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
+  args:
+    - --config
+    - /config/config.yaml
   # args:
     # - --live # log tokens per second
     # - --model
