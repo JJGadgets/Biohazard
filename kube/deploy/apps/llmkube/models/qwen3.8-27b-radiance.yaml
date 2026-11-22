@@ -278,11 +278,11 @@ data:
     memory:
       gpu-headroom-mib: 24
     models:
-      qwen3.8-27b-radiance:
+      qwen3.8-27b-radiance: &27b
         model: /models/914951ec7d617dec/qwen3.8-27b-iq5r-v4.rad
         tp: 1
         max-model-len: 200000
-        max-num-seqs: 10
+        max-num-seqs: 6
         kv-cache-dtype: i8
         num-speculative-tokens: auto
         prefix-cache-mib: 16384
@@ -307,193 +307,13 @@ data:
         video-max-frames: 128
         video-max-frame-tokens: 768
         max-source-pixels: 67108864
----
-# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/inferenceservice_v1alpha1.json
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: InferenceService
-metadata:
-  name: qwen3.8-27b-pro-radiance
-  namespace: llmkube
-  annotations:
-    inference.llmkube.dev/idle-metric: "radiance:http_queue_depth"
-    inference.llmkube.dev/idle-metric-threshold: "0"
-    inference.llmkube.dev/idle-metric-path: "/metrics"
-spec:
-  podLabels:
-    prom.home.arpa/kps: allow
-  podAnnotations:
-    fluentbit.io/parser: "logfmt"
-  # modelRef: qwen3.8-27b-radiance
-  modelRef: qwen3.8-27b-iq5r-v4-radiance
-  runtime: generic
-  # Standalone Radiance (not vLLM or vllm-radiance), pinned to linux/amd64.
-  image: docker.io/stilldeadcode/radiance:1.17.0@sha256:6fb0e99bfb862e17cc15cb7b2f116c7dbdc831df59f82456a0691122e6cf5330
-  nodeSelector:
-    kubernetes.io/hostname: sinon
-  tolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
-  endpoint:
-    port: 8000
-    type: ClusterIP
-  modelCache:
-    claimName: llmkube-models
-    prefetch: true
-  stageModel: true
-  resources:
-    gpu: 1
-    cpu: "2"
-    memory: 24Gi
-    memoryLimit: 24Gi
-  parallelSlots: 6
-  startupTimeout: 45m
-  # Roll only when vllm:num_requests_running is 0, else after 15 min.
-  rolloutPolicy:
-    waitForIdle: true
-    idleTimeoutSeconds: 900
-  # Unlike vLLM, generic runtimes take spec.args verbatim, not extraArgs.
-  args:
-    - --live # log tokens per second
-    - --model
-    - "$(LLMKUBE_MODEL_PATH)"
-    - --served-model-name
-    - qwen3.8-27b-pro-radiance
-    - --host
-    - 0.0.0.0
-    - --port
-    - "8000"
-    - --tp
-    - "1"
-    - --max-model-len
-    - "165000"
-    - --max-num-seqs
-    - "8"
-    - --kv-cache-dtype
-    - bf16
-    - --state-cache-dtype
-    - f32
-    - --num-speculative-tokens
-    - "auto"
-    # - --draft-short-from
-    # - "3"
-    # Leave only the recommended kernel/driver headroom; reserve the rest for
-    # model weights and paged FP8 KV in Radiance's automatic placement planner.
-    - --gpu-headroom-mib
-    - "50"
-    # Radiance uses MiB for the pinned CPU-side conversation KV cache.
-    - --prefix-cache-mib
-    - "16384"
-    - --placement
-    - all_vram
-    # - --embedding-placement
-    # - vram
-    # CPU-resident multimodal tower, with GPU execution of vision kernels.
-    - --vision-tower-placement
-    - vram
-    - --override-chat-template
-    - /chat-template/ffba7aa4ee3093e1/chat_template.jinja
-    - --chat-template-kwargs
-    - '{"preserve_thinking":true}'
-    - --no-cors
-    - --temp
-    - "1.0"
-    - --top-k
-    - "20"
-    - --top-p
-    - "0.95"
-    - --min-p
-    - "0.0"
-    - --presence-penalty
-    - "0.0"
-    - --repetition-penalty
-    - "1.0"
-    - --reasoning-effort
-    - medium
-    - --mm-max-patches
-    - "16384"
-    - --image-min-pixels
-    - "65536"
-    - --image-max-pixels
-    - "4194304"
-    - --video-min-pixels
-    - "4096"
-    - --video-max-pixels
-    - "100663296"
-    - --video-fps
-    - "2"
-    - --video-min-frames
-    - "4"
-    - --video-max-frames
-    - "128"
-    - --video-max-frame-tokens
-    - "768"
-    - --max-source-pixels
-    - "67108864"
-  env:
-    - name: TZ
-      value: Asia/Singapore
-    - name: HOME
-      value: /tmp
-    - name: XDG_CACHE_HOME
-      value: /tmp
-    - name: HF_HUB_OFFLINE
-      value: "1"
-    - name: TMPDIR
-      value: /tmp
-  extraVolumes:
-    - name: chat-template
-      persistentVolumeClaim:
-        claimName: llmkube-templates
-        readOnly: true
-    - name: tmp
-      emptyDir:
-        sizeLimit: 1Gi
-  extraVolumeMounts:
-    - name: chat-template
-      mountPath: /chat-template
-      readOnly: true
-    - name: tmp
-      mountPath: /tmp
-  probeOverrides:
-    startup:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 10
-      timeoutSeconds: 5
-      failureThreshold: 270
-    readiness:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 10
-      timeoutSeconds: 5
-    liveness:
-      httpGet:
-        path: /health
-        port: 8000
-      periodSeconds: 30
-      timeoutSeconds: 5
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroup: ${APP_UID_LLMKUBE:=65536}
-    fsGroupChangePolicy: OnRootMismatch
-    seccompProfile:
-      type: RuntimeDefault
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: ${APP_UID_LLMKUBE:=65536}
-    runAsGroup: ${APP_UID_LLMKUBE:=65536}
-    readOnlyRootFilesystem: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: RuntimeDefault
+      # qwen3.8-27b-pro-radiance:
+      #   <<: *27b
+      #   max-model-len: 200000
+      #   max-num-seqs: 3
+      #   kv-cache-dtype: bf16
+      #   num-speculative-tokens: 0
+      #   vision-tower-placement: vram
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/inferenceservice_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
