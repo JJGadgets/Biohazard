@@ -41,7 +41,7 @@ spec:
     prom.home.arpa/kps: allow
   modelRef: qwen3-tts-12hz-1.7b
   runtime: llamacpp
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:f8e7c336e3660804f6bc35a4147dbfdf1ddae9b7c3c50d412fab49b323e28fea
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:fbd1c7239e4a14fdb973aa114add9ab7057f10ff632f6147890ff1843a607f3b
   # The NVIDIA plugin hands out a shared GPU slot on sinon. Check the GPU
   # visible inside the serving container before loading any model weights.
   nodeSelector:
