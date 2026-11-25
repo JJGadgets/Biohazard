@@ -13,7 +13,7 @@ spec:
     - qwen3.8-27b-mxfp4.rad
   format: custom
   quantization: MXFP4
-  prefetch: true
+  # prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
@@ -35,15 +35,16 @@ spec:
 apiVersion: inference.llmkube.dev/v1alpha1
 kind: Model
 metadata:
-  name: qwen3.8-27b-iq5r-v4-radiance
+  name: qwen3.8-27b-iqr-v4-radiance
   namespace: llmkube
 spec:
   source: hf://StillDeadcode/qwen3.8-27b-iqr-v4@e5f1b3ef70741d705a64a28b852acf3fcefcead7
   files:
     - qwen3.8-27b-iq5r-v4.rad
+    - qwen3.8-27b-iq4r-s-v4.rad
   format: custom
-  quantization: IQ5R-V4
-  prefetch: true
+  quantization: IQR-V4
+  # prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
@@ -60,6 +61,36 @@ spec:
       resourceClaims:
         - name: gpu
           resourceClaimName: r9700
+# ---
+# # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/model_v1alpha1.json
+# apiVersion: inference.llmkube.dev/v1alpha1
+# kind: Model
+# metadata:
+#   name: qwen3.8-27b-iq4r-s-v4-radiance
+#   namespace: llmkube
+# spec:
+#   source: hf://StillDeadcode/qwen3.8-27b-iqr-v4@e5f1b3ef70741d705a64a28b852acf3fcefcead7
+#   files:
+#     - qwen3.8-27b-iq4r-s-v4.rad
+#   format: custom
+#   quantization: IQ4R-S-V4
+#   prefetch: true
+#   prefetchNodeSelector:
+#     kubernetes.io/hostname: sinon
+#   prefetchTolerations:
+#     - key: llm.internal
+#       operator: Exists
+#       effect: NoSchedule
+#   hardware:
+#     accelerator: rocm
+#     gpu:
+#       enabled: true
+#       vendor: amd
+#       count: 1
+#       # DRA owns placement; the existing claim can be shared within llmkube.
+#       resourceClaims:
+#         - name: gpu
+#           resourceClaimName: r9700
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/model_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -75,7 +106,7 @@ spec:
     - swift1.5-qwen3.8-27b-m2xfp4-gptqchal-ssmoutfp8-df2.rad
   format: custom
   quantization: M2XFP4
-  prefetch: true
+  # prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
@@ -279,13 +310,12 @@ data:
       gpu-headroom-mib: 24
     models:
       qwen3.8-27b-radiance: &27b
-        model: /models/914951ec7d617dec/qwen3.8-27b-iq5r-v4.rad
+        model: /models/914951ec7d617dec/qwen3.8-27b-iq4r-s-v4.rad
         tp: 1
         max-model-len: 200000
         max-num-seqs: 6
         kv-cache-dtype: i8
         num-speculative-tokens: auto
-        prefix-cache-mib: 16384
         embedding-placement: ram
         vision-tower-placement: ram
         override-chat-template: /chat-template/ffba7aa4ee3093e1/chat_template.jinja
@@ -307,8 +337,10 @@ data:
         video-max-frames: 128
         video-max-frame-tokens: 768
         max-source-pixels: 67108864
+        prefix-cache-mib: 16384
       # qwen3.8-27b-pro-radiance:
       #   <<: *27b
+      #   model: /models/914951ec7d617dec/qwen3.8-27b-iq5r-v4.rad
       #   max-model-len: 200000
       #   max-num-seqs: 3
       #   kv-cache-dtype: bf16
