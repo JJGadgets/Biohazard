@@ -189,7 +189,31 @@ spec:
             sectionName: internal
         # NOTE: `manifest.webmanifest must be excluded as unauth on authentik forward auth provider for PWA install to work`
         rules:
-          - backendRefs:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - identifier: app
+                port: http
+      node: &route
+        hostnames: ["${APP_DNS_OPENCLAW_NODE:=openclaw-node}"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: ingress
+            sectionName: internal
+        # NOTE: `manifest.webmanifest must be excluded as unauth on authentik forward auth provider for PWA install to work`
+        rules:
+          - matches:
+              - method: GET
+                path:
+                  type: Exact
+                  value: /
+                headers:
+                  - type: Exact
+                    name: Upgrade
+                    value: websocket
+            backendRefs:
               - identifier: app
                 port: http
       opencode:
