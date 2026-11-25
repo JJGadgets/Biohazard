@@ -38,7 +38,7 @@ spec:
   modelRef: qwen3-embedding-0.6b
   runtime: llamacpp
   mode: embedding
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:fbd1c7239e4a14fdb973aa114add9ab7057f10ff632f6147890ff1843a607f3b
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:2855fd7d0f5781e289a8108c3abd0744d19621314641b97421c038be836ed373
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
@@ -166,7 +166,7 @@ spec:
   modelRef: qwen3-embedding-4b
   runtime: llamacpp
   mode: embedding
-  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:fbd1c7239e4a14fdb973aa114add9ab7057f10ff632f6147890ff1843a607f3b
+  image: ghcr.io/ggml-org/llama.cpp:server-cuda12@sha256:2855fd7d0f5781e289a8108c3abd0744d19621314641b97421c038be836ed373
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
