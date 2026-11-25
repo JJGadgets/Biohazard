@@ -15,10 +15,10 @@ spec:
     - Qwen3.8-Flash-Next-Gyro-M-TQ2_0-noPLE.gguf
     # - Qwen3.8-Flash-Next-Gyro-L-TQ3_0-noPLE.gguf
     - mtp-Qwen3.8-Flash-Next-draft.gguf
+    - https://huggingface.co/unsloth/Qwen3.8-Flash-Next-GGUF/resolve/f5d175de2cf7f720d45d6064019a81fcf056e986/engram/Qwen3.8-Flash-Next-engram-Q8_0.gguf_file
   mmproj: mmproj-F16.gguf
   format: gguf
   quantization: Gyro-M-TQ2_0
-  prefetch: true
   prefetchNodeSelector:
     kubernetes.io/hostname: sinon
   prefetchTolerations:
@@ -34,25 +34,6 @@ spec:
       resourceClaims:
         - name: gpu
           resourceClaimName: r9700
----
-# yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/model_v1alpha1.json
-apiVersion: inference.llmkube.dev/v1alpha1
-kind: Model
-metadata:
-  name: qwen3.8-flash-next-ple-q8-gguf
-  namespace: llmkube
-spec:
-  source: hf://unsloth/Qwen3.8-Flash-Next-GGUF@f5d175de2cf7f720d45d6064019a81fcf056e986 # 3d127833075862de
-  files:
-    - engram/Qwen3.8-Flash-Next-engram-Q8_0.gguf_file
-  format: gguf
-  prefetch: true
-  prefetchNodeSelector:
-    kubernetes.io/hostname: sinon
-  prefetchTolerations:
-    - key: llm.internal
-      operator: Exists
-      effect: NoSchedule
 ---
 # yaml-language-server: $schema=https://crds.jank.ing/inference.llmkube.dev/inferenceservice_v1alpha1.json
 apiVersion: inference.llmkube.dev/v1alpha1
@@ -136,7 +117,7 @@ spec:
     - name: STRATA_ALLOWED_HOSTS
       value: "llmkube,${APP_DNS_LLMKUBE:=llmkube},qwen3-8-flash-next-strata,qwen3-8-flash-next-strata.llmkube.svc,qwen3-8-flash-next-strata.llmkube.svc.cluster.local,qwen3.8-flash-next-strata,qwen3.8-flash-next-strata.llmkube.svc.cluster.local"
     - name: STRATA_SET
-      value: "reasoning-effort=medium ple-gguf=/models/3d127833075862de/Qwen3.8-Flash-Next-PLE-Q8_0.gguf"
+      value: "reasoning-effort=medium ple-gguf=$(LLMKUBE_MODEL_DIR)/Qwen3.8-Flash-Next-PLE-Q8_0.gguf"
   args:
     - run
     - --draft-model
