@@ -185,8 +185,8 @@ spec:
   members:
     - inferenceServiceRef:
         name: qwen3.8-27b-radiance
-    - inferenceServiceRef:
-        name: qwen3.8-27b-pro-radiance
+    # - inferenceServiceRef:
+    #     name: qwen3.8-27b-pro-radiance
     - inferenceServiceRef:
         name: qwen3.8-27b-context-radiance
     # - inferenceServiceRef:
@@ -214,10 +214,10 @@ spec:
       displayName: qwen3.8-27b
       inferenceServiceRef:
         name: qwen3.8-27b-radiance
-    - name: qwen3-8-27b-pro-radiance
-      displayName: qwen3.8-27b-pro
-      inferenceServiceRef:
-        name: qwen3.8-27b-pro-radiance
+    # - name: qwen3-8-27b-pro-radiance
+    #   displayName: qwen3.8-27b-pro
+    #   inferenceServiceRef:
+    #     name: qwen3.8-27b-pro-radiance
     - name: qwen3-8-27b-context-radiance
       displayName: qwen3.8-27b-context
       inferenceServiceRef:
@@ -284,20 +284,21 @@ spec:
       match:
         models:
           - qwen3.8-27b
-      route:
-        backends:
-          - qwen3-8-27b-radiance
-          - qwen3-8-27b-pro-radiance
-          - qwen3-8-27b-context-radiance
-        poolActivation: IfIdle
-    - name: qwen3-8-27b-pro
-      match:
-        models:
           - qwen3.8-27b-pro
       route:
         backends:
-          - qwen3-8-27b-pro-radiance
-        poolActivation: Wait
+          - qwen3-8-27b-radiance
+          # - qwen3-8-27b-pro-radiance
+          - qwen3-8-27b-context-radiance
+        poolActivation: IfIdle
+    # - name: qwen3-8-27b-pro
+    #   match:
+    #     models:
+    #       - qwen3.8-27b-pro
+    #   route:
+    #     backends:
+    #       - qwen3-8-27b-pro-radiance
+    #     poolActivation: Wait
     - name: qwen3-8-27b-context
       match:
         models:
@@ -421,7 +422,7 @@ spec:
           - auto
       route:
         backends:
-          - qwen3-8-27b-pro-radiance
+          # - qwen3-8-27b-pro-radiance
           - qwen3-8-27b-radiance
           - qwen3-8-27b-context-radiance
           - qwen3-8-flash-next-strata
@@ -434,7 +435,7 @@ spec:
           - auto-vision
       route:
         backends:
-          - qwen3-8-27b-pro-radiance
+          # - qwen3-8-27b-pro-radiance
           - qwen3-8-27b-radiance
           - qwen3-8-27b-context-radiance
           # - qwen3-8-flash-next-radiance
