@@ -52,7 +52,7 @@ spec:
   modelRef: qwen3.8-flash-next-strata
   runtime: generic
   # Upstream Strata's gfx120x HIP build; pin both release and image digest.
-  image: ghcr.io/niko1221/strata:0.2.13-rocm-gfx120x@sha256:c68ebd4ecbf73f7f450bea4a60bbc014be83d78c9fbfbdc16df6f553cb442235
+  image: ghcr.io/niko1221/strata:0.2.22-rocm-gfx120x@sha256:091093e311d7fceb39fe93df3a7db3741b2d2cc6999d71a685441280437be18b
   nodeSelector:
     kubernetes.io/hostname: sinon
   tolerations:
@@ -231,7 +231,7 @@ spec:
       containers:
         - name: prepare
           # Matches the existing Strata InferenceService.
-          image: ghcr.io/niko1221/strata:0.2.13-rocm-gfx120x@sha256:c68ebd4ecbf73f7f450bea4a60bbc014be83d78c9fbfbdc16df6f553cb442235
+          image: ghcr.io/niko1221/strata:0.2.22-rocm-gfx120x@sha256:091093e311d7fceb39fe93df3a7db3741b2d2cc6999d71a685441280437be18b
           imagePullPolicy: IfNotPresent
 
           # Bypass the serving entrypoint.
