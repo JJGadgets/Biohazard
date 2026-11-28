@@ -28,7 +28,7 @@ spec:
           main:
             image: &img
               repository: jank.ing/jjgadgets/piped-frontend
-              tag: rolling@sha256:95f15614b1d7d30dbb82d56ec758cec554745a9f7f426f2e36d90f32b9f0e6dc
+              tag: rolling@sha256:24c49e7a9a9b3de13c19e374d58237a22d04f73b47da09c0c75242dbba131243
             env: &env
               TZ: "${CONFIG_TZ}"
               BACKEND_HOSTNAME: "${APP_DNS_PIPED_BACKEND:=piped}"
